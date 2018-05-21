@@ -9,6 +9,12 @@ Description:
     I built this unoffcial tensorflow-gpu for MAC OSX so that
     Hackintosh users or Mac users with eGPU can run tensorflow-gpu with CUDA.
 
+NOTICE:
+
+    This version will not supports multi-cpu/machine training.
+    
+    It's not like you are gonna need it anyway.
+
 INSTALL:
 
     pip3 install tensorflow-gpu-macosx
