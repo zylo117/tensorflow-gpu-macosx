@@ -10,6 +10,7 @@ Description:
     Hackintosh users or Mac users with eGPU can run tensorflow-gpu with CUDA.
 
 INSTALL:
+
     pip3 install tesnsorflow-gpu-macosx
 
 Requirement:
