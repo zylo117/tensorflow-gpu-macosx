@@ -11,7 +11,7 @@ Description:
 
 INSTALL:
 
-    pip3 install tesnsorflow-gpu-macosx
+    pip3 install tensorflow-gpu-macosx
 
 Requirement:
 
