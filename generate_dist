@@ -1,0 +1,2 @@
+cd $(cd `dirname $0`; pwd)
+python3 setup.py sdist
