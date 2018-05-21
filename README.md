@@ -1,9 +1,27 @@
 # tensorflow-gpu-macosx
 
+Unoffcial NVIDIA CUDA GPU support version of Google Tensorflow for MAC OSX 10.13
+
+Description:
+    Since Google Tensorflow claimed that tensorflow-gpu no longer
+    supports MAC OSX due to the OpenMP issue of clang of Apple,
+    I build this unoffcial tensorflow-gpu for MAC OSX so that
+    hackintosh users or Mac users with eGPU can run tensorflow.
+
+Requirement:
+    1. Must use python3 instead of python2
+    2. Must be installed on MAC OSX 10.6+
+    3. Must install Nvidia GPU drivers
+    4. Must install Nvidia CUDA toolkit 9.1
+    5. Must install Nvidia CUDA cudnn 7.0
+    6. Must set up cuda environment (make sure 'nvcc -V' show the cuda version '9.1')
 
 USAGE:
 1. run 'generate_dist' to generate dist from src
 2. python3 install ./dist/*.tar.gz
+
+
+************************************************************************************************************************
 
 HOW TO BUILD TENSORFLOW-GPU FOR MAC OSX?
 
