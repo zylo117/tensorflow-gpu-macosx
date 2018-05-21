@@ -31,7 +31,7 @@ Requirement:
 
     5. Must install Nvidia CUDA cudnn 7.0
 
-    6. Must set up cuda environment (make sure 'nvcc -V' show the cuda version '9.1')
+    6. Must set up cuda environment (make sure 'nvcc -V' shows the cuda version '9.1')
 
 
 USAGE:
@@ -54,7 +54,7 @@ HOW TO BUILD TENSORFLOW-GPU FOR MAC OSX?
 
 3.INSTALL NVIDIA CUDA CUDNN (7.0 OR LATER)
 
-4.SET UP CUDA ENVIRONMENT (MAKE SURE 'nvcc -V' WORKS AND PRINT CUDA VERSION)
+4.SET UP CUDA ENVIRONMENT (MAKE SURE 'nvcc -V' WORKS AND PRINTS CUDA VERSION)
 
 5.INSTALL XCODE/COMMAND LINE TOOL 9
 
