@@ -41,8 +41,8 @@ def _assert(condition, data, summarize=3, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if summarize is None:
       summarize = 3
     summarize = _execute.make_int(summarize, "summarize")
@@ -56,13 +56,13 @@ def _assert(condition, data, summarize=3, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Assert", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Assert", name,
         _ctx._post_execution_callbacks, condition, data, "summarize",
         summarize)
       return _result
     except _core._FallbackException:
       return _assert_eager_fallback(
-          condition, data, summarize=summarize, name=name)
+          condition, data, summarize=summarize, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -71,11 +71,11 @@ def _assert(condition, data, summarize=3, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def _assert_eager_fallback(condition, data, summarize=3, name=None):
+def _assert_eager_fallback(condition, data, summarize=3, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function _assert
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if summarize is None:
     summarize = 3
   summarize = _execute.make_int(summarize, "summarize")
@@ -116,8 +116,8 @@ def audio_summary(tag, tensor, sample_rate, max_outputs=3, name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     sample_rate = _execute.make_float(sample_rate, "sample_rate")
     if max_outputs is None:
       max_outputs = 3
@@ -137,14 +137,14 @@ def audio_summary(tag, tensor, sample_rate, max_outputs=3, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "AudioSummary", name,
-        _ctx._post_execution_callbacks, tag, tensor, "sample_rate",
+        _ctx._context_handle, _ctx._eager_context.device_name, "AudioSummary",
+        name, _ctx._post_execution_callbacks, tag, tensor, "sample_rate",
         sample_rate, "max_outputs", max_outputs)
       return _result
     except _core._FallbackException:
       return audio_summary_eager_fallback(
           tag, tensor, sample_rate=sample_rate, max_outputs=max_outputs,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -153,11 +153,11 @@ def audio_summary(tag, tensor, sample_rate, max_outputs=3, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def audio_summary_eager_fallback(tag, tensor, sample_rate, max_outputs=3, name=None):
+def audio_summary_eager_fallback(tag, tensor, sample_rate, max_outputs=3, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function audio_summary
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   sample_rate = _execute.make_float(sample_rate, "sample_rate")
   if max_outputs is None:
     max_outputs = 3
@@ -202,8 +202,8 @@ def audio_summary_v2(tag, tensor, sample_rate, max_outputs=3, name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if max_outputs is None:
       max_outputs = 3
     max_outputs = _execute.make_int(max_outputs, "max_outputs")
@@ -221,13 +221,14 @@ def audio_summary_v2(tag, tensor, sample_rate, max_outputs=3, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "AudioSummaryV2", name,
-        _ctx._post_execution_callbacks, tag, tensor, sample_rate,
-        "max_outputs", max_outputs)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "AudioSummaryV2", name, _ctx._post_execution_callbacks, tag, tensor,
+        sample_rate, "max_outputs", max_outputs)
       return _result
     except _core._FallbackException:
       return audio_summary_v2_eager_fallback(
-          tag, tensor, sample_rate, max_outputs=max_outputs, name=name)
+          tag, tensor, sample_rate, max_outputs=max_outputs, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -236,11 +237,11 @@ def audio_summary_v2(tag, tensor, sample_rate, max_outputs=3, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def audio_summary_v2_eager_fallback(tag, tensor, sample_rate, max_outputs=3, name=None):
+def audio_summary_v2_eager_fallback(tag, tensor, sample_rate, max_outputs=3, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function audio_summary_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if max_outputs is None:
     max_outputs = 3
   max_outputs = _execute.make_int(max_outputs, "max_outputs")
@@ -257,7 +258,7 @@ def audio_summary_v2_eager_fallback(tag, tensor, sample_rate, max_outputs=3, nam
   return _result
 
 
-def _histogram_summary(tag, values, name=None):
+def histogram_summary(tag, values, name=None):
   r"""Outputs a `Summary` protocol buffer with a histogram.
 
   The generated
@@ -276,8 +277,8 @@ def _histogram_summary(tag, values, name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "HistogramSummary", tag=tag, values=values, name=name)
     _result = _op.outputs[:]
@@ -291,12 +292,12 @@ def _histogram_summary(tag, values, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "HistogramSummary", name,
-        _ctx._post_execution_callbacks, tag, values)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "HistogramSummary", name, _ctx._post_execution_callbacks, tag, values)
       return _result
     except _core._FallbackException:
-      return _histogram_summary_eager_fallback(
-          tag, values, name=name)
+      return histogram_summary_eager_fallback(
+          tag, values, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -305,11 +306,11 @@ def _histogram_summary(tag, values, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def _histogram_summary_eager_fallback(tag, values, name=None):
+def histogram_summary_eager_fallback(tag, values, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
-  This is for function _histogram_summary
+  This is for function histogram_summary
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (values,) = _execute.args_to_matching_eager([values], _ctx, _dtypes.float32)
   tag = _ops.convert_to_tensor(tag, _dtypes.string)
   _inputs_flat = [tag, values]
@@ -374,8 +375,8 @@ def image_summary(tag, tensor, max_images=3, bad_color=_execute.make_tensor("""d
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if max_images is None:
       max_images = 3
     max_images = _execute.make_int(max_images, "max_images")
@@ -397,13 +398,14 @@ def image_summary(tag, tensor, max_images=3, bad_color=_execute.make_tensor("""d
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ImageSummary", name,
-        _ctx._post_execution_callbacks, tag, tensor, "max_images", max_images,
-        "bad_color", bad_color)
+        _ctx._context_handle, _ctx._eager_context.device_name, "ImageSummary",
+        name, _ctx._post_execution_callbacks, tag, tensor, "max_images",
+        max_images, "bad_color", bad_color)
       return _result
     except _core._FallbackException:
       return image_summary_eager_fallback(
-          tag, tensor, max_images=max_images, bad_color=bad_color, name=name)
+          tag, tensor, max_images=max_images, bad_color=bad_color, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -412,11 +414,11 @@ def image_summary(tag, tensor, max_images=3, bad_color=_execute.make_tensor("""d
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def image_summary_eager_fallback(tag, tensor, max_images=3, bad_color=_execute.make_tensor("""dtype: DT_UINT8 tensor_shape { dim { size: 4 } } int_val: 255 int_val: 0 int_val: 0 int_val: 255""", "bad_color"), name=None):
+def image_summary_eager_fallback(tag, tensor, max_images=3, bad_color=_execute.make_tensor("""dtype: DT_UINT8 tensor_shape { dim { size: 4 } } int_val: 255 int_val: 0 int_val: 0 int_val: 255""", "bad_color"), name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function image_summary
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if max_images is None:
     max_images = 3
   max_images = _execute.make_int(max_images, "max_images")
@@ -455,8 +457,8 @@ def merge_summary(inputs, name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(inputs, (list, tuple)):
       raise TypeError(
           "Expected list for 'inputs' argument to "
@@ -475,12 +477,12 @@ def merge_summary(inputs, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MergeSummary", name,
-        _ctx._post_execution_callbacks, inputs)
+        _ctx._context_handle, _ctx._eager_context.device_name, "MergeSummary",
+        name, _ctx._post_execution_callbacks, inputs)
       return _result
     except _core._FallbackException:
       return merge_summary_eager_fallback(
-          inputs, name=name)
+          inputs, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -489,11 +491,11 @@ def merge_summary(inputs, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def merge_summary_eager_fallback(inputs, name=None):
+def merge_summary_eager_fallback(inputs, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function merge_summary
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(inputs, (list, tuple)):
     raise TypeError(
         "Expected list for 'inputs' argument to "
@@ -530,8 +532,8 @@ def _print(input, data, message="", first_n=-1, summarize=3, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if message is None:
       message = ""
     message = _execute.make_str(message, "message")
@@ -557,14 +559,14 @@ def _print(input, data, message="", first_n=-1, summarize=3, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Print", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Print", name,
         _ctx._post_execution_callbacks, input, data, "message", message,
         "first_n", first_n, "summarize", summarize)
       return _result
     except _core._FallbackException:
       return _print_eager_fallback(
           input, data, message=message, first_n=first_n, summarize=summarize,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -573,11 +575,11 @@ def _print(input, data, message="", first_n=-1, summarize=3, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def _print_eager_fallback(input, data, message="", first_n=-1, summarize=3, name=None):
+def _print_eager_fallback(input, data, message="", first_n=-1, summarize=3, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function _print
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if message is None:
     message = ""
   message = _execute.make_str(message, "message")
@@ -600,7 +602,7 @@ def _print_eager_fallback(input, data, message="", first_n=-1, summarize=3, name
   return _result
 
 
-def _scalar_summary(tags, values, name=None):
+def scalar_summary(tags, values, name=None):
   r"""Outputs a `Summary` protocol buffer with scalar values.
 
   The input `tags` and `values` must have the same shape.  The generated summary
@@ -615,8 +617,8 @@ def _scalar_summary(tags, values, name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ScalarSummary", tags=tags, values=values, name=name)
     _result = _op.outputs[:]
@@ -630,12 +632,12 @@ def _scalar_summary(tags, values, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ScalarSummary", name,
-        _ctx._post_execution_callbacks, tags, values)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ScalarSummary", name, _ctx._post_execution_callbacks, tags, values)
       return _result
     except _core._FallbackException:
-      return _scalar_summary_eager_fallback(
-          tags, values, name=name)
+      return scalar_summary_eager_fallback(
+          tags, values, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -644,11 +646,11 @@ def _scalar_summary(tags, values, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def _scalar_summary_eager_fallback(tags, values, name=None):
+def scalar_summary_eager_fallback(tags, values, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
-  This is for function _scalar_summary
+  This is for function scalar_summary
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (values,) = _execute.args_to_matching_eager([values], _ctx)
   tags = _ops.convert_to_tensor(tags, _dtypes.string)
   _inputs_flat = [tags, values]
@@ -680,8 +682,8 @@ def tensor_summary(tensor, description="", labels=[], display_name="", name=None
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if description is None:
       description = ""
     description = _execute.make_str(description, "description")
@@ -711,14 +713,15 @@ def tensor_summary(tensor, description="", labels=[], display_name="", name=None
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TensorSummary", name,
-        _ctx._post_execution_callbacks, tensor, "description", description,
-        "labels", labels, "display_name", display_name)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TensorSummary", name, _ctx._post_execution_callbacks, tensor,
+        "description", description, "labels", labels, "display_name",
+        display_name)
       return _result
     except _core._FallbackException:
       return tensor_summary_eager_fallback(
           tensor, description=description, labels=labels,
-          display_name=display_name, name=name)
+          display_name=display_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -727,11 +730,11 @@ def tensor_summary(tensor, description="", labels=[], display_name="", name=None
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tensor_summary_eager_fallback(tensor, description="", labels=[], display_name="", name=None):
+def tensor_summary_eager_fallback(tensor, description="", labels=[], display_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tensor_summary
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if description is None:
     description = ""
   description = _execute.make_str(description, "description")
@@ -772,8 +775,8 @@ def tensor_summary_v2(tag, tensor, serialized_summary_metadata, name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorSummaryV2", tag=tag, tensor=tensor,
         serialized_summary_metadata=serialized_summary_metadata, name=name)
@@ -788,13 +791,13 @@ def tensor_summary_v2(tag, tensor, serialized_summary_metadata, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TensorSummaryV2", name,
-        _ctx._post_execution_callbacks, tag, tensor,
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TensorSummaryV2", name, _ctx._post_execution_callbacks, tag, tensor,
         serialized_summary_metadata)
       return _result
     except _core._FallbackException:
       return tensor_summary_v2_eager_fallback(
-          tag, tensor, serialized_summary_metadata, name=name)
+          tag, tensor, serialized_summary_metadata, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -803,11 +806,11 @@ def tensor_summary_v2(tag, tensor, serialized_summary_metadata, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tensor_summary_v2_eager_fallback(tag, tensor, serialized_summary_metadata, name=None):
+def tensor_summary_v2_eager_fallback(tag, tensor, serialized_summary_metadata, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tensor_summary_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (tensor,) = _execute.args_to_matching_eager([tensor], _ctx)
   tag = _ops.convert_to_tensor(tag, _dtypes.string)
   serialized_summary_metadata = _ops.convert_to_tensor(serialized_summary_metadata, _dtypes.string)
@@ -836,8 +839,8 @@ def timestamp(name=None):
   Returns:
     A `Tensor` of type `float64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "Timestamp", name=name)
     _result = _op.outputs[:]
@@ -851,12 +854,12 @@ def timestamp(name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Timestamp", name,
-        _ctx._post_execution_callbacks)
+        _ctx._context_handle, _ctx._eager_context.device_name, "Timestamp",
+        name, _ctx._post_execution_callbacks)
       return _result
     except _core._FallbackException:
       return timestamp_eager_fallback(
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -865,11 +868,11 @@ def timestamp(name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def timestamp_eager_fallback(name=None):
+def timestamp_eager_fallback(name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function timestamp
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _inputs_flat = []
   _attrs = None
   _result = _execute.execute(b"Timestamp", 1, inputs=_inputs_flat,

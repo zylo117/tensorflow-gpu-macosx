@@ -64,8 +64,8 @@ def build_categorical_equality_splits(num_minibatches, partition_ids, feature_id
     split_infos: A `Tensor` of type `string`. A rank 1 tensor of serialized protos which contains the
       `SplitInfo`s.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     feature_column_group_id = _execute.make_int(feature_column_group_id, "feature_column_group_id")
     bias_feature_id = _execute.make_int(bias_feature_id, "bias_feature_id")
     l1_regularization = _execute.make_float(l1_regularization, "l1_regularization")
@@ -102,8 +102,9 @@ def build_categorical_equality_splits(num_minibatches, partition_ids, feature_id
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BuildCategoricalEqualitySplits",
-        name, _ctx._post_execution_callbacks, num_minibatches, partition_ids,
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "BuildCategoricalEqualitySplits", name,
+        _ctx._post_execution_callbacks, num_minibatches, partition_ids,
         feature_ids, gradients, hessians, class_id, "feature_column_group_id",
         feature_column_group_id, "bias_feature_id", bias_feature_id,
         "l1_regularization", l1_regularization, "l2_regularization",
@@ -121,7 +122,7 @@ def build_categorical_equality_splits(num_minibatches, partition_ids, feature_id
           l2_regularization=l2_regularization,
           tree_complexity_regularization=tree_complexity_regularization,
           min_node_weight=min_node_weight,
-          multiclass_strategy=multiclass_strategy, name=name)
+          multiclass_strategy=multiclass_strategy, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -130,11 +131,11 @@ def build_categorical_equality_splits(num_minibatches, partition_ids, feature_id
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def build_categorical_equality_splits_eager_fallback(num_minibatches, partition_ids, feature_ids, gradients, hessians, class_id, feature_column_group_id, bias_feature_id, l1_regularization, l2_regularization, tree_complexity_regularization, min_node_weight, multiclass_strategy, name=None):
+def build_categorical_equality_splits_eager_fallback(num_minibatches, partition_ids, feature_ids, gradients, hessians, class_id, feature_column_group_id, bias_feature_id, l1_regularization, l2_regularization, tree_complexity_regularization, min_node_weight, multiclass_strategy, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function build_categorical_equality_splits
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   feature_column_group_id = _execute.make_int(feature_column_group_id, "feature_column_group_id")
   bias_feature_id = _execute.make_int(bias_feature_id, "bias_feature_id")
   l1_regularization = _execute.make_float(l1_regularization, "l1_regularization")
@@ -205,8 +206,8 @@ def build_dense_inequality_splits(num_minibatches, partition_ids, bucket_ids, gr
     split_infos: A `Tensor` of type `string`. A rank 1 tensor of serialized protos which contains the
       `SplitInfo`s.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     feature_column_group_id = _execute.make_int(feature_column_group_id, "feature_column_group_id")
     l1_regularization = _execute.make_float(l1_regularization, "l1_regularization")
     l2_regularization = _execute.make_float(l2_regularization, "l2_regularization")
@@ -242,14 +243,15 @@ def build_dense_inequality_splits(num_minibatches, partition_ids, bucket_ids, gr
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BuildDenseInequalitySplits", name,
-        _ctx._post_execution_callbacks, num_minibatches, partition_ids,
-        bucket_ids, gradients, hessians, bucket_boundaries, class_id,
-        "feature_column_group_id", feature_column_group_id,
-        "l1_regularization", l1_regularization, "l2_regularization",
-        l2_regularization, "tree_complexity_regularization",
-        tree_complexity_regularization, "min_node_weight", min_node_weight,
-        "multiclass_strategy", multiclass_strategy)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "BuildDenseInequalitySplits", name, _ctx._post_execution_callbacks,
+        num_minibatches, partition_ids, bucket_ids, gradients, hessians,
+        bucket_boundaries, class_id, "feature_column_group_id",
+        feature_column_group_id, "l1_regularization", l1_regularization,
+        "l2_regularization", l2_regularization,
+        "tree_complexity_regularization", tree_complexity_regularization,
+        "min_node_weight", min_node_weight, "multiclass_strategy",
+        multiclass_strategy)
       _result = _BuildDenseInequalitySplitsOutput._make(_result)
       return _result
     except _core._FallbackException:
@@ -261,7 +263,7 @@ def build_dense_inequality_splits(num_minibatches, partition_ids, bucket_ids, gr
           l2_regularization=l2_regularization,
           tree_complexity_regularization=tree_complexity_regularization,
           min_node_weight=min_node_weight,
-          multiclass_strategy=multiclass_strategy, name=name)
+          multiclass_strategy=multiclass_strategy, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -270,11 +272,11 @@ def build_dense_inequality_splits(num_minibatches, partition_ids, bucket_ids, gr
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def build_dense_inequality_splits_eager_fallback(num_minibatches, partition_ids, bucket_ids, gradients, hessians, bucket_boundaries, class_id, feature_column_group_id, l1_regularization, l2_regularization, tree_complexity_regularization, min_node_weight, multiclass_strategy, name=None):
+def build_dense_inequality_splits_eager_fallback(num_minibatches, partition_ids, bucket_ids, gradients, hessians, bucket_boundaries, class_id, feature_column_group_id, l1_regularization, l2_regularization, tree_complexity_regularization, min_node_weight, multiclass_strategy, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function build_dense_inequality_splits
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   feature_column_group_id = _execute.make_int(feature_column_group_id, "feature_column_group_id")
   l1_regularization = _execute.make_float(l1_regularization, "l1_regularization")
   l2_regularization = _execute.make_float(l2_regularization, "l2_regularization")
@@ -348,8 +350,8 @@ def build_sparse_inequality_splits(num_minibatches, partition_ids, bucket_ids, g
     split_infos: A `Tensor` of type `string`. A rank 1 tensor of serialized protos which contains the
       `SplitInfo`s.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     feature_column_group_id = _execute.make_int(feature_column_group_id, "feature_column_group_id")
     bias_feature_id = _execute.make_int(bias_feature_id, "bias_feature_id")
     l1_regularization = _execute.make_float(l1_regularization, "l1_regularization")
@@ -387,15 +389,15 @@ def build_sparse_inequality_splits(num_minibatches, partition_ids, bucket_ids, g
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BuildSparseInequalitySplits", name,
-        _ctx._post_execution_callbacks, num_minibatches, partition_ids,
-        bucket_ids, gradients, hessians, bucket_boundaries, class_id,
-        "feature_column_group_id", feature_column_group_id, "bias_feature_id",
-        bias_feature_id, "l1_regularization", l1_regularization,
-        "l2_regularization", l2_regularization,
-        "tree_complexity_regularization", tree_complexity_regularization,
-        "min_node_weight", min_node_weight, "multiclass_strategy",
-        multiclass_strategy)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "BuildSparseInequalitySplits", name, _ctx._post_execution_callbacks,
+        num_minibatches, partition_ids, bucket_ids, gradients, hessians,
+        bucket_boundaries, class_id, "feature_column_group_id",
+        feature_column_group_id, "bias_feature_id", bias_feature_id,
+        "l1_regularization", l1_regularization, "l2_regularization",
+        l2_regularization, "tree_complexity_regularization",
+        tree_complexity_regularization, "min_node_weight", min_node_weight,
+        "multiclass_strategy", multiclass_strategy)
       _result = _BuildSparseInequalitySplitsOutput._make(_result)
       return _result
     except _core._FallbackException:
@@ -408,7 +410,7 @@ def build_sparse_inequality_splits(num_minibatches, partition_ids, bucket_ids, g
           l2_regularization=l2_regularization,
           tree_complexity_regularization=tree_complexity_regularization,
           min_node_weight=min_node_weight,
-          multiclass_strategy=multiclass_strategy, name=name)
+          multiclass_strategy=multiclass_strategy, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -417,11 +419,11 @@ def build_sparse_inequality_splits(num_minibatches, partition_ids, bucket_ids, g
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def build_sparse_inequality_splits_eager_fallback(num_minibatches, partition_ids, bucket_ids, gradients, hessians, bucket_boundaries, class_id, feature_column_group_id, bias_feature_id, l1_regularization, l2_regularization, tree_complexity_regularization, min_node_weight, multiclass_strategy, name=None):
+def build_sparse_inequality_splits_eager_fallback(num_minibatches, partition_ids, bucket_ids, gradients, hessians, bucket_boundaries, class_id, feature_column_group_id, bias_feature_id, l1_regularization, l2_regularization, tree_complexity_regularization, min_node_weight, multiclass_strategy, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function build_sparse_inequality_splits
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   feature_column_group_id = _execute.make_int(feature_column_group_id, "feature_column_group_id")
   bias_feature_id = _execute.make_int(bias_feature_id, "bias_feature_id")
   l1_regularization = _execute.make_float(l1_regularization, "l1_regularization")

@@ -79,8 +79,8 @@ def generate_vocab_remapping(new_vocab_file, old_vocab_file, new_vocab_offset, n
     remapping: A `Tensor` of type `int64`.
     num_present: A `Tensor` of type `int32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     new_vocab_offset = _execute.make_int(new_vocab_offset, "new_vocab_offset")
     num_new_vocab = _execute.make_int(num_new_vocab, "num_new_vocab")
     if old_vocab_size is None:
@@ -103,17 +103,17 @@ def generate_vocab_remapping(new_vocab_file, old_vocab_file, new_vocab_offset, n
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "GenerateVocabRemapping", name,
-        _ctx._post_execution_callbacks, new_vocab_file, old_vocab_file,
-        "new_vocab_offset", new_vocab_offset, "num_new_vocab", num_new_vocab,
-        "old_vocab_size", old_vocab_size)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "GenerateVocabRemapping", name, _ctx._post_execution_callbacks,
+        new_vocab_file, old_vocab_file, "new_vocab_offset", new_vocab_offset,
+        "num_new_vocab", num_new_vocab, "old_vocab_size", old_vocab_size)
       _result = _GenerateVocabRemappingOutput._make(_result)
       return _result
     except _core._FallbackException:
       return generate_vocab_remapping_eager_fallback(
           new_vocab_file, old_vocab_file, new_vocab_offset=new_vocab_offset,
           num_new_vocab=num_new_vocab, old_vocab_size=old_vocab_size,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -122,11 +122,11 @@ def generate_vocab_remapping(new_vocab_file, old_vocab_file, new_vocab_offset, n
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def generate_vocab_remapping_eager_fallback(new_vocab_file, old_vocab_file, new_vocab_offset, num_new_vocab, old_vocab_size=-1, name=None):
+def generate_vocab_remapping_eager_fallback(new_vocab_file, old_vocab_file, new_vocab_offset, num_new_vocab, old_vocab_size=-1, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function generate_vocab_remapping
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   new_vocab_offset = _execute.make_int(new_vocab_offset, "new_vocab_offset")
   num_new_vocab = _execute.make_int(num_new_vocab, "num_new_vocab")
   if old_vocab_size is None:
@@ -216,8 +216,8 @@ def load_and_remap_matrix(ckpt_path, old_tensor_name, row_remapping, col_remappi
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     num_rows = _execute.make_int(num_rows, "num_rows")
     num_cols = _execute.make_int(num_cols, "num_cols")
     if max_rows_in_memory is None:
@@ -242,17 +242,17 @@ def load_and_remap_matrix(ckpt_path, old_tensor_name, row_remapping, col_remappi
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "LoadAndRemapMatrix", name,
-        _ctx._post_execution_callbacks, ckpt_path, old_tensor_name,
-        row_remapping, col_remapping, initializing_values, "num_rows",
-        num_rows, "num_cols", num_cols, "max_rows_in_memory",
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "LoadAndRemapMatrix", name, _ctx._post_execution_callbacks, ckpt_path,
+        old_tensor_name, row_remapping, col_remapping, initializing_values,
+        "num_rows", num_rows, "num_cols", num_cols, "max_rows_in_memory",
         max_rows_in_memory)
       return _result
     except _core._FallbackException:
       return load_and_remap_matrix_eager_fallback(
           ckpt_path, old_tensor_name, row_remapping, col_remapping,
           initializing_values, num_rows=num_rows, num_cols=num_cols,
-          max_rows_in_memory=max_rows_in_memory, name=name)
+          max_rows_in_memory=max_rows_in_memory, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -261,11 +261,11 @@ def load_and_remap_matrix(ckpt_path, old_tensor_name, row_remapping, col_remappi
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def load_and_remap_matrix_eager_fallback(ckpt_path, old_tensor_name, row_remapping, col_remapping, initializing_values, num_rows, num_cols, max_rows_in_memory=-1, name=None):
+def load_and_remap_matrix_eager_fallback(ckpt_path, old_tensor_name, row_remapping, col_remapping, initializing_values, num_rows, num_cols, max_rows_in_memory=-1, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function load_and_remap_matrix
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   num_rows = _execute.make_int(num_rows, "num_rows")
   num_cols = _execute.make_int(num_cols, "num_cols")
   if max_rows_in_memory is None:

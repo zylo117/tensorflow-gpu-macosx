@@ -54,8 +54,8 @@ def bucketize_with_input_boundaries(input, boundaries, name=None):
     A `Tensor` of type `int32`.
     Same shape as 'input', where each value of input is replaced with its corresponding bucket index.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "BucketizeWithInputBoundaries", input=input, boundaries=boundaries,
         name=name)
@@ -70,12 +70,13 @@ def bucketize_with_input_boundaries(input, boundaries, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BucketizeWithInputBoundaries", name,
-        _ctx._post_execution_callbacks, input, boundaries)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "BucketizeWithInputBoundaries", name, _ctx._post_execution_callbacks,
+        input, boundaries)
       return _result
     except _core._FallbackException:
       return bucketize_with_input_boundaries_eager_fallback(
-          input, boundaries, name=name)
+          input, boundaries, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -84,11 +85,11 @@ def bucketize_with_input_boundaries(input, boundaries, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def bucketize_with_input_boundaries_eager_fallback(input, boundaries, name=None):
+def bucketize_with_input_boundaries_eager_fallback(input, boundaries, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function bucketize_with_input_boundaries
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   boundaries = _ops.convert_to_tensor(boundaries, _dtypes.float32)
   _inputs_flat = [input, boundaries]
@@ -124,8 +125,8 @@ def create_quantile_accumulator(quantile_accumulator_handle, stamp_token, epsilo
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     epsilon = _execute.make_float(epsilon, "epsilon")
     num_quantiles = _execute.make_int(num_quantiles, "num_quantiles")
     if container is None:
@@ -154,18 +155,19 @@ def create_quantile_accumulator(quantile_accumulator_handle, stamp_token, epsilo
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "CreateQuantileAccumulator", name,
-        _ctx._post_execution_callbacks, quantile_accumulator_handle,
-        stamp_token, "container", container, "shared_name", shared_name,
-        "max_elements", max_elements, "epsilon", epsilon, "num_quantiles",
-        num_quantiles, "generate_quantiles", generate_quantiles)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "CreateQuantileAccumulator", name, _ctx._post_execution_callbacks,
+        quantile_accumulator_handle, stamp_token, "container", container,
+        "shared_name", shared_name, "max_elements", max_elements, "epsilon",
+        epsilon, "num_quantiles", num_quantiles, "generate_quantiles",
+        generate_quantiles)
       return _result
     except _core._FallbackException:
       return create_quantile_accumulator_eager_fallback(
           quantile_accumulator_handle, stamp_token, container=container,
           shared_name=shared_name, max_elements=max_elements, epsilon=epsilon,
           num_quantiles=num_quantiles, generate_quantiles=generate_quantiles,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -174,11 +176,11 @@ def create_quantile_accumulator(quantile_accumulator_handle, stamp_token, epsilo
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def create_quantile_accumulator_eager_fallback(quantile_accumulator_handle, stamp_token, epsilon, num_quantiles, container="", shared_name="", max_elements=1099511627776, generate_quantiles=False, name=None):
+def create_quantile_accumulator_eager_fallback(quantile_accumulator_handle, stamp_token, epsilon, num_quantiles, container="", shared_name="", max_elements=1099511627776, generate_quantiles=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function create_quantile_accumulator
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   epsilon = _execute.make_float(epsilon, "epsilon")
   num_quantiles = _execute.make_int(num_quantiles, "num_quantiles")
   if container is None:
@@ -241,8 +243,8 @@ def make_quantile_summaries(dense_float_features, sparse_float_feature_indices, 
     dense_summaries: A list with the same length as `dense_float_features` of `Tensor` objects with type `string`. A list of serialized QuantileSummaryState for dense columns.
     sparse_summaries: A list with the same length as `sparse_float_feature_indices` of `Tensor` objects with type `string`. A list of serialized QuantileSummaryState for sparse columns.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(dense_float_features, (list, tuple)):
       raise TypeError(
           "Expected list for 'dense_float_features' argument to "
@@ -293,17 +295,18 @@ def make_quantile_summaries(dense_float_features, sparse_float_feature_indices, 
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MakeQuantileSummaries", name,
-        _ctx._post_execution_callbacks, dense_float_features,
-        sparse_float_feature_indices, sparse_float_feature_values,
-        sparse_float_feature_shapes, example_weights, "epsilon", epsilon)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "MakeQuantileSummaries", name, _ctx._post_execution_callbacks,
+        dense_float_features, sparse_float_feature_indices,
+        sparse_float_feature_values, sparse_float_feature_shapes,
+        example_weights, "epsilon", epsilon)
       _result = _MakeQuantileSummariesOutput._make(_result)
       return _result
     except _core._FallbackException:
       return make_quantile_summaries_eager_fallback(
           dense_float_features, sparse_float_feature_indices,
           sparse_float_feature_values, sparse_float_feature_shapes,
-          example_weights, epsilon=epsilon, name=name)
+          example_weights, epsilon=epsilon, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -312,11 +315,11 @@ def make_quantile_summaries(dense_float_features, sparse_float_feature_indices, 
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def make_quantile_summaries_eager_fallback(dense_float_features, sparse_float_feature_indices, sparse_float_feature_values, sparse_float_feature_shapes, example_weights, epsilon, name=None):
+def make_quantile_summaries_eager_fallback(dense_float_features, sparse_float_feature_indices, sparse_float_feature_values, sparse_float_feature_shapes, example_weights, epsilon, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function make_quantile_summaries
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(dense_float_features, (list, tuple)):
     raise TypeError(
         "Expected list for 'dense_float_features' argument to "
@@ -384,8 +387,8 @@ def quantile_accumulator_add_summaries(quantile_accumulator_handles, stamp_token
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(quantile_accumulator_handles, (list, tuple)):
       raise TypeError(
           "Expected list for 'quantile_accumulator_handles' argument to "
@@ -411,13 +414,15 @@ def quantile_accumulator_add_summaries(quantile_accumulator_handles, stamp_token
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "QuantileAccumulatorAddSummaries",
-        name, _ctx._post_execution_callbacks, quantile_accumulator_handles,
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "QuantileAccumulatorAddSummaries", name,
+        _ctx._post_execution_callbacks, quantile_accumulator_handles,
         stamp_token, summaries)
       return _result
     except _core._FallbackException:
       return quantile_accumulator_add_summaries_eager_fallback(
-          quantile_accumulator_handles, stamp_token, summaries, name=name)
+          quantile_accumulator_handles, stamp_token, summaries, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -426,11 +431,11 @@ def quantile_accumulator_add_summaries(quantile_accumulator_handles, stamp_token
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def quantile_accumulator_add_summaries_eager_fallback(quantile_accumulator_handles, stamp_token, summaries, name=None):
+def quantile_accumulator_add_summaries_eager_fallback(quantile_accumulator_handles, stamp_token, summaries, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function quantile_accumulator_add_summaries
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(quantile_accumulator_handles, (list, tuple)):
     raise TypeError(
         "Expected list for 'quantile_accumulator_handles' argument to "
@@ -481,8 +486,8 @@ def quantile_accumulator_deserialize(quantile_accumulator_handle, stamp_token, s
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "QuantileAccumulatorDeserialize",
         quantile_accumulator_handle=quantile_accumulator_handle,
@@ -495,14 +500,15 @@ def quantile_accumulator_deserialize(quantile_accumulator_handle, stamp_token, s
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "QuantileAccumulatorDeserialize",
-        name, _ctx._post_execution_callbacks, quantile_accumulator_handle,
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "QuantileAccumulatorDeserialize", name,
+        _ctx._post_execution_callbacks, quantile_accumulator_handle,
         stamp_token, stream_state, are_buckets_ready, buckets)
       return _result
     except _core._FallbackException:
       return quantile_accumulator_deserialize_eager_fallback(
           quantile_accumulator_handle, stamp_token, stream_state,
-          are_buckets_ready, buckets, name=name)
+          are_buckets_ready, buckets, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -511,11 +517,11 @@ def quantile_accumulator_deserialize(quantile_accumulator_handle, stamp_token, s
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def quantile_accumulator_deserialize_eager_fallback(quantile_accumulator_handle, stamp_token, stream_state, are_buckets_ready, buckets, name=None):
+def quantile_accumulator_deserialize_eager_fallback(quantile_accumulator_handle, stamp_token, stream_state, are_buckets_ready, buckets, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function quantile_accumulator_deserialize
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   quantile_accumulator_handle = _ops.convert_to_tensor(quantile_accumulator_handle, _dtypes.resource)
   stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
   stream_state = _ops.convert_to_tensor(stream_state, _dtypes.string)
@@ -549,8 +555,8 @@ def quantile_accumulator_flush(quantile_accumulator_handle, stamp_token, next_st
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "QuantileAccumulatorFlush",
         quantile_accumulator_handle=quantile_accumulator_handle,
@@ -562,14 +568,14 @@ def quantile_accumulator_flush(quantile_accumulator_handle, stamp_token, next_st
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "QuantileAccumulatorFlush", name,
-        _ctx._post_execution_callbacks, quantile_accumulator_handle,
-        stamp_token, next_stamp_token)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "QuantileAccumulatorFlush", name, _ctx._post_execution_callbacks,
+        quantile_accumulator_handle, stamp_token, next_stamp_token)
       return _result
     except _core._FallbackException:
       return quantile_accumulator_flush_eager_fallback(
           quantile_accumulator_handle, stamp_token, next_stamp_token,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -578,11 +584,11 @@ def quantile_accumulator_flush(quantile_accumulator_handle, stamp_token, next_st
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def quantile_accumulator_flush_eager_fallback(quantile_accumulator_handle, stamp_token, next_stamp_token, name=None):
+def quantile_accumulator_flush_eager_fallback(quantile_accumulator_handle, stamp_token, next_stamp_token, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function quantile_accumulator_flush
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   quantile_accumulator_handle = _ops.convert_to_tensor(quantile_accumulator_handle, _dtypes.resource)
   stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
   next_stamp_token = _ops.convert_to_tensor(next_stamp_token, _dtypes.int64)
@@ -615,8 +621,8 @@ def quantile_accumulator_flush_summary(quantile_accumulator_handle, stamp_token,
     A `Tensor` of type `string`.
     A scalar string that is the a summary of the accumulator.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "QuantileAccumulatorFlushSummary",
         quantile_accumulator_handle=quantile_accumulator_handle,
@@ -632,14 +638,15 @@ def quantile_accumulator_flush_summary(quantile_accumulator_handle, stamp_token,
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "QuantileAccumulatorFlushSummary",
-        name, _ctx._post_execution_callbacks, quantile_accumulator_handle,
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "QuantileAccumulatorFlushSummary", name,
+        _ctx._post_execution_callbacks, quantile_accumulator_handle,
         stamp_token, next_stamp_token)
       return _result
     except _core._FallbackException:
       return quantile_accumulator_flush_summary_eager_fallback(
           quantile_accumulator_handle, stamp_token, next_stamp_token,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -648,11 +655,11 @@ def quantile_accumulator_flush_summary(quantile_accumulator_handle, stamp_token,
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def quantile_accumulator_flush_summary_eager_fallback(quantile_accumulator_handle, stamp_token, next_stamp_token, name=None):
+def quantile_accumulator_flush_summary_eager_fallback(quantile_accumulator_handle, stamp_token, next_stamp_token, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function quantile_accumulator_flush_summary
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   quantile_accumulator_handle = _ops.convert_to_tensor(quantile_accumulator_handle, _dtypes.resource)
   stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
   next_stamp_token = _ops.convert_to_tensor(next_stamp_token, _dtypes.int64)
@@ -693,8 +700,8 @@ def quantile_accumulator_get_buckets(quantile_accumulator_handles, stamp_token, 
     buckets: A list with the same length as `quantile_accumulator_handles` of `Tensor` objects with type `float32`. Output quantile summary representing boundaries with "num_quantile"
       elements.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(quantile_accumulator_handles, (list, tuple)):
       raise TypeError(
           "Expected list for 'quantile_accumulator_handles' argument to "
@@ -717,14 +724,14 @@ def quantile_accumulator_get_buckets(quantile_accumulator_handles, stamp_token, 
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "QuantileAccumulatorGetBuckets", name,
-        _ctx._post_execution_callbacks, quantile_accumulator_handles,
-        stamp_token)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "QuantileAccumulatorGetBuckets", name, _ctx._post_execution_callbacks,
+        quantile_accumulator_handles, stamp_token)
       _result = _QuantileAccumulatorGetBucketsOutput._make(_result)
       return _result
     except _core._FallbackException:
       return quantile_accumulator_get_buckets_eager_fallback(
-          quantile_accumulator_handles, stamp_token, name=name)
+          quantile_accumulator_handles, stamp_token, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -733,11 +740,11 @@ def quantile_accumulator_get_buckets(quantile_accumulator_handles, stamp_token, 
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def quantile_accumulator_get_buckets_eager_fallback(quantile_accumulator_handles, stamp_token, name=None):
+def quantile_accumulator_get_buckets_eager_fallback(quantile_accumulator_handles, stamp_token, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function quantile_accumulator_get_buckets
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(quantile_accumulator_handles, (list, tuple)):
     raise TypeError(
         "Expected list for 'quantile_accumulator_handles' argument to "
@@ -772,8 +779,8 @@ def quantile_accumulator_is_initialized(quantile_accumulator_handle, name=None):
   Returns:
     A `Tensor` of type `bool`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "QuantileAccumulatorIsInitialized",
         quantile_accumulator_handle=quantile_accumulator_handle, name=name)
@@ -788,12 +795,13 @@ def quantile_accumulator_is_initialized(quantile_accumulator_handle, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "QuantileAccumulatorIsInitialized",
-        name, _ctx._post_execution_callbacks, quantile_accumulator_handle)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "QuantileAccumulatorIsInitialized", name,
+        _ctx._post_execution_callbacks, quantile_accumulator_handle)
       return _result
     except _core._FallbackException:
       return quantile_accumulator_is_initialized_eager_fallback(
-          quantile_accumulator_handle, name=name)
+          quantile_accumulator_handle, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -802,11 +810,11 @@ def quantile_accumulator_is_initialized(quantile_accumulator_handle, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def quantile_accumulator_is_initialized_eager_fallback(quantile_accumulator_handle, name=None):
+def quantile_accumulator_is_initialized_eager_fallback(quantile_accumulator_handle, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function quantile_accumulator_is_initialized
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   quantile_accumulator_handle = _ops.convert_to_tensor(quantile_accumulator_handle, _dtypes.resource)
   _inputs_flat = [quantile_accumulator_handle]
   _attrs = None
@@ -846,8 +854,8 @@ def quantile_accumulator_serialize(quantile_accumulator_handle, name=None):
     buckets: A `Tensor` of type `float32`. Output quantile buckets representing boundaries with "num_quantile"
       elements.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "QuantileAccumulatorSerialize",
         quantile_accumulator_handle=quantile_accumulator_handle, name=name)
@@ -862,13 +870,14 @@ def quantile_accumulator_serialize(quantile_accumulator_handle, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "QuantileAccumulatorSerialize", name,
-        _ctx._post_execution_callbacks, quantile_accumulator_handle)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "QuantileAccumulatorSerialize", name, _ctx._post_execution_callbacks,
+        quantile_accumulator_handle)
       _result = _QuantileAccumulatorSerializeOutput._make(_result)
       return _result
     except _core._FallbackException:
       return quantile_accumulator_serialize_eager_fallback(
-          quantile_accumulator_handle, name=name)
+          quantile_accumulator_handle, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -877,11 +886,11 @@ def quantile_accumulator_serialize(quantile_accumulator_handle, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def quantile_accumulator_serialize_eager_fallback(quantile_accumulator_handle, name=None):
+def quantile_accumulator_serialize_eager_fallback(quantile_accumulator_handle, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function quantile_accumulator_serialize
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   quantile_accumulator_handle = _ops.convert_to_tensor(quantile_accumulator_handle, _dtypes.resource)
   _inputs_flat = [quantile_accumulator_handle]
   _attrs = None
@@ -937,8 +946,8 @@ def quantile_buckets(dense_float_features, sparse_float_feature_indices, sparse_
     sparse_buckets: A list with the same length as `sparse_float_feature_indices` of `Tensor` objects with type `float32`. Output quantile summary for each sparse float value tensor
       representing boundaries each with "num_quantile" elements.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(dense_float_features, (list, tuple)):
       raise TypeError(
           "Expected list for 'dense_float_features' argument to "
@@ -1000,11 +1009,12 @@ def quantile_buckets(dense_float_features, sparse_float_feature_indices, sparse_
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "QuantileBuckets", name,
-        _ctx._post_execution_callbacks, dense_float_features,
-        sparse_float_feature_indices, sparse_float_feature_values,
-        sparse_float_feature_shapes, example_weights, "dense_config",
-        dense_config, "sparse_config", sparse_config)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "QuantileBuckets", name, _ctx._post_execution_callbacks,
+        dense_float_features, sparse_float_feature_indices,
+        sparse_float_feature_values, sparse_float_feature_shapes,
+        example_weights, "dense_config", dense_config, "sparse_config",
+        sparse_config)
       _result = _QuantileBucketsOutput._make(_result)
       return _result
     except _core._FallbackException:
@@ -1012,7 +1022,7 @@ def quantile_buckets(dense_float_features, sparse_float_feature_indices, sparse_
           dense_float_features, sparse_float_feature_indices,
           sparse_float_feature_values, sparse_float_feature_shapes,
           example_weights, dense_config=dense_config,
-          sparse_config=sparse_config, name=name)
+          sparse_config=sparse_config, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1021,11 +1031,11 @@ def quantile_buckets(dense_float_features, sparse_float_feature_indices, sparse_
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def quantile_buckets_eager_fallback(dense_float_features, sparse_float_feature_indices, sparse_float_feature_values, sparse_float_feature_shapes, example_weights, dense_config, sparse_config, name=None):
+def quantile_buckets_eager_fallback(dense_float_features, sparse_float_feature_indices, sparse_float_feature_values, sparse_float_feature_shapes, example_weights, dense_config, sparse_config, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function quantile_buckets
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(dense_float_features, (list, tuple)):
     raise TypeError(
         "Expected list for 'dense_float_features' argument to "
@@ -1088,7 +1098,7 @@ _ops.RegisterShape("QuantileBuckets")(None)
 
 @tf_export('quantile_stream_resource_handle_op')
 def quantile_stream_resource_handle_op(container="", shared_name="", name=None):
-  r"""Creates a handle to a QuantileStreamResource
+  r"""TODO: add doc.
 
   Args:
     container: An optional `string`. Defaults to `""`.
@@ -1098,8 +1108,8 @@ def quantile_stream_resource_handle_op(container="", shared_name="", name=None):
   Returns:
     A `Tensor` of type `resource`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if container is None:
       container = ""
     container = _execute.make_str(container, "container")
@@ -1121,13 +1131,14 @@ def quantile_stream_resource_handle_op(container="", shared_name="", name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "QuantileStreamResourceHandleOp",
-        name, _ctx._post_execution_callbacks, "container", container,
-        "shared_name", shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "QuantileStreamResourceHandleOp", name,
+        _ctx._post_execution_callbacks, "container", container, "shared_name",
+        shared_name)
       return _result
     except _core._FallbackException:
       return quantile_stream_resource_handle_op_eager_fallback(
-          container=container, shared_name=shared_name, name=name)
+          container=container, shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1136,11 +1147,11 @@ def quantile_stream_resource_handle_op(container="", shared_name="", name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def quantile_stream_resource_handle_op_eager_fallback(container="", shared_name="", name=None):
+def quantile_stream_resource_handle_op_eager_fallback(container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function quantile_stream_resource_handle_op
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if container is None:
     container = ""
   container = _execute.make_str(container, "container")
@@ -1194,8 +1205,8 @@ def quantiles(dense_values, sparse_values, dense_buckets, sparse_buckets, sparse
       the sparse feature tensors for each of sparse feature dimensions:
       [quantile id, dimension id].
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(dense_values, (list, tuple)):
       raise TypeError(
           "Expected list for 'dense_values' argument to "
@@ -1251,15 +1262,15 @@ def quantiles(dense_values, sparse_values, dense_buckets, sparse_buckets, sparse
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Quantiles", name,
-        _ctx._post_execution_callbacks, dense_values, sparse_values,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Quantiles",
+        name, _ctx._post_execution_callbacks, dense_values, sparse_values,
         dense_buckets, sparse_buckets, sparse_indices)
       _result = _QuantilesOutput._make(_result)
       return _result
     except _core._FallbackException:
       return quantiles_eager_fallback(
           dense_values, sparse_values, dense_buckets, sparse_buckets,
-          sparse_indices, name=name)
+          sparse_indices, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1268,11 +1279,11 @@ def quantiles(dense_values, sparse_values, dense_buckets, sparse_buckets, sparse
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def quantiles_eager_fallback(dense_values, sparse_values, dense_buckets, sparse_buckets, sparse_indices, name=None):
+def quantiles_eager_fallback(dense_values, sparse_values, dense_buckets, sparse_buckets, sparse_indices, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function quantiles
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(dense_values, (list, tuple)):
     raise TypeError(
         "Expected list for 'dense_values' argument to "

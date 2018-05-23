@@ -64,8 +64,8 @@ def masked_matmul(a, b, mask_indices, transpose_a, transpose_b, name=None):
     non-zero elements in the product, such that for all i,
     prod_values[i] = (a * b)[mask_indices[i, 0], mask_indices[i, 1]].
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "MaskedMatmul", a=a, b=b, mask_indices=mask_indices,
         transpose_a=transpose_a, transpose_b=transpose_b, name=name)
@@ -80,13 +80,13 @@ def masked_matmul(a, b, mask_indices, transpose_a, transpose_b, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MaskedMatmul", name,
-        _ctx._post_execution_callbacks, a, b, mask_indices, transpose_a,
+        _ctx._context_handle, _ctx._eager_context.device_name, "MaskedMatmul",
+        name, _ctx._post_execution_callbacks, a, b, mask_indices, transpose_a,
         transpose_b)
       return _result
     except _core._FallbackException:
       return masked_matmul_eager_fallback(
-          a, b, mask_indices, transpose_a, transpose_b, name=name)
+          a, b, mask_indices, transpose_a, transpose_b, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -95,11 +95,11 @@ def masked_matmul(a, b, mask_indices, transpose_a, transpose_b, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def masked_matmul_eager_fallback(a, b, mask_indices, transpose_a, transpose_b, name=None):
+def masked_matmul_eager_fallback(a, b, mask_indices, transpose_a, transpose_b, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function masked_matmul
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   a = _ops.convert_to_tensor(a, _dtypes.float32)
   b = _ops.convert_to_tensor(b, _dtypes.float32)
   mask_indices = _ops.convert_to_tensor(mask_indices, _dtypes.int64)
@@ -150,8 +150,8 @@ def wals_compute_partial_lhs_and_rhs(factors, factor_weights, unobserved_weights
     partial_lhs: A `Tensor` of type `float32`. 3-D tensor with size input_block_size x k x k.
     partial_rhs: A `Tensor` of type `float32`. Matrix with size input_block_size x k.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "WALSComputePartialLhsAndRhs", factors=factors,
         factor_weights=factor_weights, unobserved_weights=unobserved_weights,
@@ -169,17 +169,17 @@ def wals_compute_partial_lhs_and_rhs(factors, factor_weights, unobserved_weights
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "WALSComputePartialLhsAndRhs", name,
-        _ctx._post_execution_callbacks, factors, factor_weights,
-        unobserved_weights, input_weights, input_indices, input_values,
-        input_block_size, input_is_transpose)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "WALSComputePartialLhsAndRhs", name, _ctx._post_execution_callbacks,
+        factors, factor_weights, unobserved_weights, input_weights,
+        input_indices, input_values, input_block_size, input_is_transpose)
       _result = _WALSComputePartialLhsAndRhsOutput._make(_result)
       return _result
     except _core._FallbackException:
       return wals_compute_partial_lhs_and_rhs_eager_fallback(
           factors, factor_weights, unobserved_weights, input_weights,
           input_indices, input_values, input_block_size, input_is_transpose,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -188,11 +188,11 @@ def wals_compute_partial_lhs_and_rhs(factors, factor_weights, unobserved_weights
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def wals_compute_partial_lhs_and_rhs_eager_fallback(factors, factor_weights, unobserved_weights, input_weights, input_indices, input_values, input_block_size, input_is_transpose, name=None):
+def wals_compute_partial_lhs_and_rhs_eager_fallback(factors, factor_weights, unobserved_weights, input_weights, input_indices, input_values, input_block_size, input_is_transpose, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function wals_compute_partial_lhs_and_rhs
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   factors = _ops.convert_to_tensor(factors, _dtypes.float32)
   factor_weights = _ops.convert_to_tensor(factor_weights, _dtypes.float32)
   unobserved_weights = _ops.convert_to_tensor(unobserved_weights, _dtypes.float32)

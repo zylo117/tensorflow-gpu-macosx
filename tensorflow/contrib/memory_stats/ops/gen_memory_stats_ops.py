@@ -34,8 +34,8 @@ def bytes_in_use(name=None):
   Returns:
     A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "BytesInUse", name=name)
     _result = _op.outputs[:]
@@ -49,12 +49,12 @@ def bytes_in_use(name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BytesInUse", name,
-        _ctx._post_execution_callbacks)
+        _ctx._context_handle, _ctx._eager_context.device_name, "BytesInUse",
+        name, _ctx._post_execution_callbacks)
       return _result
     except _core._FallbackException:
       return bytes_in_use_eager_fallback(
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -63,11 +63,11 @@ def bytes_in_use(name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def bytes_in_use_eager_fallback(name=None):
+def bytes_in_use_eager_fallback(name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function bytes_in_use
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _inputs_flat = []
   _attrs = None
   _result = _execute.execute(b"BytesInUse", 1, inputs=_inputs_flat,
@@ -90,8 +90,8 @@ def bytes_limit(name=None):
   Returns:
     A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "BytesLimit", name=name)
     _result = _op.outputs[:]
@@ -105,12 +105,12 @@ def bytes_limit(name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BytesLimit", name,
-        _ctx._post_execution_callbacks)
+        _ctx._context_handle, _ctx._eager_context.device_name, "BytesLimit",
+        name, _ctx._post_execution_callbacks)
       return _result
     except _core._FallbackException:
       return bytes_limit_eager_fallback(
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -119,11 +119,11 @@ def bytes_limit(name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def bytes_limit_eager_fallback(name=None):
+def bytes_limit_eager_fallback(name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function bytes_limit
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _inputs_flat = []
   _attrs = None
   _result = _execute.execute(b"BytesLimit", 1, inputs=_inputs_flat,
@@ -146,8 +146,8 @@ def max_bytes_in_use(name=None):
   Returns:
     A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "MaxBytesInUse", name=name)
     _result = _op.outputs[:]
@@ -161,12 +161,12 @@ def max_bytes_in_use(name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MaxBytesInUse", name,
-        _ctx._post_execution_callbacks)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "MaxBytesInUse", name, _ctx._post_execution_callbacks)
       return _result
     except _core._FallbackException:
       return max_bytes_in_use_eager_fallback(
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -175,11 +175,11 @@ def max_bytes_in_use(name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def max_bytes_in_use_eager_fallback(name=None):
+def max_bytes_in_use_eager_fallback(name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function max_bytes_in_use
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _inputs_flat = []
   _attrs = None
   _result = _execute.execute(b"MaxBytesInUse", 1, inputs=_inputs_flat,

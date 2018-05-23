@@ -25,7 +25,7 @@ from tensorflow.python.util.tf_export import tf_export
 
 
 @tf_export('function_buffering_resource')
-def function_buffering_resource(string_arg, target_device, shared_name, container, f, buffer_size, thread_pool_size, name=None):
+def function_buffering_resource(string_arg, target_device, shared_name, container, f, buffer_size, name=None):
   r"""Creates a resource that fills up a buffer by making function calls.
 
   Args:
@@ -41,29 +41,25 @@ def function_buffering_resource(string_arg, target_device, shared_name, containe
       Otherwise, a default container is used.
     f: A function decorated with @Defun. Function to be executed.
     buffer_size: An `int`. Size of the buffer.
-    thread_pool_size: An `int`. Size of the threadpool doing the prefetching.
     name: A name for the operation (optional).
 
   Returns:
     A `Tensor` of type `resource`. Handle to the resource created.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     shared_name = _execute.make_str(shared_name, "shared_name")
     container = _execute.make_str(container, "container")
     buffer_size = _execute.make_int(buffer_size, "buffer_size")
-    thread_pool_size = _execute.make_int(thread_pool_size, "thread_pool_size")
     _, _, _op = _op_def_lib._apply_op_helper(
         "FunctionBufferingResource", string_arg=string_arg,
         target_device=target_device, shared_name=shared_name,
-        container=container, f=f, buffer_size=buffer_size,
-        thread_pool_size=thread_pool_size, name=name)
+        container=container, f=f, buffer_size=buffer_size, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("shared_name", _op.get_attr("shared_name"), "container",
               _op.get_attr("container"), "f", _op.get_attr("f"),
-              "buffer_size", _op.get_attr("buffer_size"), "thread_pool_size",
-              _op.get_attr("thread_pool_size"))
+              "buffer_size", _op.get_attr("buffer_size"))
     _execute.record_gradient(
       "FunctionBufferingResource", _inputs_flat, _attrs, _result, name)
     _result, = _result
@@ -72,16 +68,16 @@ def function_buffering_resource(string_arg, target_device, shared_name, containe
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "FunctionBufferingResource", name,
-        _ctx._post_execution_callbacks, string_arg, target_device,
-        "shared_name", shared_name, "container", container, "f", f,
-        "buffer_size", buffer_size, "thread_pool_size", thread_pool_size)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "FunctionBufferingResource", name, _ctx._post_execution_callbacks,
+        string_arg, target_device, "shared_name", shared_name, "container",
+        container, "f", f, "buffer_size", buffer_size)
       return _result
     except _core._FallbackException:
       return function_buffering_resource_eager_fallback(
           string_arg, target_device, shared_name=shared_name,
-          container=container, f=f, buffer_size=buffer_size,
-          thread_pool_size=thread_pool_size, name=name)
+          container=container, f=f, buffer_size=buffer_size, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -90,20 +86,19 @@ def function_buffering_resource(string_arg, target_device, shared_name, containe
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def function_buffering_resource_eager_fallback(string_arg, target_device, shared_name, container, f, buffer_size, thread_pool_size, name=None):
+def function_buffering_resource_eager_fallback(string_arg, target_device, shared_name, container, f, buffer_size, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function function_buffering_resource
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   shared_name = _execute.make_str(shared_name, "shared_name")
   container = _execute.make_str(container, "container")
   buffer_size = _execute.make_int(buffer_size, "buffer_size")
-  thread_pool_size = _execute.make_int(thread_pool_size, "thread_pool_size")
   string_arg = _ops.convert_to_tensor(string_arg, _dtypes.string)
   target_device = _ops.convert_to_tensor(target_device, _dtypes.string)
   _inputs_flat = [string_arg, target_device]
   _attrs = ("shared_name", shared_name, "container", container, "f", f,
-  "buffer_size", buffer_size, "thread_pool_size", thread_pool_size)
+  "buffer_size", buffer_size)
   _result = _execute.execute(b"FunctionBufferingResource", 1,
                              inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
                              name=name)
@@ -130,8 +125,8 @@ def function_buffering_resource_get_next(function_buffer_resource, output_types,
     A list of `Tensor` objects of type `output_types`.
     A list of return values.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -153,13 +148,15 @@ def function_buffering_resource_get_next(function_buffer_resource, output_types,
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "FunctionBufferingResourceGetNext",
-        name, _ctx._post_execution_callbacks, function_buffer_resource,
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "FunctionBufferingResourceGetNext", name,
+        _ctx._post_execution_callbacks, function_buffer_resource,
         "output_types", output_types)
       return _result
     except _core._FallbackException:
       return function_buffering_resource_get_next_eager_fallback(
-          function_buffer_resource, output_types=output_types, name=name)
+          function_buffer_resource, output_types=output_types, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -168,11 +165,11 @@ def function_buffering_resource_get_next(function_buffer_resource, output_types,
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def function_buffering_resource_get_next_eager_fallback(function_buffer_resource, output_types, name=None):
+def function_buffering_resource_get_next_eager_fallback(function_buffer_resource, output_types, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function function_buffering_resource_get_next
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -191,6 +188,62 @@ def function_buffering_resource_get_next_eager_fallback(function_buffer_resource
 _ops.RegisterShape("FunctionBufferingResourceGetNext")(None)
 
 
+@tf_export('function_buffering_resource_reset')
+def function_buffering_resource_reset(function_buffer_resource, name=None):
+  r"""Resets the FunctionBufferingResource.
+
+  Args:
+    function_buffer_resource: A `Tensor` of type `resource`.
+      The FunctionBufferingResource handle.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+  """
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "FunctionBufferingResourceReset",
+        function_buffer_resource=function_buffer_resource, name=name)
+    return _op
+    _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "FunctionBufferingResourceReset", name,
+        _ctx._post_execution_callbacks, function_buffer_resource)
+      return _result
+    except _core._FallbackException:
+      return function_buffering_resource_reset_eager_fallback(
+          function_buffer_resource, name=name, ctx=_ctx)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def function_buffering_resource_reset_eager_fallback(function_buffer_resource, name=None, ctx=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function function_buffering_resource_reset
+  """
+  _ctx = ctx if ctx else _context.context()
+  function_buffer_resource = _ops.convert_to_tensor(function_buffer_resource, _dtypes.resource)
+  _inputs_flat = [function_buffer_resource]
+  _attrs = None
+  _result = _execute.execute(b"FunctionBufferingResourceReset", 0,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
+  _result = None
+  return _result
+
+_ops.RegisterShape("FunctionBufferingResourceReset")(None)
+
+
 @tf_export('ignore_errors_dataset')
 def ignore_errors_dataset(input_dataset, output_types, output_shapes, name=None):
   r"""Creates a dataset that contains the elements of `input_dataset` ignoring errors.
@@ -204,8 +257,8 @@ def ignore_errors_dataset(input_dataset, output_types, output_shapes, name=None)
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -231,14 +284,15 @@ def ignore_errors_dataset(input_dataset, output_types, output_shapes, name=None)
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "IgnoreErrorsDataset", name,
-        _ctx._post_execution_callbacks, input_dataset, "output_types",
-        output_types, "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "IgnoreErrorsDataset", name, _ctx._post_execution_callbacks,
+        input_dataset, "output_types", output_types, "output_shapes",
+        output_shapes)
       return _result
     except _core._FallbackException:
       return ignore_errors_dataset_eager_fallback(
           input_dataset, output_types=output_types,
-          output_shapes=output_shapes, name=name)
+          output_shapes=output_shapes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -247,11 +301,11 @@ def ignore_errors_dataset(input_dataset, output_types, output_shapes, name=None)
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def ignore_errors_dataset_eager_fallback(input_dataset, output_types, output_shapes, name=None):
+def ignore_errors_dataset_eager_fallback(input_dataset, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function ignore_errors_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -275,6 +329,64 @@ def ignore_errors_dataset_eager_fallback(input_dataset, output_types, output_sha
 _ops.RegisterShape("IgnoreErrorsDataset")(None)
 
 
+@tf_export('iterator_get_device')
+def iterator_get_device(resource, name=None):
+  r"""Returns the name of the device on which `resource` has been placed.
+
+  Args:
+    resource: A `Tensor` of type `resource`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `string`.
+  """
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "IteratorGetDevice", resource=resource, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = None
+    _execute.record_gradient(
+      "IteratorGetDevice", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "IteratorGetDevice", name, _ctx._post_execution_callbacks, resource)
+      return _result
+    except _core._FallbackException:
+      return iterator_get_device_eager_fallback(
+          resource, name=name, ctx=_ctx)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def iterator_get_device_eager_fallback(resource, name=None, ctx=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function iterator_get_device
+  """
+  _ctx = ctx if ctx else _context.context()
+  resource = _ops.convert_to_tensor(resource, _dtypes.resource)
+  _inputs_flat = [resource]
+  _attrs = None
+  _result = _execute.execute(b"IteratorGetDevice", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _execute.record_gradient(
+      "IteratorGetDevice", _inputs_flat, _attrs, _result, name)
+  _result, = _result
+  return _result
+
+_ops.RegisterShape("IteratorGetDevice")(None)
+
+
 @tf_export('thread_pool_dataset')
 def thread_pool_dataset(input_dataset, thread_pool, output_types, output_shapes, name=None):
   r"""Creates a dataset that uses a custom thread pool to compute `input_dataset`.
@@ -290,8 +402,8 @@ def thread_pool_dataset(input_dataset, thread_pool, output_types, output_shapes,
     A `Tensor` of type `variant`.
     A resource produced by the ThreadPoolHandle op.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -318,14 +430,15 @@ def thread_pool_dataset(input_dataset, thread_pool, output_types, output_shapes,
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ThreadPoolDataset", name,
-        _ctx._post_execution_callbacks, input_dataset, thread_pool,
-        "output_types", output_types, "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ThreadPoolDataset", name, _ctx._post_execution_callbacks,
+        input_dataset, thread_pool, "output_types", output_types,
+        "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return thread_pool_dataset_eager_fallback(
           input_dataset, thread_pool, output_types=output_types,
-          output_shapes=output_shapes, name=name)
+          output_shapes=output_shapes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -334,11 +447,11 @@ def thread_pool_dataset(input_dataset, thread_pool, output_types, output_shapes,
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def thread_pool_dataset_eager_fallback(input_dataset, thread_pool, output_types, output_shapes, name=None):
+def thread_pool_dataset_eager_fallback(input_dataset, thread_pool, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function thread_pool_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -380,8 +493,8 @@ def thread_pool_handle(num_threads, display_name, container="", shared_name="", 
     A `Tensor` of type `resource`.
     A resource that can be consumed by one or more ThreadPoolDataset ops.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     num_threads = _execute.make_int(num_threads, "num_threads")
     display_name = _execute.make_str(display_name, "display_name")
     if container is None:
@@ -408,15 +521,15 @@ def thread_pool_handle(num_threads, display_name, container="", shared_name="", 
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ThreadPoolHandle", name,
-        _ctx._post_execution_callbacks, "num_threads", num_threads,
-        "display_name", display_name, "container", container, "shared_name",
-        shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ThreadPoolHandle", name, _ctx._post_execution_callbacks,
+        "num_threads", num_threads, "display_name", display_name, "container",
+        container, "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return thread_pool_handle_eager_fallback(
           num_threads=num_threads, display_name=display_name,
-          container=container, shared_name=shared_name, name=name)
+          container=container, shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -425,11 +538,11 @@ def thread_pool_handle(num_threads, display_name, container="", shared_name="", 
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def thread_pool_handle_eager_fallback(num_threads, display_name, container="", shared_name="", name=None):
+def thread_pool_handle_eager_fallback(num_threads, display_name, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function thread_pool_handle
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   num_threads = _execute.make_int(num_threads, "num_threads")
   display_name = _execute.make_str(display_name, "display_name")
   if container is None:
@@ -464,8 +577,8 @@ def unique_dataset(input_dataset, output_types, output_shapes, name=None):
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -491,14 +604,14 @@ def unique_dataset(input_dataset, output_types, output_shapes, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "UniqueDataset", name,
-        _ctx._post_execution_callbacks, input_dataset, "output_types",
-        output_types, "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "UniqueDataset", name, _ctx._post_execution_callbacks, input_dataset,
+        "output_types", output_types, "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return unique_dataset_eager_fallback(
           input_dataset, output_types=output_types,
-          output_shapes=output_shapes, name=name)
+          output_shapes=output_shapes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -507,11 +620,11 @@ def unique_dataset(input_dataset, output_types, output_shapes, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def unique_dataset_eager_fallback(input_dataset, output_types, output_shapes, name=None):
+def unique_dataset_eager_fallback(input_dataset, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function unique_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -571,10 +684,6 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     name: "buffer_size"
 #     type: "int"
 #   }
-#   attr {
-#     name: "thread_pool_size"
-#     type: "int"
-#   }
 #   is_stateful: true
 # }
 # op {
@@ -592,6 +701,14 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     type: "list(type)"
 #     has_minimum: true
 #     minimum: 1
+#   }
+#   is_stateful: true
+# }
+# op {
+#   name: "FunctionBufferingResourceReset"
+#   input_arg {
+#     name: "function_buffer_resource"
+#     type: DT_RESOURCE
 #   }
 #   is_stateful: true
 # }
@@ -617,6 +734,18 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     has_minimum: true
 #     minimum: 1
 #   }
+# }
+# op {
+#   name: "IteratorGetDevice"
+#   input_arg {
+#     name: "resource"
+#     type: DT_RESOURCE
+#   }
+#   output_arg {
+#     name: "device"
+#     type: DT_STRING
+#   }
+#   is_stateful: true
 # }
 # op {
 #   name: "ThreadPoolDataset"
@@ -699,4 +828,4 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     minimum: 1
 #   }
 # }
-_op_def_lib = _InitOpDefLibrary(b"\n\263\001\n\031FunctionBufferingResource\022\016\n\nstring_arg\030\007\022\021\n\rtarget_device\030\007\032\014\n\010resource\030\024\"\025\n\013shared_name\022\006string\"\023\n\tcontainer\022\006string\"\t\n\001f\022\004func\"\022\n\013buffer_size\022\003int\"\027\n\020thread_pool_size\022\003int\210\001\001\n{\n FunctionBufferingResourceGetNext\022\034\n\030function_buffer_resource\030\024\032\026\n\006output2\014output_types\"\036\n\014output_types\022\nlist(type)(\0010\001\210\001\001\nv\n\023IgnoreErrorsDataset\022\021\n\rinput_dataset\030\025\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\210\001\n\021ThreadPoolDataset\022\021\n\rinput_dataset\030\025\022\017\n\013thread_pool\030\024\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\n\201\001\n\020ThreadPoolHandle\032\n\n\006handle\030\024\"\022\n\013num_threads\022\003int\"\026\n\014display_name\022\006string\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\np\n\rUniqueDataset\022\021\n\rinput_dataset\030\025\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001")
+_op_def_lib = _InitOpDefLibrary(b"\n\232\001\n\031FunctionBufferingResource\022\016\n\nstring_arg\030\007\022\021\n\rtarget_device\030\007\032\014\n\010resource\030\024\"\025\n\013shared_name\022\006string\"\023\n\tcontainer\022\006string\"\t\n\001f\022\004func\"\022\n\013buffer_size\022\003int\210\001\001\n{\n FunctionBufferingResourceGetNext\022\034\n\030function_buffer_resource\030\024\032\026\n\006output2\014output_types\"\036\n\014output_types\022\nlist(type)(\0010\001\210\001\001\nA\n\036FunctionBufferingResourceReset\022\034\n\030function_buffer_resource\030\024\210\001\001\nv\n\023IgnoreErrorsDataset\022\021\n\rinput_dataset\030\025\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n0\n\021IteratorGetDevice\022\014\n\010resource\030\024\032\n\n\006device\030\007\210\001\001\n\210\001\n\021ThreadPoolDataset\022\021\n\rinput_dataset\030\025\022\017\n\013thread_pool\030\024\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\n\201\001\n\020ThreadPoolHandle\032\n\n\006handle\030\024\"\022\n\013num_threads\022\003int\"\026\n\014display_name\022\006string\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\np\n\rUniqueDataset\022\021\n\rinput_dataset\030\025\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001")

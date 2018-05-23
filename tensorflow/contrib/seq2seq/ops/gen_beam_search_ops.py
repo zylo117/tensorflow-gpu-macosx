@@ -50,8 +50,8 @@ def gather_tree(step_ids, parent_ids, max_sequence_lengths, end_token, name=None
     A `Tensor`. Has the same type as `step_ids`.
     `[max_time, batch_size, beam_width]`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "GatherTree", step_ids=step_ids, parent_ids=parent_ids,
         max_sequence_lengths=max_sequence_lengths, end_token=end_token,
@@ -67,13 +67,14 @@ def gather_tree(step_ids, parent_ids, max_sequence_lengths, end_token, name=None
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "GatherTree", name,
-        _ctx._post_execution_callbacks, step_ids, parent_ids,
+        _ctx._context_handle, _ctx._eager_context.device_name, "GatherTree",
+        name, _ctx._post_execution_callbacks, step_ids, parent_ids,
         max_sequence_lengths, end_token)
       return _result
     except _core._FallbackException:
       return gather_tree_eager_fallback(
-          step_ids, parent_ids, max_sequence_lengths, end_token, name=name)
+          step_ids, parent_ids, max_sequence_lengths, end_token, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -82,11 +83,11 @@ def gather_tree(step_ids, parent_ids, max_sequence_lengths, end_token, name=None
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def gather_tree_eager_fallback(step_ids, parent_ids, max_sequence_lengths, end_token, name=None):
+def gather_tree_eager_fallback(step_ids, parent_ids, max_sequence_lengths, end_token, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function gather_tree
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, _inputs_T = _execute.args_to_matching_eager([step_ids, parent_ids, end_token], _ctx)
   (step_ids, parent_ids, end_token) = _inputs_T
   max_sequence_lengths = _ops.convert_to_tensor(max_sequence_lengths, _dtypes.int32)

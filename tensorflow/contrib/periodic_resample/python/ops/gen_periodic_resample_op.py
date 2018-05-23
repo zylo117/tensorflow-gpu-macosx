@@ -104,8 +104,8 @@ def periodic_resample(values, shape, name=None):
     `shape` except that the dimension specified as `None` will be minimally
     decreased as necessary.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     shape = _execute.make_shape(shape, "shape")
     _, _, _op = _op_def_lib._apply_op_helper(
         "PeriodicResample", values=values, shape=shape, name=name)
@@ -120,12 +120,13 @@ def periodic_resample(values, shape, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "PeriodicResample", name,
-        _ctx._post_execution_callbacks, values, "shape", shape)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "PeriodicResample", name, _ctx._post_execution_callbacks, values,
+        "shape", shape)
       return _result
     except _core._FallbackException:
       return periodic_resample_eager_fallback(
-          values, shape=shape, name=name)
+          values, shape=shape, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -134,11 +135,11 @@ def periodic_resample(values, shape, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def periodic_resample_eager_fallback(values, shape, name=None):
+def periodic_resample_eager_fallback(values, shape, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function periodic_resample
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   shape = _execute.make_shape(shape, "shape")
   _attr_T, (values,) = _execute.args_to_matching_eager([values], _ctx)
   _inputs_flat = [values]

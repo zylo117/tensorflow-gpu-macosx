@@ -52,8 +52,8 @@ def range_decode(encoded, shape, cdf, precision, name=None):
   Returns:
     A `Tensor` of type `int16`. An int32 tensor with shape equal to `shape`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     precision = _execute.make_int(precision, "precision")
     _, _, _op = _op_def_lib._apply_op_helper(
         "RangeDecode", encoded=encoded, shape=shape, cdf=cdf,
@@ -69,13 +69,13 @@ def range_decode(encoded, shape, cdf, precision, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "RangeDecode", name,
-        _ctx._post_execution_callbacks, encoded, shape, cdf, "precision",
-        precision)
+        _ctx._context_handle, _ctx._eager_context.device_name, "RangeDecode",
+        name, _ctx._post_execution_callbacks, encoded, shape, cdf,
+        "precision", precision)
       return _result
     except _core._FallbackException:
       return range_decode_eager_fallback(
-          encoded, shape, cdf, precision=precision, name=name)
+          encoded, shape, cdf, precision=precision, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -84,11 +84,11 @@ def range_decode(encoded, shape, cdf, precision, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def range_decode_eager_fallback(encoded, shape, cdf, precision, name=None):
+def range_decode_eager_fallback(encoded, shape, cdf, precision, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function range_decode
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   precision = _execute.make_int(precision, "precision")
   encoded = _ops.convert_to_tensor(encoded, _dtypes.string)
   shape = _ops.convert_to_tensor(shape, _dtypes.int32)
@@ -166,8 +166,8 @@ def range_encode(data, cdf, precision, name=None):
   Returns:
     A `Tensor` of type `string`. A range-coded scalar string.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     precision = _execute.make_int(precision, "precision")
     _, _, _op = _op_def_lib._apply_op_helper(
         "RangeEncode", data=data, cdf=cdf, precision=precision, name=name)
@@ -182,12 +182,13 @@ def range_encode(data, cdf, precision, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "RangeEncode", name,
-        _ctx._post_execution_callbacks, data, cdf, "precision", precision)
+        _ctx._context_handle, _ctx._eager_context.device_name, "RangeEncode",
+        name, _ctx._post_execution_callbacks, data, cdf, "precision",
+        precision)
       return _result
     except _core._FallbackException:
       return range_encode_eager_fallback(
-          data, cdf, precision=precision, name=name)
+          data, cdf, precision=precision, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -196,11 +197,11 @@ def range_encode(data, cdf, precision, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def range_encode_eager_fallback(data, cdf, precision, name=None):
+def range_encode_eager_fallback(data, cdf, precision, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function range_encode
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   precision = _execute.make_int(precision, "precision")
   data = _ops.convert_to_tensor(data, _dtypes.int16)
   cdf = _ops.convert_to_tensor(cdf, _dtypes.int32)

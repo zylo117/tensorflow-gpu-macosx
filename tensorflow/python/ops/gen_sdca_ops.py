@@ -36,8 +36,8 @@ def sdca_fprint(input, name=None):
   Returns:
     A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "SdcaFprint", input=input, name=name)
     _result = _op.outputs[:]
@@ -51,12 +51,12 @@ def sdca_fprint(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SdcaFprint", name,
-        _ctx._post_execution_callbacks, input)
+        _ctx._context_handle, _ctx._eager_context.device_name, "SdcaFprint",
+        name, _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return sdca_fprint_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -65,11 +65,11 @@ def sdca_fprint(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sdca_fprint_eager_fallback(input, name=None):
+def sdca_fprint_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sdca_fprint
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   input = _ops.convert_to_tensor(input, _dtypes.string)
   _inputs_flat = [input]
   _attrs = None
@@ -89,7 +89,7 @@ _SdcaOptimizerOutput = _collections.namedtuple(
 
 
 @tf_export('train.sdca_optimizer')
-def sdca_optimizer(sparse_example_indices, sparse_feature_indices, sparse_feature_values, dense_features, example_weights, example_labels, sparse_indices, sparse_weights, dense_weights, example_state_data, loss_type, l1, l2, num_loss_partitions, num_inner_iterations, adaptative=False, name=None):
+def sdca_optimizer(sparse_example_indices, sparse_feature_indices, sparse_feature_values, dense_features, example_weights, example_labels, sparse_indices, sparse_weights, dense_weights, example_state_data, loss_type, l1, l2, num_loss_partitions, num_inner_iterations, adaptative=True, name=None):
   r"""Distributed version of Stochastic Dual Coordinate Ascent (SDCA) optimizer for
 
   linear models with L1 + L2 regularization. As global optimization objective is
@@ -147,8 +147,8 @@ def sdca_optimizer(sparse_example_indices, sparse_feature_indices, sparse_featur
       Number of partitions of the global loss function.
     num_inner_iterations: An `int` that is `>= 1`.
       Number of iterations per mini-batch.
-    adaptative: An optional `bool`. Defaults to `False`.
-      Whether to use Adapative SDCA for the inner loop.
+    adaptative: An optional `bool`. Defaults to `True`.
+      Whether to use Adaptive SDCA for the inner loop.
     name: A name for the operation (optional).
 
   Returns:
@@ -158,8 +158,8 @@ def sdca_optimizer(sparse_example_indices, sparse_feature_indices, sparse_featur
     out_delta_sparse_weights: A list with the same length as `sparse_example_indices` of `Tensor` objects with type `float32`.
     out_delta_dense_weights: A list with the same length as `dense_features` of `Tensor` objects with type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(sparse_example_indices, (list, tuple)):
       raise TypeError(
           "Expected list for 'sparse_example_indices' argument to "
@@ -217,7 +217,7 @@ def sdca_optimizer(sparse_example_indices, sparse_feature_indices, sparse_featur
     num_loss_partitions = _execute.make_int(num_loss_partitions, "num_loss_partitions")
     num_inner_iterations = _execute.make_int(num_inner_iterations, "num_inner_iterations")
     if adaptative is None:
-      adaptative = False
+      adaptative = True
     adaptative = _execute.make_bool(adaptative, "adaptative")
     _, _, _op = _op_def_lib._apply_op_helper(
         "SdcaOptimizer", sparse_example_indices=sparse_example_indices,
@@ -251,13 +251,14 @@ def sdca_optimizer(sparse_example_indices, sparse_feature_indices, sparse_featur
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SdcaOptimizer", name,
-        _ctx._post_execution_callbacks, sparse_example_indices,
-        sparse_feature_indices, sparse_feature_values, dense_features,
-        example_weights, example_labels, sparse_indices, sparse_weights,
-        dense_weights, example_state_data, "loss_type", loss_type,
-        "adaptative", adaptative, "l1", l1, "l2", l2, "num_loss_partitions",
-        num_loss_partitions, "num_inner_iterations", num_inner_iterations)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SdcaOptimizer", name, _ctx._post_execution_callbacks,
+        sparse_example_indices, sparse_feature_indices, sparse_feature_values,
+        dense_features, example_weights, example_labels, sparse_indices,
+        sparse_weights, dense_weights, example_state_data, "loss_type",
+        loss_type, "adaptative", adaptative, "l1", l1, "l2", l2,
+        "num_loss_partitions", num_loss_partitions, "num_inner_iterations",
+        num_inner_iterations)
       _result = _SdcaOptimizerOutput._make(_result)
       return _result
     except _core._FallbackException:
@@ -267,7 +268,7 @@ def sdca_optimizer(sparse_example_indices, sparse_feature_indices, sparse_featur
           example_labels, sparse_indices, sparse_weights, dense_weights,
           example_state_data, loss_type=loss_type, adaptative=adaptative,
           l1=l1, l2=l2, num_loss_partitions=num_loss_partitions,
-          num_inner_iterations=num_inner_iterations, name=name)
+          num_inner_iterations=num_inner_iterations, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -276,11 +277,11 @@ def sdca_optimizer(sparse_example_indices, sparse_feature_indices, sparse_featur
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sdca_optimizer_eager_fallback(sparse_example_indices, sparse_feature_indices, sparse_feature_values, dense_features, example_weights, example_labels, sparse_indices, sparse_weights, dense_weights, example_state_data, loss_type, l1, l2, num_loss_partitions, num_inner_iterations, adaptative=False, name=None):
+def sdca_optimizer_eager_fallback(sparse_example_indices, sparse_feature_indices, sparse_feature_values, dense_features, example_weights, example_labels, sparse_indices, sparse_weights, dense_weights, example_state_data, loss_type, l1, l2, num_loss_partitions, num_inner_iterations, adaptative=True, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sdca_optimizer
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(sparse_example_indices, (list, tuple)):
     raise TypeError(
         "Expected list for 'sparse_example_indices' argument to "
@@ -338,7 +339,7 @@ def sdca_optimizer_eager_fallback(sparse_example_indices, sparse_feature_indices
   num_loss_partitions = _execute.make_int(num_loss_partitions, "num_loss_partitions")
   num_inner_iterations = _execute.make_int(num_inner_iterations, "num_inner_iterations")
   if adaptative is None:
-    adaptative = False
+    adaptative = True
   adaptative = _execute.make_bool(adaptative, "adaptative")
   sparse_example_indices = _ops.convert_n_to_tensor(sparse_example_indices, _dtypes.int64)
   sparse_feature_indices = _ops.convert_n_to_tensor(sparse_feature_indices, _dtypes.int64)
@@ -385,8 +386,8 @@ def sdca_shrink_l1(weights, l1, l2, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(weights, (list, tuple)):
       raise TypeError(
           "Expected list for 'weights' argument to "

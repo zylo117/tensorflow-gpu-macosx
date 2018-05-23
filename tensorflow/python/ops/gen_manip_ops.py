@@ -65,8 +65,8 @@ def roll(input, shift, axis, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "Roll", input=input, shift=shift, axis=axis, name=name)
     _result = _op.outputs[:]
@@ -81,12 +81,12 @@ def roll(input, shift, axis, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Roll", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Roll", name,
         _ctx._post_execution_callbacks, input, shift, axis)
       return _result
     except _core._FallbackException:
       return roll_eager_fallback(
-          input, shift, axis, name=name)
+          input, shift, axis, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -95,11 +95,11 @@ def roll(input, shift, axis, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def roll_eager_fallback(input, shift, axis, name=None):
+def roll_eager_fallback(input, shift, axis, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function roll
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _attr_Tshift, (shift,) = _execute.args_to_matching_eager([shift], _ctx)
   _attr_Taxis, (axis,) = _execute.args_to_matching_eager([axis], _ctx)

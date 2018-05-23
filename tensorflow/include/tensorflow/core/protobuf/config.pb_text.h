@@ -121,6 +121,26 @@ bool ProtoParseFromString(
     ::tensorflow::RunMetadata* msg)
         TF_MUST_USE_RESULT;
 
+// Message-text conversion for tensorflow.TensorConnection
+string ProtoDebugString(
+    const ::tensorflow::TensorConnection& msg);
+string ProtoShortDebugString(
+    const ::tensorflow::TensorConnection& msg);
+bool ProtoParseFromString(
+    const string& s,
+    ::tensorflow::TensorConnection* msg)
+        TF_MUST_USE_RESULT;
+
+// Message-text conversion for tensorflow.CallableOptions
+string ProtoDebugString(
+    const ::tensorflow::CallableOptions& msg);
+string ProtoShortDebugString(
+    const ::tensorflow::CallableOptions& msg);
+bool ProtoParseFromString(
+    const string& s,
+    ::tensorflow::CallableOptions* msg)
+        TF_MUST_USE_RESULT;
+
 }  // namespace tensorflow
 
 #endif  // tensorflow_core_protobuf_config_proto_H_

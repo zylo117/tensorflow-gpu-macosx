@@ -51,8 +51,8 @@ def big_query_reader(project_id, dataset_id, table_id, columns, timestamp_millis
   Returns:
     A `Tensor` of type mutable `string`. The handle to reference the Reader.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     project_id = _execute.make_str(project_id, "project_id")
     dataset_id = _execute.make_str(dataset_id, "dataset_id")
     table_id = _execute.make_str(table_id, "table_id")
@@ -121,8 +121,8 @@ def generate_big_query_reader_partitions(project_id, dataset_id, table_id, colum
   Returns:
     A `Tensor` of type `string`. Serialized table partitions.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     project_id = _execute.make_str(project_id, "project_id")
     dataset_id = _execute.make_str(dataset_id, "dataset_id")
     table_id = _execute.make_str(table_id, "table_id")
@@ -157,8 +157,9 @@ def generate_big_query_reader_partitions(project_id, dataset_id, table_id, colum
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "GenerateBigQueryReaderPartitions",
-        name, _ctx._post_execution_callbacks, "project_id", project_id,
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "GenerateBigQueryReaderPartitions", name,
+        _ctx._post_execution_callbacks, "project_id", project_id,
         "dataset_id", dataset_id, "table_id", table_id, "columns", columns,
         "timestamp_millis", timestamp_millis, "num_partitions",
         num_partitions, "test_end_point", test_end_point)
@@ -168,7 +169,7 @@ def generate_big_query_reader_partitions(project_id, dataset_id, table_id, colum
           project_id=project_id, dataset_id=dataset_id, table_id=table_id,
           columns=columns, timestamp_millis=timestamp_millis,
           num_partitions=num_partitions, test_end_point=test_end_point,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -177,11 +178,11 @@ def generate_big_query_reader_partitions(project_id, dataset_id, table_id, colum
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def generate_big_query_reader_partitions_eager_fallback(project_id, dataset_id, table_id, columns, timestamp_millis, num_partitions, test_end_point="", name=None):
+def generate_big_query_reader_partitions_eager_fallback(project_id, dataset_id, table_id, columns, timestamp_millis, num_partitions, test_end_point="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function generate_big_query_reader_partitions
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   project_id = _execute.make_str(project_id, "project_id")
   dataset_id = _execute.make_str(dataset_id, "dataset_id")
   table_id = _execute.make_str(table_id, "table_id")

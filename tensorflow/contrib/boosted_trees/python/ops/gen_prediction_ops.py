@@ -53,8 +53,8 @@ def gradient_trees_partition_examples(tree_ensemble_handle, dense_float_features
     A `Tensor` of type `int32`.
     Rank 1 Tensor containing partition ids per example.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(dense_float_features, (list, tuple)):
       raise TypeError(
           "Expected list for 'dense_float_features' argument to "
@@ -137,8 +137,9 @@ def gradient_trees_partition_examples(tree_ensemble_handle, dense_float_features
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "GradientTreesPartitionExamples",
-        name, _ctx._post_execution_callbacks, tree_ensemble_handle,
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "GradientTreesPartitionExamples", name,
+        _ctx._post_execution_callbacks, tree_ensemble_handle,
         dense_float_features, sparse_float_feature_indices,
         sparse_float_feature_values, sparse_float_feature_shapes,
         sparse_int_feature_indices, sparse_int_feature_values,
@@ -150,7 +151,7 @@ def gradient_trees_partition_examples(tree_ensemble_handle, dense_float_features
           sparse_float_feature_indices, sparse_float_feature_values,
           sparse_float_feature_shapes, sparse_int_feature_indices,
           sparse_int_feature_values, sparse_int_feature_shapes,
-          use_locking=use_locking, name=name)
+          use_locking=use_locking, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -159,11 +160,11 @@ def gradient_trees_partition_examples(tree_ensemble_handle, dense_float_features
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def gradient_trees_partition_examples_eager_fallback(tree_ensemble_handle, dense_float_features, sparse_float_feature_indices, sparse_float_feature_values, sparse_float_feature_shapes, sparse_int_feature_indices, sparse_int_feature_values, sparse_int_feature_shapes, use_locking=False, name=None):
+def gradient_trees_partition_examples_eager_fallback(tree_ensemble_handle, dense_float_features, sparse_float_feature_indices, sparse_float_feature_values, sparse_float_feature_shapes, sparse_int_feature_indices, sparse_int_feature_values, sparse_int_feature_shapes, use_locking=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function gradient_trees_partition_examples
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(dense_float_features, (list, tuple)):
     raise TypeError(
         "Expected list for 'dense_float_features' argument to "
@@ -293,8 +294,8 @@ def gradient_trees_prediction(tree_ensemble_handle, seed, dense_float_features, 
     drop_out_tree_indices_weights: A `Tensor` of type `float32`. Tensor of Rank 2 containing dropped trees indices
       and original weights of those trees during prediction.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(dense_float_features, (list, tuple)):
       raise TypeError(
           "Expected list for 'dense_float_features' argument to "
@@ -388,15 +389,15 @@ def gradient_trees_prediction(tree_ensemble_handle, seed, dense_float_features, 
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "GradientTreesPrediction", name,
-        _ctx._post_execution_callbacks, tree_ensemble_handle, seed,
-        dense_float_features, sparse_float_feature_indices,
-        sparse_float_feature_values, sparse_float_feature_shapes,
-        sparse_int_feature_indices, sparse_int_feature_values,
-        sparse_int_feature_shapes, "learner_config", learner_config,
-        "use_locking", use_locking, "apply_dropout", apply_dropout,
-        "apply_averaging", apply_averaging, "center_bias", center_bias,
-        "reduce_dim", reduce_dim)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "GradientTreesPrediction", name, _ctx._post_execution_callbacks,
+        tree_ensemble_handle, seed, dense_float_features,
+        sparse_float_feature_indices, sparse_float_feature_values,
+        sparse_float_feature_shapes, sparse_int_feature_indices,
+        sparse_int_feature_values, sparse_int_feature_shapes,
+        "learner_config", learner_config, "use_locking", use_locking,
+        "apply_dropout", apply_dropout, "apply_averaging", apply_averaging,
+        "center_bias", center_bias, "reduce_dim", reduce_dim)
       _result = _GradientTreesPredictionOutput._make(_result)
       return _result
     except _core._FallbackException:
@@ -407,7 +408,7 @@ def gradient_trees_prediction(tree_ensemble_handle, seed, dense_float_features, 
           sparse_int_feature_values, sparse_int_feature_shapes,
           learner_config=learner_config, use_locking=use_locking,
           apply_dropout=apply_dropout, apply_averaging=apply_averaging,
-          center_bias=center_bias, reduce_dim=reduce_dim, name=name)
+          center_bias=center_bias, reduce_dim=reduce_dim, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -416,11 +417,11 @@ def gradient_trees_prediction(tree_ensemble_handle, seed, dense_float_features, 
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def gradient_trees_prediction_eager_fallback(tree_ensemble_handle, seed, dense_float_features, sparse_float_feature_indices, sparse_float_feature_values, sparse_float_feature_shapes, sparse_int_feature_indices, sparse_int_feature_values, sparse_int_feature_shapes, learner_config, apply_dropout, apply_averaging, center_bias, reduce_dim, use_locking=False, name=None):
+def gradient_trees_prediction_eager_fallback(tree_ensemble_handle, seed, dense_float_features, sparse_float_feature_indices, sparse_float_feature_values, sparse_float_feature_shapes, sparse_int_feature_indices, sparse_int_feature_values, sparse_int_feature_shapes, learner_config, apply_dropout, apply_averaging, center_bias, reduce_dim, use_locking=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function gradient_trees_prediction
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(dense_float_features, (list, tuple)):
     raise TypeError(
         "Expected list for 'dense_float_features' argument to "

@@ -36,8 +36,8 @@ def batch_matrix_band_part(input, num_lower, num_upper, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "BatchMatrixBandPart", input=input, num_lower=num_lower,
         num_upper=num_upper, name=name)
@@ -52,12 +52,13 @@ def batch_matrix_band_part(input, num_lower, num_upper, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BatchMatrixBandPart", name,
-        _ctx._post_execution_callbacks, input, num_lower, num_upper)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "BatchMatrixBandPart", name, _ctx._post_execution_callbacks, input,
+        num_lower, num_upper)
       return _result
     except _core._FallbackException:
       return batch_matrix_band_part_eager_fallback(
-          input, num_lower, num_upper, name=name)
+          input, num_lower, num_upper, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -66,11 +67,11 @@ def batch_matrix_band_part(input, num_lower, num_upper, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def batch_matrix_band_part_eager_fallback(input, num_lower, num_upper, name=None):
+def batch_matrix_band_part_eager_fallback(input, num_lower, num_upper, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function batch_matrix_band_part
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   num_lower = _ops.convert_to_tensor(num_lower, _dtypes.int64)
   num_upper = _ops.convert_to_tensor(num_upper, _dtypes.int64)
@@ -94,8 +95,8 @@ def batch_matrix_diag(diagonal, name=None):
   Returns:
     A `Tensor`. Has the same type as `diagonal`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "BatchMatrixDiag", diagonal=diagonal, name=name)
     _result = _op.outputs[:]
@@ -109,12 +110,12 @@ def batch_matrix_diag(diagonal, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BatchMatrixDiag", name,
-        _ctx._post_execution_callbacks, diagonal)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "BatchMatrixDiag", name, _ctx._post_execution_callbacks, diagonal)
       return _result
     except _core._FallbackException:
       return batch_matrix_diag_eager_fallback(
-          diagonal, name=name)
+          diagonal, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -123,11 +124,11 @@ def batch_matrix_diag(diagonal, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def batch_matrix_diag_eager_fallback(diagonal, name=None):
+def batch_matrix_diag_eager_fallback(diagonal, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function batch_matrix_diag
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (diagonal,) = _execute.args_to_matching_eager([diagonal], _ctx)
   _inputs_flat = [diagonal]
   _attrs = ("T", _attr_T)
@@ -149,8 +150,8 @@ def batch_matrix_diag_part(input, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "BatchMatrixDiagPart", input=input, name=name)
     _result = _op.outputs[:]
@@ -164,12 +165,12 @@ def batch_matrix_diag_part(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BatchMatrixDiagPart", name,
-        _ctx._post_execution_callbacks, input)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "BatchMatrixDiagPart", name, _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return batch_matrix_diag_part_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -178,11 +179,11 @@ def batch_matrix_diag_part(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def batch_matrix_diag_part_eager_fallback(input, name=None):
+def batch_matrix_diag_part_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function batch_matrix_diag_part
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _inputs_flat = [input]
   _attrs = ("T", _attr_T)
@@ -205,8 +206,8 @@ def batch_matrix_set_diag(input, diagonal, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "BatchMatrixSetDiag", input=input, diagonal=diagonal, name=name)
     _result = _op.outputs[:]
@@ -220,12 +221,13 @@ def batch_matrix_set_diag(input, diagonal, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BatchMatrixSetDiag", name,
-        _ctx._post_execution_callbacks, input, diagonal)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "BatchMatrixSetDiag", name, _ctx._post_execution_callbacks, input,
+        diagonal)
       return _result
     except _core._FallbackException:
       return batch_matrix_set_diag_eager_fallback(
-          input, diagonal, name=name)
+          input, diagonal, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -234,11 +236,11 @@ def batch_matrix_set_diag(input, diagonal, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def batch_matrix_set_diag_eager_fallback(input, diagonal, name=None):
+def batch_matrix_set_diag_eager_fallback(input, diagonal, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function batch_matrix_set_diag
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, _inputs_T = _execute.args_to_matching_eager([input, diagonal], _ctx)
   (input, diagonal) = _inputs_T
   _inputs_flat = [input, diagonal]
@@ -279,8 +281,8 @@ def batch_to_space(input, crops, block_size, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     block_size = _execute.make_int(block_size, "block_size")
     _, _, _op = _op_def_lib._apply_op_helper(
         "BatchToSpace", input=input, crops=crops, block_size=block_size,
@@ -297,13 +299,13 @@ def batch_to_space(input, crops, block_size, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BatchToSpace", name,
-        _ctx._post_execution_callbacks, input, crops, "block_size",
+        _ctx._context_handle, _ctx._eager_context.device_name, "BatchToSpace",
+        name, _ctx._post_execution_callbacks, input, crops, "block_size",
         block_size)
       return _result
     except _core._FallbackException:
       return batch_to_space_eager_fallback(
-          input, crops, block_size=block_size, name=name)
+          input, crops, block_size=block_size, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -312,11 +314,11 @@ def batch_to_space(input, crops, block_size, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def batch_to_space_eager_fallback(input, crops, block_size, name=None):
+def batch_to_space_eager_fallback(input, crops, block_size, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function batch_to_space
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   block_size = _execute.make_int(block_size, "block_size")
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _attr_Tidx, (crops,) = _execute.args_to_matching_eager([crops], _ctx, _dtypes.int32)
@@ -462,8 +464,8 @@ def batch_to_space_nd(input, block_shape, crops, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "BatchToSpaceND", input=input, block_shape=block_shape, crops=crops,
         name=name)
@@ -479,12 +481,13 @@ def batch_to_space_nd(input, block_shape, crops, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BatchToSpaceND", name,
-        _ctx._post_execution_callbacks, input, block_shape, crops)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "BatchToSpaceND", name, _ctx._post_execution_callbacks, input,
+        block_shape, crops)
       return _result
     except _core._FallbackException:
       return batch_to_space_nd_eager_fallback(
-          input, block_shape, crops, name=name)
+          input, block_shape, crops, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -493,11 +496,11 @@ def batch_to_space_nd(input, block_shape, crops, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def batch_to_space_nd_eager_fallback(input, block_shape, crops, name=None):
+def batch_to_space_nd_eager_fallback(input, block_shape, crops, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function batch_to_space_nd
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _attr_Tblock_shape, (block_shape,) = _execute.args_to_matching_eager([block_shape], _ctx, _dtypes.int32)
   _attr_Tcrops, (crops,) = _execute.args_to_matching_eager([crops], _ctx, _dtypes.int32)
@@ -530,15 +533,15 @@ def bitcast(input, type, name=None):
   endian orderings will give different results.
 
   Args:
-    input: A `Tensor`. Must be one of the following types: `bfloat16`, `float32`, `float64`, `int64`, `int32`, `uint8`, `uint16`, `int8`, `int16`, `complex64`, `complex128`, `qint8`, `quint8`, `qint16`, `quint16`, `qint32`, `half`.
-    type: A `tf.DType` from: `tf.bfloat16, tf.float32, tf.float64, tf.int64, tf.int32, tf.uint8, tf.uint16, tf.int8, tf.int16, tf.complex64, tf.complex128, tf.qint8, tf.quint8, tf.qint16, tf.quint16, tf.qint32, tf.half`.
+    input: A `Tensor`. Must be one of the following types: `bfloat16`, `half`, `float32`, `float64`, `int64`, `int32`, `uint8`, `uint16`, `int8`, `int16`, `complex64`, `complex128`, `qint8`, `quint8`, `qint16`, `quint16`, `qint32`.
+    type: A `tf.DType` from: `tf.bfloat16, tf.half, tf.float32, tf.float64, tf.int64, tf.int32, tf.uint8, tf.uint16, tf.int8, tf.int16, tf.complex64, tf.complex128, tf.qint8, tf.quint8, tf.qint16, tf.quint16, tf.qint32`.
     name: A name for the operation (optional).
 
   Returns:
     A `Tensor` of type `type`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     type = _execute.make_type(type, "type")
     _, _, _op = _op_def_lib._apply_op_helper(
         "Bitcast", input=input, type=type, name=name)
@@ -553,12 +556,12 @@ def bitcast(input, type, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Bitcast", name,
-        _ctx._post_execution_callbacks, input, "type", type)
+        _ctx._context_handle, _ctx._eager_context.device_name, "Bitcast",
+        name, _ctx._post_execution_callbacks, input, "type", type)
       return _result
     except _core._FallbackException:
       return bitcast_eager_fallback(
-          input, type=type, name=name)
+          input, type=type, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -567,11 +570,11 @@ def bitcast(input, type, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def bitcast_eager_fallback(input, type, name=None):
+def bitcast_eager_fallback(input, type, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function bitcast
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   type = _execute.make_type(type, "type")
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _inputs_flat = [input]
@@ -598,8 +601,8 @@ def broadcast_args(s0, s1, name=None):
   Returns:
     A `Tensor`. Has the same type as `s0`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "BroadcastArgs", s0=s0, s1=s1, name=name)
     _result = _op.outputs[:]
@@ -613,12 +616,12 @@ def broadcast_args(s0, s1, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BroadcastArgs", name,
-        _ctx._post_execution_callbacks, s0, s1)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "BroadcastArgs", name, _ctx._post_execution_callbacks, s0, s1)
       return _result
     except _core._FallbackException:
       return broadcast_args_eager_fallback(
-          s0, s1, name=name)
+          s0, s1, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -627,11 +630,11 @@ def broadcast_args(s0, s1, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def broadcast_args_eager_fallback(s0, s1, name=None):
+def broadcast_args_eager_fallback(s0, s1, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function broadcast_args
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, _inputs_T = _execute.args_to_matching_eager([s0, s1], _ctx, _dtypes.int32)
   (s0, s1) = _inputs_T
   _inputs_flat = [s0, s1]
@@ -644,12 +647,12 @@ def broadcast_args_eager_fallback(s0, s1, name=None):
   return _result
 
 
-__broadcast_gradient_args_outputs = ["r0", "r1"]
+_broadcast_gradient_args_outputs = ["r0", "r1"]
 _BroadcastGradientArgsOutput = _collections.namedtuple(
-    "BroadcastGradientArgs", __broadcast_gradient_args_outputs)
+    "BroadcastGradientArgs", _broadcast_gradient_args_outputs)
 
 
-def _broadcast_gradient_args(s0, s1, name=None):
+def broadcast_gradient_args(s0, s1, name=None):
   r"""Return the reduction indices for computing gradients of s0 op s1 with broadcast.
 
   This is typically used by gradient computations for a broadcasting operation.
@@ -665,8 +668,8 @@ def _broadcast_gradient_args(s0, s1, name=None):
     r0: A `Tensor`. Has the same type as `s0`.
     r1: A `Tensor`. Has the same type as `s0`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "BroadcastGradientArgs", s0=s0, s1=s1, name=name)
     _result = _op.outputs[:]
@@ -680,13 +683,13 @@ def _broadcast_gradient_args(s0, s1, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BroadcastGradientArgs", name,
-        _ctx._post_execution_callbacks, s0, s1)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "BroadcastGradientArgs", name, _ctx._post_execution_callbacks, s0, s1)
       _result = _BroadcastGradientArgsOutput._make(_result)
       return _result
     except _core._FallbackException:
-      return _broadcast_gradient_args_eager_fallback(
-          s0, s1, name=name)
+      return broadcast_gradient_args_eager_fallback(
+          s0, s1, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -695,11 +698,11 @@ def _broadcast_gradient_args(s0, s1, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def _broadcast_gradient_args_eager_fallback(s0, s1, name=None):
+def broadcast_gradient_args_eager_fallback(s0, s1, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
-  This is for function _broadcast_gradient_args
+  This is for function broadcast_gradient_args
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, _inputs_T = _execute.args_to_matching_eager([s0, s1], _ctx, _dtypes.int32)
   (s0, s1) = _inputs_T
   _inputs_flat = [s0, s1]
@@ -720,15 +723,15 @@ def check_numerics(tensor, message, name=None):
   that are not a number (NaN) or infinity (Inf). Otherwise, passes `tensor` as-is.
 
   Args:
-    tensor: A `Tensor`. Must be one of the following types: `half`, `bfloat16`, `float32`, `float64`.
+    tensor: A `Tensor`. Must be one of the following types: `bfloat16`, `half`, `float32`, `float64`.
     message: A `string`. Prefix of the error message.
     name: A name for the operation (optional).
 
   Returns:
     A `Tensor`. Has the same type as `tensor`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     message = _execute.make_str(message, "message")
     _, _, _op = _op_def_lib._apply_op_helper(
         "CheckNumerics", tensor=tensor, message=message, name=name)
@@ -743,12 +746,13 @@ def check_numerics(tensor, message, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "CheckNumerics", name,
-        _ctx._post_execution_callbacks, tensor, "message", message)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "CheckNumerics", name, _ctx._post_execution_callbacks, tensor,
+        "message", message)
       return _result
     except _core._FallbackException:
       return check_numerics_eager_fallback(
-          tensor, message=message, name=name)
+          tensor, message=message, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -757,11 +761,11 @@ def check_numerics(tensor, message, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def check_numerics_eager_fallback(tensor, message, name=None):
+def check_numerics_eager_fallback(tensor, message, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function check_numerics
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   message = _execute.make_str(message, "message")
   _attr_T, (tensor,) = _execute.args_to_matching_eager([tensor], _ctx)
   _inputs_flat = [tensor]
@@ -774,7 +778,7 @@ def check_numerics_eager_fallback(tensor, message, name=None):
   return _result
 
 
-def _concat(concat_dim, values, name=None):
+def concat(concat_dim, values, name=None):
   r"""Concatenates tensors along one dimension.
 
   Args:
@@ -789,8 +793,8 @@ def _concat(concat_dim, values, name=None):
   Returns:
     A `Tensor`. Has the same type as `values`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(values, (list, tuple)):
       raise TypeError(
           "Expected list for 'values' argument to "
@@ -809,12 +813,12 @@ def _concat(concat_dim, values, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Concat", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Concat", name,
         _ctx._post_execution_callbacks, concat_dim, values)
       return _result
     except _core._FallbackException:
-      return _concat_eager_fallback(
-          concat_dim, values, name=name)
+      return concat_eager_fallback(
+          concat_dim, values, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -823,11 +827,11 @@ def _concat(concat_dim, values, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def _concat_eager_fallback(concat_dim, values, name=None):
+def concat_eager_fallback(concat_dim, values, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
-  This is for function _concat
+  This is for function concat
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(values, (list, tuple)):
     raise TypeError(
         "Expected list for 'values' argument to "
@@ -869,8 +873,8 @@ def concat_offset(concat_dim, shape, name=None):
   Returns:
     A list with the same length as `shape` of `Tensor` objects with type `int32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(shape, (list, tuple)):
       raise TypeError(
           "Expected list for 'shape' argument to "
@@ -888,12 +892,12 @@ def concat_offset(concat_dim, shape, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ConcatOffset", name,
-        _ctx._post_execution_callbacks, concat_dim, shape)
+        _ctx._context_handle, _ctx._eager_context.device_name, "ConcatOffset",
+        name, _ctx._post_execution_callbacks, concat_dim, shape)
       return _result
     except _core._FallbackException:
       return concat_offset_eager_fallback(
-          concat_dim, shape, name=name)
+          concat_dim, shape, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -902,11 +906,11 @@ def concat_offset(concat_dim, shape, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def concat_offset_eager_fallback(concat_dim, shape, name=None):
+def concat_offset_eager_fallback(concat_dim, shape, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function concat_offset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(shape, (list, tuple)):
     raise TypeError(
         "Expected list for 'shape' argument to "
@@ -938,8 +942,8 @@ def concat_v2(values, axis, name=None):
   Returns:
     A `Tensor`. Has the same type as `values`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(values, (list, tuple)):
       raise TypeError(
           "Expected list for 'values' argument to "
@@ -959,12 +963,12 @@ def concat_v2(values, axis, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ConcatV2", name,
-        _ctx._post_execution_callbacks, values, axis)
+        _ctx._context_handle, _ctx._eager_context.device_name, "ConcatV2",
+        name, _ctx._post_execution_callbacks, values, axis)
       return _result
     except _core._FallbackException:
       return concat_v2_eager_fallback(
-          values, axis, name=name)
+          values, axis, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -973,11 +977,11 @@ def concat_v2(values, axis, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def concat_v2_eager_fallback(values, axis, name=None):
+def concat_v2_eager_fallback(values, axis, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function concat_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(values, (list, tuple)):
     raise TypeError(
         "Expected list for 'values' argument to "
@@ -1010,8 +1014,8 @@ def conjugate_transpose(x, perm, name=None):
   Returns:
     A `Tensor`. Has the same type as `x`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ConjugateTranspose", x=x, perm=perm, name=name)
     _result = _op.outputs[:]
@@ -1025,12 +1029,12 @@ def conjugate_transpose(x, perm, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ConjugateTranspose", name,
-        _ctx._post_execution_callbacks, x, perm)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ConjugateTranspose", name, _ctx._post_execution_callbacks, x, perm)
       return _result
     except _core._FallbackException:
       return conjugate_transpose_eager_fallback(
-          x, perm, name=name)
+          x, perm, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1039,11 +1043,11 @@ def conjugate_transpose(x, perm, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def conjugate_transpose_eager_fallback(x, perm, name=None):
+def conjugate_transpose_eager_fallback(x, perm, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function conjugate_transpose
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (x,) = _execute.args_to_matching_eager([x], _ctx)
   _attr_Tperm, (perm,) = _execute.args_to_matching_eager([perm], _ctx, _dtypes.int32)
   _inputs_flat = [x, perm]
@@ -1067,8 +1071,8 @@ def const(value, dtype, name=None):
   Returns:
     A `Tensor` of type `dtype`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     value = _execute.make_tensor(value, "value")
     dtype = _execute.make_type(dtype, "dtype")
     _, _, _op = _op_def_lib._apply_op_helper(
@@ -1084,12 +1088,12 @@ def const(value, dtype, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Const", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Const", name,
         _ctx._post_execution_callbacks, "value", value, "dtype", dtype)
       return _result
     except _core._FallbackException:
       return const_eager_fallback(
-          value=value, dtype=dtype, name=name)
+          value=value, dtype=dtype, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1098,11 +1102,11 @@ def const(value, dtype, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def const_eager_fallback(value, dtype, name=None):
+def const_eager_fallback(value, dtype, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function const
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   value = _execute.make_tensor(value, "value")
   dtype = _execute.make_type(dtype, "dtype")
   _inputs_flat = []
@@ -1129,8 +1133,8 @@ def debug_gradient_identity(input, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "DebugGradientIdentity", input=input, name=name)
     _result = _op.outputs[:]
@@ -1144,12 +1148,12 @@ def debug_gradient_identity(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DebugGradientIdentity", name,
-        _ctx._post_execution_callbacks, input)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "DebugGradientIdentity", name, _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return debug_gradient_identity_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1158,11 +1162,11 @@ def debug_gradient_identity(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def debug_gradient_identity_eager_fallback(input, name=None):
+def debug_gradient_identity_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function debug_gradient_identity
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _inputs_flat = [input]
   _attrs = ("T", _attr_T)
@@ -1188,8 +1192,8 @@ def debug_gradient_ref_identity(input, name=None):
   Returns:
     A mutable `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "DebugGradientRefIdentity", input=input, name=name)
     _result = _op.outputs[:]
@@ -1205,6 +1209,61 @@ def debug_gradient_ref_identity(input, name=None):
 
 
   raise RuntimeError("debug_gradient_ref_identity op does not support eager execution. Arg 'output' is a ref.")
+
+def deep_copy(x, name=None):
+  r"""Makes a copy of `x`.
+
+  Args:
+    x: A `Tensor`. The source tensor of type `T`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+  """
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "DeepCopy", x=x, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "DeepCopy", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._context_handle, _ctx._eager_context.device_name, "DeepCopy",
+        name, _ctx._post_execution_callbacks, x)
+      return _result
+    except _core._FallbackException:
+      return deep_copy_eager_fallback(
+          x, name=name, ctx=_ctx)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def deep_copy_eager_fallback(x, name=None, ctx=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function deep_copy
+  """
+  _ctx = ctx if ctx else _context.context()
+  _attr_T, (x,) = _execute.args_to_matching_eager([x], _ctx)
+  _inputs_flat = [x]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"DeepCopy", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _execute.record_gradient(
+      "DeepCopy", _inputs_flat, _attrs, _result, name)
+  _result, = _result
+  return _result
+
 
 def depth_to_space(input, block_size, data_format="NHWC", name=None):
   r"""DepthToSpace for tensors of type T.
@@ -1309,8 +1368,8 @@ def depth_to_space(input, block_size, data_format="NHWC", name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     block_size = _execute.make_int(block_size, "block_size")
     if data_format is None:
       data_format = "NHWC"
@@ -1331,13 +1390,14 @@ def depth_to_space(input, block_size, data_format="NHWC", name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DepthToSpace", name,
-        _ctx._post_execution_callbacks, input, "block_size", block_size,
+        _ctx._context_handle, _ctx._eager_context.device_name, "DepthToSpace",
+        name, _ctx._post_execution_callbacks, input, "block_size", block_size,
         "data_format", data_format)
       return _result
     except _core._FallbackException:
       return depth_to_space_eager_fallback(
-          input, block_size=block_size, data_format=data_format, name=name)
+          input, block_size=block_size, data_format=data_format, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1346,11 +1406,11 @@ def depth_to_space(input, block_size, data_format="NHWC", name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def depth_to_space_eager_fallback(input, block_size, data_format="NHWC", name=None):
+def depth_to_space_eager_fallback(input, block_size, data_format="NHWC", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function depth_to_space
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   block_size = _execute.make_int(block_size, "block_size")
   if data_format is None:
     data_format = "NHWC"
@@ -1457,8 +1517,8 @@ def dequantize(input, min_range, max_range, mode="MIN_COMBINED", name=None):
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if mode is None:
       mode = "MIN_COMBINED"
     mode = _execute.make_str(mode, "mode")
@@ -1476,13 +1536,13 @@ def dequantize(input, min_range, max_range, mode="MIN_COMBINED", name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Dequantize", name,
-        _ctx._post_execution_callbacks, input, min_range, max_range, "mode",
-        mode)
+        _ctx._context_handle, _ctx._eager_context.device_name, "Dequantize",
+        name, _ctx._post_execution_callbacks, input, min_range, max_range,
+        "mode", mode)
       return _result
     except _core._FallbackException:
       return dequantize_eager_fallback(
-          input, min_range, max_range, mode=mode, name=name)
+          input, min_range, max_range, mode=mode, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1491,11 +1551,11 @@ def dequantize(input, min_range, max_range, mode="MIN_COMBINED", name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def dequantize_eager_fallback(input, min_range, max_range, mode="MIN_COMBINED", name=None):
+def dequantize_eager_fallback(input, min_range, max_range, mode="MIN_COMBINED", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function dequantize
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if mode is None:
     mode = "MIN_COMBINED"
   mode = _execute.make_str(mode, "mode")
@@ -1535,15 +1595,15 @@ def diag(diagonal, name=None):
   ```
 
   Args:
-    diagonal: A `Tensor`. Must be one of the following types: `bfloat16`, `float32`, `float64`, `int32`, `int64`, `complex64`, `complex128`.
+    diagonal: A `Tensor`. Must be one of the following types: `bfloat16`, `half`, `float32`, `float64`, `int32`, `int64`, `complex64`, `complex128`.
       Rank k tensor where k is at most 1.
     name: A name for the operation (optional).
 
   Returns:
     A `Tensor`. Has the same type as `diagonal`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "Diag", diagonal=diagonal, name=name)
     _result = _op.outputs[:]
@@ -1557,12 +1617,12 @@ def diag(diagonal, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Diag", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Diag", name,
         _ctx._post_execution_callbacks, diagonal)
       return _result
     except _core._FallbackException:
       return diag_eager_fallback(
-          diagonal, name=name)
+          diagonal, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1571,11 +1631,11 @@ def diag(diagonal, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def diag_eager_fallback(diagonal, name=None):
+def diag_eager_fallback(diagonal, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function diag
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (diagonal,) = _execute.args_to_matching_eager([diagonal], _ctx)
   _inputs_flat = [diagonal]
   _attrs = ("T", _attr_T)
@@ -1611,15 +1671,15 @@ def diag_part(input, name=None):
   ```
 
   Args:
-    input: A `Tensor`. Must be one of the following types: `bfloat16`, `float32`, `float64`, `int32`, `int64`, `complex64`, `complex128`.
+    input: A `Tensor`. Must be one of the following types: `bfloat16`, `half`, `float32`, `float64`, `int32`, `int64`, `complex64`, `complex128`.
       Rank k tensor where k is even and not zero.
     name: A name for the operation (optional).
 
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "DiagPart", input=input, name=name)
     _result = _op.outputs[:]
@@ -1633,12 +1693,12 @@ def diag_part(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DiagPart", name,
-        _ctx._post_execution_callbacks, input)
+        _ctx._context_handle, _ctx._eager_context.device_name, "DiagPart",
+        name, _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return diag_part_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1647,11 +1707,11 @@ def diag_part(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def diag_part_eager_fallback(input, name=None):
+def diag_part_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function diag_part
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _inputs_flat = [input]
   _attrs = ("T", _attr_T)
@@ -1699,8 +1759,8 @@ def edit_distance(hypothesis_indices, hypothesis_values, hypothesis_shape, truth
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if normalize is None:
       normalize = True
     normalize = _execute.make_bool(normalize, "normalize")
@@ -1721,16 +1781,16 @@ def edit_distance(hypothesis_indices, hypothesis_values, hypothesis_shape, truth
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "EditDistance", name,
-        _ctx._post_execution_callbacks, hypothesis_indices, hypothesis_values,
-        hypothesis_shape, truth_indices, truth_values, truth_shape,
-        "normalize", normalize)
+        _ctx._context_handle, _ctx._eager_context.device_name, "EditDistance",
+        name, _ctx._post_execution_callbacks, hypothesis_indices,
+        hypothesis_values, hypothesis_shape, truth_indices, truth_values,
+        truth_shape, "normalize", normalize)
       return _result
     except _core._FallbackException:
       return edit_distance_eager_fallback(
           hypothesis_indices, hypothesis_values, hypothesis_shape,
           truth_indices, truth_values, truth_shape, normalize=normalize,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1739,11 +1799,11 @@ def edit_distance(hypothesis_indices, hypothesis_values, hypothesis_shape, truth
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def edit_distance_eager_fallback(hypothesis_indices, hypothesis_values, hypothesis_shape, truth_indices, truth_values, truth_shape, normalize=True, name=None):
+def edit_distance_eager_fallback(hypothesis_indices, hypothesis_values, hypothesis_shape, truth_indices, truth_values, truth_shape, normalize=True, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function edit_distance
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if normalize is None:
     normalize = True
   normalize = _execute.make_bool(normalize, "normalize")
@@ -1759,6 +1819,75 @@ def edit_distance_eager_fallback(hypothesis_indices, hypothesis_values, hypothes
                              attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "EditDistance", _inputs_flat, _attrs, _result, name)
+  _result, = _result
+  return _result
+
+
+def empty(shape, dtype, init=False, name=None):
+  r"""Creates a tensor with the given shape.
+
+This operation creates a tensor of `shape` and `dtype`.
+
+  Args:
+    shape: A `Tensor` of type `int32`.
+      1-D. Represents the shape of the output tensor.
+    dtype: A `tf.DType`.
+    init: An optional `bool`. Defaults to `False`.
+      If True, initialize the returned tensor with the default value of dtype.  Otherwise, the implementation is free not to initializethe tensor's content.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `dtype`.
+  """
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
+    dtype = _execute.make_type(dtype, "dtype")
+    if init is None:
+      init = False
+    init = _execute.make_bool(init, "init")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "Empty", shape=shape, dtype=dtype, init=init, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("dtype", _op.get_attr("dtype"), "init", _op.get_attr("init"))
+    _execute.record_gradient(
+      "Empty", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._context_handle, _ctx._eager_context.device_name, "Empty", name,
+        _ctx._post_execution_callbacks, shape, "dtype", dtype, "init", init)
+      return _result
+    except _core._FallbackException:
+      return empty_eager_fallback(
+          shape, dtype=dtype, init=init, name=name, ctx=_ctx)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def empty_eager_fallback(shape, dtype, init=False, name=None, ctx=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function empty
+  """
+  _ctx = ctx if ctx else _context.context()
+  dtype = _execute.make_type(dtype, "dtype")
+  if init is None:
+    init = False
+  init = _execute.make_bool(init, "init")
+  shape = _ops.convert_to_tensor(shape, _dtypes.int32)
+  _inputs_flat = [shape]
+  _attrs = ("dtype", dtype, "init", init)
+  _result = _execute.execute(b"Empty", 1, inputs=_inputs_flat, attrs=_attrs,
+                             ctx=_ctx, name=name)
+  _execute.record_gradient(
+      "Empty", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
@@ -1808,8 +1937,8 @@ def expand_dims(input, axis, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ExpandDims", input=input, dim=axis, name=name)
     _result = _op.outputs[:]
@@ -1823,12 +1952,12 @@ def expand_dims(input, axis, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ExpandDims", name,
-        _ctx._post_execution_callbacks, input, axis)
+        _ctx._context_handle, _ctx._eager_context.device_name, "ExpandDims",
+        name, _ctx._post_execution_callbacks, input, axis)
       return _result
     except _core._FallbackException:
       return expand_dims_eager_fallback(
-          input, axis, name=name)
+          input, axis, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1837,11 +1966,11 @@ def expand_dims(input, axis, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def expand_dims_eager_fallback(input, axis, name=None):
+def expand_dims_eager_fallback(input, axis, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function expand_dims
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _attr_Tdim, (axis,) = _execute.args_to_matching_eager([axis], _ctx, _dtypes.int32)
   _inputs_flat = [input, axis]
@@ -1888,8 +2017,8 @@ def extract_image_patches(images, ksizes, strides, rates, padding, name=None):
   Returns:
     A `Tensor`. Has the same type as `images`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(ksizes, (list, tuple)):
       raise TypeError(
           "Expected list for 'ksizes' argument to "
@@ -1922,14 +2051,15 @@ def extract_image_patches(images, ksizes, strides, rates, padding, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ExtractImagePatches", name,
-        _ctx._post_execution_callbacks, images, "ksizes", ksizes, "strides",
-        strides, "rates", rates, "padding", padding)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ExtractImagePatches", name, _ctx._post_execution_callbacks, images,
+        "ksizes", ksizes, "strides", strides, "rates", rates, "padding",
+        padding)
       return _result
     except _core._FallbackException:
       return extract_image_patches_eager_fallback(
           images, ksizes=ksizes, strides=strides, rates=rates,
-          padding=padding, name=name)
+          padding=padding, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1938,11 +2068,11 @@ def extract_image_patches(images, ksizes, strides, rates, padding, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def extract_image_patches_eager_fallback(images, ksizes, strides, rates, padding, name=None):
+def extract_image_patches_eager_fallback(images, ksizes, strides, rates, padding, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function extract_image_patches
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(ksizes, (list, tuple)):
     raise TypeError(
         "Expected list for 'ksizes' argument to "
@@ -1979,7 +2109,7 @@ def fake_quant_with_min_max_args(inputs, min=-6, max=6, num_bits=8, narrow_range
   `inputs` values are quantized into the quantization range (`[0; 2^num_bits - 1]`
   when `narrow_range` is false and `[1; 2^num_bits - 1]` when it is true) and
   then de-quantized and output as floats in `[min; max]` interval.
-  `num_bits` is the bitwidth of the quantization; between 2 and 8, inclusive.
+  `num_bits` is the bitwidth of the quantization; between 2 and 16, inclusive.
 
   Quantization is called fake since the output is still in floating point.
 
@@ -1994,8 +2124,8 @@ def fake_quant_with_min_max_args(inputs, min=-6, max=6, num_bits=8, narrow_range
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if min is None:
       min = -6
     min = _execute.make_float(min, "min")
@@ -2024,14 +2154,15 @@ def fake_quant_with_min_max_args(inputs, min=-6, max=6, num_bits=8, narrow_range
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "FakeQuantWithMinMaxArgs", name,
-        _ctx._post_execution_callbacks, inputs, "min", min, "max", max,
-        "num_bits", num_bits, "narrow_range", narrow_range)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "FakeQuantWithMinMaxArgs", name, _ctx._post_execution_callbacks,
+        inputs, "min", min, "max", max, "num_bits", num_bits, "narrow_range",
+        narrow_range)
       return _result
     except _core._FallbackException:
       return fake_quant_with_min_max_args_eager_fallback(
           inputs, min=min, max=max, num_bits=num_bits,
-          narrow_range=narrow_range, name=name)
+          narrow_range=narrow_range, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2040,11 +2171,11 @@ def fake_quant_with_min_max_args(inputs, min=-6, max=6, num_bits=8, narrow_range
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def fake_quant_with_min_max_args_eager_fallback(inputs, min=-6, max=6, num_bits=8, narrow_range=False, name=None):
+def fake_quant_with_min_max_args_eager_fallback(inputs, min=-6, max=6, num_bits=8, narrow_range=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function fake_quant_with_min_max_args
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if min is None:
     min = -6
   min = _execute.make_float(min, "min")
@@ -2088,8 +2219,8 @@ def fake_quant_with_min_max_args_gradient(gradients, inputs, min=-6, max=6, num_
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if min is None:
       min = -6
     min = _execute.make_float(min, "min")
@@ -2119,14 +2250,15 @@ def fake_quant_with_min_max_args_gradient(gradients, inputs, min=-6, max=6, num_
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "FakeQuantWithMinMaxArgsGradient",
-        name, _ctx._post_execution_callbacks, gradients, inputs, "min", min,
-        "max", max, "num_bits", num_bits, "narrow_range", narrow_range)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "FakeQuantWithMinMaxArgsGradient", name,
+        _ctx._post_execution_callbacks, gradients, inputs, "min", min, "max",
+        max, "num_bits", num_bits, "narrow_range", narrow_range)
       return _result
     except _core._FallbackException:
       return fake_quant_with_min_max_args_gradient_eager_fallback(
           gradients, inputs, min=min, max=max, num_bits=num_bits,
-          narrow_range=narrow_range, name=name)
+          narrow_range=narrow_range, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2135,11 +2267,11 @@ def fake_quant_with_min_max_args_gradient(gradients, inputs, min=-6, max=6, num_
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def fake_quant_with_min_max_args_gradient_eager_fallback(gradients, inputs, min=-6, max=6, num_bits=8, narrow_range=False, name=None):
+def fake_quant_with_min_max_args_gradient_eager_fallback(gradients, inputs, min=-6, max=6, num_bits=8, narrow_range=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function fake_quant_with_min_max_args_gradient
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if min is None:
     min = -6
   min = _execute.make_float(min, "min")
@@ -2176,7 +2308,7 @@ def fake_quant_with_min_max_vars(inputs, min, max, num_bits=8, narrow_range=Fals
   `inputs` values are quantized into the quantization range (`[0; 2^num_bits - 1]`
   when `narrow_range` is false and `[1; 2^num_bits - 1]` when it is true) and
   then de-quantized and output as floats in `[min; max]` interval.
-  `num_bits` is the bitwidth of the quantization; between 2 and 8, inclusive.
+  `num_bits` is the bitwidth of the quantization; between 2 and 16, inclusive.
 
   This operation has a gradient and thus allows for training `min` and `max`
   values.
@@ -2192,8 +2324,8 @@ def fake_quant_with_min_max_vars(inputs, min, max, num_bits=8, narrow_range=Fals
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if num_bits is None:
       num_bits = 8
     num_bits = _execute.make_int(num_bits, "num_bits")
@@ -2215,14 +2347,14 @@ def fake_quant_with_min_max_vars(inputs, min, max, num_bits=8, narrow_range=Fals
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "FakeQuantWithMinMaxVars", name,
-        _ctx._post_execution_callbacks, inputs, min, max, "num_bits",
-        num_bits, "narrow_range", narrow_range)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "FakeQuantWithMinMaxVars", name, _ctx._post_execution_callbacks,
+        inputs, min, max, "num_bits", num_bits, "narrow_range", narrow_range)
       return _result
     except _core._FallbackException:
       return fake_quant_with_min_max_vars_eager_fallback(
           inputs, min, max, num_bits=num_bits, narrow_range=narrow_range,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2231,11 +2363,11 @@ def fake_quant_with_min_max_vars(inputs, min, max, num_bits=8, narrow_range=Fals
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def fake_quant_with_min_max_vars_eager_fallback(inputs, min, max, num_bits=8, narrow_range=False, name=None):
+def fake_quant_with_min_max_vars_eager_fallback(inputs, min, max, num_bits=8, narrow_range=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function fake_quant_with_min_max_vars
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if num_bits is None:
     num_bits = 8
   num_bits = _execute.make_int(num_bits, "num_bits")
@@ -2289,8 +2421,8 @@ def fake_quant_with_min_max_vars_gradient(gradients, inputs, min, max, num_bits=
     backprop_wrt_min: A `Tensor` of type `float32`.
     backprop_wrt_max: A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if num_bits is None:
       num_bits = 8
     num_bits = _execute.make_int(num_bits, "num_bits")
@@ -2313,15 +2445,16 @@ def fake_quant_with_min_max_vars_gradient(gradients, inputs, min, max, num_bits=
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "FakeQuantWithMinMaxVarsGradient",
-        name, _ctx._post_execution_callbacks, gradients, inputs, min, max,
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "FakeQuantWithMinMaxVarsGradient", name,
+        _ctx._post_execution_callbacks, gradients, inputs, min, max,
         "num_bits", num_bits, "narrow_range", narrow_range)
       _result = _FakeQuantWithMinMaxVarsGradientOutput._make(_result)
       return _result
     except _core._FallbackException:
       return fake_quant_with_min_max_vars_gradient_eager_fallback(
           gradients, inputs, min, max, num_bits=num_bits,
-          narrow_range=narrow_range, name=name)
+          narrow_range=narrow_range, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2330,11 +2463,11 @@ def fake_quant_with_min_max_vars_gradient(gradients, inputs, min, max, num_bits=
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def fake_quant_with_min_max_vars_gradient_eager_fallback(gradients, inputs, min, max, num_bits=8, narrow_range=False, name=None):
+def fake_quant_with_min_max_vars_gradient_eager_fallback(gradients, inputs, min, max, num_bits=8, narrow_range=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function fake_quant_with_min_max_vars_gradient
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if num_bits is None:
     num_bits = 8
   num_bits = _execute.make_int(num_bits, "num_bits")
@@ -2367,7 +2500,7 @@ def fake_quant_with_min_max_vars_per_channel(inputs, min, max, num_bits=8, narro
   `inputs` values are quantized into the quantization range (`[0; 2^num_bits - 1]`
   when `narrow_range` is false and `[1; 2^num_bits - 1]` when it is true) and
   then de-quantized and output as floats in `[min; max]` interval.
-  `num_bits` is the bitwidth of the quantization; between 2 and 8, inclusive.
+  `num_bits` is the bitwidth of the quantization; between 2 and 16, inclusive.
 
   This operation has a gradient and thus allows for training `min` and `max`
   values.
@@ -2383,8 +2516,8 @@ def fake_quant_with_min_max_vars_per_channel(inputs, min, max, num_bits=8, narro
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if num_bits is None:
       num_bits = 8
     num_bits = _execute.make_int(num_bits, "num_bits")
@@ -2406,14 +2539,15 @@ def fake_quant_with_min_max_vars_per_channel(inputs, min, max, num_bits=8, narro
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "FakeQuantWithMinMaxVarsPerChannel",
-        name, _ctx._post_execution_callbacks, inputs, min, max, "num_bits",
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "FakeQuantWithMinMaxVarsPerChannel", name,
+        _ctx._post_execution_callbacks, inputs, min, max, "num_bits",
         num_bits, "narrow_range", narrow_range)
       return _result
     except _core._FallbackException:
       return fake_quant_with_min_max_vars_per_channel_eager_fallback(
           inputs, min, max, num_bits=num_bits, narrow_range=narrow_range,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2422,11 +2556,11 @@ def fake_quant_with_min_max_vars_per_channel(inputs, min, max, num_bits=8, narro
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def fake_quant_with_min_max_vars_per_channel_eager_fallback(inputs, min, max, num_bits=8, narrow_range=False, name=None):
+def fake_quant_with_min_max_vars_per_channel_eager_fallback(inputs, min, max, num_bits=8, narrow_range=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function fake_quant_with_min_max_vars_per_channel
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if num_bits is None:
     num_bits = 8
   num_bits = _execute.make_int(num_bits, "num_bits")
@@ -2470,7 +2604,7 @@ def fake_quant_with_min_max_vars_per_channel_gradient(gradients, inputs, min, ma
     min: A `Tensor` of type `float32`.
     max: A `Tensor` of type `float32`.
     num_bits: An optional `int`. Defaults to `8`.
-      The bitwidth of the quantization; between 2 and 8, inclusive.
+      The bitwidth of the quantization; between 2 and 16, inclusive.
     narrow_range: An optional `bool`. Defaults to `False`.
       Whether to quantize into 2^num_bits - 1 distinct values.
     name: A name for the operation (optional).
@@ -2482,8 +2616,8 @@ def fake_quant_with_min_max_vars_per_channel_gradient(gradients, inputs, min, ma
     backprop_wrt_min: A `Tensor` of type `float32`.
     backprop_wrt_max: A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if num_bits is None:
       num_bits = 8
     num_bits = _execute.make_int(num_bits, "num_bits")
@@ -2506,7 +2640,7 @@ def fake_quant_with_min_max_vars_per_channel_gradient(gradients, inputs, min, ma
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name,
+        _ctx._context_handle, _ctx._eager_context.device_name,
         "FakeQuantWithMinMaxVarsPerChannelGradient", name,
         _ctx._post_execution_callbacks, gradients, inputs, min, max,
         "num_bits", num_bits, "narrow_range", narrow_range)
@@ -2515,7 +2649,7 @@ def fake_quant_with_min_max_vars_per_channel_gradient(gradients, inputs, min, ma
     except _core._FallbackException:
       return fake_quant_with_min_max_vars_per_channel_gradient_eager_fallback(
           gradients, inputs, min, max, num_bits=num_bits,
-          narrow_range=narrow_range, name=name)
+          narrow_range=narrow_range, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2524,11 +2658,11 @@ def fake_quant_with_min_max_vars_per_channel_gradient(gradients, inputs, min, ma
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def fake_quant_with_min_max_vars_per_channel_gradient_eager_fallback(gradients, inputs, min, max, num_bits=8, narrow_range=False, name=None):
+def fake_quant_with_min_max_vars_per_channel_gradient_eager_fallback(gradients, inputs, min, max, num_bits=8, narrow_range=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function fake_quant_with_min_max_vars_per_channel_gradient
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if num_bits is None:
     num_bits = 8
   num_bits = _execute.make_int(num_bits, "num_bits")
@@ -2577,8 +2711,8 @@ def fill(dims, value, name=None):
   Returns:
     A `Tensor`. Has the same type as `value`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "Fill", dims=dims, value=value, name=name)
     _result = _op.outputs[:]
@@ -2593,12 +2727,12 @@ def fill(dims, value, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Fill", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Fill", name,
         _ctx._post_execution_callbacks, dims, value)
       return _result
     except _core._FallbackException:
       return fill_eager_fallback(
-          dims, value, name=name)
+          dims, value, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2607,11 +2741,11 @@ def fill(dims, value, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def fill_eager_fallback(dims, value, name=None):
+def fill_eager_fallback(dims, value, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function fill
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
   _attr_index_type, (dims,) = _execute.args_to_matching_eager([dims], _ctx, _dtypes.int32)
   _inputs_flat = [dims, value]
@@ -2662,8 +2796,8 @@ def gather(params, indices, validate_indices=True, name=None):
   Returns:
     A `Tensor`. Has the same type as `params`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if validate_indices is None:
       validate_indices = True
     validate_indices = _execute.make_bool(validate_indices, "validate_indices")
@@ -2682,13 +2816,14 @@ def gather(params, indices, validate_indices=True, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Gather", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Gather", name,
         _ctx._post_execution_callbacks, params, indices, "validate_indices",
         validate_indices)
       return _result
     except _core._FallbackException:
       return gather_eager_fallback(
-          params, indices, validate_indices=validate_indices, name=name)
+          params, indices, validate_indices=validate_indices, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2697,11 +2832,11 @@ def gather(params, indices, validate_indices=True, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def gather_eager_fallback(params, indices, validate_indices=True, name=None):
+def gather_eager_fallback(params, indices, validate_indices=True, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function gather
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if validate_indices is None:
     validate_indices = True
   validate_indices = _execute.make_bool(validate_indices, "validate_indices")
@@ -2834,8 +2969,8 @@ def gather_nd(params, indices, name=None):
   Returns:
     A `Tensor`. Has the same type as `params`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "GatherNd", params=params, indices=indices, name=name)
     _result = _op.outputs[:]
@@ -2850,12 +2985,12 @@ def gather_nd(params, indices, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "GatherNd", name,
-        _ctx._post_execution_callbacks, params, indices)
+        _ctx._context_handle, _ctx._eager_context.device_name, "GatherNd",
+        name, _ctx._post_execution_callbacks, params, indices)
       return _result
     except _core._FallbackException:
       return gather_nd_eager_fallback(
-          params, indices, name=name)
+          params, indices, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2864,11 +2999,11 @@ def gather_nd(params, indices, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def gather_nd_eager_fallback(params, indices, name=None):
+def gather_nd_eager_fallback(params, indices, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function gather_nd
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_Tparams, (params,) = _execute.args_to_matching_eager([params], _ctx)
   _attr_Tindices, (indices,) = _execute.args_to_matching_eager([indices], _ctx)
   _inputs_flat = [params, indices]
@@ -2924,8 +3059,8 @@ def gather_v2(params, indices, axis, name=None):
   Returns:
     A `Tensor`. Has the same type as `params`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "GatherV2", params=params, indices=indices, axis=axis, name=name)
     _result = _op.outputs[:]
@@ -2940,12 +3075,12 @@ def gather_v2(params, indices, axis, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "GatherV2", name,
-        _ctx._post_execution_callbacks, params, indices, axis)
+        _ctx._context_handle, _ctx._eager_context.device_name, "GatherV2",
+        name, _ctx._post_execution_callbacks, params, indices, axis)
       return _result
     except _core._FallbackException:
       return gather_v2_eager_fallback(
-          params, indices, axis, name=name)
+          params, indices, axis, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2954,11 +3089,11 @@ def gather_v2(params, indices, axis, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def gather_v2_eager_fallback(params, indices, axis, name=None):
+def gather_v2_eager_fallback(params, indices, axis, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function gather_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_Tparams, (params,) = _execute.args_to_matching_eager([params], _ctx)
   _attr_Tindices, (indices,) = _execute.args_to_matching_eager([indices], _ctx)
   _attr_Taxis, (axis,) = _execute.args_to_matching_eager([axis], _ctx)
@@ -2991,8 +3126,8 @@ def guarantee_const(input, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "GuaranteeConst", input=input, name=name)
     _result = _op.outputs[:]
@@ -3006,12 +3141,12 @@ def guarantee_const(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "GuaranteeConst", name,
-        _ctx._post_execution_callbacks, input)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "GuaranteeConst", name, _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return guarantee_const_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3020,11 +3155,11 @@ def guarantee_const(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def guarantee_const_eager_fallback(input, name=None):
+def guarantee_const_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function guarantee_const
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _inputs_flat = [input]
   _attrs = ("T", _attr_T)
@@ -3036,7 +3171,6 @@ def guarantee_const_eager_fallback(input, name=None):
   return _result
 
 
-@tf_export('identity')
 def identity(input, name=None):
   r"""Return a tensor with the same shape and contents as the input tensor or value.
 
@@ -3047,8 +3181,8 @@ def identity(input, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "Identity", input=input, name=name)
     _result = _op.outputs[:]
@@ -3062,12 +3196,12 @@ def identity(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Identity", name,
-        _ctx._post_execution_callbacks, input)
+        _ctx._context_handle, _ctx._eager_context.device_name, "Identity",
+        name, _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return identity_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3076,11 +3210,11 @@ def identity(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def identity_eager_fallback(input, name=None):
+def identity_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function identity
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _inputs_flat = [input]
   _attrs = ("T", _attr_T)
@@ -3119,8 +3253,8 @@ def identity_n(input, name=None):
   Returns:
     A list of `Tensor` objects. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "IdentityN", input=input, name=name)
     _result = _op.outputs[:]
@@ -3133,12 +3267,12 @@ def identity_n(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "IdentityN", name,
-        _ctx._post_execution_callbacks, input)
+        _ctx._context_handle, _ctx._eager_context.device_name, "IdentityN",
+        name, _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return identity_n_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3147,11 +3281,11 @@ def identity_n(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def identity_n_eager_fallback(input, name=None):
+def identity_n_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function identity_n
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, input = _execute.convert_to_mixed_eager_tensors(input, _ctx)
   _inputs_flat = list(input)
   _attrs = ("T", _attr_T)
@@ -3178,8 +3312,8 @@ def immutable_const(dtype, shape, memory_region_name, name=None):
   Returns:
     A `Tensor` of type `dtype`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     shape = _execute.make_shape(shape, "shape")
     memory_region_name = _execute.make_str(memory_region_name, "memory_region_name")
@@ -3198,14 +3332,14 @@ def immutable_const(dtype, shape, memory_region_name, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ImmutableConst", name,
-        _ctx._post_execution_callbacks, "dtype", dtype, "shape", shape,
-        "memory_region_name", memory_region_name)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ImmutableConst", name, _ctx._post_execution_callbacks, "dtype",
+        dtype, "shape", shape, "memory_region_name", memory_region_name)
       return _result
     except _core._FallbackException:
       return immutable_const_eager_fallback(
           dtype=dtype, shape=shape, memory_region_name=memory_region_name,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3214,11 +3348,11 @@ def immutable_const(dtype, shape, memory_region_name, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def immutable_const_eager_fallback(dtype, shape, memory_region_name, name=None):
+def immutable_const_eager_fallback(dtype, shape, memory_region_name, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function immutable_const
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   dtype = _execute.make_type(dtype, "dtype")
   shape = _execute.make_shape(shape, "shape")
   memory_region_name = _execute.make_str(memory_region_name, "memory_region_name")
@@ -3229,6 +3363,195 @@ def immutable_const_eager_fallback(dtype, shape, memory_region_name, name=None):
                              attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "ImmutableConst", _inputs_flat, _attrs, _result, name)
+  _result, = _result
+  return _result
+
+
+def inplace_add(x, i, v, name=None):
+  r"""    Adds v into specified rows of x.
+
+    Computes y = x; y[i, :] += v; return y.
+
+  Args:
+    x: A `Tensor`. A `Tensor` of type T.
+    i: A `Tensor` of type `int32`.
+      A vector. Indices into the left-most dimension of `x`.
+    v: A `Tensor`. Must have the same type as `x`.
+      A `Tensor` of type T. Same dimension sizes as x except the first dimension, which must be the same as i's size.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+  """
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "InplaceAdd", x=x, i=i, v=v, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "InplaceAdd", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._context_handle, _ctx._eager_context.device_name, "InplaceAdd",
+        name, _ctx._post_execution_callbacks, x, i, v)
+      return _result
+    except _core._FallbackException:
+      return inplace_add_eager_fallback(
+          x, i, v, name=name, ctx=_ctx)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def inplace_add_eager_fallback(x, i, v, name=None, ctx=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function inplace_add
+  """
+  _ctx = ctx if ctx else _context.context()
+  _attr_T, _inputs_T = _execute.args_to_matching_eager([x, v], _ctx)
+  (x, v) = _inputs_T
+  i = _ops.convert_to_tensor(i, _dtypes.int32)
+  _inputs_flat = [x, i, v]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"InplaceAdd", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _execute.record_gradient(
+      "InplaceAdd", _inputs_flat, _attrs, _result, name)
+  _result, = _result
+  return _result
+
+
+def inplace_sub(x, i, v, name=None):
+  r"""    Subtracts `v` into specified rows of `x`.
+
+    Computes y = x; y[i, :] -= v; return y.
+
+  Args:
+    x: A `Tensor`. A `Tensor` of type T.
+    i: A `Tensor` of type `int32`.
+      A vector. Indices into the left-most dimension of `x`.
+    v: A `Tensor`. Must have the same type as `x`.
+      A `Tensor` of type T. Same dimension sizes as x except the first dimension, which must be the same as i's size.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+  """
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "InplaceSub", x=x, i=i, v=v, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "InplaceSub", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._context_handle, _ctx._eager_context.device_name, "InplaceSub",
+        name, _ctx._post_execution_callbacks, x, i, v)
+      return _result
+    except _core._FallbackException:
+      return inplace_sub_eager_fallback(
+          x, i, v, name=name, ctx=_ctx)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def inplace_sub_eager_fallback(x, i, v, name=None, ctx=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function inplace_sub
+  """
+  _ctx = ctx if ctx else _context.context()
+  _attr_T, _inputs_T = _execute.args_to_matching_eager([x, v], _ctx)
+  (x, v) = _inputs_T
+  i = _ops.convert_to_tensor(i, _dtypes.int32)
+  _inputs_flat = [x, i, v]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"InplaceSub", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _execute.record_gradient(
+      "InplaceSub", _inputs_flat, _attrs, _result, name)
+  _result, = _result
+  return _result
+
+
+def inplace_update(x, i, v, name=None):
+  r"""    Updates specified rows with values in `v`.
+
+    Computes `x[i, :] = v; return x`.
+
+  Args:
+    x: A `Tensor`. A tensor of type `T`.
+    i: A `Tensor` of type `int32`.
+      A vector. Indices into the left-most dimension of `x`.
+    v: A `Tensor`. Must have the same type as `x`.
+      A `Tensor` of type T. Same dimension sizes as x except the first dimension, which must be the same as i's size.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor`. Has the same type as `x`.
+  """
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "InplaceUpdate", x=x, i=i, v=v, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "InplaceUpdate", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "InplaceUpdate", name, _ctx._post_execution_callbacks, x, i, v)
+      return _result
+    except _core._FallbackException:
+      return inplace_update_eager_fallback(
+          x, i, v, name=name, ctx=_ctx)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def inplace_update_eager_fallback(x, i, v, name=None, ctx=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function inplace_update
+  """
+  _ctx = ctx if ctx else _context.context()
+  _attr_T, _inputs_T = _execute.args_to_matching_eager([x, v], _ctx)
+  (x, v) = _inputs_T
+  i = _ops.convert_to_tensor(i, _dtypes.int32)
+  _inputs_flat = [x, i, v]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"InplaceUpdate", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _execute.record_gradient(
+      "InplaceUpdate", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
@@ -3260,8 +3583,8 @@ def invert_permutation(x, name=None):
   Returns:
     A `Tensor`. Has the same type as `x`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "InvertPermutation", x=x, name=name)
     _result = _op.outputs[:]
@@ -3275,12 +3598,12 @@ def invert_permutation(x, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "InvertPermutation", name,
-        _ctx._post_execution_callbacks, x)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "InvertPermutation", name, _ctx._post_execution_callbacks, x)
       return _result
     except _core._FallbackException:
       return invert_permutation_eager_fallback(
-          x, name=name)
+          x, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3289,11 +3612,11 @@ def invert_permutation(x, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def invert_permutation_eager_fallback(x, name=None):
+def invert_permutation_eager_fallback(x, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function invert_permutation
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (x,) = _execute.args_to_matching_eager([x], _ctx, _dtypes.int32)
   _inputs_flat = [x]
   _attrs = ("T", _attr_T)
@@ -3347,8 +3670,8 @@ def list_diff(x, y, out_idx=_dtypes.int32, name=None):
     out: A `Tensor`. Has the same type as `x`.
     idx: A `Tensor` of type `out_idx`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if out_idx is None:
       out_idx = _dtypes.int32
     out_idx = _execute.make_type(out_idx, "out_idx")
@@ -3365,13 +3688,13 @@ def list_diff(x, y, out_idx=_dtypes.int32, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ListDiff", name,
-        _ctx._post_execution_callbacks, x, y, "out_idx", out_idx)
+        _ctx._context_handle, _ctx._eager_context.device_name, "ListDiff",
+        name, _ctx._post_execution_callbacks, x, y, "out_idx", out_idx)
       _result = _ListDiffOutput._make(_result)
       return _result
     except _core._FallbackException:
       return list_diff_eager_fallback(
-          x, y, out_idx=out_idx, name=name)
+          x, y, out_idx=out_idx, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3380,11 +3703,11 @@ def list_diff(x, y, out_idx=_dtypes.int32, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def list_diff_eager_fallback(x, y, out_idx=_dtypes.int32, name=None):
+def list_diff_eager_fallback(x, y, out_idx=_dtypes.int32, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function list_diff
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if out_idx is None:
     out_idx = _dtypes.int32
   out_idx = _execute.make_type(out_idx, "out_idx")
@@ -3457,8 +3780,8 @@ def matrix_band_part(input, num_lower, num_upper, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "MatrixBandPart", input=input, num_lower=num_lower,
         num_upper=num_upper, name=name)
@@ -3473,12 +3796,13 @@ def matrix_band_part(input, num_lower, num_upper, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MatrixBandPart", name,
-        _ctx._post_execution_callbacks, input, num_lower, num_upper)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "MatrixBandPart", name, _ctx._post_execution_callbacks, input,
+        num_lower, num_upper)
       return _result
     except _core._FallbackException:
       return matrix_band_part_eager_fallback(
-          input, num_lower, num_upper, name=name)
+          input, num_lower, num_upper, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3487,11 +3811,11 @@ def matrix_band_part(input, num_lower, num_upper, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def matrix_band_part_eager_fallback(input, num_lower, num_upper, name=None):
+def matrix_band_part_eager_fallback(input, num_lower, num_upper, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function matrix_band_part
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _attr_Tindex, _inputs_Tindex = _execute.args_to_matching_eager([num_lower, num_upper], _ctx, _dtypes.int64)
   (num_lower, num_upper) = _inputs_Tindex
@@ -3543,8 +3867,8 @@ def matrix_diag(diagonal, name=None):
   Returns:
     A `Tensor`. Has the same type as `diagonal`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "MatrixDiag", diagonal=diagonal, name=name)
     _result = _op.outputs[:]
@@ -3558,12 +3882,12 @@ def matrix_diag(diagonal, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MatrixDiag", name,
-        _ctx._post_execution_callbacks, diagonal)
+        _ctx._context_handle, _ctx._eager_context.device_name, "MatrixDiag",
+        name, _ctx._post_execution_callbacks, diagonal)
       return _result
     except _core._FallbackException:
       return matrix_diag_eager_fallback(
-          diagonal, name=name)
+          diagonal, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3572,11 +3896,11 @@ def matrix_diag(diagonal, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def matrix_diag_eager_fallback(diagonal, name=None):
+def matrix_diag_eager_fallback(diagonal, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function matrix_diag
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (diagonal,) = _execute.args_to_matching_eager([diagonal], _ctx)
   _inputs_flat = [diagonal]
   _attrs = ("T", _attr_T)
@@ -3628,8 +3952,8 @@ def matrix_diag_part(input, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "MatrixDiagPart", input=input, name=name)
     _result = _op.outputs[:]
@@ -3643,12 +3967,12 @@ def matrix_diag_part(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MatrixDiagPart", name,
-        _ctx._post_execution_callbacks, input)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "MatrixDiagPart", name, _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return matrix_diag_part_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3657,11 +3981,11 @@ def matrix_diag_part(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def matrix_diag_part_eager_fallback(input, name=None):
+def matrix_diag_part_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function matrix_diag_part
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _inputs_flat = [input]
   _attrs = ("T", _attr_T)
@@ -3699,8 +4023,8 @@ def matrix_set_diag(input, diagonal, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "MatrixSetDiag", input=input, diagonal=diagonal, name=name)
     _result = _op.outputs[:]
@@ -3714,12 +4038,13 @@ def matrix_set_diag(input, diagonal, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MatrixSetDiag", name,
-        _ctx._post_execution_callbacks, input, diagonal)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "MatrixSetDiag", name, _ctx._post_execution_callbacks, input,
+        diagonal)
       return _result
     except _core._FallbackException:
       return matrix_set_diag_eager_fallback(
-          input, diagonal, name=name)
+          input, diagonal, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3728,11 +4053,11 @@ def matrix_set_diag(input, diagonal, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def matrix_set_diag_eager_fallback(input, diagonal, name=None):
+def matrix_set_diag_eager_fallback(input, diagonal, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function matrix_set_diag
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, _inputs_T = _execute.args_to_matching_eager([input, diagonal], _ctx)
   (input, diagonal) = _inputs_T
   _inputs_flat = [input, diagonal]
@@ -3790,8 +4115,8 @@ def mirror_pad(input, paddings, mode, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     mode = _execute.make_str(mode, "mode")
     _, _, _op = _op_def_lib._apply_op_helper(
         "MirrorPad", input=input, paddings=paddings, mode=mode, name=name)
@@ -3807,12 +4132,12 @@ def mirror_pad(input, paddings, mode, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MirrorPad", name,
-        _ctx._post_execution_callbacks, input, paddings, "mode", mode)
+        _ctx._context_handle, _ctx._eager_context.device_name, "MirrorPad",
+        name, _ctx._post_execution_callbacks, input, paddings, "mode", mode)
       return _result
     except _core._FallbackException:
       return mirror_pad_eager_fallback(
-          input, paddings, mode=mode, name=name)
+          input, paddings, mode=mode, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3821,11 +4146,11 @@ def mirror_pad(input, paddings, mode, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def mirror_pad_eager_fallback(input, paddings, mode, name=None):
+def mirror_pad_eager_fallback(input, paddings, mode, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function mirror_pad
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   mode = _execute.make_str(mode, "mode")
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _attr_Tpaddings, (paddings,) = _execute.args_to_matching_eager([paddings], _ctx, _dtypes.int32)
@@ -3873,8 +4198,8 @@ def mirror_pad_grad(input, paddings, mode, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     mode = _execute.make_str(mode, "mode")
     _, _, _op = _op_def_lib._apply_op_helper(
         "MirrorPadGrad", input=input, paddings=paddings, mode=mode, name=name)
@@ -3890,12 +4215,13 @@ def mirror_pad_grad(input, paddings, mode, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MirrorPadGrad", name,
-        _ctx._post_execution_callbacks, input, paddings, "mode", mode)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "MirrorPadGrad", name, _ctx._post_execution_callbacks, input,
+        paddings, "mode", mode)
       return _result
     except _core._FallbackException:
       return mirror_pad_grad_eager_fallback(
-          input, paddings, mode=mode, name=name)
+          input, paddings, mode=mode, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3904,11 +4230,11 @@ def mirror_pad_grad(input, paddings, mode, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def mirror_pad_grad_eager_fallback(input, paddings, mode, name=None):
+def mirror_pad_grad_eager_fallback(input, paddings, mode, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function mirror_pad_grad
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   mode = _execute.make_str(mode, "mode")
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _attr_Tpaddings, (paddings,) = _execute.args_to_matching_eager([paddings], _ctx, _dtypes.int32)
@@ -4030,8 +4356,8 @@ def one_hot(indices, depth, on_value, off_value, axis=-1, name=None):
   Returns:
     A `Tensor`. Has the same type as `on_value`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if axis is None:
       axis = -1
     axis = _execute.make_int(axis, "axis")
@@ -4050,13 +4376,13 @@ def one_hot(indices, depth, on_value, off_value, axis=-1, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "OneHot", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "OneHot", name,
         _ctx._post_execution_callbacks, indices, depth, on_value, off_value,
         "axis", axis)
       return _result
     except _core._FallbackException:
       return one_hot_eager_fallback(
-          indices, depth, on_value, off_value, axis=axis, name=name)
+          indices, depth, on_value, off_value, axis=axis, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -4065,11 +4391,11 @@ def one_hot(indices, depth, on_value, off_value, axis=-1, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def one_hot_eager_fallback(indices, depth, on_value, off_value, axis=-1, name=None):
+def one_hot_eager_fallback(indices, depth, on_value, off_value, axis=-1, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function one_hot
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if axis is None:
     axis = -1
   axis = _execute.make_int(axis, "axis")
@@ -4091,15 +4417,15 @@ def ones_like(x, name=None):
   r"""Returns a tensor of ones with the same shape and type as x.
 
   Args:
-    x: A `Tensor`. Must be one of the following types: `bfloat16`, `float32`, `float64`, `int8`, `uint8`, `int16`, `uint16`, `int32`, `int64`, `complex64`, `complex128`, `bool`.
+    x: A `Tensor`. Must be one of the following types: `bfloat16`, `half`, `float32`, `float64`, `int8`, `uint8`, `int16`, `uint16`, `int32`, `int64`, `complex64`, `complex128`, `bool`.
       a tensor of type T.
     name: A name for the operation (optional).
 
   Returns:
     A `Tensor`. Has the same type as `x`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "OnesLike", x=x, name=name)
     _result = _op.outputs[:]
@@ -4113,12 +4439,12 @@ def ones_like(x, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "OnesLike", name,
-        _ctx._post_execution_callbacks, x)
+        _ctx._context_handle, _ctx._eager_context.device_name, "OnesLike",
+        name, _ctx._post_execution_callbacks, x)
       return _result
     except _core._FallbackException:
       return ones_like_eager_fallback(
-          x, name=name)
+          x, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -4127,11 +4453,11 @@ def ones_like(x, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def ones_like_eager_fallback(x, name=None):
+def ones_like_eager_fallback(x, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function ones_like
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (x,) = _execute.args_to_matching_eager([x], _ctx)
   _inputs_flat = [x]
   _attrs = ("T", _attr_T)
@@ -4177,8 +4503,8 @@ def pack(values, axis=0, name=None):
   Returns:
     A `Tensor`. Has the same type as `values`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(values, (list, tuple)):
       raise TypeError(
           "Expected list for 'values' argument to "
@@ -4201,12 +4527,12 @@ def pack(values, axis=0, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Pack", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Pack", name,
         _ctx._post_execution_callbacks, values, "axis", axis)
       return _result
     except _core._FallbackException:
       return pack_eager_fallback(
-          values, axis=axis, name=name)
+          values, axis=axis, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -4215,11 +4541,11 @@ def pack(values, axis=0, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def pack_eager_fallback(values, axis=0, name=None):
+def pack_eager_fallback(values, axis=0, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function pack
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(values, (list, tuple)):
     raise TypeError(
         "Expected list for 'values' argument to "
@@ -4273,8 +4599,8 @@ def pad(input, paddings, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "Pad", input=input, paddings=paddings, name=name)
     _result = _op.outputs[:]
@@ -4288,12 +4614,12 @@ def pad(input, paddings, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Pad", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Pad", name,
         _ctx._post_execution_callbacks, input, paddings)
       return _result
     except _core._FallbackException:
       return pad_eager_fallback(
-          input, paddings, name=name)
+          input, paddings, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -4302,11 +4628,11 @@ def pad(input, paddings, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def pad_eager_fallback(input, paddings, name=None):
+def pad_eager_fallback(input, paddings, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function pad
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _attr_Tpaddings, (paddings,) = _execute.args_to_matching_eager([paddings], _ctx, _dtypes.int32)
   _inputs_flat = [input, paddings]
@@ -4356,8 +4682,8 @@ def pad_v2(input, paddings, constant_values, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "PadV2", input=input, paddings=paddings,
         constant_values=constant_values, name=name)
@@ -4372,12 +4698,12 @@ def pad_v2(input, paddings, constant_values, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "PadV2", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "PadV2", name,
         _ctx._post_execution_callbacks, input, paddings, constant_values)
       return _result
     except _core._FallbackException:
       return pad_v2_eager_fallback(
-          input, paddings, constant_values, name=name)
+          input, paddings, constant_values, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -4386,11 +4712,11 @@ def pad_v2(input, paddings, constant_values, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def pad_v2_eager_fallback(input, paddings, constant_values, name=None):
+def pad_v2_eager_fallback(input, paddings, constant_values, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function pad_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, _inputs_T = _execute.args_to_matching_eager([input, constant_values], _ctx)
   (input, constant_values) = _inputs_T
   _attr_Tpaddings, (paddings,) = _execute.args_to_matching_eager([paddings], _ctx, _dtypes.int32)
@@ -4436,8 +4762,8 @@ def parallel_concat(values, shape, name=None):
   Returns:
     A `Tensor`. Has the same type as `values`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(values, (list, tuple)):
       raise TypeError(
           "Expected list for 'values' argument to "
@@ -4458,12 +4784,13 @@ def parallel_concat(values, shape, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ParallelConcat", name,
-        _ctx._post_execution_callbacks, values, "shape", shape)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ParallelConcat", name, _ctx._post_execution_callbacks, values,
+        "shape", shape)
       return _result
     except _core._FallbackException:
       return parallel_concat_eager_fallback(
-          values, shape=shape, name=name)
+          values, shape=shape, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -4472,11 +4799,11 @@ def parallel_concat(values, shape, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def parallel_concat_eager_fallback(values, shape, name=None):
+def parallel_concat_eager_fallback(values, shape, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function parallel_concat
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(values, (list, tuple)):
     raise TypeError(
         "Expected list for 'values' argument to "
@@ -4511,8 +4838,8 @@ def placeholder(dtype, shape=None, name=None):
   Returns:
     A `Tensor` of type `dtype`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     if shape is None:
       shape = None
@@ -4530,12 +4857,12 @@ def placeholder(dtype, shape=None, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Placeholder", name,
-        _ctx._post_execution_callbacks, "dtype", dtype, "shape", shape)
+        _ctx._context_handle, _ctx._eager_context.device_name, "Placeholder",
+        name, _ctx._post_execution_callbacks, "dtype", dtype, "shape", shape)
       return _result
     except _core._FallbackException:
       return placeholder_eager_fallback(
-          dtype=dtype, shape=shape, name=name)
+          dtype=dtype, shape=shape, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -4544,11 +4871,11 @@ def placeholder(dtype, shape=None, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def placeholder_eager_fallback(dtype, shape=None, name=None):
+def placeholder_eager_fallback(dtype, shape=None, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function placeholder
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   dtype = _execute.make_type(dtype, "dtype")
   if shape is None:
     shape = None
@@ -4580,8 +4907,8 @@ def placeholder_v2(dtype, shape, name=None):
   Returns:
     A `Tensor` of type `dtype`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     shape = _execute.make_shape(shape, "shape")
     _, _, _op = _op_def_lib._apply_op_helper(
@@ -4597,12 +4924,13 @@ def placeholder_v2(dtype, shape, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "PlaceholderV2", name,
-        _ctx._post_execution_callbacks, "dtype", dtype, "shape", shape)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "PlaceholderV2", name, _ctx._post_execution_callbacks, "dtype", dtype,
+        "shape", shape)
       return _result
     except _core._FallbackException:
       return placeholder_v2_eager_fallback(
-          dtype=dtype, shape=shape, name=name)
+          dtype=dtype, shape=shape, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -4611,11 +4939,11 @@ def placeholder_v2(dtype, shape, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def placeholder_v2_eager_fallback(dtype, shape, name=None):
+def placeholder_v2_eager_fallback(dtype, shape, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function placeholder_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   dtype = _execute.make_type(dtype, "dtype")
   shape = _execute.make_shape(shape, "shape")
   _inputs_flat = []
@@ -4641,8 +4969,8 @@ def placeholder_with_default(input, shape, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     shape = _execute.make_shape(shape, "shape")
     _, _, _op = _op_def_lib._apply_op_helper(
         "PlaceholderWithDefault", input=input, shape=shape, name=name)
@@ -4657,12 +4985,13 @@ def placeholder_with_default(input, shape, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "PlaceholderWithDefault", name,
-        _ctx._post_execution_callbacks, input, "shape", shape)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "PlaceholderWithDefault", name, _ctx._post_execution_callbacks, input,
+        "shape", shape)
       return _result
     except _core._FallbackException:
       return placeholder_with_default_eager_fallback(
-          input, shape=shape, name=name)
+          input, shape=shape, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -4671,11 +5000,11 @@ def placeholder_with_default(input, shape, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def placeholder_with_default_eager_fallback(input, shape, name=None):
+def placeholder_with_default_eager_fallback(input, shape, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function placeholder_with_default
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   shape = _execute.make_shape(shape, "shape")
   _attr_dtype, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _inputs_flat = [input]
@@ -4710,8 +5039,8 @@ def prevent_gradient(input, message="", name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if message is None:
       message = ""
     message = _execute.make_str(message, "message")
@@ -4728,12 +5057,13 @@ def prevent_gradient(input, message="", name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "PreventGradient", name,
-        _ctx._post_execution_callbacks, input, "message", message)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "PreventGradient", name, _ctx._post_execution_callbacks, input,
+        "message", message)
       return _result
     except _core._FallbackException:
       return prevent_gradient_eager_fallback(
-          input, message=message, name=name)
+          input, message=message, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -4742,11 +5072,11 @@ def prevent_gradient(input, message="", name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def prevent_gradient_eager_fallback(input, message="", name=None):
+def prevent_gradient_eager_fallback(input, message="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function prevent_gradient
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if message is None:
     message = ""
   message = _execute.make_str(message, "message")
@@ -4765,7 +5095,7 @@ def quantize_and_dequantize(input, signed_input=True, num_bits=8, range_given=Fa
   r"""Use QuantizeAndDequantizeV2 instead.
 
   Args:
-    input: A `Tensor`. Must be one of the following types: `bfloat16`, `float32`, `float64`.
+    input: A `Tensor`. Must be one of the following types: `bfloat16`, `half`, `float32`, `float64`.
     signed_input: An optional `bool`. Defaults to `True`.
     num_bits: An optional `int`. Defaults to `8`.
     range_given: An optional `bool`. Defaults to `False`.
@@ -4776,8 +5106,8 @@ def quantize_and_dequantize(input, signed_input=True, num_bits=8, range_given=Fa
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if signed_input is None:
       signed_input = True
     signed_input = _execute.make_bool(signed_input, "signed_input")
@@ -4812,16 +5142,16 @@ def quantize_and_dequantize(input, signed_input=True, num_bits=8, range_given=Fa
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "QuantizeAndDequantize", name,
-        _ctx._post_execution_callbacks, input, "signed_input", signed_input,
-        "num_bits", num_bits, "range_given", range_given, "input_min",
-        input_min, "input_max", input_max)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "QuantizeAndDequantize", name, _ctx._post_execution_callbacks, input,
+        "signed_input", signed_input, "num_bits", num_bits, "range_given",
+        range_given, "input_min", input_min, "input_max", input_max)
       return _result
     except _core._FallbackException:
       return quantize_and_dequantize_eager_fallback(
           input, signed_input=signed_input, num_bits=num_bits,
           range_given=range_given, input_min=input_min, input_max=input_max,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -4830,11 +5160,11 @@ def quantize_and_dequantize(input, signed_input=True, num_bits=8, range_given=Fa
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def quantize_and_dequantize_eager_fallback(input, signed_input=True, num_bits=8, range_given=False, input_min=0, input_max=0, name=None):
+def quantize_and_dequantize_eager_fallback(input, signed_input=True, num_bits=8, range_given=False, input_min=0, input_max=0, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function quantize_and_dequantize
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if signed_input is None:
     signed_input = True
   signed_input = _execute.make_bool(signed_input, "signed_input")
@@ -4916,7 +5246,7 @@ def quantize_and_dequantize_v2(input, input_min, input_max, signed_input=True, n
   {-127, -63, 0, 38}, and dequantized to {-1, -63.0/127, 0, 38.0/127}.
 
   Args:
-    input: A `Tensor`. Must be one of the following types: `bfloat16`, `float32`, `float64`.
+    input: A `Tensor`. Must be one of the following types: `bfloat16`, `half`, `float32`, `float64`.
       Tensor to quantize and then dequantize.
     input_min: A `Tensor`. Must have the same type as `input`.
       If range_given, this is the min of the range, otherwise this input
@@ -4935,8 +5265,8 @@ def quantize_and_dequantize_v2(input, input_min, input_max, signed_input=True, n
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if signed_input is None:
       signed_input = True
     signed_input = _execute.make_bool(signed_input, "signed_input")
@@ -4963,15 +5293,15 @@ def quantize_and_dequantize_v2(input, input_min, input_max, signed_input=True, n
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "QuantizeAndDequantizeV2", name,
-        _ctx._post_execution_callbacks, input, input_min, input_max,
-        "signed_input", signed_input, "num_bits", num_bits, "range_given",
-        range_given)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "QuantizeAndDequantizeV2", name, _ctx._post_execution_callbacks,
+        input, input_min, input_max, "signed_input", signed_input, "num_bits",
+        num_bits, "range_given", range_given)
       return _result
     except _core._FallbackException:
       return quantize_and_dequantize_v2_eager_fallback(
           input, input_min, input_max, signed_input=signed_input,
-          num_bits=num_bits, range_given=range_given, name=name)
+          num_bits=num_bits, range_given=range_given, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -4980,11 +5310,11 @@ def quantize_and_dequantize_v2(input, input_min, input_max, signed_input=True, n
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def quantize_and_dequantize_v2_eager_fallback(input, input_min, input_max, signed_input=True, num_bits=8, range_given=False, name=None):
+def quantize_and_dequantize_v2_eager_fallback(input, input_min, input_max, signed_input=True, num_bits=8, range_given=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function quantize_and_dequantize_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if signed_input is None:
     signed_input = True
   signed_input = _execute.make_bool(signed_input, "signed_input")
@@ -5015,7 +5345,7 @@ def quantize_and_dequantize_v3(input, input_min, input_max, num_bits, signed_inp
   tensor, so its value can change during training.
 
   Args:
-    input: A `Tensor`. Must be one of the following types: `bfloat16`, `float32`, `float64`.
+    input: A `Tensor`. Must be one of the following types: `bfloat16`, `half`, `float32`, `float64`.
     input_min: A `Tensor`. Must have the same type as `input`.
     input_max: A `Tensor`. Must have the same type as `input`.
     num_bits: A `Tensor` of type `int32`.
@@ -5026,8 +5356,8 @@ def quantize_and_dequantize_v3(input, input_min, input_max, num_bits, signed_inp
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if signed_input is None:
       signed_input = True
     signed_input = _execute.make_bool(signed_input, "signed_input")
@@ -5050,14 +5380,15 @@ def quantize_and_dequantize_v3(input, input_min, input_max, num_bits, signed_inp
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "QuantizeAndDequantizeV3", name,
-        _ctx._post_execution_callbacks, input, input_min, input_max, num_bits,
-        "signed_input", signed_input, "range_given", range_given)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "QuantizeAndDequantizeV3", name, _ctx._post_execution_callbacks,
+        input, input_min, input_max, num_bits, "signed_input", signed_input,
+        "range_given", range_given)
       return _result
     except _core._FallbackException:
       return quantize_and_dequantize_v3_eager_fallback(
           input, input_min, input_max, num_bits, signed_input=signed_input,
-          range_given=range_given, name=name)
+          range_given=range_given, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -5066,11 +5397,11 @@ def quantize_and_dequantize_v3(input, input_min, input_max, num_bits, signed_inp
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def quantize_and_dequantize_v3_eager_fallback(input, input_min, input_max, num_bits, signed_input=True, range_given=True, name=None):
+def quantize_and_dequantize_v3_eager_fallback(input, input_min, input_max, num_bits, signed_input=True, range_given=True, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function quantize_and_dequantize_v3
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if signed_input is None:
     signed_input = True
   signed_input = _execute.make_bool(signed_input, "signed_input")
@@ -5211,8 +5542,8 @@ def quantize_v2(input, min_range, max_range, T, mode="MIN_COMBINED", round_mode=
     output_min: A `Tensor` of type `float32`.
     output_max: A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     T = _execute.make_type(T, "T")
     if mode is None:
       mode = "MIN_COMBINED"
@@ -5235,15 +5566,15 @@ def quantize_v2(input, min_range, max_range, T, mode="MIN_COMBINED", round_mode=
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "QuantizeV2", name,
-        _ctx._post_execution_callbacks, input, min_range, max_range, "T", T,
-        "mode", mode, "round_mode", round_mode)
+        _ctx._context_handle, _ctx._eager_context.device_name, "QuantizeV2",
+        name, _ctx._post_execution_callbacks, input, min_range, max_range,
+        "T", T, "mode", mode, "round_mode", round_mode)
       _result = _QuantizeV2Output._make(_result)
       return _result
     except _core._FallbackException:
       return quantize_v2_eager_fallback(
           input, min_range, max_range, T=T, mode=mode, round_mode=round_mode,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -5252,11 +5583,11 @@ def quantize_v2(input, min_range, max_range, T, mode="MIN_COMBINED", round_mode=
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def quantize_v2_eager_fallback(input, min_range, max_range, T, mode="MIN_COMBINED", round_mode="HALF_AWAY_FROM_ZERO", name=None):
+def quantize_v2_eager_fallback(input, min_range, max_range, T, mode="MIN_COMBINED", round_mode="HALF_AWAY_FROM_ZERO", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function quantize_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   T = _execute.make_type(T, "T")
   if mode is None:
     mode = "MIN_COMBINED"
@@ -5306,8 +5637,8 @@ def quantized_concat(concat_dim, values, input_mins, input_maxes, name=None):
     output_min: A `Tensor` of type `float32`.
     output_max: A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(values, (list, tuple)):
       raise TypeError(
           "Expected list for 'values' argument to "
@@ -5345,14 +5676,14 @@ def quantized_concat(concat_dim, values, input_mins, input_maxes, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "QuantizedConcat", name,
-        _ctx._post_execution_callbacks, concat_dim, values, input_mins,
-        input_maxes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "QuantizedConcat", name, _ctx._post_execution_callbacks, concat_dim,
+        values, input_mins, input_maxes)
       _result = _QuantizedConcatOutput._make(_result)
       return _result
     except _core._FallbackException:
       return quantized_concat_eager_fallback(
-          concat_dim, values, input_mins, input_maxes, name=name)
+          concat_dim, values, input_mins, input_maxes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -5361,11 +5692,11 @@ def quantized_concat(concat_dim, values, input_mins, input_maxes, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def quantized_concat_eager_fallback(concat_dim, values, input_mins, input_maxes, name=None):
+def quantized_concat_eager_fallback(concat_dim, values, input_mins, input_maxes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function quantized_concat
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(values, (list, tuple)):
     raise TypeError(
         "Expected list for 'values' argument to "
@@ -5439,8 +5770,8 @@ def quantized_instance_norm(x, x_min, x_max, output_range_given=False, given_y_m
     y_min: A `Tensor` of type `float32`.
     y_max: A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if output_range_given is None:
       output_range_given = False
     output_range_given = _execute.make_bool(output_range_given, "output_range_given")
@@ -5477,11 +5808,11 @@ def quantized_instance_norm(x, x_min, x_max, output_range_given=False, given_y_m
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "QuantizedInstanceNorm", name,
-        _ctx._post_execution_callbacks, x, x_min, x_max, "output_range_given",
-        output_range_given, "given_y_min", given_y_min, "given_y_max",
-        given_y_max, "variance_epsilon", variance_epsilon, "min_separation",
-        min_separation)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "QuantizedInstanceNorm", name, _ctx._post_execution_callbacks, x,
+        x_min, x_max, "output_range_given", output_range_given, "given_y_min",
+        given_y_min, "given_y_max", given_y_max, "variance_epsilon",
+        variance_epsilon, "min_separation", min_separation)
       _result = _QuantizedInstanceNormOutput._make(_result)
       return _result
     except _core._FallbackException:
@@ -5489,7 +5820,7 @@ def quantized_instance_norm(x, x_min, x_max, output_range_given=False, given_y_m
           x, x_min, x_max, output_range_given=output_range_given,
           given_y_min=given_y_min, given_y_max=given_y_max,
           variance_epsilon=variance_epsilon, min_separation=min_separation,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -5498,11 +5829,11 @@ def quantized_instance_norm(x, x_min, x_max, output_range_given=False, given_y_m
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def quantized_instance_norm_eager_fallback(x, x_min, x_max, output_range_given=False, given_y_min=0, given_y_max=0, variance_epsilon=1e-05, min_separation=0.001, name=None):
+def quantized_instance_norm_eager_fallback(x, x_min, x_max, output_range_given=False, given_y_min=0, given_y_max=0, variance_epsilon=1e-05, min_separation=0.001, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function quantized_instance_norm
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if output_range_given is None:
     output_range_given = False
   output_range_given = _execute.make_bool(output_range_given, "output_range_given")
@@ -5558,8 +5889,8 @@ def quantized_reshape(tensor, shape, input_min, input_max, name=None):
     output_min: A `Tensor` of type `float32`.
     output_max: A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "QuantizedReshape", tensor=tensor, shape=shape, input_min=input_min,
         input_max=input_max, name=name)
@@ -5574,13 +5905,14 @@ def quantized_reshape(tensor, shape, input_min, input_max, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "QuantizedReshape", name,
-        _ctx._post_execution_callbacks, tensor, shape, input_min, input_max)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "QuantizedReshape", name, _ctx._post_execution_callbacks, tensor,
+        shape, input_min, input_max)
       _result = _QuantizedReshapeOutput._make(_result)
       return _result
     except _core._FallbackException:
       return quantized_reshape_eager_fallback(
-          tensor, shape, input_min, input_max, name=name)
+          tensor, shape, input_min, input_max, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -5589,11 +5921,11 @@ def quantized_reshape(tensor, shape, input_min, input_max, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def quantized_reshape_eager_fallback(tensor, shape, input_min, input_max, name=None):
+def quantized_reshape_eager_fallback(tensor, shape, input_min, input_max, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function quantized_reshape
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (tensor,) = _execute.args_to_matching_eager([tensor], _ctx)
   _attr_Tshape, (shape,) = _execute.args_to_matching_eager([shape], _ctx, _dtypes.int32)
   input_min = _ops.convert_to_tensor(input_min, _dtypes.float32)
@@ -5608,7 +5940,6 @@ def quantized_reshape_eager_fallback(tensor, shape, input_min, input_max, name=N
   return _result
 
 
-@tf_export('rank')
 def rank(input, name=None):
   r"""Returns the rank of a tensor.
 
@@ -5633,8 +5964,8 @@ def rank(input, name=None):
   Returns:
     A `Tensor` of type `int32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "Rank", input=input, name=name)
     _result = _op.outputs[:]
@@ -5648,12 +5979,12 @@ def rank(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Rank", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Rank", name,
         _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return rank_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -5662,11 +5993,11 @@ def rank(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def rank_eager_fallback(input, name=None):
+def rank_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function rank
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _inputs_flat = [input]
   _attrs = ("T", _attr_T)
@@ -5678,7 +6009,7 @@ def rank_eager_fallback(input, name=None):
   return _result
 
 
-def _ref_identity(input, name=None):
+def ref_identity(input, name=None):
   r"""Return the same ref tensor as the input ref tensor.
 
   Args:
@@ -5688,8 +6019,8 @@ def _ref_identity(input, name=None):
   Returns:
     A mutable `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "RefIdentity", input=input, name=name)
     _result = _op.outputs[:]
@@ -5776,8 +6107,8 @@ def reshape(tensor, shape, name=None):
   Returns:
     A `Tensor`. Has the same type as `tensor`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "Reshape", tensor=tensor, shape=shape, name=name)
     _result = _op.outputs[:]
@@ -5791,12 +6122,12 @@ def reshape(tensor, shape, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Reshape", name,
-        _ctx._post_execution_callbacks, tensor, shape)
+        _ctx._context_handle, _ctx._eager_context.device_name, "Reshape",
+        name, _ctx._post_execution_callbacks, tensor, shape)
       return _result
     except _core._FallbackException:
       return reshape_eager_fallback(
-          tensor, shape, name=name)
+          tensor, shape, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -5805,11 +6136,11 @@ def reshape(tensor, shape, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def reshape_eager_fallback(tensor, shape, name=None):
+def reshape_eager_fallback(tensor, shape, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function reshape
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (tensor,) = _execute.args_to_matching_eager([tensor], _ctx)
   _attr_Tshape, (shape,) = _execute.args_to_matching_eager([shape], _ctx, _dtypes.int32)
   _inputs_flat = [tensor, shape]
@@ -5848,8 +6179,8 @@ def resource_strided_slice_assign(ref, begin, end, strides, value, begin_mask=0,
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if begin_mask is None:
       begin_mask = 0
     begin_mask = _execute.make_int(begin_mask, "begin_mask")
@@ -5878,18 +6209,18 @@ def resource_strided_slice_assign(ref, begin, end, strides, value, begin_mask=0,
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceStridedSliceAssign", name,
-        _ctx._post_execution_callbacks, ref, begin, end, strides, value,
-        "begin_mask", begin_mask, "end_mask", end_mask, "ellipsis_mask",
-        ellipsis_mask, "new_axis_mask", new_axis_mask, "shrink_axis_mask",
-        shrink_axis_mask)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceStridedSliceAssign", name, _ctx._post_execution_callbacks,
+        ref, begin, end, strides, value, "begin_mask", begin_mask, "end_mask",
+        end_mask, "ellipsis_mask", ellipsis_mask, "new_axis_mask",
+        new_axis_mask, "shrink_axis_mask", shrink_axis_mask)
       return _result
     except _core._FallbackException:
       return resource_strided_slice_assign_eager_fallback(
           ref, begin, end, strides, value, begin_mask=begin_mask,
           end_mask=end_mask, ellipsis_mask=ellipsis_mask,
           new_axis_mask=new_axis_mask, shrink_axis_mask=shrink_axis_mask,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -5898,11 +6229,11 @@ def resource_strided_slice_assign(ref, begin, end, strides, value, begin_mask=0,
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_strided_slice_assign_eager_fallback(ref, begin, end, strides, value, begin_mask=0, end_mask=0, ellipsis_mask=0, new_axis_mask=0, shrink_axis_mask=0, name=None):
+def resource_strided_slice_assign_eager_fallback(ref, begin, end, strides, value, begin_mask=0, end_mask=0, ellipsis_mask=0, new_axis_mask=0, shrink_axis_mask=0, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_strided_slice_assign
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if begin_mask is None:
     begin_mask = 0
   begin_mask = _execute.make_int(begin_mask, "begin_mask")
@@ -5990,8 +6321,8 @@ def reverse(tensor, dims, name=None):
   Returns:
     A `Tensor`. Has the same type as `tensor`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "Reverse", tensor=tensor, dims=dims, name=name)
     _result = _op.outputs[:]
@@ -6005,12 +6336,12 @@ def reverse(tensor, dims, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Reverse", name,
-        _ctx._post_execution_callbacks, tensor, dims)
+        _ctx._context_handle, _ctx._eager_context.device_name, "Reverse",
+        name, _ctx._post_execution_callbacks, tensor, dims)
       return _result
     except _core._FallbackException:
       return reverse_eager_fallback(
-          tensor, dims, name=name)
+          tensor, dims, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -6019,11 +6350,11 @@ def reverse(tensor, dims, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def reverse_eager_fallback(tensor, dims, name=None):
+def reverse_eager_fallback(tensor, dims, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function reverse
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (tensor,) = _execute.args_to_matching_eager([tensor], _ctx)
   dims = _ops.convert_to_tensor(dims, _dtypes.bool)
   _inputs_flat = [tensor, dims]
@@ -6107,8 +6438,8 @@ def reverse_sequence(input, seq_lengths, seq_dim, batch_dim=0, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     seq_dim = _execute.make_int(seq_dim, "seq_dim")
     if batch_dim is None:
       batch_dim = 0
@@ -6129,13 +6460,14 @@ def reverse_sequence(input, seq_lengths, seq_dim, batch_dim=0, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ReverseSequence", name,
-        _ctx._post_execution_callbacks, input, seq_lengths, "seq_dim",
-        seq_dim, "batch_dim", batch_dim)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ReverseSequence", name, _ctx._post_execution_callbacks, input,
+        seq_lengths, "seq_dim", seq_dim, "batch_dim", batch_dim)
       return _result
     except _core._FallbackException:
       return reverse_sequence_eager_fallback(
-          input, seq_lengths, seq_dim=seq_dim, batch_dim=batch_dim, name=name)
+          input, seq_lengths, seq_dim=seq_dim, batch_dim=batch_dim, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -6144,11 +6476,11 @@ def reverse_sequence(input, seq_lengths, seq_dim, batch_dim=0, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def reverse_sequence_eager_fallback(input, seq_lengths, seq_dim, batch_dim=0, name=None):
+def reverse_sequence_eager_fallback(input, seq_lengths, seq_dim, batch_dim=0, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function reverse_sequence
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   seq_dim = _execute.make_int(seq_dim, "seq_dim")
   if batch_dim is None:
     batch_dim = 0
@@ -6218,7 +6550,7 @@ def reverse_v2(tensor, axis, name=None):
   ```
 
   Args:
-    tensor: A `Tensor`. Must be one of the following types: `uint8`, `int8`, `uint16`, `int16`, `int32`, `int64`, `bool`, `half`, `bfloat16`, `float32`, `float64`, `complex64`, `complex128`, `string`.
+    tensor: A `Tensor`. Must be one of the following types: `uint8`, `int8`, `uint16`, `int16`, `int32`, `int64`, `bool`, `bfloat16`, `half`, `float32`, `float64`, `complex64`, `complex128`, `string`.
       Up to 8-D.
     axis: A `Tensor`. Must be one of the following types: `int32`, `int64`.
       1-D. The indices of the dimensions to reverse. Must be in the range
@@ -6228,8 +6560,8 @@ def reverse_v2(tensor, axis, name=None):
   Returns:
     A `Tensor`. Has the same type as `tensor`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ReverseV2", tensor=tensor, axis=axis, name=name)
     _result = _op.outputs[:]
@@ -6243,12 +6575,12 @@ def reverse_v2(tensor, axis, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ReverseV2", name,
-        _ctx._post_execution_callbacks, tensor, axis)
+        _ctx._context_handle, _ctx._eager_context.device_name, "ReverseV2",
+        name, _ctx._post_execution_callbacks, tensor, axis)
       return _result
     except _core._FallbackException:
       return reverse_v2_eager_fallback(
-          tensor, axis, name=name)
+          tensor, axis, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -6257,11 +6589,11 @@ def reverse_v2(tensor, axis, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def reverse_v2_eager_fallback(tensor, axis, name=None):
+def reverse_v2_eager_fallback(tensor, axis, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function reverse_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_Tidx, (axis,) = _execute.args_to_matching_eager([axis], _ctx, _dtypes.int32)
   _attr_T, (tensor,) = _execute.args_to_matching_eager([tensor], _ctx)
   _inputs_flat = [tensor, axis]
@@ -6364,8 +6696,8 @@ def scatter_nd(indices, updates, shape, name=None):
   Returns:
     A `Tensor`. Has the same type as `updates`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ScatterNd", indices=indices, updates=updates, shape=shape, name=name)
     _result = _op.outputs[:]
@@ -6379,12 +6711,12 @@ def scatter_nd(indices, updates, shape, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ScatterNd", name,
-        _ctx._post_execution_callbacks, indices, updates, shape)
+        _ctx._context_handle, _ctx._eager_context.device_name, "ScatterNd",
+        name, _ctx._post_execution_callbacks, indices, updates, shape)
       return _result
     except _core._FallbackException:
       return scatter_nd_eager_fallback(
-          indices, updates, shape, name=name)
+          indices, updates, shape, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -6393,11 +6725,11 @@ def scatter_nd(indices, updates, shape, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def scatter_nd_eager_fallback(indices, updates, shape, name=None):
+def scatter_nd_eager_fallback(indices, updates, shape, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function scatter_nd
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (updates,) = _execute.args_to_matching_eager([updates], _ctx)
   _attr_Tindices, _inputs_Tindices = _execute.args_to_matching_eager([indices, shape], _ctx)
   (indices, shape) = _inputs_Tindices
@@ -6464,8 +6796,8 @@ def scatter_nd_non_aliasing_add(input, indices, updates, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ScatterNdNonAliasingAdd", input=input, indices=indices,
         updates=updates, name=name)
@@ -6480,12 +6812,13 @@ def scatter_nd_non_aliasing_add(input, indices, updates, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ScatterNdNonAliasingAdd", name,
-        _ctx._post_execution_callbacks, input, indices, updates)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ScatterNdNonAliasingAdd", name, _ctx._post_execution_callbacks,
+        input, indices, updates)
       return _result
     except _core._FallbackException:
       return scatter_nd_non_aliasing_add_eager_fallback(
-          input, indices, updates, name=name)
+          input, indices, updates, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -6494,11 +6827,11 @@ def scatter_nd_non_aliasing_add(input, indices, updates, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def scatter_nd_non_aliasing_add_eager_fallback(input, indices, updates, name=None):
+def scatter_nd_non_aliasing_add_eager_fallback(input, indices, updates, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function scatter_nd_non_aliasing_add
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, _inputs_T = _execute.args_to_matching_eager([input, updates], _ctx)
   (input, updates) = _inputs_T
   _attr_Tindices, (indices,) = _execute.args_to_matching_eager([indices], _ctx)
@@ -6533,8 +6866,8 @@ def shape(input, out_type=_dtypes.int32, name=None):
   Returns:
     A `Tensor` of type `out_type`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if out_type is None:
       out_type = _dtypes.int32
     out_type = _execute.make_type(out_type, "out_type")
@@ -6551,12 +6884,12 @@ def shape(input, out_type=_dtypes.int32, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Shape", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Shape", name,
         _ctx._post_execution_callbacks, input, "out_type", out_type)
       return _result
     except _core._FallbackException:
       return shape_eager_fallback(
-          input, out_type=out_type, name=name)
+          input, out_type=out_type, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -6565,11 +6898,11 @@ def shape(input, out_type=_dtypes.int32, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def shape_eager_fallback(input, out_type=_dtypes.int32, name=None):
+def shape_eager_fallback(input, out_type=_dtypes.int32, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function shape
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if out_type is None:
     out_type = _dtypes.int32
   out_type = _execute.make_type(out_type, "out_type")
@@ -6584,7 +6917,6 @@ def shape_eager_fallback(input, out_type=_dtypes.int32, name=None):
   return _result
 
 
-@tf_export('shape_n')
 def shape_n(input, out_type=_dtypes.int32, name=None):
   r"""Returns shape of tensors.
 
@@ -6598,8 +6930,8 @@ def shape_n(input, out_type=_dtypes.int32, name=None):
   Returns:
     A list with the same length as `input` of `Tensor` objects with type `out_type`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(input, (list, tuple)):
       raise TypeError(
           "Expected list for 'input' argument to "
@@ -6621,12 +6953,12 @@ def shape_n(input, out_type=_dtypes.int32, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ShapeN", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "ShapeN", name,
         _ctx._post_execution_callbacks, input, "out_type", out_type)
       return _result
     except _core._FallbackException:
       return shape_n_eager_fallback(
-          input, out_type=out_type, name=name)
+          input, out_type=out_type, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -6635,11 +6967,11 @@ def shape_n(input, out_type=_dtypes.int32, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def shape_n_eager_fallback(input, out_type=_dtypes.int32, name=None):
+def shape_n_eager_fallback(input, out_type=_dtypes.int32, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function shape_n
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(input, (list, tuple)):
     raise TypeError(
         "Expected list for 'input' argument to "
@@ -6679,8 +7011,8 @@ def size(input, out_type=_dtypes.int32, name=None):
   Returns:
     A `Tensor` of type `out_type`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if out_type is None:
       out_type = _dtypes.int32
     out_type = _execute.make_type(out_type, "out_type")
@@ -6697,12 +7029,12 @@ def size(input, out_type=_dtypes.int32, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Size", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Size", name,
         _ctx._post_execution_callbacks, input, "out_type", out_type)
       return _result
     except _core._FallbackException:
       return size_eager_fallback(
-          input, out_type=out_type, name=name)
+          input, out_type=out_type, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -6711,11 +7043,11 @@ def size(input, out_type=_dtypes.int32, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def size_eager_fallback(input, out_type=_dtypes.int32, name=None):
+def size_eager_fallback(input, out_type=_dtypes.int32, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function size
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if out_type is None:
     out_type = _dtypes.int32
   out_type = _execute.make_type(out_type, "out_type")
@@ -6755,8 +7087,8 @@ def _slice(input, begin, size, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "Slice", input=input, begin=begin, size=size, name=name)
     _result = _op.outputs[:]
@@ -6770,12 +7102,12 @@ def _slice(input, begin, size, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Slice", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Slice", name,
         _ctx._post_execution_callbacks, input, begin, size)
       return _result
     except _core._FallbackException:
       return _slice_eager_fallback(
-          input, begin, size, name=name)
+          input, begin, size, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -6784,11 +7116,11 @@ def _slice(input, begin, size, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def _slice_eager_fallback(input, begin, size, name=None):
+def _slice_eager_fallback(input, begin, size, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function _slice
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _attr_Index, _inputs_Index = _execute.args_to_matching_eager([begin, size], _ctx)
   (begin, size) = _inputs_Index
@@ -6812,8 +7144,8 @@ def snapshot(input, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "Snapshot", input=input, name=name)
     _result = _op.outputs[:]
@@ -6827,12 +7159,12 @@ def snapshot(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Snapshot", name,
-        _ctx._post_execution_callbacks, input)
+        _ctx._context_handle, _ctx._eager_context.device_name, "Snapshot",
+        name, _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return snapshot_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -6841,11 +7173,11 @@ def snapshot(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def snapshot_eager_fallback(input, name=None):
+def snapshot_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function snapshot
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _inputs_flat = [input]
   _attrs = ("T", _attr_T)
@@ -6962,8 +7294,8 @@ def space_to_batch(input, paddings, block_size, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     block_size = _execute.make_int(block_size, "block_size")
     _, _, _op = _op_def_lib._apply_op_helper(
         "SpaceToBatch", input=input, paddings=paddings, block_size=block_size,
@@ -6980,13 +7312,13 @@ def space_to_batch(input, paddings, block_size, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SpaceToBatch", name,
-        _ctx._post_execution_callbacks, input, paddings, "block_size",
+        _ctx._context_handle, _ctx._eager_context.device_name, "SpaceToBatch",
+        name, _ctx._post_execution_callbacks, input, paddings, "block_size",
         block_size)
       return _result
     except _core._FallbackException:
       return space_to_batch_eager_fallback(
-          input, paddings, block_size=block_size, name=name)
+          input, paddings, block_size=block_size, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -6995,11 +7327,11 @@ def space_to_batch(input, paddings, block_size, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def space_to_batch_eager_fallback(input, paddings, block_size, name=None):
+def space_to_batch_eager_fallback(input, paddings, block_size, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function space_to_batch
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   block_size = _execute.make_int(block_size, "block_size")
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _attr_Tpaddings, (paddings,) = _execute.args_to_matching_eager([paddings], _ctx, _dtypes.int32)
@@ -7147,8 +7479,8 @@ def space_to_batch_nd(input, block_shape, paddings, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "SpaceToBatchND", input=input, block_shape=block_shape,
         paddings=paddings, name=name)
@@ -7165,12 +7497,13 @@ def space_to_batch_nd(input, block_shape, paddings, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SpaceToBatchND", name,
-        _ctx._post_execution_callbacks, input, block_shape, paddings)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SpaceToBatchND", name, _ctx._post_execution_callbacks, input,
+        block_shape, paddings)
       return _result
     except _core._FallbackException:
       return space_to_batch_nd_eager_fallback(
-          input, block_shape, paddings, name=name)
+          input, block_shape, paddings, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -7179,11 +7512,11 @@ def space_to_batch_nd(input, block_shape, paddings, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def space_to_batch_nd_eager_fallback(input, block_shape, paddings, name=None):
+def space_to_batch_nd_eager_fallback(input, block_shape, paddings, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function space_to_batch_nd
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _attr_Tblock_shape, (block_shape,) = _execute.args_to_matching_eager([block_shape], _ctx, _dtypes.int32)
   _attr_Tpaddings, (paddings,) = _execute.args_to_matching_eager([paddings], _ctx, _dtypes.int32)
@@ -7294,8 +7627,8 @@ def space_to_depth(input, block_size, data_format="NHWC", name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     block_size = _execute.make_int(block_size, "block_size")
     if data_format is None:
       data_format = "NHWC"
@@ -7316,13 +7649,14 @@ def space_to_depth(input, block_size, data_format="NHWC", name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SpaceToDepth", name,
-        _ctx._post_execution_callbacks, input, "block_size", block_size,
+        _ctx._context_handle, _ctx._eager_context.device_name, "SpaceToDepth",
+        name, _ctx._post_execution_callbacks, input, "block_size", block_size,
         "data_format", data_format)
       return _result
     except _core._FallbackException:
       return space_to_depth_eager_fallback(
-          input, block_size=block_size, data_format=data_format, name=name)
+          input, block_size=block_size, data_format=data_format, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -7331,11 +7665,11 @@ def space_to_depth(input, block_size, data_format="NHWC", name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def space_to_depth_eager_fallback(input, block_size, data_format="NHWC", name=None):
+def space_to_depth_eager_fallback(input, block_size, data_format="NHWC", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function space_to_depth
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   block_size = _execute.make_int(block_size, "block_size")
   if data_format is None:
     data_format = "NHWC"
@@ -7368,8 +7702,8 @@ def split(axis, value, num_split, name=None):
   Returns:
     A list of `num_split` `Tensor` objects with the same type as `value`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     num_split = _execute.make_int(num_split, "num_split")
     _, _, _op = _op_def_lib._apply_op_helper(
         "Split", split_dim=axis, value=value, num_split=num_split, name=name)
@@ -7383,12 +7717,12 @@ def split(axis, value, num_split, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Split", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Split", name,
         _ctx._post_execution_callbacks, axis, value, "num_split", num_split)
       return _result
     except _core._FallbackException:
       return split_eager_fallback(
-          axis, value, num_split=num_split, name=name)
+          axis, value, num_split=num_split, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -7397,11 +7731,11 @@ def split(axis, value, num_split, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def split_eager_fallback(axis, value, num_split, name=None):
+def split_eager_fallback(axis, value, num_split, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function split
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   num_split = _execute.make_int(num_split, "num_split")
   _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
   axis = _ops.convert_to_tensor(axis, _dtypes.int32)
@@ -7432,8 +7766,8 @@ def split_v(value, size_splits, axis, num_split, name=None):
   Returns:
     A list of `num_split` `Tensor` objects with the same type as `value`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     num_split = _execute.make_int(num_split, "num_split")
     _, _, _op = _op_def_lib._apply_op_helper(
         "SplitV", value=value, size_splits=size_splits, split_dim=axis,
@@ -7449,13 +7783,13 @@ def split_v(value, size_splits, axis, num_split, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SplitV", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "SplitV", name,
         _ctx._post_execution_callbacks, value, size_splits, axis, "num_split",
         num_split)
       return _result
     except _core._FallbackException:
       return split_v_eager_fallback(
-          value, size_splits, axis, num_split=num_split, name=name)
+          value, size_splits, axis, num_split=num_split, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -7464,11 +7798,11 @@ def split_v(value, size_splits, axis, num_split, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def split_v_eager_fallback(value, size_splits, axis, num_split, name=None):
+def split_v_eager_fallback(value, size_splits, axis, num_split, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function split_v
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   num_split = _execute.make_int(num_split, "num_split")
   _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
   _attr_Tlen, (size_splits,) = _execute.args_to_matching_eager([size_splits], _ctx, _dtypes.int64)
@@ -7515,8 +7849,8 @@ def squeeze(input, axis=[], name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if axis is None:
       axis = []
     if not isinstance(axis, (list, tuple)):
@@ -7538,12 +7872,12 @@ def squeeze(input, axis=[], name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Squeeze", name,
-        _ctx._post_execution_callbacks, input, "squeeze_dims", axis)
+        _ctx._context_handle, _ctx._eager_context.device_name, "Squeeze",
+        name, _ctx._post_execution_callbacks, input, "squeeze_dims", axis)
       return _result
     except _core._FallbackException:
       return squeeze_eager_fallback(
-          input, axis=axis, name=name)
+          input, axis=axis, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -7552,11 +7886,11 @@ def squeeze(input, axis=[], name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def squeeze_eager_fallback(input, axis=[], name=None):
+def squeeze_eager_fallback(input, axis=[], name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function squeeze
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if axis is None:
     axis = []
   if not isinstance(axis, (list, tuple)):
@@ -7606,8 +7940,8 @@ def stop_gradient(input, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "StopGradient", input=input, name=name)
     _result = _op.outputs[:]
@@ -7621,12 +7955,12 @@ def stop_gradient(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StopGradient", name,
-        _ctx._post_execution_callbacks, input)
+        _ctx._context_handle, _ctx._eager_context.device_name, "StopGradient",
+        name, _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return stop_gradient_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -7635,11 +7969,11 @@ def stop_gradient(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stop_gradient_eager_fallback(input, name=None):
+def stop_gradient_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stop_gradient
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _inputs_flat = [input]
   _attrs = ("T", _attr_T)
@@ -7790,8 +8124,8 @@ def strided_slice(input, begin, end, strides, begin_mask=0, end_mask=0, ellipsis
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if begin_mask is None:
       begin_mask = 0
     begin_mask = _execute.make_int(begin_mask, "begin_mask")
@@ -7828,8 +8162,8 @@ def strided_slice(input, begin, end, strides, begin_mask=0, end_mask=0, ellipsis
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StridedSlice", name,
-        _ctx._post_execution_callbacks, input, begin, end, strides,
+        _ctx._context_handle, _ctx._eager_context.device_name, "StridedSlice",
+        name, _ctx._post_execution_callbacks, input, begin, end, strides,
         "begin_mask", begin_mask, "end_mask", end_mask, "ellipsis_mask",
         ellipsis_mask, "new_axis_mask", new_axis_mask, "shrink_axis_mask",
         shrink_axis_mask)
@@ -7839,7 +8173,7 @@ def strided_slice(input, begin, end, strides, begin_mask=0, end_mask=0, ellipsis
           input, begin, end, strides, begin_mask=begin_mask,
           end_mask=end_mask, ellipsis_mask=ellipsis_mask,
           new_axis_mask=new_axis_mask, shrink_axis_mask=shrink_axis_mask,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -7848,11 +8182,11 @@ def strided_slice(input, begin, end, strides, begin_mask=0, end_mask=0, ellipsis
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def strided_slice_eager_fallback(input, begin, end, strides, begin_mask=0, end_mask=0, ellipsis_mask=0, new_axis_mask=0, shrink_axis_mask=0, name=None):
+def strided_slice_eager_fallback(input, begin, end, strides, begin_mask=0, end_mask=0, ellipsis_mask=0, new_axis_mask=0, shrink_axis_mask=0, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function strided_slice
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if begin_mask is None:
     begin_mask = 0
   begin_mask = _execute.make_int(begin_mask, "begin_mask")
@@ -7909,8 +8243,8 @@ def strided_slice_assign(ref, begin, end, strides, value, begin_mask=0, end_mask
   Returns:
     A mutable `Tensor`. Has the same type as `ref`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if begin_mask is None:
       begin_mask = 0
     begin_mask = _execute.make_int(begin_mask, "begin_mask")
@@ -7978,8 +8312,8 @@ def strided_slice_grad(shape, begin, end, strides, dy, begin_mask=0, end_mask=0,
   Returns:
     A `Tensor`. Has the same type as `dy`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if begin_mask is None:
       begin_mask = 0
     begin_mask = _execute.make_int(begin_mask, "begin_mask")
@@ -8016,18 +8350,18 @@ def strided_slice_grad(shape, begin, end, strides, dy, begin_mask=0, end_mask=0,
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StridedSliceGrad", name,
-        _ctx._post_execution_callbacks, shape, begin, end, strides, dy,
-        "begin_mask", begin_mask, "end_mask", end_mask, "ellipsis_mask",
-        ellipsis_mask, "new_axis_mask", new_axis_mask, "shrink_axis_mask",
-        shrink_axis_mask)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "StridedSliceGrad", name, _ctx._post_execution_callbacks, shape,
+        begin, end, strides, dy, "begin_mask", begin_mask, "end_mask",
+        end_mask, "ellipsis_mask", ellipsis_mask, "new_axis_mask",
+        new_axis_mask, "shrink_axis_mask", shrink_axis_mask)
       return _result
     except _core._FallbackException:
       return strided_slice_grad_eager_fallback(
           shape, begin, end, strides, dy, begin_mask=begin_mask,
           end_mask=end_mask, ellipsis_mask=ellipsis_mask,
           new_axis_mask=new_axis_mask, shrink_axis_mask=shrink_axis_mask,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -8036,11 +8370,11 @@ def strided_slice_grad(shape, begin, end, strides, dy, begin_mask=0, end_mask=0,
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def strided_slice_grad_eager_fallback(shape, begin, end, strides, dy, begin_mask=0, end_mask=0, ellipsis_mask=0, new_axis_mask=0, shrink_axis_mask=0, name=None):
+def strided_slice_grad_eager_fallback(shape, begin, end, strides, dy, begin_mask=0, end_mask=0, ellipsis_mask=0, new_axis_mask=0, shrink_axis_mask=0, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function strided_slice_grad
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if begin_mask is None:
     begin_mask = 0
   begin_mask = _execute.make_int(begin_mask, "begin_mask")
@@ -8090,8 +8424,8 @@ def tile(input, multiples, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "Tile", input=input, multiples=multiples, name=name)
     _result = _op.outputs[:]
@@ -8106,12 +8440,12 @@ def tile(input, multiples, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Tile", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Tile", name,
         _ctx._post_execution_callbacks, input, multiples)
       return _result
     except _core._FallbackException:
       return tile_eager_fallback(
-          input, multiples, name=name)
+          input, multiples, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -8120,11 +8454,11 @@ def tile(input, multiples, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tile_eager_fallback(input, multiples, name=None):
+def tile_eager_fallback(input, multiples, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tile
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _attr_Tmultiples, (multiples,) = _execute.args_to_matching_eager([multiples], _ctx, _dtypes.int32)
   _inputs_flat = [input, multiples]
@@ -8152,8 +8486,8 @@ def tile_grad(input, multiples, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "TileGrad", input=input, multiples=multiples, name=name)
     _result = _op.outputs[:]
@@ -8167,12 +8501,12 @@ def tile_grad(input, multiples, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TileGrad", name,
-        _ctx._post_execution_callbacks, input, multiples)
+        _ctx._context_handle, _ctx._eager_context.device_name, "TileGrad",
+        name, _ctx._post_execution_callbacks, input, multiples)
       return _result
     except _core._FallbackException:
       return tile_grad_eager_fallback(
-          input, multiples, name=name)
+          input, multiples, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -8181,11 +8515,11 @@ def tile_grad(input, multiples, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tile_grad_eager_fallback(input, multiples, name=None):
+def tile_grad_eager_fallback(input, multiples, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tile_grad
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   multiples = _ops.convert_to_tensor(multiples, _dtypes.int32)
   _inputs_flat = [input, multiples]
@@ -8212,8 +8546,8 @@ def transpose(x, perm, name=None):
   Returns:
     A `Tensor`. Has the same type as `x`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "Transpose", x=x, perm=perm, name=name)
     _result = _op.outputs[:]
@@ -8227,12 +8561,12 @@ def transpose(x, perm, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Transpose", name,
-        _ctx._post_execution_callbacks, x, perm)
+        _ctx._context_handle, _ctx._eager_context.device_name, "Transpose",
+        name, _ctx._post_execution_callbacks, x, perm)
       return _result
     except _core._FallbackException:
       return transpose_eager_fallback(
-          x, perm, name=name)
+          x, perm, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -8241,11 +8575,11 @@ def transpose(x, perm, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def transpose_eager_fallback(x, perm, name=None):
+def transpose_eager_fallback(x, perm, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function transpose
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (x,) = _execute.args_to_matching_eager([x], _ctx)
   _attr_Tperm, (perm,) = _execute.args_to_matching_eager([perm], _ctx, _dtypes.int32)
   _inputs_flat = [x, perm]
@@ -8293,8 +8627,8 @@ def unique(x, out_idx=_dtypes.int32, name=None):
     y: A `Tensor`. Has the same type as `x`.
     idx: A `Tensor` of type `out_idx`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if out_idx is None:
       out_idx = _dtypes.int32
     out_idx = _execute.make_type(out_idx, "out_idx")
@@ -8311,13 +8645,13 @@ def unique(x, out_idx=_dtypes.int32, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Unique", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Unique", name,
         _ctx._post_execution_callbacks, x, "out_idx", out_idx)
       _result = _UniqueOutput._make(_result)
       return _result
     except _core._FallbackException:
       return unique_eager_fallback(
-          x, out_idx=out_idx, name=name)
+          x, out_idx=out_idx, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -8326,11 +8660,11 @@ def unique(x, out_idx=_dtypes.int32, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def unique_eager_fallback(x, out_idx=_dtypes.int32, name=None):
+def unique_eager_fallback(x, out_idx=_dtypes.int32, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function unique
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if out_idx is None:
     out_idx = _dtypes.int32
   out_idx = _execute.make_type(out_idx, "out_idx")
@@ -8411,8 +8745,8 @@ def unique_v2(x, axis, out_idx=_dtypes.int32, name=None):
     y: A `Tensor`. Has the same type as `x`.
     idx: A `Tensor` of type `out_idx`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if out_idx is None:
       out_idx = _dtypes.int32
     out_idx = _execute.make_type(out_idx, "out_idx")
@@ -8430,13 +8764,13 @@ def unique_v2(x, axis, out_idx=_dtypes.int32, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "UniqueV2", name,
-        _ctx._post_execution_callbacks, x, axis, "out_idx", out_idx)
+        _ctx._context_handle, _ctx._eager_context.device_name, "UniqueV2",
+        name, _ctx._post_execution_callbacks, x, axis, "out_idx", out_idx)
       _result = _UniqueV2Output._make(_result)
       return _result
     except _core._FallbackException:
       return unique_v2_eager_fallback(
-          x, axis, out_idx=out_idx, name=name)
+          x, axis, out_idx=out_idx, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -8445,11 +8779,11 @@ def unique_v2(x, axis, out_idx=_dtypes.int32, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def unique_v2_eager_fallback(x, axis, out_idx=_dtypes.int32, name=None):
+def unique_v2_eager_fallback(x, axis, out_idx=_dtypes.int32, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function unique_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if out_idx is None:
     out_idx = _dtypes.int32
   out_idx = _execute.make_type(out_idx, "out_idx")
@@ -8503,8 +8837,8 @@ def unique_with_counts(x, out_idx=_dtypes.int32, name=None):
     idx: A `Tensor` of type `out_idx`.
     count: A `Tensor` of type `out_idx`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if out_idx is None:
       out_idx = _dtypes.int32
     out_idx = _execute.make_type(out_idx, "out_idx")
@@ -8521,13 +8855,14 @@ def unique_with_counts(x, out_idx=_dtypes.int32, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "UniqueWithCounts", name,
-        _ctx._post_execution_callbacks, x, "out_idx", out_idx)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "UniqueWithCounts", name, _ctx._post_execution_callbacks, x,
+        "out_idx", out_idx)
       _result = _UniqueWithCountsOutput._make(_result)
       return _result
     except _core._FallbackException:
       return unique_with_counts_eager_fallback(
-          x, out_idx=out_idx, name=name)
+          x, out_idx=out_idx, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -8536,11 +8871,11 @@ def unique_with_counts(x, out_idx=_dtypes.int32, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def unique_with_counts_eager_fallback(x, out_idx=_dtypes.int32, name=None):
+def unique_with_counts_eager_fallback(x, out_idx=_dtypes.int32, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function unique_with_counts
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if out_idx is None:
     out_idx = _dtypes.int32
   out_idx = _execute.make_type(out_idx, "out_idx")
@@ -8626,8 +8961,8 @@ def unique_with_counts_v2(x, axis, out_idx=_dtypes.int32, name=None):
     idx: A `Tensor` of type `out_idx`.
     count: A `Tensor` of type `out_idx`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if out_idx is None:
       out_idx = _dtypes.int32
     out_idx = _execute.make_type(out_idx, "out_idx")
@@ -8645,13 +8980,14 @@ def unique_with_counts_v2(x, axis, out_idx=_dtypes.int32, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "UniqueWithCountsV2", name,
-        _ctx._post_execution_callbacks, x, axis, "out_idx", out_idx)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "UniqueWithCountsV2", name, _ctx._post_execution_callbacks, x, axis,
+        "out_idx", out_idx)
       _result = _UniqueWithCountsV2Output._make(_result)
       return _result
     except _core._FallbackException:
       return unique_with_counts_v2_eager_fallback(
-          x, axis, out_idx=out_idx, name=name)
+          x, axis, out_idx=out_idx, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -8660,11 +8996,11 @@ def unique_with_counts_v2(x, axis, out_idx=_dtypes.int32, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def unique_with_counts_v2_eager_fallback(x, axis, out_idx=_dtypes.int32, name=None):
+def unique_with_counts_v2_eager_fallback(x, axis, out_idx=_dtypes.int32, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function unique_with_counts_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if out_idx is None:
     out_idx = _dtypes.int32
   out_idx = _execute.make_type(out_idx, "out_idx")
@@ -8708,8 +9044,8 @@ def unpack(value, num, axis=0, name=None):
   Returns:
     A list of `num` `Tensor` objects with the same type as `value`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     num = _execute.make_int(num, "num")
     if axis is None:
       axis = 0
@@ -8727,12 +9063,12 @@ def unpack(value, num, axis=0, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Unpack", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Unpack", name,
         _ctx._post_execution_callbacks, value, "num", num, "axis", axis)
       return _result
     except _core._FallbackException:
       return unpack_eager_fallback(
-          value, num=num, axis=axis, name=name)
+          value, num=num, axis=axis, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -8741,11 +9077,11 @@ def unpack(value, num, axis=0, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def unpack_eager_fallback(value, num, axis=0, name=None):
+def unpack_eager_fallback(value, num, axis=0, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function unpack
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   num = _execute.make_int(num, "num")
   if axis is None:
     axis = 0
@@ -8782,8 +9118,8 @@ def unravel_index(indices, dims, name=None):
   Returns:
     A `Tensor`. Has the same type as `indices`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "UnravelIndex", indices=indices, dims=dims, name=name)
     _result = _op.outputs[:]
@@ -8797,12 +9133,12 @@ def unravel_index(indices, dims, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "UnravelIndex", name,
-        _ctx._post_execution_callbacks, indices, dims)
+        _ctx._context_handle, _ctx._eager_context.device_name, "UnravelIndex",
+        name, _ctx._post_execution_callbacks, indices, dims)
       return _result
     except _core._FallbackException:
       return unravel_index_eager_fallback(
-          indices, dims, name=name)
+          indices, dims, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -8811,11 +9147,11 @@ def unravel_index(indices, dims, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def unravel_index_eager_fallback(indices, dims, name=None):
+def unravel_index_eager_fallback(indices, dims, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function unravel_index
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_Tidx, _inputs_Tidx = _execute.args_to_matching_eager([indices, dims], _ctx, _dtypes.int32)
   (indices, dims) = _inputs_Tidx
   _inputs_flat = [indices, dims]
@@ -8898,8 +9234,8 @@ def where(condition, name=None):
   Returns:
     A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "Where", input=condition, name=name)
     _result = _op.outputs[:]
@@ -8913,12 +9249,12 @@ def where(condition, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Where", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Where", name,
         _ctx._post_execution_callbacks, condition)
       return _result
     except _core._FallbackException:
       return where_eager_fallback(
-          condition, name=name)
+          condition, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -8927,11 +9263,11 @@ def where(condition, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def where_eager_fallback(condition, name=None):
+def where_eager_fallback(condition, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function where
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (condition,) = _execute.args_to_matching_eager([condition], _ctx, _dtypes.bool)
   _inputs_flat = [condition]
   _attrs = ("T", _attr_T)
@@ -8953,8 +9289,8 @@ def zeros_like(x, name=None):
   Returns:
     A `Tensor`. Has the same type as `x`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ZerosLike", x=x, name=name)
     _result = _op.outputs[:]
@@ -8968,12 +9304,12 @@ def zeros_like(x, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ZerosLike", name,
-        _ctx._post_execution_callbacks, x)
+        _ctx._context_handle, _ctx._eager_context.device_name, "ZerosLike",
+        name, _ctx._post_execution_callbacks, x)
       return _result
     except _core._FallbackException:
       return zeros_like_eager_fallback(
-          x, name=name)
+          x, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -8982,11 +9318,11 @@ def zeros_like(x, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def zeros_like_eager_fallback(x, name=None):
+def zeros_like_eager_fallback(x, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function zeros_like
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (x,) = _execute.args_to_matching_eager([x], _ctx)
   _inputs_flat = [x]
   _attrs = ("T", _attr_T)
@@ -9195,6 +9531,7 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     allowed_values {
 #       list {
 #         type: DT_BFLOAT16
+#         type: DT_HALF
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
 #         type: DT_INT64
@@ -9210,7 +9547,6 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #         type: DT_QINT16
 #         type: DT_QUINT16
 #         type: DT_QINT32
-#         type: DT_HALF
 #       }
 #     }
 #   }
@@ -9220,6 +9556,7 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     allowed_values {
 #       list {
 #         type: DT_BFLOAT16
+#         type: DT_HALF
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
 #         type: DT_INT64
@@ -9235,7 +9572,6 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #         type: DT_QINT16
 #         type: DT_QUINT16
 #         type: DT_QINT32
-#         type: DT_HALF
 #       }
 #     }
 #   }
@@ -9315,8 +9651,8 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     type: "type"
 #     allowed_values {
 #       list {
-#         type: DT_HALF
 #         type: DT_BFLOAT16
+#         type: DT_HALF
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
 #       }
@@ -9497,6 +9833,22 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #   allows_uninitialized_input: true
 # }
 # op {
+#   name: "DeepCopy"
+#   input_arg {
+#     name: "x"
+#     type_attr: "T"
+#   }
+#   output_arg {
+#     name: "y"
+#     type_attr: "T"
+#   }
+#   attr {
+#     name: "T"
+#     type: "type"
+#   }
+#   is_stateful: true
+# }
+# op {
 #   name: "DepthToSpace"
 #   input_arg {
 #     name: "input"
@@ -9593,6 +9945,7 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     allowed_values {
 #       list {
 #         type: DT_BFLOAT16
+#         type: DT_HALF
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
 #         type: DT_INT32
@@ -9619,6 +9972,7 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     allowed_values {
 #       list {
 #         type: DT_BFLOAT16
+#         type: DT_HALF
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
 #         type: DT_INT32
@@ -9670,6 +10024,29 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     name: "T"
 #     type: "type"
 #   }
+# }
+# op {
+#   name: "Empty"
+#   input_arg {
+#     name: "shape"
+#     type: DT_INT32
+#   }
+#   output_arg {
+#     name: "output"
+#     type_attr: "dtype"
+#   }
+#   attr {
+#     name: "dtype"
+#     type: "type"
+#   }
+#   attr {
+#     name: "init"
+#     type: "bool"
+#     default_value {
+#       b: false
+#     }
+#   }
+#   is_stateful: true
 # }
 # op {
 #   name: "ExpandDims"
@@ -10208,6 +10585,75 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #   }
 # }
 # op {
+#   name: "InplaceAdd"
+#   input_arg {
+#     name: "x"
+#     type_attr: "T"
+#   }
+#   input_arg {
+#     name: "i"
+#     type: DT_INT32
+#   }
+#   input_arg {
+#     name: "v"
+#     type_attr: "T"
+#   }
+#   output_arg {
+#     name: "y"
+#     type_attr: "T"
+#   }
+#   attr {
+#     name: "T"
+#     type: "type"
+#   }
+# }
+# op {
+#   name: "InplaceSub"
+#   input_arg {
+#     name: "x"
+#     type_attr: "T"
+#   }
+#   input_arg {
+#     name: "i"
+#     type: DT_INT32
+#   }
+#   input_arg {
+#     name: "v"
+#     type_attr: "T"
+#   }
+#   output_arg {
+#     name: "y"
+#     type_attr: "T"
+#   }
+#   attr {
+#     name: "T"
+#     type: "type"
+#   }
+# }
+# op {
+#   name: "InplaceUpdate"
+#   input_arg {
+#     name: "x"
+#     type_attr: "T"
+#   }
+#   input_arg {
+#     name: "i"
+#     type: DT_INT32
+#   }
+#   input_arg {
+#     name: "v"
+#     type_attr: "T"
+#   }
+#   output_arg {
+#     name: "y"
+#     type_attr: "T"
+#   }
+#   attr {
+#     name: "T"
+#     type: "type"
+#   }
+# }
+# op {
 #   name: "InvertPermutation"
 #   input_arg {
 #     name: "x"
@@ -10500,6 +10946,7 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     allowed_values {
 #       list {
 #         type: DT_BFLOAT16
+#         type: DT_HALF
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
 #         type: DT_INT8
@@ -10769,6 +11216,7 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     allowed_values {
 #       list {
 #         type: DT_BFLOAT16
+#         type: DT_HALF
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
 #       }
@@ -10824,6 +11272,7 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     allowed_values {
 #       list {
 #         type: DT_BFLOAT16
+#         type: DT_HALF
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
 #       }
@@ -10872,6 +11321,7 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     allowed_values {
 #       list {
 #         type: DT_BFLOAT16
+#         type: DT_HALF
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
 #       }
@@ -11368,8 +11818,8 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #         type: DT_INT32
 #         type: DT_INT64
 #         type: DT_BOOL
-#         type: DT_HALF
 #         type: DT_BFLOAT16
+#         type: DT_HALF
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
 #         type: DT_COMPLEX64
@@ -12430,4 +12880,4 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     type: "type"
 #   }
 # }
-_op_def_lib = _InitOpDefLibrary(b"\nm\n\023BatchMatrixBandPart\022\n\n\005input\"\001T\022\r\n\tnum_lower\030\t\022\r\n\tnum_upper\030\t\032\t\n\004band\"\001T\"\t\n\001T\022\004typeB\026\010\016\022\022Use MatrixBandPart\nL\n\017BatchMatrixDiag\022\r\n\010diagonal\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004typeB\022\010\016\022\016Use MatrixDiag\nS\n\023BatchMatrixDiagPart\022\n\n\005input\"\001T\032\r\n\010diagonal\"\001T\"\t\n\001T\022\004typeB\026\010\016\022\022Use MatrixDiagPart\n^\n\022BatchMatrixSetDiag\022\n\n\005input\"\001T\022\r\n\010diagonal\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004typeB\025\010\016\022\021Use MatrixSetDiag\nr\n\014BatchToSpace\022\n\n\005input\"\001T\022\r\n\005crops\"\004Tidx\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\025\n\nblock_size\022\003int(\0010\002\"\030\n\004Tidx\022\004type\032\0020\003:\006\n\0042\002\003\t\n\240\001\n\016BatchToSpaceND\022\n\n\005input\"\001T\022\033\n\013block_shape\"\014Tblock_shape\022\017\n\005crops\"\006Tcrops\032\013\n\006output\"\001T\"\t\n\001T\022\004type\" \n\014Tblock_shape\022\004type\032\0020\003:\006\n\0042\002\003\t\"\032\n\006Tcrops\022\004type\032\0020\003:\006\n\0042\002\003\t\nl\n\007Bitcast\022\n\n\005input\"\001T\032\016\n\006output\"\004type\" \n\001T\022\004type:\025\n\0232\021\016\001\002\t\003\004\021\006\005\010\022\013\014\017\020\r\023\"#\n\004type\022\004type:\025\n\0232\021\016\001\002\t\003\004\021\006\005\010\022\013\014\017\020\r\023\nA\n\rBroadcastArgs\022\007\n\002s0\"\001T\022\007\n\002s1\"\001T\032\007\n\002r0\"\001T\"\025\n\001T\022\004type\032\0020\003:\006\n\0042\002\003\t\nR\n\025BroadcastGradientArgs\022\007\n\002s0\"\001T\022\007\n\002s1\"\001T\032\007\n\002r0\"\001T\032\007\n\002r1\"\001T\"\025\n\001T\022\004type\032\0020\003:\006\n\0042\002\003\t\nQ\n\rCheckNumerics\022\013\n\006tensor\"\001T\032\013\n\006output\"\001T\"\023\n\001T\022\004type:\010\n\0062\004\023\016\001\002\"\021\n\007message\022\006string\nN\n\006Concat\022\016\n\nconcat_dim\030\003\022\016\n\006values\"\001T*\001N\032\013\n\006output\"\001T\"\014\n\001N\022\003int(\0010\002\"\t\n\001T\022\004type\nI\n\014ConcatOffset\022\016\n\nconcat_dim\030\003\022\014\n\005shape\030\003*\001N\032\r\n\006offset\030\003*\001N\"\014\n\001N\022\003int(\0010\002\nh\n\010ConcatV2\022\016\n\006values\"\001T*\001N\022\014\n\004axis\"\004Tidx\032\013\n\006output\"\001T\"\014\n\001N\022\003int(\0010\002\"\t\n\001T\022\004type\"\030\n\004Tidx\022\004type\032\0020\003:\006\n\0042\002\003\t\nY\n\022ConjugateTranspose\022\006\n\001x\"\001T\022\r\n\004perm\"\005Tperm\032\006\n\001y\"\001T\"\t\n\001T\022\004type\"\031\n\005Tperm\022\004type\032\0020\003:\006\n\0042\002\003\t\n8\n\005Const\032\017\n\006output\"\005dtype\"\017\n\005value\022\006tensor\"\r\n\005dtype\022\004type\n>\n\025DebugGradientIdentity\022\n\n\005input\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\230\001\001\nG\n\030DebugGradientRefIdentity\022\r\n\005input\"\001T\200\001\001\032\016\n\006output\"\001T\200\001\001\"\t\n\001T\022\004type\230\001\001\n\205\001\n\014DepthToSpace\022\n\n\005input\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\025\n\nblock_size\022\003int(\0010\002\":\n\013data_format\022\006string\032\006\022\004NHWC:\033\n\031\022\004NHWC\022\004NCHW\022\013NCHW_VECT_C\n\235\001\n\nDequantize\022\n\n\005input\"\001T\022\r\n\tmin_range\030\001\022\r\n\tmax_range\030\001\032\n\n\006output\030\001\"\024\n\001T\022\004type:\t\n\0072\005\013\014\r\017\020\"C\n\004mode\022\006string\032\016\022\014MIN_COMBINED:#\n!\022\014MIN_COMBINED\022\tMIN_FIRST\022\006SCALED\n:\n\004Diag\022\r\n\010diagonal\"\001T\032\013\n\006output\"\001T\"\026\n\001T\022\004type:\013\n\t2\007\016\001\002\003\t\010\022\n=\n\010DiagPart\022\n\n\005input\"\001T\032\r\n\010diagonal\"\001T\"\026\n\001T\022\004type:\013\n\t2\007\016\001\002\003\t\010\022\n\271\001\n\014EditDistance\022\026\n\022hypothesis_indices\030\t\022\026\n\021hypothesis_values\"\001T\022\024\n\020hypothesis_shape\030\t\022\021\n\rtruth_indices\030\t\022\021\n\014truth_values\"\001T\022\017\n\013truth_shape\030\t\032\n\n\006output\030\001\"\025\n\tnormalize\022\004bool\032\002(\001\"\t\n\001T\022\004type\nW\n\nExpandDims\022\n\n\005input\"\001T\022\013\n\003dim\"\004Tdim\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\030\n\004Tdim\022\004type\032\0020\003:\006\n\0042\002\003\t\n\274\001\n\023ExtractImagePatches\022\013\n\006images\"\001T\032\014\n\007patches\"\001T\"\027\n\006ksizes\022\tlist(int)(\0010\004\"\030\n\007strides\022\tlist(int)(\0010\004\"\026\n\005rates\022\tlist(int)(\0010\004\"\033\n\001T\022\004type:\020\n\0162\014\001\002\003\004\005\006\t\016\021\023\026\027\"\"\n\007padding\022\006string:\017\n\r\022\004SAME\022\005VALID\n\213\001\n\027FakeQuantWithMinMaxArgs\022\n\n\006inputs\030\001\032\013\n\007outputs\030\001\"\023\n\003min\022\005float\032\005%\000\000\300\300\"\023\n\003max\022\005float\032\005%\000\000\300@\"\023\n\010num_bits\022\003int\032\002\030\010\"\030\n\014narrow_range\022\004bool\032\002(\000\n\244\001\n\037FakeQuantWithMinMaxArgsGradient\022\r\n\tgradients\030\001\022\n\n\006inputs\030\001\032\r\n\tbackprops\030\001\"\023\n\003min\022\005float\032\005%\000\000\300\300\"\023\n\003max\022\005float\032\005%\000\000\300@\"\023\n\010num_bits\022\003int\032\002\030\010\"\030\n\014narrow_range\022\004bool\032\002(\000\ns\n\027FakeQuantWithMinMaxVars\022\n\n\006inputs\030\001\022\007\n\003min\030\001\022\007\n\003max\030\001\032\013\n\007outputs\030\001\"\023\n\010num_bits\022\003int\032\002\030\010\"\030\n\014narrow_range\022\004bool\032\002(\000\n\302\001\n\037FakeQuantWithMinMaxVarsGradient\022\r\n\tgradients\030\001\022\n\n\006inputs\030\001\022\007\n\003min\030\001\022\007\n\003max\030\001\032\027\n\023backprops_wrt_input\030\001\032\024\n\020backprop_wrt_min\030\001\032\024\n\020backprop_wrt_max\030\001\"\023\n\010num_bits\022\003int\032\002\030\010\"\030\n\014narrow_range\022\004bool\032\002(\000\n}\n!FakeQuantWithMinMaxVarsPerChannel\022\n\n\006inputs\030\001\022\007\n\003min\030\001\022\007\n\003max\030\001\032\013\n\007outputs\030\001\"\023\n\010num_bits\022\003int\032\002\030\010\"\030\n\014narrow_range\022\004bool\032\002(\000\n\314\001\n)FakeQuantWithMinMaxVarsPerChannelGradient\022\r\n\tgradients\030\001\022\n\n\006inputs\030\001\022\007\n\003min\030\001\022\007\n\003max\030\001\032\027\n\023backprops_wrt_input\030\001\032\024\n\020backprop_wrt_min\030\001\032\024\n\020backprop_wrt_max\030\001\"\023\n\010num_bits\022\003int\032\002\030\010\"\030\n\014narrow_range\022\004bool\032\002(\000\n^\n\004Fill\022\022\n\004dims\"\nindex_type\022\n\n\005value\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\036\n\nindex_type\022\004type\032\0020\003:\006\n\0042\002\003\t\n\214\001\n\006Gather\022\021\n\006params\"\007Tparams\022\023\n\007indices\"\010Tindices\032\021\n\006output\"\007Tparams\"\034\n\020validate_indices\022\004bool\032\002(\001\"\017\n\007Tparams\022\004type\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\np\n\010GatherNd\022\021\n\006params\"\007Tparams\022\023\n\007indices\"\010Tindices\032\021\n\006output\"\007Tparams\"\017\n\007Tparams\022\004type\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\n\226\001\n\010GatherV2\022\021\n\006params\"\007Tparams\022\023\n\007indices\"\010Tindices\022\r\n\004axis\"\005Taxis\032\021\n\006output\"\007Tparams\"\017\n\007Tparams\022\004type\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\"\025\n\005Taxis\022\004type:\006\n\0042\002\003\t\n7\n\016GuaranteeConst\022\n\n\005input\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\210\001\001\n.\n\010Identity\022\n\n\005input\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\n9\n\tIdentityN\022\n\n\005input2\001T\032\013\n\006output2\001T\"\023\n\001T\022\nlist(type)(\0010\001\n^\n\016ImmutableConst\032\017\n\006tensor\"\005dtype\"\r\n\005dtype\022\004type\"\016\n\005shape\022\005shape\"\034\n\022memory_region_name\022\006string\n:\n\021InvertPermutation\022\006\n\001x\"\001T\032\006\n\001y\"\001T\"\025\n\001T\022\004type\032\0020\003:\006\n\0042\002\003\t\n\\\n\010ListDiff\022\006\n\001x\"\001T\022\006\n\001y\"\001T\032\010\n\003out\"\001T\032\016\n\003idx\"\007out_idx\"\t\n\001T\022\004type\"\033\n\007out_idx\022\004type\032\0020\003:\006\n\0042\002\003\t\nx\n\016MatrixBandPart\022\n\n\005input\"\001T\022\023\n\tnum_lower\"\006Tindex\022\023\n\tnum_upper\"\006Tindex\032\t\n\004band\"\001T\"\t\n\001T\022\004type\"\032\n\006Tindex\022\004type\032\0020\t:\006\n\0042\002\003\t\n3\n\nMatrixDiag\022\r\n\010diagonal\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\n6\n\016MatrixDiagPart\022\n\n\005input\"\001T\032\r\n\010diagonal\"\001T\"\t\n\001T\022\004type\nB\n\rMatrixSetDiag\022\n\n\005input\"\001T\022\r\n\010diagonal\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\n\215\001\n\tMirrorPad\022\n\n\005input\"\001T\022\025\n\010paddings\"\tTpaddings\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\035\n\tTpaddings\022\004type\032\0020\003:\006\n\0042\002\003\t\"&\n\004mode\022\006string:\026\n\024\022\007REFLECT\022\tSYMMETRIC\n\221\001\n\rMirrorPadGrad\022\n\n\005input\"\001T\022\025\n\010paddings\"\tTpaddings\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\035\n\tTpaddings\022\004type\032\0020\003:\006\n\0042\002\003\t\"&\n\004mode\022\006string:\026\n\024\022\007REFLECT\022\tSYMMETRIC\n\214\001\n\006OneHot\022\r\n\007indices\"\002TI\022\t\n\005depth\030\003\022\r\n\010on_value\"\001T\022\016\n\toff_value\"\001T\032\013\n\006output\"\001T\"\030\n\004axis\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\"\t\n\001T\022\004type\"\027\n\002TI\022\004type\032\0020\t:\007\n\0052\003\004\003\t\n7\n\010OnesLike\022\006\n\001x\"\001T\032\006\n\001y\"\001T\"\033\n\001T\022\004type:\020\n\0162\014\016\001\002\006\004\005\021\003\t\010\022\n\nM\n\004Pack\022\016\n\006values\"\001T*\001N\032\013\n\006output\"\001T\"\014\n\001N\022\003int(\0010\001\"\t\n\001T\022\004type\"\017\n\004axis\022\003int\032\002\030\000\n_\n\003Pad\022\n\n\005input\"\001T\022\025\n\010paddings\"\tTpaddings\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\035\n\tTpaddings\022\004type\032\0020\003:\006\n\0042\002\003\t\nw\n\005PadV2\022\n\n\005input\"\001T\022\025\n\010paddings\"\tTpaddings\022\024\n\017constant_values\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\035\n\tTpaddings\022\004type\032\0020\003:\006\n\0042\002\003\t\nV\n\016ParallelConcat\022\016\n\006values\"\001T*\001N\032\013\n\006output\"\001T\"\014\n\001N\022\003int(\0010\001\"\t\n\001T\022\004type\"\016\n\005shape\022\005shape\nC\n\013Placeholder\032\017\n\006output\"\005dtype\"\r\n\005dtype\022\004type\"\024\n\005shape\022\005shape\032\004:\002\030\001\nw\n\rPlaceholderV2\032\017\n\006output\"\005dtype\"\r\n\005dtype\022\004type\"\016\n\005shape\022\005shapeB6\010\027\0222Placeholder now behaves the same as PlaceholderV2.\nX\n\026PlaceholderWithDefault\022\016\n\005input\"\005dtype\032\017\n\006output\"\005dtype\"\r\n\005dtype\022\004type\"\016\n\005shape\022\005shape\nL\n\017PreventGradient\022\n\n\005input\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\025\n\007message\022\006string\032\002\022\000\n\353\001\n\025QuantizeAndDequantize\022\n\n\005input\"\001T\032\013\n\006output\"\001T\"\030\n\014signed_input\022\004bool\032\002(\001\"\023\n\010num_bits\022\003int\032\002\030\010\"\027\n\013range_given\022\004bool\032\002(\000\"\031\n\tinput_min\022\005float\032\005%\000\000\000\000\"\031\n\tinput_max\022\005float\032\005%\000\000\000\000\"\022\n\001T\022\004type:\007\n\0052\003\016\001\002B\'\010\026\022#Replaced by QuantizeAndDequantizeV2\n\256\001\n\027QuantizeAndDequantizeV2\022\n\n\005input\"\001T\022\016\n\tinput_min\"\001T\022\016\n\tinput_max\"\001T\032\013\n\006output\"\001T\"\030\n\014signed_input\022\004bool\032\002(\001\"\023\n\010num_bits\022\003int\032\002\030\010\"\027\n\013range_given\022\004bool\032\002(\000\"\022\n\001T\022\004type:\007\n\0052\003\016\001\002\n\247\001\n\027QuantizeAndDequantizeV3\022\n\n\005input\"\001T\022\016\n\tinput_min\"\001T\022\016\n\tinput_max\"\001T\022\014\n\010num_bits\030\003\032\013\n\006output\"\001T\"\030\n\014signed_input\022\004bool\032\002(\001\"\027\n\013range_given\022\004bool\032\002(\001\"\022\n\001T\022\004type:\007\n\0052\003\016\001\002\n\221\002\n\nQuantizeV2\022\t\n\005input\030\001\022\r\n\tmin_range\030\001\022\r\n\tmax_range\030\001\032\013\n\006output\"\001T\032\016\n\noutput_min\030\001\032\016\n\noutput_max\030\001\"\024\n\001T\022\004type:\t\n\0072\005\013\014\r\017\020\"C\n\004mode\022\006string\032\016\022\014MIN_COMBINED:#\n!\022\014MIN_COMBINED\022\tMIN_FIRST\022\006SCALED\"R\n\nround_mode\022\006string\032\025\022\023HALF_AWAY_FROM_ZERO:%\n#\022\023HALF_AWAY_FROM_ZERO\022\014HALF_TO_EVEN\n\236\001\n\017QuantizedConcat\022\016\n\nconcat_dim\030\003\022\016\n\006values\"\001T*\001N\022\021\n\ninput_mins\030\001*\001N\022\022\n\013input_maxes\030\001*\001N\032\013\n\006output\"\001T\032\016\n\noutput_min\030\001\032\016\n\noutput_max\030\001\"\014\n\001N\022\003int(\0010\002\"\t\n\001T\022\004type\n\205\002\n\025QuantizedInstanceNorm\022\006\n\001x\"\001T\022\t\n\005x_min\030\001\022\t\n\005x_max\030\001\032\006\n\001y\"\001T\032\t\n\005y_min\030\001\032\t\n\005y_max\030\001\"\024\n\001T\022\004type:\t\n\0072\005\013\014\r\017\020\"\036\n\022output_range_given\022\004bool\032\002(\000\"\033\n\013given_y_min\022\005float\032\005%\000\000\000\000\"\033\n\013given_y_max\022\005float\032\005%\000\000\000\000\" \n\020variance_epsilon\022\005float\032\005%\254\305\'7\"\036\n\016min_separation\022\005float\032\005%o\022\203:\n\242\001\n\020QuantizedReshape\022\013\n\006tensor\"\001T\022\017\n\005shape\"\006Tshape\022\r\n\tinput_min\030\001\022\r\n\tinput_max\030\001\032\013\n\006output\"\001T\032\016\n\noutput_min\030\001\032\016\n\noutput_max\030\001\"\t\n\001T\022\004type\"\032\n\006Tshape\022\004type\032\0020\003:\006\n\0042\002\003\t\n)\n\004Rank\022\n\n\005input\"\001T\032\n\n\006output\030\003\"\t\n\001T\022\004type\n:\n\013RefIdentity\022\r\n\005input\"\001T\200\001\001\032\016\n\006output\"\001T\200\001\001\"\t\n\001T\022\004type\230\001\001\n[\n\007Reshape\022\013\n\006tensor\"\001T\022\017\n\005shape\"\006Tshape\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\032\n\006Tshape\022\004type\032\0020\003:\006\n\0042\002\003\t\n\203\002\n\032ResourceStridedSliceAssign\022\007\n\003ref\030\024\022\016\n\005begin\"\005Index\022\014\n\003end\"\005Index\022\020\n\007strides\"\005Index\022\n\n\005value\"\001T\"\t\n\001T\022\004type\"\025\n\005Index\022\004type:\006\n\0042\002\003\t\"\025\n\nbegin_mask\022\003int\032\002\030\000\"\023\n\010end_mask\022\003int\032\002\030\000\"\030\n\rellipsis_mask\022\003int\032\002\030\000\"\030\n\rnew_axis_mask\022\003int\032\002\030\000\"\033\n\020shrink_axis_mask\022\003int\032\002\030\000\210\001\001\nK\n\007Reverse\022\013\n\006tensor\"\001T\022\010\n\004dims\030\n\032\013\n\006output\"\001T\"\034\n\001T\022\004type:\021\n\0172\r\004\006\021\005\003\t\n\023\001\002\010\022\007\n\212\001\n\017ReverseSequence\022\n\n\005input\"\001T\022\023\n\013seq_lengths\"\004Tlen\032\013\n\006output\"\001T\"\016\n\007seq_dim\022\003int\"\024\n\tbatch_dim\022\003int\032\002\030\000\"\t\n\001T\022\004type\"\030\n\004Tlen\022\004type\032\0020\t:\006\n\0042\002\003\t\nl\n\tReverseV2\022\013\n\006tensor\"\001T\022\014\n\004axis\"\004Tidx\032\013\n\006output\"\001T\"\030\n\004Tidx\022\004type\032\0020\003:\006\n\0042\002\003\t\"\035\n\001T\022\004type:\022\n\0202\016\004\006\021\005\003\t\n\023\016\001\002\010\022\007\ns\n\tScatterNd\022\023\n\007indices\"\010Tindices\022\014\n\007updates\"\001T\022\021\n\005shape\"\010Tindices\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\n\221\001\n\027ScatterNdNonAliasingAdd\022\n\n\005input\"\001T\022\023\n\007indices\"\010Tindices\022\014\n\007updates\"\001T\032\013\n\006output\"\001T\" \n\001T\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\nP\n\005Shape\022\n\n\005input\"\001T\032\022\n\006output\"\010out_type\"\t\n\001T\022\004type\"\034\n\010out_type\022\004type\032\0020\003:\006\n\0042\002\003\t\ne\n\006ShapeN\022\r\n\005input\"\001T*\001N\032\025\n\006output\"\010out_type*\001N\"\014\n\001N\022\003int(\0010\001\"\t\n\001T\022\004type\"\034\n\010out_type\022\004type\032\0020\003:\006\n\0042\002\003\t\nO\n\004Size\022\n\n\005input\"\001T\032\022\n\006output\"\010out_type\"\t\n\001T\022\004type\"\034\n\010out_type\022\004type\032\0020\003:\006\n\0042\002\003\t\na\n\005Slice\022\n\n\005input\"\001T\022\016\n\005begin\"\005Index\022\r\n\004size\"\005Index\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\025\n\005Index\022\004type:\006\n\0042\002\003\t\n.\n\010Snapshot\022\n\n\005input\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\n\177\n\014SpaceToBatch\022\n\n\005input\"\001T\022\025\n\010paddings\"\tTpaddings\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\035\n\tTpaddings\022\004type\032\0020\003:\006\n\0042\002\003\t\"\025\n\nblock_size\022\003int(\0010\002\n\251\001\n\016SpaceToBatchND\022\n\n\005input\"\001T\022\033\n\013block_shape\"\014Tblock_shape\022\025\n\010paddings\"\tTpaddings\032\013\n\006output\"\001T\"\t\n\001T\022\004type\" \n\014Tblock_shape\022\004type\032\0020\003:\006\n\0042\002\003\t\"\035\n\tTpaddings\022\004type\032\0020\003:\006\n\0042\002\003\t\n\205\001\n\014SpaceToDepth\022\n\n\005input\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\025\n\nblock_size\022\003int(\0010\002\":\n\013data_format\022\006string\032\006\022\004NHWC:\033\n\031\022\004NHWC\022\004NCHW\022\013NCHW_VECT_C\n[\n\005Split\022\r\n\tsplit_dim\030\003\022\n\n\005value\"\001T\032\026\n\006output\"\001T*\tnum_split\"\024\n\tnum_split\022\003int(\0010\001\"\t\n\001T\022\004type\n\213\001\n\006SplitV\022\n\n\005value\"\001T\022\023\n\013size_splits\"\004Tlen\022\r\n\tsplit_dim\030\003\032\026\n\006output\"\001T*\tnum_split\"\024\n\tnum_split\022\003int(\0010\001\"\t\n\001T\022\004type\"\030\n\004Tlen\022\004type\032\0020\t:\006\n\0042\002\003\t\nN\n\007Squeeze\022\n\n\005input\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\037\n\014squeeze_dims\022\tlist(int)\032\002\n\000(\001\n2\n\014StopGradient\022\n\n\005input\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\n\366\001\n\014StridedSlice\022\n\n\005input\"\001T\022\016\n\005begin\"\005Index\022\014\n\003end\"\005Index\022\020\n\007strides\"\005Index\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\025\n\005Index\022\004type:\006\n\0042\002\003\t\"\025\n\nbegin_mask\022\003int\032\002\030\000\"\023\n\010end_mask\022\003int\032\002\030\000\"\030\n\rellipsis_mask\022\003int\032\002\030\000\"\030\n\rnew_axis_mask\022\003int\032\002\030\000\"\033\n\020shrink_axis_mask\022\003int\032\002\030\000\n\220\002\n\022StridedSliceAssign\022\013\n\003ref\"\001T\200\001\001\022\016\n\005begin\"\005Index\022\014\n\003end\"\005Index\022\020\n\007strides\"\005Index\022\n\n\005value\"\001T\032\022\n\noutput_ref\"\001T\200\001\001\"\t\n\001T\022\004type\"\025\n\005Index\022\004type:\006\n\0042\002\003\t\"\025\n\nbegin_mask\022\003int\032\002\030\000\"\023\n\010end_mask\022\003int\032\002\030\000\"\030\n\rellipsis_mask\022\003int\032\002\030\000\"\030\n\rnew_axis_mask\022\003int\032\002\030\000\"\033\n\020shrink_axis_mask\022\003int\032\002\030\000\n\207\002\n\020StridedSliceGrad\022\016\n\005shape\"\005Index\022\016\n\005begin\"\005Index\022\014\n\003end\"\005Index\022\020\n\007strides\"\005Index\022\007\n\002dy\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\025\n\005Index\022\004type:\006\n\0042\002\003\t\"\025\n\nbegin_mask\022\003int\032\002\030\000\"\023\n\010end_mask\022\003int\032\002\030\000\"\030\n\rellipsis_mask\022\003int\032\002\030\000\"\030\n\rnew_axis_mask\022\003int\032\002\030\000\"\033\n\020shrink_axis_mask\022\003int\032\002\030\000\nc\n\004Tile\022\n\n\005input\"\001T\022\027\n\tmultiples\"\nTmultiples\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\036\n\nTmultiples\022\004type\032\0020\003:\006\n\0042\002\003\t\nm\n\010TileGrad\022\n\n\005input\"\001T\022\r\n\tmultiples\030\003\032\013\n\006output\"\001T\"\t\n\001T\022\004typeB.\010\003\022*TileGrad has been replaced with reduce_sum\nP\n\tTranspose\022\006\n\001x\"\001T\022\r\n\004perm\"\005Tperm\032\006\n\001y\"\001T\"\t\n\001T\022\004type\"\031\n\005Tperm\022\004type\032\0020\003:\006\n\0042\002\003\t\nP\n\006Unique\022\006\n\001x\"\001T\032\006\n\001y\"\001T\032\016\n\003idx\"\007out_idx\"\t\n\001T\022\004type\"\033\n\007out_idx\022\004type\032\0020\003:\006\n\0042\002\003\t\n|\n\010UniqueV2\022\006\n\001x\"\001T\022\r\n\004axis\"\005Taxis\032\006\n\001y\"\001T\032\016\n\003idx\"\007out_idx\"\t\n\001T\022\004type\"\031\n\005Taxis\022\004type\032\0020\t:\006\n\0042\002\003\t\"\033\n\007out_idx\022\004type\032\0020\003:\006\n\0042\002\003\t\nl\n\020UniqueWithCounts\022\006\n\001x\"\001T\032\006\n\001y\"\001T\032\016\n\003idx\"\007out_idx\032\020\n\005count\"\007out_idx\"\t\n\001T\022\004type\"\033\n\007out_idx\022\004type\032\0020\003:\006\n\0042\002\003\t\n\230\001\n\022UniqueWithCountsV2\022\006\n\001x\"\001T\022\r\n\004axis\"\005Taxis\032\006\n\001y\"\001T\032\016\n\003idx\"\007out_idx\032\020\n\005count\"\007out_idx\"\t\n\001T\022\004type\"\031\n\005Taxis\022\004type\032\0020\t:\006\n\0042\002\003\t\"\033\n\007out_idx\022\004type\032\0020\003:\006\n\0042\002\003\t\nP\n\006Unpack\022\n\n\005value\"\001T\032\020\n\006output\"\001T*\003num\"\014\n\003num\022\003int(\001\"\t\n\001T\022\004type\"\017\n\004axis\022\003int\032\002\030\000\nW\n\014UnravelIndex\022\017\n\007indices\"\004Tidx\022\014\n\004dims\"\004Tidx\032\016\n\006output\"\004Tidx\"\030\n\004Tidx\022\004type\032\0020\003:\006\n\0042\002\003\t\nE\n\005Where\022\n\n\005input\"\001T\032\t\n\005index\030\t\"%\n\001T\022\004type\032\0020\n:\026\n\0242\022\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\n\n&\n\tZerosLike\022\006\n\001x\"\001T\032\006\n\001y\"\001T\"\t\n\001T\022\004type")
+_op_def_lib = _InitOpDefLibrary(b"\nm\n\023BatchMatrixBandPart\022\n\n\005input\"\001T\022\r\n\tnum_lower\030\t\022\r\n\tnum_upper\030\t\032\t\n\004band\"\001T\"\t\n\001T\022\004typeB\026\010\016\022\022Use MatrixBandPart\nL\n\017BatchMatrixDiag\022\r\n\010diagonal\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004typeB\022\010\016\022\016Use MatrixDiag\nS\n\023BatchMatrixDiagPart\022\n\n\005input\"\001T\032\r\n\010diagonal\"\001T\"\t\n\001T\022\004typeB\026\010\016\022\022Use MatrixDiagPart\n^\n\022BatchMatrixSetDiag\022\n\n\005input\"\001T\022\r\n\010diagonal\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004typeB\025\010\016\022\021Use MatrixSetDiag\nr\n\014BatchToSpace\022\n\n\005input\"\001T\022\r\n\005crops\"\004Tidx\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\025\n\nblock_size\022\003int(\0010\002\"\030\n\004Tidx\022\004type\032\0020\003:\006\n\0042\002\003\t\n\240\001\n\016BatchToSpaceND\022\n\n\005input\"\001T\022\033\n\013block_shape\"\014Tblock_shape\022\017\n\005crops\"\006Tcrops\032\013\n\006output\"\001T\"\t\n\001T\022\004type\" \n\014Tblock_shape\022\004type\032\0020\003:\006\n\0042\002\003\t\"\032\n\006Tcrops\022\004type\032\0020\003:\006\n\0042\002\003\t\nl\n\007Bitcast\022\n\n\005input\"\001T\032\016\n\006output\"\004type\" \n\001T\022\004type:\025\n\0232\021\016\023\001\002\t\003\004\021\006\005\010\022\013\014\017\020\r\"#\n\004type\022\004type:\025\n\0232\021\016\023\001\002\t\003\004\021\006\005\010\022\013\014\017\020\r\nA\n\rBroadcastArgs\022\007\n\002s0\"\001T\022\007\n\002s1\"\001T\032\007\n\002r0\"\001T\"\025\n\001T\022\004type\032\0020\003:\006\n\0042\002\003\t\nR\n\025BroadcastGradientArgs\022\007\n\002s0\"\001T\022\007\n\002s1\"\001T\032\007\n\002r0\"\001T\032\007\n\002r1\"\001T\"\025\n\001T\022\004type\032\0020\003:\006\n\0042\002\003\t\nQ\n\rCheckNumerics\022\013\n\006tensor\"\001T\032\013\n\006output\"\001T\"\023\n\001T\022\004type:\010\n\0062\004\016\023\001\002\"\021\n\007message\022\006string\nN\n\006Concat\022\016\n\nconcat_dim\030\003\022\016\n\006values\"\001T*\001N\032\013\n\006output\"\001T\"\014\n\001N\022\003int(\0010\002\"\t\n\001T\022\004type\nI\n\014ConcatOffset\022\016\n\nconcat_dim\030\003\022\014\n\005shape\030\003*\001N\032\r\n\006offset\030\003*\001N\"\014\n\001N\022\003int(\0010\002\nh\n\010ConcatV2\022\016\n\006values\"\001T*\001N\022\014\n\004axis\"\004Tidx\032\013\n\006output\"\001T\"\014\n\001N\022\003int(\0010\002\"\t\n\001T\022\004type\"\030\n\004Tidx\022\004type\032\0020\003:\006\n\0042\002\003\t\nY\n\022ConjugateTranspose\022\006\n\001x\"\001T\022\r\n\004perm\"\005Tperm\032\006\n\001y\"\001T\"\t\n\001T\022\004type\"\031\n\005Tperm\022\004type\032\0020\003:\006\n\0042\002\003\t\n8\n\005Const\032\017\n\006output\"\005dtype\"\017\n\005value\022\006tensor\"\r\n\005dtype\022\004type\n>\n\025DebugGradientIdentity\022\n\n\005input\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\230\001\001\nG\n\030DebugGradientRefIdentity\022\r\n\005input\"\001T\200\001\001\032\016\n\006output\"\001T\200\001\001\"\t\n\001T\022\004type\230\001\001\n(\n\010DeepCopy\022\006\n\001x\"\001T\032\006\n\001y\"\001T\"\t\n\001T\022\004type\210\001\001\n\205\001\n\014DepthToSpace\022\n\n\005input\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\025\n\nblock_size\022\003int(\0010\002\":\n\013data_format\022\006string\032\006\022\004NHWC:\033\n\031\022\004NHWC\022\004NCHW\022\013NCHW_VECT_C\n\235\001\n\nDequantize\022\n\n\005input\"\001T\022\r\n\tmin_range\030\001\022\r\n\tmax_range\030\001\032\n\n\006output\030\001\"\024\n\001T\022\004type:\t\n\0072\005\013\014\r\017\020\"C\n\004mode\022\006string\032\016\022\014MIN_COMBINED:#\n!\022\014MIN_COMBINED\022\tMIN_FIRST\022\006SCALED\n;\n\004Diag\022\r\n\010diagonal\"\001T\032\013\n\006output\"\001T\"\027\n\001T\022\004type:\014\n\n2\010\016\023\001\002\003\t\010\022\n>\n\010DiagPart\022\n\n\005input\"\001T\032\r\n\010diagonal\"\001T\"\027\n\001T\022\004type:\014\n\n2\010\016\023\001\002\003\t\010\022\n\271\001\n\014EditDistance\022\026\n\022hypothesis_indices\030\t\022\026\n\021hypothesis_values\"\001T\022\024\n\020hypothesis_shape\030\t\022\021\n\rtruth_indices\030\t\022\021\n\014truth_values\"\001T\022\017\n\013truth_shape\030\t\032\n\n\006output\030\001\"\025\n\tnormalize\022\004bool\032\002(\001\"\t\n\001T\022\004type\nG\n\005Empty\022\t\n\005shape\030\003\032\017\n\006output\"\005dtype\"\r\n\005dtype\022\004type\"\020\n\004init\022\004bool\032\002(\000\210\001\001\nW\n\nExpandDims\022\n\n\005input\"\001T\022\013\n\003dim\"\004Tdim\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\030\n\004Tdim\022\004type\032\0020\003:\006\n\0042\002\003\t\n\274\001\n\023ExtractImagePatches\022\013\n\006images\"\001T\032\014\n\007patches\"\001T\"\027\n\006ksizes\022\tlist(int)(\0010\004\"\030\n\007strides\022\tlist(int)(\0010\004\"\026\n\005rates\022\tlist(int)(\0010\004\"\033\n\001T\022\004type:\020\n\0162\014\001\002\003\004\005\006\t\016\021\023\026\027\"\"\n\007padding\022\006string:\017\n\r\022\004SAME\022\005VALID\n\213\001\n\027FakeQuantWithMinMaxArgs\022\n\n\006inputs\030\001\032\013\n\007outputs\030\001\"\023\n\003min\022\005float\032\005%\000\000\300\300\"\023\n\003max\022\005float\032\005%\000\000\300@\"\023\n\010num_bits\022\003int\032\002\030\010\"\030\n\014narrow_range\022\004bool\032\002(\000\n\244\001\n\037FakeQuantWithMinMaxArgsGradient\022\r\n\tgradients\030\001\022\n\n\006inputs\030\001\032\r\n\tbackprops\030\001\"\023\n\003min\022\005float\032\005%\000\000\300\300\"\023\n\003max\022\005float\032\005%\000\000\300@\"\023\n\010num_bits\022\003int\032\002\030\010\"\030\n\014narrow_range\022\004bool\032\002(\000\ns\n\027FakeQuantWithMinMaxVars\022\n\n\006inputs\030\001\022\007\n\003min\030\001\022\007\n\003max\030\001\032\013\n\007outputs\030\001\"\023\n\010num_bits\022\003int\032\002\030\010\"\030\n\014narrow_range\022\004bool\032\002(\000\n\302\001\n\037FakeQuantWithMinMaxVarsGradient\022\r\n\tgradients\030\001\022\n\n\006inputs\030\001\022\007\n\003min\030\001\022\007\n\003max\030\001\032\027\n\023backprops_wrt_input\030\001\032\024\n\020backprop_wrt_min\030\001\032\024\n\020backprop_wrt_max\030\001\"\023\n\010num_bits\022\003int\032\002\030\010\"\030\n\014narrow_range\022\004bool\032\002(\000\n}\n!FakeQuantWithMinMaxVarsPerChannel\022\n\n\006inputs\030\001\022\007\n\003min\030\001\022\007\n\003max\030\001\032\013\n\007outputs\030\001\"\023\n\010num_bits\022\003int\032\002\030\010\"\030\n\014narrow_range\022\004bool\032\002(\000\n\314\001\n)FakeQuantWithMinMaxVarsPerChannelGradient\022\r\n\tgradients\030\001\022\n\n\006inputs\030\001\022\007\n\003min\030\001\022\007\n\003max\030\001\032\027\n\023backprops_wrt_input\030\001\032\024\n\020backprop_wrt_min\030\001\032\024\n\020backprop_wrt_max\030\001\"\023\n\010num_bits\022\003int\032\002\030\010\"\030\n\014narrow_range\022\004bool\032\002(\000\n^\n\004Fill\022\022\n\004dims\"\nindex_type\022\n\n\005value\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\036\n\nindex_type\022\004type\032\0020\003:\006\n\0042\002\003\t\n\214\001\n\006Gather\022\021\n\006params\"\007Tparams\022\023\n\007indices\"\010Tindices\032\021\n\006output\"\007Tparams\"\034\n\020validate_indices\022\004bool\032\002(\001\"\017\n\007Tparams\022\004type\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\np\n\010GatherNd\022\021\n\006params\"\007Tparams\022\023\n\007indices\"\010Tindices\032\021\n\006output\"\007Tparams\"\017\n\007Tparams\022\004type\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\n\226\001\n\010GatherV2\022\021\n\006params\"\007Tparams\022\023\n\007indices\"\010Tindices\022\r\n\004axis\"\005Taxis\032\021\n\006output\"\007Tparams\"\017\n\007Tparams\022\004type\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\"\025\n\005Taxis\022\004type:\006\n\0042\002\003\t\n7\n\016GuaranteeConst\022\n\n\005input\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\210\001\001\n.\n\010Identity\022\n\n\005input\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\n9\n\tIdentityN\022\n\n\005input2\001T\032\013\n\006output2\001T\"\023\n\001T\022\nlist(type)(\0010\001\n^\n\016ImmutableConst\032\017\n\006tensor\"\005dtype\"\r\n\005dtype\022\004type\"\016\n\005shape\022\005shape\"\034\n\022memory_region_name\022\006string\n6\n\nInplaceAdd\022\006\n\001x\"\001T\022\005\n\001i\030\003\022\006\n\001v\"\001T\032\006\n\001y\"\001T\"\t\n\001T\022\004type\n6\n\nInplaceSub\022\006\n\001x\"\001T\022\005\n\001i\030\003\022\006\n\001v\"\001T\032\006\n\001y\"\001T\"\t\n\001T\022\004type\n9\n\rInplaceUpdate\022\006\n\001x\"\001T\022\005\n\001i\030\003\022\006\n\001v\"\001T\032\006\n\001y\"\001T\"\t\n\001T\022\004type\n:\n\021InvertPermutation\022\006\n\001x\"\001T\032\006\n\001y\"\001T\"\025\n\001T\022\004type\032\0020\003:\006\n\0042\002\003\t\n\\\n\010ListDiff\022\006\n\001x\"\001T\022\006\n\001y\"\001T\032\010\n\003out\"\001T\032\016\n\003idx\"\007out_idx\"\t\n\001T\022\004type\"\033\n\007out_idx\022\004type\032\0020\003:\006\n\0042\002\003\t\nx\n\016MatrixBandPart\022\n\n\005input\"\001T\022\023\n\tnum_lower\"\006Tindex\022\023\n\tnum_upper\"\006Tindex\032\t\n\004band\"\001T\"\t\n\001T\022\004type\"\032\n\006Tindex\022\004type\032\0020\t:\006\n\0042\002\003\t\n3\n\nMatrixDiag\022\r\n\010diagonal\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\n6\n\016MatrixDiagPart\022\n\n\005input\"\001T\032\r\n\010diagonal\"\001T\"\t\n\001T\022\004type\nB\n\rMatrixSetDiag\022\n\n\005input\"\001T\022\r\n\010diagonal\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\n\215\001\n\tMirrorPad\022\n\n\005input\"\001T\022\025\n\010paddings\"\tTpaddings\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\035\n\tTpaddings\022\004type\032\0020\003:\006\n\0042\002\003\t\"&\n\004mode\022\006string:\026\n\024\022\007REFLECT\022\tSYMMETRIC\n\221\001\n\rMirrorPadGrad\022\n\n\005input\"\001T\022\025\n\010paddings\"\tTpaddings\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\035\n\tTpaddings\022\004type\032\0020\003:\006\n\0042\002\003\t\"&\n\004mode\022\006string:\026\n\024\022\007REFLECT\022\tSYMMETRIC\n\214\001\n\006OneHot\022\r\n\007indices\"\002TI\022\t\n\005depth\030\003\022\r\n\010on_value\"\001T\022\016\n\toff_value\"\001T\032\013\n\006output\"\001T\"\030\n\004axis\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\"\t\n\001T\022\004type\"\027\n\002TI\022\004type\032\0020\t:\007\n\0052\003\004\003\t\n8\n\010OnesLike\022\006\n\001x\"\001T\032\006\n\001y\"\001T\"\034\n\001T\022\004type:\021\n\0172\r\016\023\001\002\006\004\005\021\003\t\010\022\n\nM\n\004Pack\022\016\n\006values\"\001T*\001N\032\013\n\006output\"\001T\"\014\n\001N\022\003int(\0010\001\"\t\n\001T\022\004type\"\017\n\004axis\022\003int\032\002\030\000\n_\n\003Pad\022\n\n\005input\"\001T\022\025\n\010paddings\"\tTpaddings\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\035\n\tTpaddings\022\004type\032\0020\003:\006\n\0042\002\003\t\nw\n\005PadV2\022\n\n\005input\"\001T\022\025\n\010paddings\"\tTpaddings\022\024\n\017constant_values\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\035\n\tTpaddings\022\004type\032\0020\003:\006\n\0042\002\003\t\nV\n\016ParallelConcat\022\016\n\006values\"\001T*\001N\032\013\n\006output\"\001T\"\014\n\001N\022\003int(\0010\001\"\t\n\001T\022\004type\"\016\n\005shape\022\005shape\nC\n\013Placeholder\032\017\n\006output\"\005dtype\"\r\n\005dtype\022\004type\"\024\n\005shape\022\005shape\032\004:\002\030\001\nw\n\rPlaceholderV2\032\017\n\006output\"\005dtype\"\r\n\005dtype\022\004type\"\016\n\005shape\022\005shapeB6\010\027\0222Placeholder now behaves the same as PlaceholderV2.\nX\n\026PlaceholderWithDefault\022\016\n\005input\"\005dtype\032\017\n\006output\"\005dtype\"\r\n\005dtype\022\004type\"\016\n\005shape\022\005shape\nL\n\017PreventGradient\022\n\n\005input\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\025\n\007message\022\006string\032\002\022\000\n\354\001\n\025QuantizeAndDequantize\022\n\n\005input\"\001T\032\013\n\006output\"\001T\"\030\n\014signed_input\022\004bool\032\002(\001\"\023\n\010num_bits\022\003int\032\002\030\010\"\027\n\013range_given\022\004bool\032\002(\000\"\031\n\tinput_min\022\005float\032\005%\000\000\000\000\"\031\n\tinput_max\022\005float\032\005%\000\000\000\000\"\023\n\001T\022\004type:\010\n\0062\004\016\023\001\002B\'\010\026\022#Replaced by QuantizeAndDequantizeV2\n\257\001\n\027QuantizeAndDequantizeV2\022\n\n\005input\"\001T\022\016\n\tinput_min\"\001T\022\016\n\tinput_max\"\001T\032\013\n\006output\"\001T\"\030\n\014signed_input\022\004bool\032\002(\001\"\023\n\010num_bits\022\003int\032\002\030\010\"\027\n\013range_given\022\004bool\032\002(\000\"\023\n\001T\022\004type:\010\n\0062\004\016\023\001\002\n\250\001\n\027QuantizeAndDequantizeV3\022\n\n\005input\"\001T\022\016\n\tinput_min\"\001T\022\016\n\tinput_max\"\001T\022\014\n\010num_bits\030\003\032\013\n\006output\"\001T\"\030\n\014signed_input\022\004bool\032\002(\001\"\027\n\013range_given\022\004bool\032\002(\001\"\023\n\001T\022\004type:\010\n\0062\004\016\023\001\002\n\221\002\n\nQuantizeV2\022\t\n\005input\030\001\022\r\n\tmin_range\030\001\022\r\n\tmax_range\030\001\032\013\n\006output\"\001T\032\016\n\noutput_min\030\001\032\016\n\noutput_max\030\001\"\024\n\001T\022\004type:\t\n\0072\005\013\014\r\017\020\"C\n\004mode\022\006string\032\016\022\014MIN_COMBINED:#\n!\022\014MIN_COMBINED\022\tMIN_FIRST\022\006SCALED\"R\n\nround_mode\022\006string\032\025\022\023HALF_AWAY_FROM_ZERO:%\n#\022\023HALF_AWAY_FROM_ZERO\022\014HALF_TO_EVEN\n\236\001\n\017QuantizedConcat\022\016\n\nconcat_dim\030\003\022\016\n\006values\"\001T*\001N\022\021\n\ninput_mins\030\001*\001N\022\022\n\013input_maxes\030\001*\001N\032\013\n\006output\"\001T\032\016\n\noutput_min\030\001\032\016\n\noutput_max\030\001\"\014\n\001N\022\003int(\0010\002\"\t\n\001T\022\004type\n\205\002\n\025QuantizedInstanceNorm\022\006\n\001x\"\001T\022\t\n\005x_min\030\001\022\t\n\005x_max\030\001\032\006\n\001y\"\001T\032\t\n\005y_min\030\001\032\t\n\005y_max\030\001\"\024\n\001T\022\004type:\t\n\0072\005\013\014\r\017\020\"\036\n\022output_range_given\022\004bool\032\002(\000\"\033\n\013given_y_min\022\005float\032\005%\000\000\000\000\"\033\n\013given_y_max\022\005float\032\005%\000\000\000\000\" \n\020variance_epsilon\022\005float\032\005%\254\305\'7\"\036\n\016min_separation\022\005float\032\005%o\022\203:\n\242\001\n\020QuantizedReshape\022\013\n\006tensor\"\001T\022\017\n\005shape\"\006Tshape\022\r\n\tinput_min\030\001\022\r\n\tinput_max\030\001\032\013\n\006output\"\001T\032\016\n\noutput_min\030\001\032\016\n\noutput_max\030\001\"\t\n\001T\022\004type\"\032\n\006Tshape\022\004type\032\0020\003:\006\n\0042\002\003\t\n)\n\004Rank\022\n\n\005input\"\001T\032\n\n\006output\030\003\"\t\n\001T\022\004type\n:\n\013RefIdentity\022\r\n\005input\"\001T\200\001\001\032\016\n\006output\"\001T\200\001\001\"\t\n\001T\022\004type\230\001\001\n[\n\007Reshape\022\013\n\006tensor\"\001T\022\017\n\005shape\"\006Tshape\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\032\n\006Tshape\022\004type\032\0020\003:\006\n\0042\002\003\t\n\203\002\n\032ResourceStridedSliceAssign\022\007\n\003ref\030\024\022\016\n\005begin\"\005Index\022\014\n\003end\"\005Index\022\020\n\007strides\"\005Index\022\n\n\005value\"\001T\"\t\n\001T\022\004type\"\025\n\005Index\022\004type:\006\n\0042\002\003\t\"\025\n\nbegin_mask\022\003int\032\002\030\000\"\023\n\010end_mask\022\003int\032\002\030\000\"\030\n\rellipsis_mask\022\003int\032\002\030\000\"\030\n\rnew_axis_mask\022\003int\032\002\030\000\"\033\n\020shrink_axis_mask\022\003int\032\002\030\000\210\001\001\nK\n\007Reverse\022\013\n\006tensor\"\001T\022\010\n\004dims\030\n\032\013\n\006output\"\001T\"\034\n\001T\022\004type:\021\n\0172\r\004\006\021\005\003\t\n\023\001\002\010\022\007\n\212\001\n\017ReverseSequence\022\n\n\005input\"\001T\022\023\n\013seq_lengths\"\004Tlen\032\013\n\006output\"\001T\"\016\n\007seq_dim\022\003int\"\024\n\tbatch_dim\022\003int\032\002\030\000\"\t\n\001T\022\004type\"\030\n\004Tlen\022\004type\032\0020\t:\006\n\0042\002\003\t\nl\n\tReverseV2\022\013\n\006tensor\"\001T\022\014\n\004axis\"\004Tidx\032\013\n\006output\"\001T\"\030\n\004Tidx\022\004type\032\0020\003:\006\n\0042\002\003\t\"\035\n\001T\022\004type:\022\n\0202\016\004\006\021\005\003\t\n\016\023\001\002\010\022\007\ns\n\tScatterNd\022\023\n\007indices\"\010Tindices\022\014\n\007updates\"\001T\022\021\n\005shape\"\010Tindices\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\n\221\001\n\027ScatterNdNonAliasingAdd\022\n\n\005input\"\001T\022\023\n\007indices\"\010Tindices\022\014\n\007updates\"\001T\032\013\n\006output\"\001T\" \n\001T\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\nP\n\005Shape\022\n\n\005input\"\001T\032\022\n\006output\"\010out_type\"\t\n\001T\022\004type\"\034\n\010out_type\022\004type\032\0020\003:\006\n\0042\002\003\t\ne\n\006ShapeN\022\r\n\005input\"\001T*\001N\032\025\n\006output\"\010out_type*\001N\"\014\n\001N\022\003int(\0010\001\"\t\n\001T\022\004type\"\034\n\010out_type\022\004type\032\0020\003:\006\n\0042\002\003\t\nO\n\004Size\022\n\n\005input\"\001T\032\022\n\006output\"\010out_type\"\t\n\001T\022\004type\"\034\n\010out_type\022\004type\032\0020\003:\006\n\0042\002\003\t\na\n\005Slice\022\n\n\005input\"\001T\022\016\n\005begin\"\005Index\022\r\n\004size\"\005Index\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\025\n\005Index\022\004type:\006\n\0042\002\003\t\n.\n\010Snapshot\022\n\n\005input\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\n\177\n\014SpaceToBatch\022\n\n\005input\"\001T\022\025\n\010paddings\"\tTpaddings\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\035\n\tTpaddings\022\004type\032\0020\003:\006\n\0042\002\003\t\"\025\n\nblock_size\022\003int(\0010\002\n\251\001\n\016SpaceToBatchND\022\n\n\005input\"\001T\022\033\n\013block_shape\"\014Tblock_shape\022\025\n\010paddings\"\tTpaddings\032\013\n\006output\"\001T\"\t\n\001T\022\004type\" \n\014Tblock_shape\022\004type\032\0020\003:\006\n\0042\002\003\t\"\035\n\tTpaddings\022\004type\032\0020\003:\006\n\0042\002\003\t\n\205\001\n\014SpaceToDepth\022\n\n\005input\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\025\n\nblock_size\022\003int(\0010\002\":\n\013data_format\022\006string\032\006\022\004NHWC:\033\n\031\022\004NHWC\022\004NCHW\022\013NCHW_VECT_C\n[\n\005Split\022\r\n\tsplit_dim\030\003\022\n\n\005value\"\001T\032\026\n\006output\"\001T*\tnum_split\"\024\n\tnum_split\022\003int(\0010\001\"\t\n\001T\022\004type\n\213\001\n\006SplitV\022\n\n\005value\"\001T\022\023\n\013size_splits\"\004Tlen\022\r\n\tsplit_dim\030\003\032\026\n\006output\"\001T*\tnum_split\"\024\n\tnum_split\022\003int(\0010\001\"\t\n\001T\022\004type\"\030\n\004Tlen\022\004type\032\0020\t:\006\n\0042\002\003\t\nN\n\007Squeeze\022\n\n\005input\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\037\n\014squeeze_dims\022\tlist(int)\032\002\n\000(\001\n2\n\014StopGradient\022\n\n\005input\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\n\366\001\n\014StridedSlice\022\n\n\005input\"\001T\022\016\n\005begin\"\005Index\022\014\n\003end\"\005Index\022\020\n\007strides\"\005Index\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\025\n\005Index\022\004type:\006\n\0042\002\003\t\"\025\n\nbegin_mask\022\003int\032\002\030\000\"\023\n\010end_mask\022\003int\032\002\030\000\"\030\n\rellipsis_mask\022\003int\032\002\030\000\"\030\n\rnew_axis_mask\022\003int\032\002\030\000\"\033\n\020shrink_axis_mask\022\003int\032\002\030\000\n\220\002\n\022StridedSliceAssign\022\013\n\003ref\"\001T\200\001\001\022\016\n\005begin\"\005Index\022\014\n\003end\"\005Index\022\020\n\007strides\"\005Index\022\n\n\005value\"\001T\032\022\n\noutput_ref\"\001T\200\001\001\"\t\n\001T\022\004type\"\025\n\005Index\022\004type:\006\n\0042\002\003\t\"\025\n\nbegin_mask\022\003int\032\002\030\000\"\023\n\010end_mask\022\003int\032\002\030\000\"\030\n\rellipsis_mask\022\003int\032\002\030\000\"\030\n\rnew_axis_mask\022\003int\032\002\030\000\"\033\n\020shrink_axis_mask\022\003int\032\002\030\000\n\207\002\n\020StridedSliceGrad\022\016\n\005shape\"\005Index\022\016\n\005begin\"\005Index\022\014\n\003end\"\005Index\022\020\n\007strides\"\005Index\022\007\n\002dy\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\025\n\005Index\022\004type:\006\n\0042\002\003\t\"\025\n\nbegin_mask\022\003int\032\002\030\000\"\023\n\010end_mask\022\003int\032\002\030\000\"\030\n\rellipsis_mask\022\003int\032\002\030\000\"\030\n\rnew_axis_mask\022\003int\032\002\030\000\"\033\n\020shrink_axis_mask\022\003int\032\002\030\000\nc\n\004Tile\022\n\n\005input\"\001T\022\027\n\tmultiples\"\nTmultiples\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\036\n\nTmultiples\022\004type\032\0020\003:\006\n\0042\002\003\t\nm\n\010TileGrad\022\n\n\005input\"\001T\022\r\n\tmultiples\030\003\032\013\n\006output\"\001T\"\t\n\001T\022\004typeB.\010\003\022*TileGrad has been replaced with reduce_sum\nP\n\tTranspose\022\006\n\001x\"\001T\022\r\n\004perm\"\005Tperm\032\006\n\001y\"\001T\"\t\n\001T\022\004type\"\031\n\005Tperm\022\004type\032\0020\003:\006\n\0042\002\003\t\nP\n\006Unique\022\006\n\001x\"\001T\032\006\n\001y\"\001T\032\016\n\003idx\"\007out_idx\"\t\n\001T\022\004type\"\033\n\007out_idx\022\004type\032\0020\003:\006\n\0042\002\003\t\n|\n\010UniqueV2\022\006\n\001x\"\001T\022\r\n\004axis\"\005Taxis\032\006\n\001y\"\001T\032\016\n\003idx\"\007out_idx\"\t\n\001T\022\004type\"\031\n\005Taxis\022\004type\032\0020\t:\006\n\0042\002\003\t\"\033\n\007out_idx\022\004type\032\0020\003:\006\n\0042\002\003\t\nl\n\020UniqueWithCounts\022\006\n\001x\"\001T\032\006\n\001y\"\001T\032\016\n\003idx\"\007out_idx\032\020\n\005count\"\007out_idx\"\t\n\001T\022\004type\"\033\n\007out_idx\022\004type\032\0020\003:\006\n\0042\002\003\t\n\230\001\n\022UniqueWithCountsV2\022\006\n\001x\"\001T\022\r\n\004axis\"\005Taxis\032\006\n\001y\"\001T\032\016\n\003idx\"\007out_idx\032\020\n\005count\"\007out_idx\"\t\n\001T\022\004type\"\031\n\005Taxis\022\004type\032\0020\t:\006\n\0042\002\003\t\"\033\n\007out_idx\022\004type\032\0020\003:\006\n\0042\002\003\t\nP\n\006Unpack\022\n\n\005value\"\001T\032\020\n\006output\"\001T*\003num\"\014\n\003num\022\003int(\001\"\t\n\001T\022\004type\"\017\n\004axis\022\003int\032\002\030\000\nW\n\014UnravelIndex\022\017\n\007indices\"\004Tidx\022\014\n\004dims\"\004Tidx\032\016\n\006output\"\004Tidx\"\030\n\004Tidx\022\004type\032\0020\003:\006\n\0042\002\003\t\nE\n\005Where\022\n\n\005input\"\001T\032\t\n\005index\030\t\"%\n\001T\022\004type\032\0020\n:\026\n\0242\022\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\n\n&\n\tZerosLike\022\006\n\001x\"\001T\032\006\n\001y\"\001T\"\t\n\001T\022\004type")

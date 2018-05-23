@@ -59,8 +59,8 @@ def dense_to_dense_set_operation(set1, set2, set_operation, validate_indices=Tru
     result_values: A `Tensor`. Has the same type as `set1`.
     result_shape: A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     set_operation = _execute.make_str(set_operation, "set_operation")
     if validate_indices is None:
       validate_indices = True
@@ -82,15 +82,16 @@ def dense_to_dense_set_operation(set1, set2, set_operation, validate_indices=Tru
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DenseToDenseSetOperation", name,
-        _ctx._post_execution_callbacks, set1, set2, "set_operation",
-        set_operation, "validate_indices", validate_indices)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "DenseToDenseSetOperation", name, _ctx._post_execution_callbacks,
+        set1, set2, "set_operation", set_operation, "validate_indices",
+        validate_indices)
       _result = _DenseToDenseSetOperationOutput._make(_result)
       return _result
     except _core._FallbackException:
       return dense_to_dense_set_operation_eager_fallback(
           set1, set2, set_operation=set_operation,
-          validate_indices=validate_indices, name=name)
+          validate_indices=validate_indices, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -99,11 +100,11 @@ def dense_to_dense_set_operation(set1, set2, set_operation, validate_indices=Tru
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def dense_to_dense_set_operation_eager_fallback(set1, set2, set_operation, validate_indices=True, name=None):
+def dense_to_dense_set_operation_eager_fallback(set1, set2, set_operation, validate_indices=True, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function dense_to_dense_set_operation
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   set_operation = _execute.make_str(set_operation, "set_operation")
   if validate_indices is None:
     validate_indices = True
@@ -172,8 +173,8 @@ def dense_to_sparse_set_operation(set1, set2_indices, set2_values, set2_shape, s
     result_values: A `Tensor`. Has the same type as `set1`.
     result_shape: A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     set_operation = _execute.make_str(set_operation, "set_operation")
     if validate_indices is None:
       validate_indices = True
@@ -196,17 +197,17 @@ def dense_to_sparse_set_operation(set1, set2_indices, set2_values, set2_shape, s
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DenseToSparseSetOperation", name,
-        _ctx._post_execution_callbacks, set1, set2_indices, set2_values,
-        set2_shape, "set_operation", set_operation, "validate_indices",
-        validate_indices)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "DenseToSparseSetOperation", name, _ctx._post_execution_callbacks,
+        set1, set2_indices, set2_values, set2_shape, "set_operation",
+        set_operation, "validate_indices", validate_indices)
       _result = _DenseToSparseSetOperationOutput._make(_result)
       return _result
     except _core._FallbackException:
       return dense_to_sparse_set_operation_eager_fallback(
           set1, set2_indices, set2_values, set2_shape,
           set_operation=set_operation, validate_indices=validate_indices,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -215,11 +216,11 @@ def dense_to_sparse_set_operation(set1, set2_indices, set2_values, set2_shape, s
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def dense_to_sparse_set_operation_eager_fallback(set1, set2_indices, set2_values, set2_shape, set_operation, validate_indices=True, name=None):
+def dense_to_sparse_set_operation_eager_fallback(set1, set2_indices, set2_values, set2_shape, set_operation, validate_indices=True, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function dense_to_sparse_set_operation
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   set_operation = _execute.make_str(set_operation, "set_operation")
   if validate_indices is None:
     validate_indices = True
@@ -263,8 +264,8 @@ def set_size(set_indices, set_values, set_shape, validate_indices=True, name=Non
   Returns:
     A `Tensor` of type `int32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if validate_indices is None:
       validate_indices = True
     validate_indices = _execute.make_bool(validate_indices, "validate_indices")
@@ -283,14 +284,14 @@ def set_size(set_indices, set_values, set_shape, validate_indices=True, name=Non
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SetSize", name,
-        _ctx._post_execution_callbacks, set_indices, set_values, set_shape,
-        "validate_indices", validate_indices)
+        _ctx._context_handle, _ctx._eager_context.device_name, "SetSize",
+        name, _ctx._post_execution_callbacks, set_indices, set_values,
+        set_shape, "validate_indices", validate_indices)
       return _result
     except _core._FallbackException:
       return set_size_eager_fallback(
           set_indices, set_values, set_shape,
-          validate_indices=validate_indices, name=name)
+          validate_indices=validate_indices, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -299,11 +300,11 @@ def set_size(set_indices, set_values, set_shape, validate_indices=True, name=Non
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def set_size_eager_fallback(set_indices, set_values, set_shape, validate_indices=True, name=None):
+def set_size_eager_fallback(set_indices, set_values, set_shape, validate_indices=True, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function set_size
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if validate_indices is None:
     validate_indices = True
   validate_indices = _execute.make_bool(validate_indices, "validate_indices")
@@ -385,8 +386,8 @@ def sparse_to_sparse_set_operation(set1_indices, set1_values, set1_shape, set2_i
     result_values: A `Tensor`. Has the same type as `set1_values`.
     result_shape: A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     set_operation = _execute.make_str(set_operation, "set_operation")
     if validate_indices is None:
       validate_indices = True
@@ -410,17 +411,18 @@ def sparse_to_sparse_set_operation(set1_indices, set1_values, set1_shape, set2_i
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SparseToSparseSetOperation", name,
-        _ctx._post_execution_callbacks, set1_indices, set1_values, set1_shape,
-        set2_indices, set2_values, set2_shape, "set_operation", set_operation,
-        "validate_indices", validate_indices)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SparseToSparseSetOperation", name, _ctx._post_execution_callbacks,
+        set1_indices, set1_values, set1_shape, set2_indices, set2_values,
+        set2_shape, "set_operation", set_operation, "validate_indices",
+        validate_indices)
       _result = _SparseToSparseSetOperationOutput._make(_result)
       return _result
     except _core._FallbackException:
       return sparse_to_sparse_set_operation_eager_fallback(
           set1_indices, set1_values, set1_shape, set2_indices, set2_values,
           set2_shape, set_operation=set_operation,
-          validate_indices=validate_indices, name=name)
+          validate_indices=validate_indices, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -429,11 +431,11 @@ def sparse_to_sparse_set_operation(set1_indices, set1_values, set1_shape, set2_i
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sparse_to_sparse_set_operation_eager_fallback(set1_indices, set1_values, set1_shape, set2_indices, set2_values, set2_shape, set_operation, validate_indices=True, name=None):
+def sparse_to_sparse_set_operation_eager_fallback(set1_indices, set1_values, set1_shape, set2_indices, set2_values, set2_shape, set_operation, validate_indices=True, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sparse_to_sparse_set_operation
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   set_operation = _execute.make_str(set_operation, "set_operation")
   if validate_indices is None:
     validate_indices = True

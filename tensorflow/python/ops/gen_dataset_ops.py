@@ -39,8 +39,8 @@ def batch_dataset(input_dataset, batch_size, output_types, output_shapes, name=N
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -66,14 +66,14 @@ def batch_dataset(input_dataset, batch_size, output_types, output_shapes, name=N
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BatchDataset", name,
-        _ctx._post_execution_callbacks, input_dataset, batch_size,
+        _ctx._context_handle, _ctx._eager_context.device_name, "BatchDataset",
+        name, _ctx._post_execution_callbacks, input_dataset, batch_size,
         "output_types", output_types, "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return batch_dataset_eager_fallback(
           input_dataset, batch_size, output_types=output_types,
-          output_shapes=output_shapes, name=name)
+          output_shapes=output_shapes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -82,11 +82,11 @@ def batch_dataset(input_dataset, batch_size, output_types, output_shapes, name=N
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def batch_dataset_eager_fallback(input_dataset, batch_size, output_types, output_shapes, name=None):
+def batch_dataset_eager_fallback(input_dataset, batch_size, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function batch_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -122,8 +122,8 @@ def bytes_produced_stats_dataset(input_dataset, tag, output_types, output_shapes
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -149,14 +149,15 @@ def bytes_produced_stats_dataset(input_dataset, tag, output_types, output_shapes
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BytesProducedStatsDataset", name,
-        _ctx._post_execution_callbacks, input_dataset, tag, "output_types",
-        output_types, "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "BytesProducedStatsDataset", name, _ctx._post_execution_callbacks,
+        input_dataset, tag, "output_types", output_types, "output_shapes",
+        output_shapes)
       return _result
     except _core._FallbackException:
       return bytes_produced_stats_dataset_eager_fallback(
           input_dataset, tag, output_types=output_types,
-          output_shapes=output_shapes, name=name)
+          output_shapes=output_shapes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -165,11 +166,11 @@ def bytes_produced_stats_dataset(input_dataset, tag, output_types, output_shapes
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def bytes_produced_stats_dataset_eager_fallback(input_dataset, tag, output_types, output_shapes, name=None):
+def bytes_produced_stats_dataset_eager_fallback(input_dataset, tag, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function bytes_produced_stats_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -213,8 +214,8 @@ def cache_dataset(input_dataset, filename, output_types, output_shapes, name=Non
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -240,14 +241,14 @@ def cache_dataset(input_dataset, filename, output_types, output_shapes, name=Non
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "CacheDataset", name,
-        _ctx._post_execution_callbacks, input_dataset, filename,
+        _ctx._context_handle, _ctx._eager_context.device_name, "CacheDataset",
+        name, _ctx._post_execution_callbacks, input_dataset, filename,
         "output_types", output_types, "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return cache_dataset_eager_fallback(
           input_dataset, filename, output_types=output_types,
-          output_shapes=output_shapes, name=name)
+          output_shapes=output_shapes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -256,11 +257,11 @@ def cache_dataset(input_dataset, filename, output_types, output_shapes, name=Non
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def cache_dataset_eager_fallback(input_dataset, filename, output_types, output_shapes, name=None):
+def cache_dataset_eager_fallback(input_dataset, filename, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function cache_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -296,8 +297,8 @@ def concatenate_dataset(input_dataset, another_dataset, output_types, output_sha
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -324,14 +325,15 @@ def concatenate_dataset(input_dataset, another_dataset, output_types, output_sha
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ConcatenateDataset", name,
-        _ctx._post_execution_callbacks, input_dataset, another_dataset,
-        "output_types", output_types, "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ConcatenateDataset", name, _ctx._post_execution_callbacks,
+        input_dataset, another_dataset, "output_types", output_types,
+        "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return concatenate_dataset_eager_fallback(
           input_dataset, another_dataset, output_types=output_types,
-          output_shapes=output_shapes, name=name)
+          output_shapes=output_shapes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -340,11 +342,11 @@ def concatenate_dataset(input_dataset, another_dataset, output_types, output_sha
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def concatenate_dataset_eager_fallback(input_dataset, another_dataset, output_types, output_shapes, name=None):
+def concatenate_dataset_eager_fallback(input_dataset, another_dataset, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function concatenate_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -380,8 +382,8 @@ def dataset_to_single_element(dataset, output_types, output_shapes, name=None):
   Returns:
     A list of `Tensor` objects of type `output_types`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -406,14 +408,14 @@ def dataset_to_single_element(dataset, output_types, output_shapes, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DatasetToSingleElement", name,
-        _ctx._post_execution_callbacks, dataset, "output_types", output_types,
-        "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "DatasetToSingleElement", name, _ctx._post_execution_callbacks,
+        dataset, "output_types", output_types, "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return dataset_to_single_element_eager_fallback(
           dataset, output_types=output_types, output_shapes=output_shapes,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -422,11 +424,11 @@ def dataset_to_single_element(dataset, output_types, output_shapes, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def dataset_to_single_element_eager_fallback(dataset, output_types, output_shapes, name=None):
+def dataset_to_single_element_eager_fallback(dataset, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function dataset_to_single_element
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -468,8 +470,8 @@ def dense_to_sparse_batch_dataset(input_dataset, batch_size, row_shape, output_t
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -496,14 +498,15 @@ def dense_to_sparse_batch_dataset(input_dataset, batch_size, row_shape, output_t
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DenseToSparseBatchDataset", name,
-        _ctx._post_execution_callbacks, input_dataset, batch_size, row_shape,
-        "output_types", output_types, "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "DenseToSparseBatchDataset", name, _ctx._post_execution_callbacks,
+        input_dataset, batch_size, row_shape, "output_types", output_types,
+        "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return dense_to_sparse_batch_dataset_eager_fallback(
           input_dataset, batch_size, row_shape, output_types=output_types,
-          output_shapes=output_shapes, name=name)
+          output_shapes=output_shapes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -512,11 +515,11 @@ def dense_to_sparse_batch_dataset(input_dataset, batch_size, row_shape, output_t
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def dense_to_sparse_batch_dataset_eager_fallback(input_dataset, batch_size, row_shape, output_types, output_shapes, name=None):
+def dense_to_sparse_batch_dataset_eager_fallback(input_dataset, batch_size, row_shape, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function dense_to_sparse_batch_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -555,8 +558,8 @@ def deserialize_iterator(resource_handle, serialized, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "DeserializeIterator", resource_handle=resource_handle,
         serialized=serialized, name=name)
@@ -567,12 +570,13 @@ def deserialize_iterator(resource_handle, serialized, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DeserializeIterator", name,
-        _ctx._post_execution_callbacks, resource_handle, serialized)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "DeserializeIterator", name, _ctx._post_execution_callbacks,
+        resource_handle, serialized)
       return _result
     except _core._FallbackException:
       return deserialize_iterator_eager_fallback(
-          resource_handle, serialized, name=name)
+          resource_handle, serialized, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -581,11 +585,11 @@ def deserialize_iterator(resource_handle, serialized, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def deserialize_iterator_eager_fallback(resource_handle, serialized, name=None):
+def deserialize_iterator_eager_fallback(resource_handle, serialized, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function deserialize_iterator
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   resource_handle = _ops.convert_to_tensor(resource_handle, _dtypes.resource)
   serialized = _ops.convert_to_tensor(serialized, _dtypes.variant)
   _inputs_flat = [resource_handle, serialized]
@@ -607,8 +611,8 @@ def enqueue_in_queue_dataset(queue, components, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "EnqueueInQueueDataset", queue=queue, components=components,
         name=name)
@@ -619,12 +623,13 @@ def enqueue_in_queue_dataset(queue, components, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "EnqueueInQueueDataset", name,
-        _ctx._post_execution_callbacks, queue, components)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "EnqueueInQueueDataset", name, _ctx._post_execution_callbacks, queue,
+        components)
       return _result
     except _core._FallbackException:
       return enqueue_in_queue_dataset_eager_fallback(
-          queue, components, name=name)
+          queue, components, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -633,11 +638,11 @@ def enqueue_in_queue_dataset(queue, components, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def enqueue_in_queue_dataset_eager_fallback(queue, components, name=None):
+def enqueue_in_queue_dataset_eager_fallback(queue, components, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function enqueue_in_queue_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_Tcomponents, components = _execute.convert_to_mixed_eager_tensors(components, _ctx)
   queue = _ops.convert_to_tensor(queue, _dtypes.variant)
   _inputs_flat = [queue] + list(components)
@@ -671,8 +676,8 @@ def filter_dataset(input_dataset, other_arguments, predicate, output_types, outp
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -701,15 +706,16 @@ def filter_dataset(input_dataset, other_arguments, predicate, output_types, outp
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "FilterDataset", name,
-        _ctx._post_execution_callbacks, input_dataset, other_arguments,
-        "predicate", predicate, "output_types", output_types, "output_shapes",
-        output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "FilterDataset", name, _ctx._post_execution_callbacks, input_dataset,
+        other_arguments, "predicate", predicate, "output_types", output_types,
+        "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return filter_dataset_eager_fallback(
           input_dataset, other_arguments, predicate=predicate,
-          output_types=output_types, output_shapes=output_shapes, name=name)
+          output_types=output_types, output_shapes=output_shapes, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -718,11 +724,11 @@ def filter_dataset(input_dataset, other_arguments, predicate, output_types, outp
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def filter_dataset_eager_fallback(input_dataset, other_arguments, predicate, output_types, output_shapes, name=None):
+def filter_dataset_eager_fallback(input_dataset, other_arguments, predicate, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function filter_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -768,8 +774,8 @@ def fixed_length_record_dataset(filenames, header_bytes, record_bytes, footer_by
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "FixedLengthRecordDataset", filenames=filenames,
         header_bytes=header_bytes, record_bytes=record_bytes,
@@ -785,14 +791,14 @@ def fixed_length_record_dataset(filenames, header_bytes, record_bytes, footer_by
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "FixedLengthRecordDataset", name,
-        _ctx._post_execution_callbacks, filenames, header_bytes, record_bytes,
-        footer_bytes, buffer_size)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "FixedLengthRecordDataset", name, _ctx._post_execution_callbacks,
+        filenames, header_bytes, record_bytes, footer_bytes, buffer_size)
       return _result
     except _core._FallbackException:
       return fixed_length_record_dataset_eager_fallback(
           filenames, header_bytes, record_bytes, footer_bytes, buffer_size,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -801,11 +807,11 @@ def fixed_length_record_dataset(filenames, header_bytes, record_bytes, footer_by
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def fixed_length_record_dataset_eager_fallback(filenames, header_bytes, record_bytes, footer_bytes, buffer_size, name=None):
+def fixed_length_record_dataset_eager_fallback(filenames, header_bytes, record_bytes, footer_bytes, buffer_size, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function fixed_length_record_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   filenames = _ops.convert_to_tensor(filenames, _dtypes.string)
   header_bytes = _ops.convert_to_tensor(header_bytes, _dtypes.int64)
   record_bytes = _ops.convert_to_tensor(record_bytes, _dtypes.int64)
@@ -843,8 +849,8 @@ def flat_map_dataset(input_dataset, other_arguments, f, output_types, output_sha
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -873,14 +879,15 @@ def flat_map_dataset(input_dataset, other_arguments, f, output_types, output_sha
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "FlatMapDataset", name,
-        _ctx._post_execution_callbacks, input_dataset, other_arguments, "f",
-        f, "output_types", output_types, "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "FlatMapDataset", name, _ctx._post_execution_callbacks, input_dataset,
+        other_arguments, "f", f, "output_types", output_types,
+        "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return flat_map_dataset_eager_fallback(
           input_dataset, other_arguments, f=f, output_types=output_types,
-          output_shapes=output_shapes, name=name)
+          output_shapes=output_shapes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -889,11 +896,11 @@ def flat_map_dataset(input_dataset, other_arguments, f, output_types, output_sha
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def flat_map_dataset_eager_fallback(input_dataset, other_arguments, f, output_types, output_shapes, name=None):
+def flat_map_dataset_eager_fallback(input_dataset, other_arguments, f, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function flat_map_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -934,8 +941,8 @@ def generator_dataset(init_func_other_args, next_func_other_args, finalize_func_
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -970,18 +977,19 @@ def generator_dataset(init_func_other_args, next_func_other_args, finalize_func_
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "GeneratorDataset", name,
-        _ctx._post_execution_callbacks, init_func_other_args,
-        next_func_other_args, finalize_func_other_args, "init_func",
-        init_func, "next_func", next_func, "finalize_func", finalize_func,
-        "output_types", output_types, "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "GeneratorDataset", name, _ctx._post_execution_callbacks,
+        init_func_other_args, next_func_other_args, finalize_func_other_args,
+        "init_func", init_func, "next_func", next_func, "finalize_func",
+        finalize_func, "output_types", output_types, "output_shapes",
+        output_shapes)
       return _result
     except _core._FallbackException:
       return generator_dataset_eager_fallback(
           init_func_other_args, next_func_other_args,
           finalize_func_other_args, init_func=init_func, next_func=next_func,
           finalize_func=finalize_func, output_types=output_types,
-          output_shapes=output_shapes, name=name)
+          output_shapes=output_shapes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -990,11 +998,11 @@ def generator_dataset(init_func_other_args, next_func_other_args, finalize_func_
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def generator_dataset_eager_fallback(init_func_other_args, next_func_other_args, finalize_func_other_args, init_func, next_func, finalize_func, output_types, output_shapes, name=None):
+def generator_dataset_eager_fallback(init_func_other_args, next_func_other_args, finalize_func_other_args, init_func, next_func, finalize_func, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function generator_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -1043,8 +1051,8 @@ def group_by_window_dataset(input_dataset, key_func_other_arguments, reduce_func
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -1083,9 +1091,9 @@ def group_by_window_dataset(input_dataset, key_func_other_arguments, reduce_func
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "GroupByWindowDataset", name,
-        _ctx._post_execution_callbacks, input_dataset,
-        key_func_other_arguments, reduce_func_other_arguments,
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "GroupByWindowDataset", name, _ctx._post_execution_callbacks,
+        input_dataset, key_func_other_arguments, reduce_func_other_arguments,
         window_size_func_other_arguments, "key_func", key_func, "reduce_func",
         reduce_func, "window_size_func", window_size_func, "output_types",
         output_types, "output_shapes", output_shapes)
@@ -1096,7 +1104,7 @@ def group_by_window_dataset(input_dataset, key_func_other_arguments, reduce_func
           reduce_func_other_arguments, window_size_func_other_arguments,
           key_func=key_func, reduce_func=reduce_func,
           window_size_func=window_size_func, output_types=output_types,
-          output_shapes=output_shapes, name=name)
+          output_shapes=output_shapes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1105,11 +1113,11 @@ def group_by_window_dataset(input_dataset, key_func_other_arguments, reduce_func
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def group_by_window_dataset_eager_fallback(input_dataset, key_func_other_arguments, reduce_func_other_arguments, window_size_func_other_arguments, key_func, reduce_func, window_size_func, output_types, output_shapes, name=None):
+def group_by_window_dataset_eager_fallback(input_dataset, key_func_other_arguments, reduce_func_other_arguments, window_size_func_other_arguments, key_func, reduce_func, window_size_func, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function group_by_window_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -1164,8 +1172,8 @@ def interleave_dataset(input_dataset, other_arguments, cycle_length, block_lengt
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -1195,15 +1203,16 @@ def interleave_dataset(input_dataset, other_arguments, cycle_length, block_lengt
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "InterleaveDataset", name,
-        _ctx._post_execution_callbacks, input_dataset, other_arguments,
-        cycle_length, block_length, "f", f, "output_types", output_types,
-        "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "InterleaveDataset", name, _ctx._post_execution_callbacks,
+        input_dataset, other_arguments, cycle_length, block_length, "f", f,
+        "output_types", output_types, "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return interleave_dataset_eager_fallback(
           input_dataset, other_arguments, cycle_length, block_length, f=f,
-          output_types=output_types, output_shapes=output_shapes, name=name)
+          output_types=output_types, output_shapes=output_shapes, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1212,11 +1221,11 @@ def interleave_dataset(input_dataset, other_arguments, cycle_length, block_lengt
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def interleave_dataset_eager_fallback(input_dataset, other_arguments, cycle_length, block_length, f, output_types, output_shapes, name=None):
+def interleave_dataset_eager_fallback(input_dataset, other_arguments, cycle_length, block_length, f, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function interleave_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -1255,8 +1264,8 @@ def iterator(shared_name, container, output_types, output_shapes, name=None):
   Returns:
     A `Tensor` of type `resource`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     shared_name = _execute.make_str(shared_name, "shared_name")
     container = _execute.make_str(container, "container")
     if not isinstance(output_types, (list, tuple)):
@@ -1286,15 +1295,16 @@ def iterator(shared_name, container, output_types, output_shapes, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Iterator", name,
-        _ctx._post_execution_callbacks, "shared_name", shared_name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Iterator",
+        name, _ctx._post_execution_callbacks, "shared_name", shared_name,
         "container", container, "output_types", output_types, "output_shapes",
         output_shapes)
       return _result
     except _core._FallbackException:
       return iterator_eager_fallback(
           shared_name=shared_name, container=container,
-          output_types=output_types, output_shapes=output_shapes, name=name)
+          output_types=output_types, output_shapes=output_shapes, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1303,11 +1313,11 @@ def iterator(shared_name, container, output_types, output_shapes, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def iterator_eager_fallback(shared_name, container, output_types, output_shapes, name=None):
+def iterator_eager_fallback(shared_name, container, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function iterator
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   shared_name = _execute.make_str(shared_name, "shared_name")
   container = _execute.make_str(container, "container")
   if not isinstance(output_types, (list, tuple)):
@@ -1348,8 +1358,8 @@ def iterator_from_string_handle(string_handle, output_types=[], output_shapes=[]
   Returns:
     A `Tensor` of type `resource`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if output_types is None:
       output_types = []
     if not isinstance(output_types, (list, tuple)):
@@ -1379,14 +1389,15 @@ def iterator_from_string_handle(string_handle, output_types=[], output_shapes=[]
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "IteratorFromStringHandle", name,
-        _ctx._post_execution_callbacks, string_handle, "output_types",
-        output_types, "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "IteratorFromStringHandle", name, _ctx._post_execution_callbacks,
+        string_handle, "output_types", output_types, "output_shapes",
+        output_shapes)
       return _result
     except _core._FallbackException:
       return iterator_from_string_handle_eager_fallback(
           string_handle, output_types=output_types,
-          output_shapes=output_shapes, name=name)
+          output_shapes=output_shapes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1395,11 +1406,11 @@ def iterator_from_string_handle(string_handle, output_types=[], output_shapes=[]
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def iterator_from_string_handle_eager_fallback(string_handle, output_types=[], output_shapes=[], name=None):
+def iterator_from_string_handle_eager_fallback(string_handle, output_types=[], output_shapes=[], name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function iterator_from_string_handle
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if output_types is None:
     output_types = []
   if not isinstance(output_types, (list, tuple)):
@@ -1438,8 +1449,8 @@ def iterator_get_next(iterator, output_types, output_shapes, name=None):
   Returns:
     A list of `Tensor` objects of type `output_types`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -1466,14 +1477,14 @@ def iterator_get_next(iterator, output_types, output_shapes, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "IteratorGetNext", name,
-        _ctx._post_execution_callbacks, iterator, "output_types",
-        output_types, "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "IteratorGetNext", name, _ctx._post_execution_callbacks, iterator,
+        "output_types", output_types, "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return iterator_get_next_eager_fallback(
           iterator, output_types=output_types, output_shapes=output_shapes,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1482,11 +1493,11 @@ def iterator_get_next(iterator, output_types, output_shapes, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def iterator_get_next_eager_fallback(iterator, output_types, output_shapes, name=None):
+def iterator_get_next_eager_fallback(iterator, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function iterator_get_next
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -1525,8 +1536,8 @@ def iterator_get_next_sync(iterator, output_types, output_shapes, name=None):
   Returns:
     A list of `Tensor` objects of type `output_types`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -1553,14 +1564,14 @@ def iterator_get_next_sync(iterator, output_types, output_shapes, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "IteratorGetNextSync", name,
-        _ctx._post_execution_callbacks, iterator, "output_types",
-        output_types, "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "IteratorGetNextSync", name, _ctx._post_execution_callbacks, iterator,
+        "output_types", output_types, "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return iterator_get_next_sync_eager_fallback(
           iterator, output_types=output_types, output_shapes=output_shapes,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1569,11 +1580,11 @@ def iterator_get_next_sync(iterator, output_types, output_shapes, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def iterator_get_next_sync_eager_fallback(iterator, output_types, output_shapes, name=None):
+def iterator_get_next_sync_eager_fallback(iterator, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function iterator_get_next_sync
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -1606,8 +1617,8 @@ def iterator_set_stats_aggregator(iterator_handle, stats_aggregator_handle, name
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "IteratorSetStatsAggregator", iterator_handle=iterator_handle,
         stats_aggregator_handle=stats_aggregator_handle, name=name)
@@ -1618,13 +1629,13 @@ def iterator_set_stats_aggregator(iterator_handle, stats_aggregator_handle, name
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "IteratorSetStatsAggregator", name,
-        _ctx._post_execution_callbacks, iterator_handle,
-        stats_aggregator_handle)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "IteratorSetStatsAggregator", name, _ctx._post_execution_callbacks,
+        iterator_handle, stats_aggregator_handle)
       return _result
     except _core._FallbackException:
       return iterator_set_stats_aggregator_eager_fallback(
-          iterator_handle, stats_aggregator_handle, name=name)
+          iterator_handle, stats_aggregator_handle, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1633,11 +1644,11 @@ def iterator_set_stats_aggregator(iterator_handle, stats_aggregator_handle, name
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def iterator_set_stats_aggregator_eager_fallback(iterator_handle, stats_aggregator_handle, name=None):
+def iterator_set_stats_aggregator_eager_fallback(iterator_handle, stats_aggregator_handle, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function iterator_set_stats_aggregator
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   iterator_handle = _ops.convert_to_tensor(iterator_handle, _dtypes.resource)
   stats_aggregator_handle = _ops.convert_to_tensor(stats_aggregator_handle, _dtypes.resource)
   _inputs_flat = [iterator_handle, stats_aggregator_handle]
@@ -1660,8 +1671,8 @@ def iterator_to_string_handle(resource_handle, name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "IteratorToStringHandle", resource_handle=resource_handle, name=name)
     _result = _op.outputs[:]
@@ -1675,12 +1686,13 @@ def iterator_to_string_handle(resource_handle, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "IteratorToStringHandle", name,
-        _ctx._post_execution_callbacks, resource_handle)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "IteratorToStringHandle", name, _ctx._post_execution_callbacks,
+        resource_handle)
       return _result
     except _core._FallbackException:
       return iterator_to_string_handle_eager_fallback(
-          resource_handle, name=name)
+          resource_handle, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1689,11 +1701,11 @@ def iterator_to_string_handle(resource_handle, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def iterator_to_string_handle_eager_fallback(resource_handle, name=None):
+def iterator_to_string_handle_eager_fallback(resource_handle, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function iterator_to_string_handle
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   resource_handle = _ops.convert_to_tensor(resource_handle, _dtypes.resource)
   _inputs_flat = [resource_handle]
   _attrs = None
@@ -1719,8 +1731,8 @@ def latency_stats_dataset(input_dataset, tag, output_types, output_shapes, name=
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -1746,14 +1758,15 @@ def latency_stats_dataset(input_dataset, tag, output_types, output_shapes, name=
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "LatencyStatsDataset", name,
-        _ctx._post_execution_callbacks, input_dataset, tag, "output_types",
-        output_types, "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "LatencyStatsDataset", name, _ctx._post_execution_callbacks,
+        input_dataset, tag, "output_types", output_types, "output_shapes",
+        output_shapes)
       return _result
     except _core._FallbackException:
       return latency_stats_dataset_eager_fallback(
           input_dataset, tag, output_types=output_types,
-          output_shapes=output_shapes, name=name)
+          output_shapes=output_shapes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1762,11 +1775,11 @@ def latency_stats_dataset(input_dataset, tag, output_types, output_shapes, name=
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def latency_stats_dataset_eager_fallback(input_dataset, tag, output_types, output_shapes, name=None):
+def latency_stats_dataset_eager_fallback(input_dataset, tag, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function latency_stats_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -1803,8 +1816,8 @@ def make_iterator(dataset, iterator, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "MakeIterator", dataset=dataset, iterator=iterator, name=name)
     return _op
@@ -1814,12 +1827,12 @@ def make_iterator(dataset, iterator, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MakeIterator", name,
-        _ctx._post_execution_callbacks, dataset, iterator)
+        _ctx._context_handle, _ctx._eager_context.device_name, "MakeIterator",
+        name, _ctx._post_execution_callbacks, dataset, iterator)
       return _result
     except _core._FallbackException:
       return make_iterator_eager_fallback(
-          dataset, iterator, name=name)
+          dataset, iterator, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1828,11 +1841,11 @@ def make_iterator(dataset, iterator, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def make_iterator_eager_fallback(dataset, iterator, name=None):
+def make_iterator_eager_fallback(dataset, iterator, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function make_iterator
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   dataset = _ops.convert_to_tensor(dataset, _dtypes.variant)
   iterator = _ops.convert_to_tensor(iterator, _dtypes.resource)
   _inputs_flat = [dataset, iterator]
@@ -1843,7 +1856,7 @@ def make_iterator_eager_fallback(dataset, iterator, name=None):
   return _result
 
 
-def map_and_batch_dataset(input_dataset, other_arguments, batch_size, num_parallel_batches, f, output_types, output_shapes, name=None):
+def map_and_batch_dataset(input_dataset, other_arguments, batch_size, num_parallel_batches, drop_remainder, f, output_types, output_shapes, name=None):
   r"""Creates a dataset that applies `f` to the outputs of `input_dataset` and then
 
   batches `batch_size` of them.
@@ -1862,6 +1875,7 @@ def map_and_batch_dataset(input_dataset, other_arguments, batch_size, num_parall
       A scalar representing the number of batches to create in
       parallel. Processing multiple batches in parallel benefits workloads prone to
       stragglers.
+    drop_remainder: A `Tensor` of type `bool`.
     f: A function decorated with @Defun.
     output_types: A list of `tf.DTypes` that has length `>= 1`.
     output_shapes: A list of shapes (each a `tf.TensorShape` or list of `ints`) that has length `>= 1`.
@@ -1870,8 +1884,8 @@ def map_and_batch_dataset(input_dataset, other_arguments, batch_size, num_parall
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -1885,8 +1899,9 @@ def map_and_batch_dataset(input_dataset, other_arguments, batch_size, num_parall
     _, _, _op = _op_def_lib._apply_op_helper(
         "MapAndBatchDataset", input_dataset=input_dataset,
         other_arguments=other_arguments, batch_size=batch_size,
-        num_parallel_batches=num_parallel_batches, f=f,
-        output_types=output_types, output_shapes=output_shapes, name=name)
+        num_parallel_batches=num_parallel_batches,
+        drop_remainder=drop_remainder, f=f, output_types=output_types,
+        output_shapes=output_shapes, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("f", _op.get_attr("f"), "Targuments",
@@ -1901,16 +1916,17 @@ def map_and_batch_dataset(input_dataset, other_arguments, batch_size, num_parall
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MapAndBatchDataset", name,
-        _ctx._post_execution_callbacks, input_dataset, other_arguments,
-        batch_size, num_parallel_batches, "f", f, "output_types",
-        output_types, "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "MapAndBatchDataset", name, _ctx._post_execution_callbacks,
+        input_dataset, other_arguments, batch_size, num_parallel_batches,
+        drop_remainder, "f", f, "output_types", output_types, "output_shapes",
+        output_shapes)
       return _result
     except _core._FallbackException:
       return map_and_batch_dataset_eager_fallback(
           input_dataset, other_arguments, batch_size, num_parallel_batches,
-          f=f, output_types=output_types, output_shapes=output_shapes,
-          name=name)
+          drop_remainder, f=f, output_types=output_types,
+          output_shapes=output_shapes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1919,11 +1935,11 @@ def map_and_batch_dataset(input_dataset, other_arguments, batch_size, num_parall
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def map_and_batch_dataset_eager_fallback(input_dataset, other_arguments, batch_size, num_parallel_batches, f, output_types, output_shapes, name=None):
+def map_and_batch_dataset_eager_fallback(input_dataset, other_arguments, batch_size, num_parallel_batches, drop_remainder, f, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function map_and_batch_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -1938,7 +1954,8 @@ def map_and_batch_dataset_eager_fallback(input_dataset, other_arguments, batch_s
   input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
   batch_size = _ops.convert_to_tensor(batch_size, _dtypes.int64)
   num_parallel_batches = _ops.convert_to_tensor(num_parallel_batches, _dtypes.int64)
-  _inputs_flat = [input_dataset] + list(other_arguments) + [batch_size, num_parallel_batches]
+  drop_remainder = _ops.convert_to_tensor(drop_remainder, _dtypes.bool)
+  _inputs_flat = [input_dataset] + list(other_arguments) + [batch_size, num_parallel_batches, drop_remainder]
   _attrs = ("f", f, "Targuments", _attr_Targuments, "output_types",
   output_types, "output_shapes", output_shapes)
   _result = _execute.execute(b"MapAndBatchDataset", 1, inputs=_inputs_flat,
@@ -1963,8 +1980,8 @@ def map_dataset(input_dataset, other_arguments, f, output_types, output_shapes, 
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -1993,14 +2010,14 @@ def map_dataset(input_dataset, other_arguments, f, output_types, output_shapes, 
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MapDataset", name,
-        _ctx._post_execution_callbacks, input_dataset, other_arguments, "f",
-        f, "output_types", output_types, "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name, "MapDataset",
+        name, _ctx._post_execution_callbacks, input_dataset, other_arguments,
+        "f", f, "output_types", output_types, "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return map_dataset_eager_fallback(
           input_dataset, other_arguments, f=f, output_types=output_types,
-          output_shapes=output_shapes, name=name)
+          output_shapes=output_shapes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2009,11 +2026,11 @@ def map_dataset(input_dataset, other_arguments, f, output_types, output_shapes, 
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def map_dataset_eager_fallback(input_dataset, other_arguments, f, output_types, output_shapes, name=None):
+def map_dataset_eager_fallback(input_dataset, other_arguments, f, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function map_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -2071,8 +2088,8 @@ def one_shot_iterator(dataset_factory, output_types, output_shapes, container=""
   Returns:
     A `Tensor` of type `resource`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -2108,16 +2125,17 @@ def one_shot_iterator(dataset_factory, output_types, output_shapes, container=""
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "OneShotIterator", name,
-        _ctx._post_execution_callbacks, "dataset_factory", dataset_factory,
-        "output_types", output_types, "output_shapes", output_shapes,
-        "container", container, "shared_name", shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "OneShotIterator", name, _ctx._post_execution_callbacks,
+        "dataset_factory", dataset_factory, "output_types", output_types,
+        "output_shapes", output_shapes, "container", container, "shared_name",
+        shared_name)
       return _result
     except _core._FallbackException:
       return one_shot_iterator_eager_fallback(
           dataset_factory=dataset_factory, output_types=output_types,
           output_shapes=output_shapes, container=container,
-          shared_name=shared_name, name=name)
+          shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2126,11 +2144,11 @@ def one_shot_iterator(dataset_factory, output_types, output_shapes, container=""
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def one_shot_iterator_eager_fallback(dataset_factory, output_types, output_shapes, container="", shared_name="", name=None):
+def one_shot_iterator_eager_fallback(dataset_factory, output_types, output_shapes, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function one_shot_iterator
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -2181,8 +2199,8 @@ def padded_batch_dataset(input_dataset, batch_size, padded_shapes, padding_value
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(padded_shapes, (list, tuple)):
       raise TypeError(
           "Expected list for 'padded_shapes' argument to "
@@ -2209,14 +2227,15 @@ def padded_batch_dataset(input_dataset, batch_size, padded_shapes, padding_value
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "PaddedBatchDataset", name,
-        _ctx._post_execution_callbacks, input_dataset, batch_size,
-        padded_shapes, padding_values, "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "PaddedBatchDataset", name, _ctx._post_execution_callbacks,
+        input_dataset, batch_size, padded_shapes, padding_values,
+        "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return padded_batch_dataset_eager_fallback(
           input_dataset, batch_size, padded_shapes, padding_values,
-          output_shapes=output_shapes, name=name)
+          output_shapes=output_shapes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2225,11 +2244,11 @@ def padded_batch_dataset(input_dataset, batch_size, padded_shapes, padding_value
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def padded_batch_dataset_eager_fallback(input_dataset, batch_size, padded_shapes, padding_values, output_shapes, name=None):
+def padded_batch_dataset_eager_fallback(input_dataset, batch_size, padded_shapes, padding_values, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function padded_batch_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(padded_shapes, (list, tuple)):
     raise TypeError(
         "Expected list for 'padded_shapes' argument to "
@@ -2285,8 +2304,8 @@ def parallel_interleave_dataset(input_dataset, other_arguments, cycle_length, bl
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -2318,17 +2337,18 @@ def parallel_interleave_dataset(input_dataset, other_arguments, cycle_length, bl
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ParallelInterleaveDataset", name,
-        _ctx._post_execution_callbacks, input_dataset, other_arguments,
-        cycle_length, block_length, sloppy, buffer_output_elements,
-        prefetch_input_elements, "f", f, "output_types", output_types,
-        "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ParallelInterleaveDataset", name, _ctx._post_execution_callbacks,
+        input_dataset, other_arguments, cycle_length, block_length, sloppy,
+        buffer_output_elements, prefetch_input_elements, "f", f,
+        "output_types", output_types, "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return parallel_interleave_dataset_eager_fallback(
           input_dataset, other_arguments, cycle_length, block_length, sloppy,
           buffer_output_elements, prefetch_input_elements, f=f,
-          output_types=output_types, output_shapes=output_shapes, name=name)
+          output_types=output_types, output_shapes=output_shapes, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2337,11 +2357,11 @@ def parallel_interleave_dataset(input_dataset, other_arguments, cycle_length, bl
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def parallel_interleave_dataset_eager_fallback(input_dataset, other_arguments, cycle_length, block_length, sloppy, buffer_output_elements, prefetch_input_elements, f, output_types, output_shapes, name=None):
+def parallel_interleave_dataset_eager_fallback(input_dataset, other_arguments, cycle_length, block_length, sloppy, buffer_output_elements, prefetch_input_elements, f, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function parallel_interleave_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -2391,8 +2411,8 @@ def parallel_map_dataset(input_dataset, other_arguments, num_parallel_calls, f, 
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -2422,15 +2442,16 @@ def parallel_map_dataset(input_dataset, other_arguments, num_parallel_calls, f, 
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ParallelMapDataset", name,
-        _ctx._post_execution_callbacks, input_dataset, other_arguments,
-        num_parallel_calls, "f", f, "output_types", output_types,
-        "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ParallelMapDataset", name, _ctx._post_execution_callbacks,
+        input_dataset, other_arguments, num_parallel_calls, "f", f,
+        "output_types", output_types, "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return parallel_map_dataset_eager_fallback(
           input_dataset, other_arguments, num_parallel_calls, f=f,
-          output_types=output_types, output_shapes=output_shapes, name=name)
+          output_types=output_types, output_shapes=output_shapes, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2439,11 +2460,11 @@ def parallel_map_dataset(input_dataset, other_arguments, num_parallel_calls, f, 
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def parallel_map_dataset_eager_fallback(input_dataset, other_arguments, num_parallel_calls, f, output_types, output_shapes, name=None):
+def parallel_map_dataset_eager_fallback(input_dataset, other_arguments, num_parallel_calls, f, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function parallel_map_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -2483,8 +2504,8 @@ def prefetch_dataset(input_dataset, buffer_size, output_types, output_shapes, na
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -2511,14 +2532,15 @@ def prefetch_dataset(input_dataset, buffer_size, output_types, output_shapes, na
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "PrefetchDataset", name,
-        _ctx._post_execution_callbacks, input_dataset, buffer_size,
-        "output_types", output_types, "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "PrefetchDataset", name, _ctx._post_execution_callbacks,
+        input_dataset, buffer_size, "output_types", output_types,
+        "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return prefetch_dataset_eager_fallback(
           input_dataset, buffer_size, output_types=output_types,
-          output_shapes=output_shapes, name=name)
+          output_shapes=output_shapes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2527,11 +2549,11 @@ def prefetch_dataset(input_dataset, buffer_size, output_types, output_shapes, na
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def prefetch_dataset_eager_fallback(input_dataset, buffer_size, output_types, output_shapes, name=None):
+def prefetch_dataset_eager_fallback(input_dataset, buffer_size, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function prefetch_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -2568,8 +2590,8 @@ def prepend_from_queue_and_padded_batch_dataset(input_dataset, batch_size, padde
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(padded_shapes, (list, tuple)):
       raise TypeError(
           "Expected list for 'padded_shapes' argument to "
@@ -2596,7 +2618,7 @@ def prepend_from_queue_and_padded_batch_dataset(input_dataset, batch_size, padde
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name,
+        _ctx._context_handle, _ctx._eager_context.device_name,
         "PrependFromQueueAndPaddedBatchDataset", name,
         _ctx._post_execution_callbacks, input_dataset, batch_size,
         padded_shapes, padding_values, "output_shapes", output_shapes)
@@ -2604,7 +2626,7 @@ def prepend_from_queue_and_padded_batch_dataset(input_dataset, batch_size, padde
     except _core._FallbackException:
       return prepend_from_queue_and_padded_batch_dataset_eager_fallback(
           input_dataset, batch_size, padded_shapes, padding_values,
-          output_shapes=output_shapes, name=name)
+          output_shapes=output_shapes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2613,11 +2635,11 @@ def prepend_from_queue_and_padded_batch_dataset(input_dataset, batch_size, padde
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def prepend_from_queue_and_padded_batch_dataset_eager_fallback(input_dataset, batch_size, padded_shapes, padding_values, output_shapes, name=None):
+def prepend_from_queue_and_padded_batch_dataset_eager_fallback(input_dataset, batch_size, padded_shapes, padding_values, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function prepend_from_queue_and_padded_batch_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(padded_shapes, (list, tuple)):
     raise TypeError(
         "Expected list for 'padded_shapes' argument to "
@@ -2661,8 +2683,8 @@ def random_dataset(seed, seed2, output_types, output_shapes, name=None):
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -2688,14 +2710,14 @@ def random_dataset(seed, seed2, output_types, output_shapes, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "RandomDataset", name,
-        _ctx._post_execution_callbacks, seed, seed2, "output_types",
-        output_types, "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "RandomDataset", name, _ctx._post_execution_callbacks, seed, seed2,
+        "output_types", output_types, "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return random_dataset_eager_fallback(
           seed, seed2, output_types=output_types, output_shapes=output_shapes,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2704,11 +2726,11 @@ def random_dataset(seed, seed2, output_types, output_shapes, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def random_dataset_eager_fallback(seed, seed2, output_types, output_shapes, name=None):
+def random_dataset_eager_fallback(seed, seed2, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function random_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -2748,8 +2770,8 @@ def range_dataset(start, stop, step, output_types, output_shapes, name=None):
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -2775,14 +2797,14 @@ def range_dataset(start, stop, step, output_types, output_shapes, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "RangeDataset", name,
-        _ctx._post_execution_callbacks, start, stop, step, "output_types",
-        output_types, "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name, "RangeDataset",
+        name, _ctx._post_execution_callbacks, start, stop, step,
+        "output_types", output_types, "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return range_dataset_eager_fallback(
           start, stop, step, output_types=output_types,
-          output_shapes=output_shapes, name=name)
+          output_shapes=output_shapes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2791,11 +2813,11 @@ def range_dataset(start, stop, step, output_types, output_shapes, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def range_dataset_eager_fallback(start, stop, step, output_types, output_shapes, name=None):
+def range_dataset_eager_fallback(start, stop, step, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function range_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -2834,8 +2856,8 @@ def repeat_dataset(input_dataset, count, output_types, output_shapes, name=None)
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -2861,14 +2883,14 @@ def repeat_dataset(input_dataset, count, output_types, output_shapes, name=None)
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "RepeatDataset", name,
-        _ctx._post_execution_callbacks, input_dataset, count, "output_types",
-        output_types, "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "RepeatDataset", name, _ctx._post_execution_callbacks, input_dataset,
+        count, "output_types", output_types, "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return repeat_dataset_eager_fallback(
           input_dataset, count, output_types=output_types,
-          output_shapes=output_shapes, name=name)
+          output_shapes=output_shapes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2877,11 +2899,11 @@ def repeat_dataset(input_dataset, count, output_types, output_shapes, name=None)
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def repeat_dataset_eager_fallback(input_dataset, count, output_types, output_shapes, name=None):
+def repeat_dataset_eager_fallback(input_dataset, count, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function repeat_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -2919,8 +2941,8 @@ def scan_dataset(input_dataset, initial_state, other_arguments, f, output_types,
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -2949,15 +2971,16 @@ def scan_dataset(input_dataset, initial_state, other_arguments, f, output_types,
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ScanDataset", name,
-        _ctx._post_execution_callbacks, input_dataset, initial_state,
+        _ctx._context_handle, _ctx._eager_context.device_name, "ScanDataset",
+        name, _ctx._post_execution_callbacks, input_dataset, initial_state,
         other_arguments, "f", f, "output_types", output_types,
         "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return scan_dataset_eager_fallback(
           input_dataset, initial_state, other_arguments, f=f,
-          output_types=output_types, output_shapes=output_shapes, name=name)
+          output_types=output_types, output_shapes=output_shapes, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2966,11 +2989,11 @@ def scan_dataset(input_dataset, initial_state, other_arguments, f, output_types,
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def scan_dataset_eager_fallback(input_dataset, initial_state, other_arguments, f, output_types, output_shapes, name=None):
+def scan_dataset_eager_fallback(input_dataset, initial_state, other_arguments, f, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function scan_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -3006,8 +3029,8 @@ def serialize_iterator(resource_handle, name=None):
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "SerializeIterator", resource_handle=resource_handle, name=name)
     _result = _op.outputs[:]
@@ -3021,12 +3044,13 @@ def serialize_iterator(resource_handle, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SerializeIterator", name,
-        _ctx._post_execution_callbacks, resource_handle)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SerializeIterator", name, _ctx._post_execution_callbacks,
+        resource_handle)
       return _result
     except _core._FallbackException:
       return serialize_iterator_eager_fallback(
-          resource_handle, name=name)
+          resource_handle, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3035,11 +3059,11 @@ def serialize_iterator(resource_handle, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def serialize_iterator_eager_fallback(resource_handle, name=None):
+def serialize_iterator_eager_fallback(resource_handle, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function serialize_iterator
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   resource_handle = _ops.convert_to_tensor(resource_handle, _dtypes.resource)
   _inputs_flat = [resource_handle]
   _attrs = None
@@ -3078,8 +3102,8 @@ def shuffle_and_repeat_dataset(input_dataset, buffer_size, seed, seed2, count, o
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -3106,15 +3130,16 @@ def shuffle_and_repeat_dataset(input_dataset, buffer_size, seed, seed2, count, o
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ShuffleAndRepeatDataset", name,
-        _ctx._post_execution_callbacks, input_dataset, buffer_size, seed,
-        seed2, count, "output_types", output_types, "output_shapes",
-        output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ShuffleAndRepeatDataset", name, _ctx._post_execution_callbacks,
+        input_dataset, buffer_size, seed, seed2, count, "output_types",
+        output_types, "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return shuffle_and_repeat_dataset_eager_fallback(
           input_dataset, buffer_size, seed, seed2, count,
-          output_types=output_types, output_shapes=output_shapes, name=name)
+          output_types=output_types, output_shapes=output_shapes, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3123,11 +3148,11 @@ def shuffle_and_repeat_dataset(input_dataset, buffer_size, seed, seed2, count, o
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def shuffle_and_repeat_dataset_eager_fallback(input_dataset, buffer_size, seed, seed2, count, output_types, output_shapes, name=None):
+def shuffle_and_repeat_dataset_eager_fallback(input_dataset, buffer_size, seed, seed2, count, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function shuffle_and_repeat_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -3182,8 +3207,8 @@ def shuffle_dataset(input_dataset, buffer_size, seed, seed2, output_types, outpu
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -3216,16 +3241,18 @@ def shuffle_dataset(input_dataset, buffer_size, seed, seed2, output_types, outpu
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ShuffleDataset", name,
-        _ctx._post_execution_callbacks, input_dataset, buffer_size, seed,
-        seed2, "reshuffle_each_iteration", reshuffle_each_iteration,
-        "output_types", output_types, "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ShuffleDataset", name, _ctx._post_execution_callbacks, input_dataset,
+        buffer_size, seed, seed2, "reshuffle_each_iteration",
+        reshuffle_each_iteration, "output_types", output_types,
+        "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return shuffle_dataset_eager_fallback(
           input_dataset, buffer_size, seed, seed2,
           reshuffle_each_iteration=reshuffle_each_iteration,
-          output_types=output_types, output_shapes=output_shapes, name=name)
+          output_types=output_types, output_shapes=output_shapes, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3234,11 +3261,11 @@ def shuffle_dataset(input_dataset, buffer_size, seed, seed2, output_types, outpu
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def shuffle_dataset_eager_fallback(input_dataset, buffer_size, seed, seed2, output_types, output_shapes, reshuffle_each_iteration=True, name=None):
+def shuffle_dataset_eager_fallback(input_dataset, buffer_size, seed, seed2, output_types, output_shapes, reshuffle_each_iteration=True, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function shuffle_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -3282,8 +3309,8 @@ def skip_dataset(input_dataset, count, output_types, output_shapes, name=None):
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -3309,14 +3336,14 @@ def skip_dataset(input_dataset, count, output_types, output_shapes, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SkipDataset", name,
-        _ctx._post_execution_callbacks, input_dataset, count, "output_types",
-        output_types, "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name, "SkipDataset",
+        name, _ctx._post_execution_callbacks, input_dataset, count,
+        "output_types", output_types, "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return skip_dataset_eager_fallback(
           input_dataset, count, output_types=output_types,
-          output_shapes=output_shapes, name=name)
+          output_shapes=output_shapes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3325,11 +3352,11 @@ def skip_dataset(input_dataset, count, output_types, output_shapes, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def skip_dataset_eager_fallback(input_dataset, count, output_types, output_shapes, name=None):
+def skip_dataset_eager_fallback(input_dataset, count, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function skip_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -3352,7 +3379,6 @@ def skip_dataset_eager_fallback(input_dataset, count, output_types, output_shape
   return _result
 
 
-@tf_export('slide_dataset')
 def slide_dataset(input_dataset, window_size, stride, output_types, output_shapes, name=None):
   r"""Creates a dataset that passes a sliding window over `input_dataset`.
 
@@ -3371,8 +3397,8 @@ def slide_dataset(input_dataset, window_size, stride, output_types, output_shape
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -3399,14 +3425,14 @@ def slide_dataset(input_dataset, window_size, stride, output_types, output_shape
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SlideDataset", name,
-        _ctx._post_execution_callbacks, input_dataset, window_size, stride,
-        "output_types", output_types, "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name, "SlideDataset",
+        name, _ctx._post_execution_callbacks, input_dataset, window_size,
+        stride, "output_types", output_types, "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return slide_dataset_eager_fallback(
           input_dataset, window_size, stride, output_types=output_types,
-          output_shapes=output_shapes, name=name)
+          output_shapes=output_shapes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3415,11 +3441,11 @@ def slide_dataset(input_dataset, window_size, stride, output_types, output_shape
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def slide_dataset_eager_fallback(input_dataset, window_size, stride, output_types, output_shapes, name=None):
+def slide_dataset_eager_fallback(input_dataset, window_size, stride, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function slide_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -3455,8 +3481,8 @@ def sparse_tensor_slice_dataset(indices, values, dense_shape, name=None):
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "SparseTensorSliceDataset", indices=indices, values=values,
         dense_shape=dense_shape, name=name)
@@ -3471,12 +3497,13 @@ def sparse_tensor_slice_dataset(indices, values, dense_shape, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SparseTensorSliceDataset", name,
-        _ctx._post_execution_callbacks, indices, values, dense_shape)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SparseTensorSliceDataset", name, _ctx._post_execution_callbacks,
+        indices, values, dense_shape)
       return _result
     except _core._FallbackException:
       return sparse_tensor_slice_dataset_eager_fallback(
-          indices, values, dense_shape, name=name)
+          indices, values, dense_shape, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3485,11 +3512,11 @@ def sparse_tensor_slice_dataset(indices, values, dense_shape, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sparse_tensor_slice_dataset_eager_fallback(indices, values, dense_shape, name=None):
+def sparse_tensor_slice_dataset_eager_fallback(indices, values, dense_shape, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sparse_tensor_slice_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_Tvalues, (values,) = _execute.args_to_matching_eager([values], _ctx)
   indices = _ops.convert_to_tensor(indices, _dtypes.int64)
   dense_shape = _ops.convert_to_tensor(dense_shape, _dtypes.int64)
@@ -3520,8 +3547,8 @@ def sql_dataset(driver_name, data_source_name, query, output_types, output_shape
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -3548,14 +3575,14 @@ def sql_dataset(driver_name, data_source_name, query, output_types, output_shape
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SqlDataset", name,
-        _ctx._post_execution_callbacks, driver_name, data_source_name, query,
-        "output_types", output_types, "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name, "SqlDataset",
+        name, _ctx._post_execution_callbacks, driver_name, data_source_name,
+        query, "output_types", output_types, "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return sql_dataset_eager_fallback(
           driver_name, data_source_name, query, output_types=output_types,
-          output_shapes=output_shapes, name=name)
+          output_shapes=output_shapes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3564,11 +3591,11 @@ def sql_dataset(driver_name, data_source_name, query, output_types, output_shape
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sql_dataset_eager_fallback(driver_name, data_source_name, query, output_types, output_shapes, name=None):
+def sql_dataset_eager_fallback(driver_name, data_source_name, query, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sql_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -3603,8 +3630,8 @@ def stats_aggregator_handle(container="", shared_name="", name=None):
   Returns:
     A `Tensor` of type `resource`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if container is None:
       container = ""
     container = _execute.make_str(container, "container")
@@ -3626,13 +3653,13 @@ def stats_aggregator_handle(container="", shared_name="", name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StatsAggregatorHandle", name,
-        _ctx._post_execution_callbacks, "container", container, "shared_name",
-        shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "StatsAggregatorHandle", name, _ctx._post_execution_callbacks,
+        "container", container, "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return stats_aggregator_handle_eager_fallback(
-          container=container, shared_name=shared_name, name=name)
+          container=container, shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3641,11 +3668,11 @@ def stats_aggregator_handle(container="", shared_name="", name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stats_aggregator_handle_eager_fallback(container="", shared_name="", name=None):
+def stats_aggregator_handle_eager_fallback(container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stats_aggregator_handle
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if container is None:
     container = ""
   container = _execute.make_str(container, "container")
@@ -3672,8 +3699,8 @@ def stats_aggregator_summary(iterator, name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatsAggregatorSummary", iterator=iterator, name=name)
     _result = _op.outputs[:]
@@ -3687,12 +3714,13 @@ def stats_aggregator_summary(iterator, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StatsAggregatorSummary", name,
-        _ctx._post_execution_callbacks, iterator)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "StatsAggregatorSummary", name, _ctx._post_execution_callbacks,
+        iterator)
       return _result
     except _core._FallbackException:
       return stats_aggregator_summary_eager_fallback(
-          iterator, name=name)
+          iterator, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3701,11 +3729,11 @@ def stats_aggregator_summary(iterator, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stats_aggregator_summary_eager_fallback(iterator, name=None):
+def stats_aggregator_summary_eager_fallback(iterator, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stats_aggregator_summary
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   iterator = _ops.convert_to_tensor(iterator, _dtypes.resource)
   _inputs_flat = [iterator]
   _attrs = None
@@ -3736,8 +3764,8 @@ def tf_record_dataset(filenames, compression_type, buffer_size, name=None):
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "TFRecordDataset", filenames=filenames,
         compression_type=compression_type, buffer_size=buffer_size, name=name)
@@ -3752,13 +3780,13 @@ def tf_record_dataset(filenames, compression_type, buffer_size, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TFRecordDataset", name,
-        _ctx._post_execution_callbacks, filenames, compression_type,
-        buffer_size)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TFRecordDataset", name, _ctx._post_execution_callbacks, filenames,
+        compression_type, buffer_size)
       return _result
     except _core._FallbackException:
       return tf_record_dataset_eager_fallback(
-          filenames, compression_type, buffer_size, name=name)
+          filenames, compression_type, buffer_size, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3767,11 +3795,11 @@ def tf_record_dataset(filenames, compression_type, buffer_size, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tf_record_dataset_eager_fallback(filenames, compression_type, buffer_size, name=None):
+def tf_record_dataset_eager_fallback(filenames, compression_type, buffer_size, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tf_record_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   filenames = _ops.convert_to_tensor(filenames, _dtypes.string)
   compression_type = _ops.convert_to_tensor(compression_type, _dtypes.string)
   buffer_size = _ops.convert_to_tensor(buffer_size, _dtypes.int64)
@@ -3801,8 +3829,8 @@ def take_dataset(input_dataset, count, output_types, output_shapes, name=None):
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_types' argument to "
@@ -3828,14 +3856,14 @@ def take_dataset(input_dataset, count, output_types, output_shapes, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TakeDataset", name,
-        _ctx._post_execution_callbacks, input_dataset, count, "output_types",
-        output_types, "output_shapes", output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name, "TakeDataset",
+        name, _ctx._post_execution_callbacks, input_dataset, count,
+        "output_types", output_types, "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return take_dataset_eager_fallback(
           input_dataset, count, output_types=output_types,
-          output_shapes=output_shapes, name=name)
+          output_shapes=output_shapes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3844,11 +3872,11 @@ def take_dataset(input_dataset, count, output_types, output_shapes, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def take_dataset_eager_fallback(input_dataset, count, output_types, output_shapes, name=None):
+def take_dataset_eager_fallback(input_dataset, count, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function take_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -3882,8 +3910,8 @@ def tensor_dataset(components, output_shapes, name=None):
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_shapes, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_shapes' argument to "
@@ -3904,13 +3932,13 @@ def tensor_dataset(components, output_shapes, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TensorDataset", name,
-        _ctx._post_execution_callbacks, components, "output_shapes",
-        output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TensorDataset", name, _ctx._post_execution_callbacks, components,
+        "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return tensor_dataset_eager_fallback(
-          components, output_shapes=output_shapes, name=name)
+          components, output_shapes=output_shapes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3919,11 +3947,11 @@ def tensor_dataset(components, output_shapes, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tensor_dataset_eager_fallback(components, output_shapes, name=None):
+def tensor_dataset_eager_fallback(components, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tensor_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_shapes, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_shapes' argument to "
@@ -3952,8 +3980,8 @@ def tensor_slice_dataset(components, output_shapes, name=None):
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(output_shapes, (list, tuple)):
       raise TypeError(
           "Expected list for 'output_shapes' argument to "
@@ -3974,13 +4002,13 @@ def tensor_slice_dataset(components, output_shapes, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TensorSliceDataset", name,
-        _ctx._post_execution_callbacks, components, "output_shapes",
-        output_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TensorSliceDataset", name, _ctx._post_execution_callbacks,
+        components, "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return tensor_slice_dataset_eager_fallback(
-          components, output_shapes=output_shapes, name=name)
+          components, output_shapes=output_shapes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3989,11 +4017,11 @@ def tensor_slice_dataset(components, output_shapes, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tensor_slice_dataset_eager_fallback(components, output_shapes, name=None):
+def tensor_slice_dataset_eager_fallback(components, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tensor_slice_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(output_shapes, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_shapes' argument to "
@@ -4028,8 +4056,8 @@ def text_line_dataset(filenames, compression_type, buffer_size, name=None):
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "TextLineDataset", filenames=filenames,
         compression_type=compression_type, buffer_size=buffer_size, name=name)
@@ -4044,13 +4072,13 @@ def text_line_dataset(filenames, compression_type, buffer_size, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TextLineDataset", name,
-        _ctx._post_execution_callbacks, filenames, compression_type,
-        buffer_size)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TextLineDataset", name, _ctx._post_execution_callbacks, filenames,
+        compression_type, buffer_size)
       return _result
     except _core._FallbackException:
       return text_line_dataset_eager_fallback(
-          filenames, compression_type, buffer_size, name=name)
+          filenames, compression_type, buffer_size, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -4059,11 +4087,11 @@ def text_line_dataset(filenames, compression_type, buffer_size, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def text_line_dataset_eager_fallback(filenames, compression_type, buffer_size, name=None):
+def text_line_dataset_eager_fallback(filenames, compression_type, buffer_size, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function text_line_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   filenames = _ops.convert_to_tensor(filenames, _dtypes.string)
   compression_type = _ops.convert_to_tensor(compression_type, _dtypes.string)
   buffer_size = _ops.convert_to_tensor(buffer_size, _dtypes.int64)
@@ -4089,8 +4117,8 @@ def zip_dataset(input_datasets, output_types, output_shapes, name=None):
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(input_datasets, (list, tuple)):
       raise TypeError(
           "Expected list for 'input_datasets' argument to "
@@ -4121,14 +4149,14 @@ def zip_dataset(input_datasets, output_types, output_shapes, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ZipDataset", name,
-        _ctx._post_execution_callbacks, input_datasets, "output_types",
+        _ctx._context_handle, _ctx._eager_context.device_name, "ZipDataset",
+        name, _ctx._post_execution_callbacks, input_datasets, "output_types",
         output_types, "output_shapes", output_shapes)
       return _result
     except _core._FallbackException:
       return zip_dataset_eager_fallback(
           input_datasets, output_types=output_types,
-          output_shapes=output_shapes, name=name)
+          output_shapes=output_shapes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -4137,11 +4165,11 @@ def zip_dataset(input_datasets, output_types, output_shapes, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def zip_dataset_eager_fallback(input_datasets, output_types, output_shapes, name=None):
+def zip_dataset_eager_fallback(input_datasets, output_types, output_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function zip_dataset
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(input_datasets, (list, tuple)):
     raise TypeError(
         "Expected list for 'input_datasets' argument to "
@@ -4818,6 +4846,10 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #   input_arg {
 #     name: "num_parallel_batches"
 #     type: DT_INT64
+#   }
+#   input_arg {
+#     name: "drop_remainder"
+#     type: DT_BOOL
 #   }
 #   output_arg {
 #     name: "handle"
@@ -5645,4 +5677,4 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     minimum: 1
 #   }
 # }
-_op_def_lib = _InitOpDefLibrary(b"\n\177\n\014BatchDataset\022\021\n\rinput_dataset\030\025\022\016\n\nbatch_size\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\205\001\n\031BytesProducedStatsDataset\022\021\n\rinput_dataset\030\025\022\007\n\003tag\030\007\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n}\n\014CacheDataset\022\021\n\rinput_dataset\030\025\022\014\n\010filename\030\007\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\212\001\n\022ConcatenateDataset\022\021\n\rinput_dataset\030\025\022\023\n\017another_dataset\030\025\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\203\001\n\026DatasetToSingleElement\022\013\n\007dataset\030\025\032\032\n\ncomponents2\014output_types\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\233\001\n\031DenseToSparseBatchDataset\022\021\n\rinput_dataset\030\025\022\016\n\nbatch_size\030\t\022\r\n\trow_shape\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n=\n\023DeserializeIterator\022\023\n\017resource_handle\030\024\022\016\n\nserialized\030\025\210\001\001\n_\n\025EnqueueInQueueDataset\022\t\n\005queue\030\025\022\031\n\ncomponents2\013Tcomponents\"\035\n\013Tcomponents\022\nlist(type)(\0010\001\210\001\001\n\276\001\n\rFilterDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\032\n\n\006handle\030\025\"\021\n\tpredicate\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\177\n\030FixedLengthRecordDataset\022\r\n\tfilenames\030\007\022\020\n\014header_bytes\030\t\022\020\n\014record_bytes\030\t\022\020\n\014footer_bytes\030\t\022\017\n\013buffer_size\030\t\032\n\n\006handle\030\025\210\001\001\n\267\001\n\016FlatMapDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\212\003\n\020GeneratorDataset\022\'\n\024init_func_other_args2\017Tinit_func_args\022\'\n\024next_func_other_args2\017Tnext_func_args\022/\n\030finalize_func_other_args2\023Tfinalize_func_args\032\n\n\006handle\030\025\"\021\n\tinit_func\022\004func\"\021\n\tnext_func\022\004func\"\025\n\rfinalize_func\022\004func\"\037\n\017Tinit_func_args\022\nlist(type)(\001\"\037\n\017Tnext_func_args\022\nlist(type)(\001\"#\n\023Tfinalize_func_args\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\n\377\003\n\024GroupByWindowDataset\022\021\n\rinput_dataset\030\025\0225\n\030key_func_other_arguments2\031Tkey_func_other_arguments\022;\n\033reduce_func_other_arguments2\034Treduce_func_other_arguments\022E\n window_size_func_other_arguments2!Twindow_size_func_other_arguments\032\n\n\006handle\030\025\"\020\n\010key_func\022\004func\"\023\n\013reduce_func\022\004func\"\030\n\020window_size_func\022\004func\")\n\031Tkey_func_other_arguments\022\nlist(type)(\001\",\n\034Treduce_func_other_arguments\022\nlist(type)(\001\"1\n!Twindow_size_func_other_arguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\336\001\n\021InterleaveDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\022\020\n\014cycle_length\030\t\022\020\n\014block_length\030\t\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\207\001\n\010Iterator\032\n\n\006handle\030\024\"\025\n\013shared_name\022\006string\"\023\n\tcontainer\022\006string\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\n\213\001\n\030IteratorFromStringHandle\022\021\n\rstring_handle\030\007\032\023\n\017resource_handle\030\024\" \n\014output_types\022\nlist(type)\032\002\n\000(\001\"\"\n\routput_shapes\022\013list(shape)\032\002\n\000(\001\210\001\001\n\200\001\n\017IteratorGetNext\022\014\n\010iterator\030\024\032\032\n\ncomponents2\014output_types\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\n\204\001\n\023IteratorGetNextSync\022\014\n\010iterator\030\024\032\032\n\ncomponents2\014output_types\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\nQ\n\032IteratorSetStatsAggregator\022\023\n\017iterator_handle\030\024\022\033\n\027stats_aggregator_handle\030\024\210\001\001\nC\n\026IteratorToStringHandle\022\023\n\017resource_handle\030\024\032\021\n\rstring_handle\030\007\210\001\001\n\177\n\023LatencyStatsDataset\022\021\n\rinput_dataset\030\025\022\007\n\003tag\030\007\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n,\n\014MakeIterator\022\013\n\007dataset\030\025\022\014\n\010iterator\030\024\210\001\001\n\345\001\n\022MapAndBatchDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\022\016\n\nbatch_size\030\t\022\030\n\024num_parallel_batches\030\t\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\263\001\n\nMapDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\257\001\n\017OneShotIterator\032\n\n\006handle\030\024\"\027\n\017dataset_factory\022\004func\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\313\001\n\022PaddedBatchDataset\022\021\n\rinput_dataset\030\025\022\016\n\nbatch_size\030\t\022\024\n\rpadded_shapes\030\t*\001N\022\037\n\016padding_values2\rToutput_types\032\n\n\006handle\030\025\"\037\n\rToutput_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\"\014\n\001N\022\003int(\0010\001\n\253\002\n\031ParallelInterleaveDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\022\020\n\014cycle_length\030\t\022\020\n\014block_length\030\t\022\n\n\006sloppy\030\n\022\032\n\026buffer_output_elements\030\t\022\033\n\027prefetch_input_elements\030\t\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\323\001\n\022ParallelMapDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\022\026\n\022num_parallel_calls\030\003\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\203\001\n\017PrefetchDataset\022\021\n\rinput_dataset\030\025\022\017\n\013buffer_size\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\336\001\n%PrependFromQueueAndPaddedBatchDataset\022\021\n\rinput_dataset\030\025\022\016\n\nbatch_size\030\t\022\024\n\rpadded_shapes\030\t*\001N\022\037\n\016padding_values2\rToutput_types\032\n\n\006handle\030\025\"\037\n\rToutput_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\"\014\n\001N\022\003int(\0010\001\nu\n\rRandomDataset\022\010\n\004seed\030\t\022\t\n\005seed2\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\n~\n\014RangeDataset\022\t\n\005start\030\t\022\010\n\004stop\030\t\022\010\n\004step\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\n{\n\rRepeatDataset\022\021\n\rinput_dataset\030\025\022\t\n\005count\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\347\001\n\013ScanDataset\022\021\n\rinput_dataset\030\025\022\027\n\rinitial_state2\006Tstate\022\035\n\017other_arguments2\nTarguments\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\030\n\006Tstate\022\nlist(type)(\0010\001\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n;\n\021SerializeIterator\022\023\n\017resource_handle\030\024\032\016\n\nserialized\030\025\210\001\001\n\253\001\n\027ShuffleAndRepeatDataset\022\021\n\rinput_dataset\030\025\022\017\n\013buffer_size\030\t\022\010\n\004seed\030\t\022\t\n\005seed2\030\t\022\t\n\005count\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\275\001\n\016ShuffleDataset\022\021\n\rinput_dataset\030\025\022\017\n\013buffer_size\030\t\022\010\n\004seed\030\t\022\t\n\005seed2\030\t\032\n\n\006handle\030\025\"$\n\030reshuffle_each_iteration\022\004bool\032\002(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\ny\n\013SkipDataset\022\021\n\rinput_dataset\030\025\022\t\n\005count\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\214\001\n\014SlideDataset\022\021\n\rinput_dataset\030\025\022\017\n\013window_size\030\t\022\n\n\006stride\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\nk\n\030SparseTensorSliceDataset\022\013\n\007indices\030\t\022\021\n\006values\"\007Tvalues\022\017\n\013dense_shape\030\t\032\n\n\006handle\030\025\"\017\n\007Tvalues\022\004type\210\001\001\n\217\001\n\nSqlDataset\022\017\n\013driver_name\030\007\022\024\n\020data_source_name\030\007\022\t\n\005query\030\007\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\nZ\n\025StatsAggregatorHandle\032\n\n\006handle\030\024\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n6\n\026StatsAggregatorSummary\022\014\n\010iterator\030\024\032\013\n\007summary\030\007\210\001\001\nV\n\017TFRecordDataset\022\r\n\tfilenames\030\007\022\024\n\020compression_type\030\007\022\017\n\013buffer_size\030\t\032\n\n\006handle\030\025\210\001\001\ny\n\013TakeDataset\022\021\n\rinput_dataset\030\025\022\t\n\005count\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n~\n\rTensorDataset\022\033\n\ncomponents2\rToutput_types\032\n\n\006handle\030\025\"\037\n\rToutput_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\n\203\001\n\022TensorSliceDataset\022\033\n\ncomponents2\rToutput_types\032\n\n\006handle\030\025\"\037\n\rToutput_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\nV\n\017TextLineDataset\022\r\n\tfilenames\030\007\022\024\n\020compression_type\030\007\022\017\n\013buffer_size\030\t\032\n\n\006handle\030\025\210\001\001\n\177\n\nZipDataset\022\025\n\016input_datasets\030\025*\001N\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\"\014\n\001N\022\003int(\0010\001")
+_op_def_lib = _InitOpDefLibrary(b"\n\177\n\014BatchDataset\022\021\n\rinput_dataset\030\025\022\016\n\nbatch_size\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\205\001\n\031BytesProducedStatsDataset\022\021\n\rinput_dataset\030\025\022\007\n\003tag\030\007\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n}\n\014CacheDataset\022\021\n\rinput_dataset\030\025\022\014\n\010filename\030\007\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\212\001\n\022ConcatenateDataset\022\021\n\rinput_dataset\030\025\022\023\n\017another_dataset\030\025\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\203\001\n\026DatasetToSingleElement\022\013\n\007dataset\030\025\032\032\n\ncomponents2\014output_types\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\233\001\n\031DenseToSparseBatchDataset\022\021\n\rinput_dataset\030\025\022\016\n\nbatch_size\030\t\022\r\n\trow_shape\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n=\n\023DeserializeIterator\022\023\n\017resource_handle\030\024\022\016\n\nserialized\030\025\210\001\001\n_\n\025EnqueueInQueueDataset\022\t\n\005queue\030\025\022\031\n\ncomponents2\013Tcomponents\"\035\n\013Tcomponents\022\nlist(type)(\0010\001\210\001\001\n\276\001\n\rFilterDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\032\n\n\006handle\030\025\"\021\n\tpredicate\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\177\n\030FixedLengthRecordDataset\022\r\n\tfilenames\030\007\022\020\n\014header_bytes\030\t\022\020\n\014record_bytes\030\t\022\020\n\014footer_bytes\030\t\022\017\n\013buffer_size\030\t\032\n\n\006handle\030\025\210\001\001\n\267\001\n\016FlatMapDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\212\003\n\020GeneratorDataset\022\'\n\024init_func_other_args2\017Tinit_func_args\022\'\n\024next_func_other_args2\017Tnext_func_args\022/\n\030finalize_func_other_args2\023Tfinalize_func_args\032\n\n\006handle\030\025\"\021\n\tinit_func\022\004func\"\021\n\tnext_func\022\004func\"\025\n\rfinalize_func\022\004func\"\037\n\017Tinit_func_args\022\nlist(type)(\001\"\037\n\017Tnext_func_args\022\nlist(type)(\001\"#\n\023Tfinalize_func_args\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\n\377\003\n\024GroupByWindowDataset\022\021\n\rinput_dataset\030\025\0225\n\030key_func_other_arguments2\031Tkey_func_other_arguments\022;\n\033reduce_func_other_arguments2\034Treduce_func_other_arguments\022E\n window_size_func_other_arguments2!Twindow_size_func_other_arguments\032\n\n\006handle\030\025\"\020\n\010key_func\022\004func\"\023\n\013reduce_func\022\004func\"\030\n\020window_size_func\022\004func\")\n\031Tkey_func_other_arguments\022\nlist(type)(\001\",\n\034Treduce_func_other_arguments\022\nlist(type)(\001\"1\n!Twindow_size_func_other_arguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\336\001\n\021InterleaveDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\022\020\n\014cycle_length\030\t\022\020\n\014block_length\030\t\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\207\001\n\010Iterator\032\n\n\006handle\030\024\"\025\n\013shared_name\022\006string\"\023\n\tcontainer\022\006string\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\n\213\001\n\030IteratorFromStringHandle\022\021\n\rstring_handle\030\007\032\023\n\017resource_handle\030\024\" \n\014output_types\022\nlist(type)\032\002\n\000(\001\"\"\n\routput_shapes\022\013list(shape)\032\002\n\000(\001\210\001\001\n\200\001\n\017IteratorGetNext\022\014\n\010iterator\030\024\032\032\n\ncomponents2\014output_types\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\n\204\001\n\023IteratorGetNextSync\022\014\n\010iterator\030\024\032\032\n\ncomponents2\014output_types\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\nQ\n\032IteratorSetStatsAggregator\022\023\n\017iterator_handle\030\024\022\033\n\027stats_aggregator_handle\030\024\210\001\001\nC\n\026IteratorToStringHandle\022\023\n\017resource_handle\030\024\032\021\n\rstring_handle\030\007\210\001\001\n\177\n\023LatencyStatsDataset\022\021\n\rinput_dataset\030\025\022\007\n\003tag\030\007\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n,\n\014MakeIterator\022\013\n\007dataset\030\025\022\014\n\010iterator\030\024\210\001\001\n\371\001\n\022MapAndBatchDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\022\016\n\nbatch_size\030\t\022\030\n\024num_parallel_batches\030\t\022\022\n\016drop_remainder\030\n\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\263\001\n\nMapDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\257\001\n\017OneShotIterator\032\n\n\006handle\030\024\"\027\n\017dataset_factory\022\004func\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\313\001\n\022PaddedBatchDataset\022\021\n\rinput_dataset\030\025\022\016\n\nbatch_size\030\t\022\024\n\rpadded_shapes\030\t*\001N\022\037\n\016padding_values2\rToutput_types\032\n\n\006handle\030\025\"\037\n\rToutput_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\"\014\n\001N\022\003int(\0010\001\n\253\002\n\031ParallelInterleaveDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\022\020\n\014cycle_length\030\t\022\020\n\014block_length\030\t\022\n\n\006sloppy\030\n\022\032\n\026buffer_output_elements\030\t\022\033\n\027prefetch_input_elements\030\t\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\323\001\n\022ParallelMapDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\022\026\n\022num_parallel_calls\030\003\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\203\001\n\017PrefetchDataset\022\021\n\rinput_dataset\030\025\022\017\n\013buffer_size\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\336\001\n%PrependFromQueueAndPaddedBatchDataset\022\021\n\rinput_dataset\030\025\022\016\n\nbatch_size\030\t\022\024\n\rpadded_shapes\030\t*\001N\022\037\n\016padding_values2\rToutput_types\032\n\n\006handle\030\025\"\037\n\rToutput_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\"\014\n\001N\022\003int(\0010\001\nu\n\rRandomDataset\022\010\n\004seed\030\t\022\t\n\005seed2\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\n~\n\014RangeDataset\022\t\n\005start\030\t\022\010\n\004stop\030\t\022\010\n\004step\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\n{\n\rRepeatDataset\022\021\n\rinput_dataset\030\025\022\t\n\005count\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\347\001\n\013ScanDataset\022\021\n\rinput_dataset\030\025\022\027\n\rinitial_state2\006Tstate\022\035\n\017other_arguments2\nTarguments\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\030\n\006Tstate\022\nlist(type)(\0010\001\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n;\n\021SerializeIterator\022\023\n\017resource_handle\030\024\032\016\n\nserialized\030\025\210\001\001\n\253\001\n\027ShuffleAndRepeatDataset\022\021\n\rinput_dataset\030\025\022\017\n\013buffer_size\030\t\022\010\n\004seed\030\t\022\t\n\005seed2\030\t\022\t\n\005count\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\275\001\n\016ShuffleDataset\022\021\n\rinput_dataset\030\025\022\017\n\013buffer_size\030\t\022\010\n\004seed\030\t\022\t\n\005seed2\030\t\032\n\n\006handle\030\025\"$\n\030reshuffle_each_iteration\022\004bool\032\002(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\ny\n\013SkipDataset\022\021\n\rinput_dataset\030\025\022\t\n\005count\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\214\001\n\014SlideDataset\022\021\n\rinput_dataset\030\025\022\017\n\013window_size\030\t\022\n\n\006stride\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\nk\n\030SparseTensorSliceDataset\022\013\n\007indices\030\t\022\021\n\006values\"\007Tvalues\022\017\n\013dense_shape\030\t\032\n\n\006handle\030\025\"\017\n\007Tvalues\022\004type\210\001\001\n\217\001\n\nSqlDataset\022\017\n\013driver_name\030\007\022\024\n\020data_source_name\030\007\022\t\n\005query\030\007\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\nZ\n\025StatsAggregatorHandle\032\n\n\006handle\030\024\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n6\n\026StatsAggregatorSummary\022\014\n\010iterator\030\024\032\013\n\007summary\030\007\210\001\001\nV\n\017TFRecordDataset\022\r\n\tfilenames\030\007\022\024\n\020compression_type\030\007\022\017\n\013buffer_size\030\t\032\n\n\006handle\030\025\210\001\001\ny\n\013TakeDataset\022\021\n\rinput_dataset\030\025\022\t\n\005count\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n~\n\rTensorDataset\022\033\n\ncomponents2\rToutput_types\032\n\n\006handle\030\025\"\037\n\rToutput_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\n\203\001\n\022TensorSliceDataset\022\033\n\ncomponents2\rToutput_types\032\n\n\006handle\030\025\"\037\n\rToutput_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\nV\n\017TextLineDataset\022\r\n\tfilenames\030\007\022\024\n\020compression_type\030\007\022\017\n\013buffer_size\030\t\032\n\n\006handle\030\025\210\001\001\n\177\n\nZipDataset\022\025\n\016input_datasets\030\025*\001N\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\"\014\n\001N\022\003int(\0010\001")

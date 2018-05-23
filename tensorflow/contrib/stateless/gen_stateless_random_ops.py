@@ -37,8 +37,8 @@ def stateless_random_normal(shape, seed, dtype=_dtypes.float32, name=None):
   Returns:
     A `Tensor` of type `dtype`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if dtype is None:
       dtype = _dtypes.float32
     dtype = _execute.make_type(dtype, "dtype")
@@ -57,12 +57,13 @@ def stateless_random_normal(shape, seed, dtype=_dtypes.float32, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StatelessRandomNormal", name,
-        _ctx._post_execution_callbacks, shape, seed, "dtype", dtype)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "StatelessRandomNormal", name, _ctx._post_execution_callbacks, shape,
+        seed, "dtype", dtype)
       return _result
     except _core._FallbackException:
       return stateless_random_normal_eager_fallback(
-          shape, seed, dtype=dtype, name=name)
+          shape, seed, dtype=dtype, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -71,11 +72,11 @@ def stateless_random_normal(shape, seed, dtype=_dtypes.float32, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stateless_random_normal_eager_fallback(shape, seed, dtype=_dtypes.float32, name=None):
+def stateless_random_normal_eager_fallback(shape, seed, dtype=_dtypes.float32, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stateless_random_normal
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if dtype is None:
     dtype = _dtypes.float32
   dtype = _execute.make_type(dtype, "dtype")
@@ -106,8 +107,8 @@ def stateless_random_uniform(shape, seed, dtype=_dtypes.float32, name=None):
   Returns:
     A `Tensor` of type `dtype`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if dtype is None:
       dtype = _dtypes.float32
     dtype = _execute.make_type(dtype, "dtype")
@@ -126,12 +127,13 @@ def stateless_random_uniform(shape, seed, dtype=_dtypes.float32, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StatelessRandomUniform", name,
-        _ctx._post_execution_callbacks, shape, seed, "dtype", dtype)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "StatelessRandomUniform", name, _ctx._post_execution_callbacks, shape,
+        seed, "dtype", dtype)
       return _result
     except _core._FallbackException:
       return stateless_random_uniform_eager_fallback(
-          shape, seed, dtype=dtype, name=name)
+          shape, seed, dtype=dtype, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -140,11 +142,11 @@ def stateless_random_uniform(shape, seed, dtype=_dtypes.float32, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stateless_random_uniform_eager_fallback(shape, seed, dtype=_dtypes.float32, name=None):
+def stateless_random_uniform_eager_fallback(shape, seed, dtype=_dtypes.float32, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stateless_random_uniform
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if dtype is None:
     dtype = _dtypes.float32
   dtype = _execute.make_type(dtype, "dtype")
@@ -176,8 +178,8 @@ def stateless_truncated_normal(shape, seed, dtype=_dtypes.float32, name=None):
   Returns:
     A `Tensor` of type `dtype`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if dtype is None:
       dtype = _dtypes.float32
     dtype = _execute.make_type(dtype, "dtype")
@@ -196,12 +198,13 @@ def stateless_truncated_normal(shape, seed, dtype=_dtypes.float32, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StatelessTruncatedNormal", name,
-        _ctx._post_execution_callbacks, shape, seed, "dtype", dtype)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "StatelessTruncatedNormal", name, _ctx._post_execution_callbacks,
+        shape, seed, "dtype", dtype)
       return _result
     except _core._FallbackException:
       return stateless_truncated_normal_eager_fallback(
-          shape, seed, dtype=dtype, name=name)
+          shape, seed, dtype=dtype, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -210,11 +213,11 @@ def stateless_truncated_normal(shape, seed, dtype=_dtypes.float32, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stateless_truncated_normal_eager_fallback(shape, seed, dtype=_dtypes.float32, name=None):
+def stateless_truncated_normal_eager_fallback(shape, seed, dtype=_dtypes.float32, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stateless_truncated_normal
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if dtype is None:
     dtype = _dtypes.float32
   dtype = _execute.make_type(dtype, "dtype")

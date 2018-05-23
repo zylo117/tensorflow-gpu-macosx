@@ -36,8 +36,8 @@ def resampler(data, warp, name=None):
   Returns:
     A `Tensor`. Has the same type as `data`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "Resampler", data=data, warp=warp, name=name)
     _result = _op.outputs[:]
@@ -51,12 +51,12 @@ def resampler(data, warp, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Resampler", name,
-        _ctx._post_execution_callbacks, data, warp)
+        _ctx._context_handle, _ctx._eager_context.device_name, "Resampler",
+        name, _ctx._post_execution_callbacks, data, warp)
       return _result
     except _core._FallbackException:
       return resampler_eager_fallback(
-          data, warp, name=name)
+          data, warp, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -65,11 +65,11 @@ def resampler(data, warp, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resampler_eager_fallback(data, warp, name=None):
+def resampler_eager_fallback(data, warp, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resampler
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, _inputs_T = _execute.args_to_matching_eager([data, warp], _ctx)
   (data, warp) = _inputs_T
   _inputs_flat = [data, warp]
@@ -105,8 +105,8 @@ def resampler_grad(data, warp, grad_output, name=None):
     grad_data: A `Tensor`. Has the same type as `data`.
     grad_warp: A `Tensor`. Has the same type as `data`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ResamplerGrad", data=data, warp=warp, grad_output=grad_output,
         name=name)
@@ -121,13 +121,14 @@ def resampler_grad(data, warp, grad_output, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResamplerGrad", name,
-        _ctx._post_execution_callbacks, data, warp, grad_output)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResamplerGrad", name, _ctx._post_execution_callbacks, data, warp,
+        grad_output)
       _result = _ResamplerGradOutput._make(_result)
       return _result
     except _core._FallbackException:
       return resampler_grad_eager_fallback(
-          data, warp, grad_output, name=name)
+          data, warp, grad_output, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -136,11 +137,11 @@ def resampler_grad(data, warp, grad_output, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resampler_grad_eager_fallback(data, warp, grad_output, name=None):
+def resampler_grad_eager_fallback(data, warp, grad_output, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resampler_grad
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, _inputs_T = _execute.args_to_matching_eager([data, warp, grad_output], _ctx)
   (data, warp, grad_output) = _inputs_T
   _inputs_flat = [data, warp, grad_output]

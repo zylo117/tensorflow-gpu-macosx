@@ -39,8 +39,8 @@ def assign_add_variable_op(resource, value, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "AssignAddVariableOp", resource=resource, value=value, name=name)
     return _op
@@ -50,12 +50,13 @@ def assign_add_variable_op(resource, value, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "AssignAddVariableOp", name,
-        _ctx._post_execution_callbacks, resource, value)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "AssignAddVariableOp", name, _ctx._post_execution_callbacks, resource,
+        value)
       return _result
     except _core._FallbackException:
       return assign_add_variable_op_eager_fallback(
-          resource, value, name=name)
+          resource, value, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -64,11 +65,11 @@ def assign_add_variable_op(resource, value, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def assign_add_variable_op_eager_fallback(resource, value, name=None):
+def assign_add_variable_op_eager_fallback(resource, value, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function assign_add_variable_op
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_dtype, (value,) = _execute.args_to_matching_eager([value], _ctx)
   resource = _ops.convert_to_tensor(resource, _dtypes.resource)
   _inputs_flat = [resource, value]
@@ -94,8 +95,8 @@ def assign_sub_variable_op(resource, value, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "AssignSubVariableOp", resource=resource, value=value, name=name)
     return _op
@@ -105,12 +106,13 @@ def assign_sub_variable_op(resource, value, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "AssignSubVariableOp", name,
-        _ctx._post_execution_callbacks, resource, value)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "AssignSubVariableOp", name, _ctx._post_execution_callbacks, resource,
+        value)
       return _result
     except _core._FallbackException:
       return assign_sub_variable_op_eager_fallback(
-          resource, value, name=name)
+          resource, value, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -119,11 +121,11 @@ def assign_sub_variable_op(resource, value, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def assign_sub_variable_op_eager_fallback(resource, value, name=None):
+def assign_sub_variable_op_eager_fallback(resource, value, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function assign_sub_variable_op
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_dtype, (value,) = _execute.args_to_matching_eager([value], _ctx)
   resource = _ops.convert_to_tensor(resource, _dtypes.resource)
   _inputs_flat = [resource, value]
@@ -149,8 +151,8 @@ def assign_variable_op(resource, value, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "AssignVariableOp", resource=resource, value=value, name=name)
     return _op
@@ -160,12 +162,13 @@ def assign_variable_op(resource, value, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "AssignVariableOp", name,
-        _ctx._post_execution_callbacks, resource, value)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "AssignVariableOp", name, _ctx._post_execution_callbacks, resource,
+        value)
       return _result
     except _core._FallbackException:
       return assign_variable_op_eager_fallback(
-          resource, value, name=name)
+          resource, value, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -174,11 +177,11 @@ def assign_variable_op(resource, value, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def assign_variable_op_eager_fallback(resource, value, name=None):
+def assign_variable_op_eager_fallback(resource, value, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function assign_variable_op
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_dtype, (value,) = _execute.args_to_matching_eager([value], _ctx)
   resource = _ops.convert_to_tensor(resource, _dtypes.resource)
   _inputs_flat = [resource, value]
@@ -208,8 +211,8 @@ def consume_mutex_lock(mutex_lock, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ConsumeMutexLock", mutex_lock=mutex_lock, name=name)
     return _op
@@ -219,12 +222,12 @@ def consume_mutex_lock(mutex_lock, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ConsumeMutexLock", name,
-        _ctx._post_execution_callbacks, mutex_lock)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ConsumeMutexLock", name, _ctx._post_execution_callbacks, mutex_lock)
       return _result
     except _core._FallbackException:
       return consume_mutex_lock_eager_fallback(
-          mutex_lock, name=name)
+          mutex_lock, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -233,11 +236,11 @@ def consume_mutex_lock(mutex_lock, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def consume_mutex_lock_eager_fallback(mutex_lock, name=None):
+def consume_mutex_lock_eager_fallback(mutex_lock, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function consume_mutex_lock
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   mutex_lock = _ops.convert_to_tensor(mutex_lock, _dtypes.variant)
   _inputs_flat = [mutex_lock]
   _attrs = None
@@ -263,8 +266,8 @@ def destroy_resource_op(resource, ignore_lookup_error=True, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if ignore_lookup_error is None:
       ignore_lookup_error = True
     ignore_lookup_error = _execute.make_bool(ignore_lookup_error, "ignore_lookup_error")
@@ -278,13 +281,14 @@ def destroy_resource_op(resource, ignore_lookup_error=True, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DestroyResourceOp", name,
-        _ctx._post_execution_callbacks, resource, "ignore_lookup_error",
-        ignore_lookup_error)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "DestroyResourceOp", name, _ctx._post_execution_callbacks, resource,
+        "ignore_lookup_error", ignore_lookup_error)
       return _result
     except _core._FallbackException:
       return destroy_resource_op_eager_fallback(
-          resource, ignore_lookup_error=ignore_lookup_error, name=name)
+          resource, ignore_lookup_error=ignore_lookup_error, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -293,11 +297,11 @@ def destroy_resource_op(resource, ignore_lookup_error=True, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def destroy_resource_op_eager_fallback(resource, ignore_lookup_error=True, name=None):
+def destroy_resource_op_eager_fallback(resource, ignore_lookup_error=True, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function destroy_resource_op
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if ignore_lookup_error is None:
     ignore_lookup_error = True
   ignore_lookup_error = _execute.make_bool(ignore_lookup_error, "ignore_lookup_error")
@@ -359,8 +363,8 @@ def mutex_lock(mutex, name=None):
   Returns:
     A `Tensor` of type `variant`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "MutexLock", mutex=mutex, name=name)
     _result = _op.outputs[:]
@@ -374,12 +378,12 @@ def mutex_lock(mutex, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MutexLock", name,
-        _ctx._post_execution_callbacks, mutex)
+        _ctx._context_handle, _ctx._eager_context.device_name, "MutexLock",
+        name, _ctx._post_execution_callbacks, mutex)
       return _result
     except _core._FallbackException:
       return mutex_lock_eager_fallback(
-          mutex, name=name)
+          mutex, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -388,11 +392,11 @@ def mutex_lock(mutex, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def mutex_lock_eager_fallback(mutex, name=None):
+def mutex_lock_eager_fallback(mutex, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function mutex_lock
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   mutex = _ops.convert_to_tensor(mutex, _dtypes.resource)
   _inputs_flat = [mutex]
   _attrs = None
@@ -419,8 +423,8 @@ def mutex_v2(container="", shared_name="", name=None):
   Returns:
     A `Tensor` of type `resource`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if container is None:
       container = ""
     container = _execute.make_str(container, "container")
@@ -441,13 +445,13 @@ def mutex_v2(container="", shared_name="", name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MutexV2", name,
-        _ctx._post_execution_callbacks, "container", container, "shared_name",
-        shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name, "MutexV2",
+        name, _ctx._post_execution_callbacks, "container", container,
+        "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return mutex_v2_eager_fallback(
-          container=container, shared_name=shared_name, name=name)
+          container=container, shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -456,11 +460,11 @@ def mutex_v2(container="", shared_name="", name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def mutex_v2_eager_fallback(container="", shared_name="", name=None):
+def mutex_v2_eager_fallback(container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function mutex_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if container is None:
     container = ""
   container = _execute.make_str(container, "container")
@@ -496,8 +500,8 @@ def read_variable_op(resource, dtype, name=None):
   Returns:
     A `Tensor` of type `dtype`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     _, _, _op = _op_def_lib._apply_op_helper(
         "ReadVariableOp", resource=resource, dtype=dtype, name=name)
@@ -512,12 +516,13 @@ def read_variable_op(resource, dtype, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ReadVariableOp", name,
-        _ctx._post_execution_callbacks, resource, "dtype", dtype)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ReadVariableOp", name, _ctx._post_execution_callbacks, resource,
+        "dtype", dtype)
       return _result
     except _core._FallbackException:
       return read_variable_op_eager_fallback(
-          resource, dtype=dtype, name=name)
+          resource, dtype=dtype, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -526,11 +531,11 @@ def read_variable_op(resource, dtype, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def read_variable_op_eager_fallback(resource, dtype, name=None):
+def read_variable_op_eager_fallback(resource, dtype, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function read_variable_op
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   dtype = _execute.make_type(dtype, "dtype")
   resource = _ops.convert_to_tensor(resource, _dtypes.resource)
   _inputs_flat = [resource]
@@ -570,8 +575,8 @@ def resource_gather(resource, indices, dtype, validate_indices=True, name=None):
   Returns:
     A `Tensor` of type `dtype`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     if validate_indices is None:
       validate_indices = True
@@ -591,14 +596,14 @@ def resource_gather(resource, indices, dtype, validate_indices=True, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceGather", name,
-        _ctx._post_execution_callbacks, resource, indices, "validate_indices",
-        validate_indices, "dtype", dtype)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceGather", name, _ctx._post_execution_callbacks, resource,
+        indices, "validate_indices", validate_indices, "dtype", dtype)
       return _result
     except _core._FallbackException:
       return resource_gather_eager_fallback(
           resource, indices, validate_indices=validate_indices, dtype=dtype,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -607,11 +612,11 @@ def resource_gather(resource, indices, dtype, validate_indices=True, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_gather_eager_fallback(resource, indices, dtype, validate_indices=True, name=None):
+def resource_gather_eager_fallback(resource, indices, dtype, validate_indices=True, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_gather
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   dtype = _execute.make_type(dtype, "dtype")
   if validate_indices is None:
     validate_indices = True
@@ -646,7 +651,7 @@ def resource_scatter_add(resource, indices, updates, name=None):
   Duplicate entries are handled correctly: if multiple `indices` reference
   the same location, their contributions add.
 
-  Requires `updates.shape = indices.shape + ref.shape[1:]`.
+  Requires `updates.shape = indices.shape + ref.shape[1:]` or `updates.shape = []`.
 
   <div style="width:70%; margin:auto; margin-bottom:10px; margin-top:20px;">
   <img style="width:100%" src='https://www.tensorflow.org/images/ScatterAdd.png' alt>
@@ -663,8 +668,8 @@ def resource_scatter_add(resource, indices, updates, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ResourceScatterAdd", resource=resource, indices=indices,
         updates=updates, name=name)
@@ -675,12 +680,13 @@ def resource_scatter_add(resource, indices, updates, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceScatterAdd", name,
-        _ctx._post_execution_callbacks, resource, indices, updates)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceScatterAdd", name, _ctx._post_execution_callbacks, resource,
+        indices, updates)
       return _result
     except _core._FallbackException:
       return resource_scatter_add_eager_fallback(
-          resource, indices, updates, name=name)
+          resource, indices, updates, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -689,17 +695,402 @@ def resource_scatter_add(resource, indices, updates, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_scatter_add_eager_fallback(resource, indices, updates, name=None):
+def resource_scatter_add_eager_fallback(resource, indices, updates, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_scatter_add
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_dtype, (updates,) = _execute.args_to_matching_eager([updates], _ctx)
   _attr_Tindices, (indices,) = _execute.args_to_matching_eager([indices], _ctx)
   resource = _ops.convert_to_tensor(resource, _dtypes.resource)
   _inputs_flat = [resource, indices, updates]
   _attrs = ("dtype", _attr_dtype, "Tindices", _attr_Tindices)
   _result = _execute.execute(b"ResourceScatterAdd", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
+  return _result
+
+
+def resource_scatter_div(resource, indices, updates, name=None):
+  r"""Divides sparse updates into the variable referenced by `resource`.
+
+  This operation computes
+
+      # Scalar indices
+      ref[indices, ...] /= updates[...]
+
+      # Vector indices (for each i)
+      ref[indices[i], ...] /= updates[i, ...]
+
+      # High rank indices (for each i, ..., j)
+      ref[indices[i, ..., j], ...] /= updates[i, ..., j, ...]
+
+  Duplicate entries are handled correctly: if multiple `indices` reference
+  the same location, their contributions multiply.
+
+  Requires `updates.shape = indices.shape + ref.shape[1:]` or `updates.shape = []`.
+
+  <div style="width:70%; margin:auto; margin-bottom:10px; margin-top:20px;">
+  <img style="width:100%" src='https://www.tensorflow.org/images/ScatterAdd.png' alt>
+  </div>
+
+  Args:
+    resource: A `Tensor` of type `resource`. Should be from a `Variable` node.
+    indices: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A tensor of indices into the first dimension of `ref`.
+    updates: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `complex64`, `int64`, `qint8`, `quint8`, `qint32`, `bfloat16`, `uint16`, `complex128`, `half`, `uint32`, `uint64`.
+      A tensor of updated values to add to `ref`.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+  """
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "ResourceScatterDiv", resource=resource, indices=indices,
+        updates=updates, name=name)
+    return _op
+    _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceScatterDiv", name, _ctx._post_execution_callbacks, resource,
+        indices, updates)
+      return _result
+    except _core._FallbackException:
+      return resource_scatter_div_eager_fallback(
+          resource, indices, updates, name=name, ctx=_ctx)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def resource_scatter_div_eager_fallback(resource, indices, updates, name=None, ctx=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function resource_scatter_div
+  """
+  _ctx = ctx if ctx else _context.context()
+  _attr_dtype, (updates,) = _execute.args_to_matching_eager([updates], _ctx)
+  _attr_Tindices, (indices,) = _execute.args_to_matching_eager([indices], _ctx)
+  resource = _ops.convert_to_tensor(resource, _dtypes.resource)
+  _inputs_flat = [resource, indices, updates]
+  _attrs = ("dtype", _attr_dtype, "Tindices", _attr_Tindices)
+  _result = _execute.execute(b"ResourceScatterDiv", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
+  return _result
+
+
+def resource_scatter_max(resource, indices, updates, name=None):
+  r"""Reduces sparse updates into the variable referenced by `resource` using the `max` operation.
+
+  This operation computes
+
+      # Scalar indices
+      ref[indices, ...] = max(ref[indices, ...], updates[...])
+
+      # Vector indices (for each i)
+      ref[indices[i], ...] = max(ref[indices[i], ...], updates[i, ...])
+
+      # High rank indices (for each i, ..., j)
+      ref[indices[i, ..., j], ...] = max(ref[indices[i, ..., j], ...], updates[i, ..., j, ...])
+
+  Duplicate entries are handled correctly: if multiple `indices` reference
+  the same location, their contributions are combined.
+
+  Requires `updates.shape = indices.shape + ref.shape[1:]` or `updates.shape = []`.
+
+  <div style="width:70%; margin:auto; margin-bottom:10px; margin-top:20px;">
+  <img style="width:100%" src='https://www.tensorflow.org/images/ScatterAdd.png' alt>
+  </div>
+
+  Args:
+    resource: A `Tensor` of type `resource`. Should be from a `Variable` node.
+    indices: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A tensor of indices into the first dimension of `ref`.
+    updates: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `complex64`, `int64`, `qint8`, `quint8`, `qint32`, `bfloat16`, `uint16`, `complex128`, `half`, `uint32`, `uint64`.
+      A tensor of updated values to add to `ref`.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+  """
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "ResourceScatterMax", resource=resource, indices=indices,
+        updates=updates, name=name)
+    return _op
+    _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceScatterMax", name, _ctx._post_execution_callbacks, resource,
+        indices, updates)
+      return _result
+    except _core._FallbackException:
+      return resource_scatter_max_eager_fallback(
+          resource, indices, updates, name=name, ctx=_ctx)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def resource_scatter_max_eager_fallback(resource, indices, updates, name=None, ctx=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function resource_scatter_max
+  """
+  _ctx = ctx if ctx else _context.context()
+  _attr_dtype, (updates,) = _execute.args_to_matching_eager([updates], _ctx)
+  _attr_Tindices, (indices,) = _execute.args_to_matching_eager([indices], _ctx)
+  resource = _ops.convert_to_tensor(resource, _dtypes.resource)
+  _inputs_flat = [resource, indices, updates]
+  _attrs = ("dtype", _attr_dtype, "Tindices", _attr_Tindices)
+  _result = _execute.execute(b"ResourceScatterMax", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
+  return _result
+
+
+def resource_scatter_min(resource, indices, updates, name=None):
+  r"""Reduces sparse updates into the variable referenced by `resource` using the `min` operation.
+
+  This operation computes
+
+      # Scalar indices
+      ref[indices, ...] = min(ref[indices, ...], updates[...])
+
+      # Vector indices (for each i)
+      ref[indices[i], ...] = min(ref[indices[i], ...], updates[i, ...])
+
+      # High rank indices (for each i, ..., j)
+      ref[indices[i, ..., j], ...] = min(ref[indices[i, ..., j], ...], updates[i, ..., j, ...])
+
+  Duplicate entries are handled correctly: if multiple `indices` reference
+  the same location, their contributions are combined.
+
+  Requires `updates.shape = indices.shape + ref.shape[1:]` or `updates.shape = []`.
+
+  <div style="width:70%; margin:auto; margin-bottom:10px; margin-top:20px;">
+  <img style="width:100%" src='https://www.tensorflow.org/images/ScatterAdd.png' alt>
+  </div>
+
+  Args:
+    resource: A `Tensor` of type `resource`. Should be from a `Variable` node.
+    indices: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A tensor of indices into the first dimension of `ref`.
+    updates: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `complex64`, `int64`, `qint8`, `quint8`, `qint32`, `bfloat16`, `uint16`, `complex128`, `half`, `uint32`, `uint64`.
+      A tensor of updated values to add to `ref`.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+  """
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "ResourceScatterMin", resource=resource, indices=indices,
+        updates=updates, name=name)
+    return _op
+    _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceScatterMin", name, _ctx._post_execution_callbacks, resource,
+        indices, updates)
+      return _result
+    except _core._FallbackException:
+      return resource_scatter_min_eager_fallback(
+          resource, indices, updates, name=name, ctx=_ctx)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def resource_scatter_min_eager_fallback(resource, indices, updates, name=None, ctx=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function resource_scatter_min
+  """
+  _ctx = ctx if ctx else _context.context()
+  _attr_dtype, (updates,) = _execute.args_to_matching_eager([updates], _ctx)
+  _attr_Tindices, (indices,) = _execute.args_to_matching_eager([indices], _ctx)
+  resource = _ops.convert_to_tensor(resource, _dtypes.resource)
+  _inputs_flat = [resource, indices, updates]
+  _attrs = ("dtype", _attr_dtype, "Tindices", _attr_Tindices)
+  _result = _execute.execute(b"ResourceScatterMin", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
+  return _result
+
+
+def resource_scatter_mul(resource, indices, updates, name=None):
+  r"""Multiplies sparse updates into the variable referenced by `resource`.
+
+  This operation computes
+
+      # Scalar indices
+      ref[indices, ...] *= updates[...]
+
+      # Vector indices (for each i)
+      ref[indices[i], ...] *= updates[i, ...]
+
+      # High rank indices (for each i, ..., j)
+      ref[indices[i, ..., j], ...] *= updates[i, ..., j, ...]
+
+  Duplicate entries are handled correctly: if multiple `indices` reference
+  the same location, their contributions multiply.
+
+  Requires `updates.shape = indices.shape + ref.shape[1:]` or `updates.shape = []`.
+
+  <div style="width:70%; margin:auto; margin-bottom:10px; margin-top:20px;">
+  <img style="width:100%" src='https://www.tensorflow.org/images/ScatterAdd.png' alt>
+  </div>
+
+  Args:
+    resource: A `Tensor` of type `resource`. Should be from a `Variable` node.
+    indices: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A tensor of indices into the first dimension of `ref`.
+    updates: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `complex64`, `int64`, `qint8`, `quint8`, `qint32`, `bfloat16`, `uint16`, `complex128`, `half`, `uint32`, `uint64`.
+      A tensor of updated values to add to `ref`.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+  """
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "ResourceScatterMul", resource=resource, indices=indices,
+        updates=updates, name=name)
+    return _op
+    _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceScatterMul", name, _ctx._post_execution_callbacks, resource,
+        indices, updates)
+      return _result
+    except _core._FallbackException:
+      return resource_scatter_mul_eager_fallback(
+          resource, indices, updates, name=name, ctx=_ctx)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def resource_scatter_mul_eager_fallback(resource, indices, updates, name=None, ctx=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function resource_scatter_mul
+  """
+  _ctx = ctx if ctx else _context.context()
+  _attr_dtype, (updates,) = _execute.args_to_matching_eager([updates], _ctx)
+  _attr_Tindices, (indices,) = _execute.args_to_matching_eager([indices], _ctx)
+  resource = _ops.convert_to_tensor(resource, _dtypes.resource)
+  _inputs_flat = [resource, indices, updates]
+  _attrs = ("dtype", _attr_dtype, "Tindices", _attr_Tindices)
+  _result = _execute.execute(b"ResourceScatterMul", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
+  return _result
+
+
+def resource_scatter_sub(resource, indices, updates, name=None):
+  r"""Subtracts sparse updates from the variable referenced by `resource`.
+
+  This operation computes
+
+      # Scalar indices
+      ref[indices, ...] -= updates[...]
+
+      # Vector indices (for each i)
+      ref[indices[i], ...] -= updates[i, ...]
+
+      # High rank indices (for each i, ..., j)
+      ref[indices[i, ..., j], ...] -= updates[i, ..., j, ...]
+
+  Duplicate entries are handled correctly: if multiple `indices` reference
+  the same location, their contributions add.
+
+  Requires `updates.shape = indices.shape + ref.shape[1:]` or `updates.shape = []`.
+
+  <div style="width:70%; margin:auto; margin-bottom:10px; margin-top:20px;">
+  <img style="width:100%" src='https://www.tensorflow.org/images/ScatterAdd.png' alt>
+  </div>
+
+  Args:
+    resource: A `Tensor` of type `resource`. Should be from a `Variable` node.
+    indices: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A tensor of indices into the first dimension of `ref`.
+    updates: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `complex64`, `int64`, `qint8`, `quint8`, `qint32`, `bfloat16`, `uint16`, `complex128`, `half`, `uint32`, `uint64`.
+      A tensor of updated values to add to `ref`.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+  """
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "ResourceScatterSub", resource=resource, indices=indices,
+        updates=updates, name=name)
+    return _op
+    _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceScatterSub", name, _ctx._post_execution_callbacks, resource,
+        indices, updates)
+      return _result
+    except _core._FallbackException:
+      return resource_scatter_sub_eager_fallback(
+          resource, indices, updates, name=name, ctx=_ctx)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def resource_scatter_sub_eager_fallback(resource, indices, updates, name=None, ctx=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function resource_scatter_sub
+  """
+  _ctx = ctx if ctx else _context.context()
+  _attr_dtype, (updates,) = _execute.args_to_matching_eager([updates], _ctx)
+  _attr_Tindices, (indices,) = _execute.args_to_matching_eager([indices], _ctx)
+  resource = _ops.convert_to_tensor(resource, _dtypes.resource)
+  _inputs_flat = [resource, indices, updates]
+  _attrs = ("dtype", _attr_dtype, "Tindices", _attr_Tindices)
+  _result = _execute.execute(b"ResourceScatterSub", 0, inputs=_inputs_flat,
                              attrs=_attrs, ctx=_ctx, name=name)
   _result = None
   return _result
@@ -729,8 +1120,8 @@ def resource_scatter_update(resource, indices, updates, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ResourceScatterUpdate", resource=resource, indices=indices,
         updates=updates, name=name)
@@ -741,12 +1132,13 @@ def resource_scatter_update(resource, indices, updates, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceScatterUpdate", name,
-        _ctx._post_execution_callbacks, resource, indices, updates)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceScatterUpdate", name, _ctx._post_execution_callbacks,
+        resource, indices, updates)
       return _result
     except _core._FallbackException:
       return resource_scatter_update_eager_fallback(
-          resource, indices, updates, name=name)
+          resource, indices, updates, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -755,11 +1147,11 @@ def resource_scatter_update(resource, indices, updates, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_scatter_update_eager_fallback(resource, indices, updates, name=None):
+def resource_scatter_update_eager_fallback(resource, indices, updates, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_scatter_update
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_dtype, (updates,) = _execute.args_to_matching_eager([updates], _ctx)
   _attr_Tindices, (indices,) = _execute.args_to_matching_eager([indices], _ctx)
   resource = _ops.convert_to_tensor(resource, _dtypes.resource)
@@ -788,8 +1180,8 @@ def var_handle_op(dtype, shape, container="", shared_name="", name=None):
   Returns:
     A `Tensor` of type `resource`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     shape = _execute.make_shape(shape, "shape")
     if container is None:
@@ -814,14 +1206,14 @@ def var_handle_op(dtype, shape, container="", shared_name="", name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "VarHandleOp", name,
-        _ctx._post_execution_callbacks, "container", container, "shared_name",
-        shared_name, "dtype", dtype, "shape", shape)
+        _ctx._context_handle, _ctx._eager_context.device_name, "VarHandleOp",
+        name, _ctx._post_execution_callbacks, "container", container,
+        "shared_name", shared_name, "dtype", dtype, "shape", shape)
       return _result
     except _core._FallbackException:
       return var_handle_op_eager_fallback(
           container=container, shared_name=shared_name, dtype=dtype,
-          shape=shape, name=name)
+          shape=shape, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -830,11 +1222,11 @@ def var_handle_op(dtype, shape, container="", shared_name="", name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def var_handle_op_eager_fallback(dtype, shape, container="", shared_name="", name=None):
+def var_handle_op_eager_fallback(dtype, shape, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function var_handle_op
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   dtype = _execute.make_type(dtype, "dtype")
   shape = _execute.make_shape(shape, "shape")
   if container is None:
@@ -864,8 +1256,8 @@ def var_is_initialized_op(resource, name=None):
   Returns:
     A `Tensor` of type `bool`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "VarIsInitializedOp", resource=resource, name=name)
     _result = _op.outputs[:]
@@ -879,12 +1271,12 @@ def var_is_initialized_op(resource, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "VarIsInitializedOp", name,
-        _ctx._post_execution_callbacks, resource)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "VarIsInitializedOp", name, _ctx._post_execution_callbacks, resource)
       return _result
     except _core._FallbackException:
       return var_is_initialized_op_eager_fallback(
-          resource, name=name)
+          resource, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -893,11 +1285,11 @@ def var_is_initialized_op(resource, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def var_is_initialized_op_eager_fallback(resource, name=None):
+def var_is_initialized_op_eager_fallback(resource, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function var_is_initialized_op
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   resource = _ops.convert_to_tensor(resource, _dtypes.resource)
   _inputs_flat = [resource]
   _attrs = None
@@ -929,8 +1321,8 @@ def variable_shape(input, out_type=_dtypes.int32, name=None):
   Returns:
     A `Tensor` of type `out_type`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if out_type is None:
       out_type = _dtypes.int32
     out_type = _execute.make_type(out_type, "out_type")
@@ -947,12 +1339,13 @@ def variable_shape(input, out_type=_dtypes.int32, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "VariableShape", name,
-        _ctx._post_execution_callbacks, input, "out_type", out_type)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "VariableShape", name, _ctx._post_execution_callbacks, input,
+        "out_type", out_type)
       return _result
     except _core._FallbackException:
       return variable_shape_eager_fallback(
-          input, out_type=out_type, name=name)
+          input, out_type=out_type, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -961,11 +1354,11 @@ def variable_shape(input, out_type=_dtypes.int32, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def variable_shape_eager_fallback(input, out_type=_dtypes.int32, name=None):
+def variable_shape_eager_fallback(input, out_type=_dtypes.int32, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function variable_shape
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if out_type is None:
     out_type = _dtypes.int32
   out_type = _execute.make_type(out_type, "out_type")
@@ -1196,6 +1589,261 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #   is_stateful: true
 # }
 # op {
+#   name: "ResourceScatterDiv"
+#   input_arg {
+#     name: "resource"
+#     type: DT_RESOURCE
+#   }
+#   input_arg {
+#     name: "indices"
+#     type_attr: "Tindices"
+#   }
+#   input_arg {
+#     name: "updates"
+#     type_attr: "dtype"
+#   }
+#   attr {
+#     name: "dtype"
+#     type: "type"
+#     allowed_values {
+#       list {
+#         type: DT_FLOAT
+#         type: DT_DOUBLE
+#         type: DT_INT32
+#         type: DT_UINT8
+#         type: DT_INT16
+#         type: DT_INT8
+#         type: DT_COMPLEX64
+#         type: DT_INT64
+#         type: DT_QINT8
+#         type: DT_QUINT8
+#         type: DT_QINT32
+#         type: DT_BFLOAT16
+#         type: DT_UINT16
+#         type: DT_COMPLEX128
+#         type: DT_HALF
+#         type: DT_UINT32
+#         type: DT_UINT64
+#       }
+#     }
+#   }
+#   attr {
+#     name: "Tindices"
+#     type: "type"
+#     allowed_values {
+#       list {
+#         type: DT_INT32
+#         type: DT_INT64
+#       }
+#     }
+#   }
+#   is_stateful: true
+# }
+# op {
+#   name: "ResourceScatterMax"
+#   input_arg {
+#     name: "resource"
+#     type: DT_RESOURCE
+#   }
+#   input_arg {
+#     name: "indices"
+#     type_attr: "Tindices"
+#   }
+#   input_arg {
+#     name: "updates"
+#     type_attr: "dtype"
+#   }
+#   attr {
+#     name: "dtype"
+#     type: "type"
+#     allowed_values {
+#       list {
+#         type: DT_FLOAT
+#         type: DT_DOUBLE
+#         type: DT_INT32
+#         type: DT_UINT8
+#         type: DT_INT16
+#         type: DT_INT8
+#         type: DT_COMPLEX64
+#         type: DT_INT64
+#         type: DT_QINT8
+#         type: DT_QUINT8
+#         type: DT_QINT32
+#         type: DT_BFLOAT16
+#         type: DT_UINT16
+#         type: DT_COMPLEX128
+#         type: DT_HALF
+#         type: DT_UINT32
+#         type: DT_UINT64
+#       }
+#     }
+#   }
+#   attr {
+#     name: "Tindices"
+#     type: "type"
+#     allowed_values {
+#       list {
+#         type: DT_INT32
+#         type: DT_INT64
+#       }
+#     }
+#   }
+#   is_stateful: true
+# }
+# op {
+#   name: "ResourceScatterMin"
+#   input_arg {
+#     name: "resource"
+#     type: DT_RESOURCE
+#   }
+#   input_arg {
+#     name: "indices"
+#     type_attr: "Tindices"
+#   }
+#   input_arg {
+#     name: "updates"
+#     type_attr: "dtype"
+#   }
+#   attr {
+#     name: "dtype"
+#     type: "type"
+#     allowed_values {
+#       list {
+#         type: DT_FLOAT
+#         type: DT_DOUBLE
+#         type: DT_INT32
+#         type: DT_UINT8
+#         type: DT_INT16
+#         type: DT_INT8
+#         type: DT_COMPLEX64
+#         type: DT_INT64
+#         type: DT_QINT8
+#         type: DT_QUINT8
+#         type: DT_QINT32
+#         type: DT_BFLOAT16
+#         type: DT_UINT16
+#         type: DT_COMPLEX128
+#         type: DT_HALF
+#         type: DT_UINT32
+#         type: DT_UINT64
+#       }
+#     }
+#   }
+#   attr {
+#     name: "Tindices"
+#     type: "type"
+#     allowed_values {
+#       list {
+#         type: DT_INT32
+#         type: DT_INT64
+#       }
+#     }
+#   }
+#   is_stateful: true
+# }
+# op {
+#   name: "ResourceScatterMul"
+#   input_arg {
+#     name: "resource"
+#     type: DT_RESOURCE
+#   }
+#   input_arg {
+#     name: "indices"
+#     type_attr: "Tindices"
+#   }
+#   input_arg {
+#     name: "updates"
+#     type_attr: "dtype"
+#   }
+#   attr {
+#     name: "dtype"
+#     type: "type"
+#     allowed_values {
+#       list {
+#         type: DT_FLOAT
+#         type: DT_DOUBLE
+#         type: DT_INT32
+#         type: DT_UINT8
+#         type: DT_INT16
+#         type: DT_INT8
+#         type: DT_COMPLEX64
+#         type: DT_INT64
+#         type: DT_QINT8
+#         type: DT_QUINT8
+#         type: DT_QINT32
+#         type: DT_BFLOAT16
+#         type: DT_UINT16
+#         type: DT_COMPLEX128
+#         type: DT_HALF
+#         type: DT_UINT32
+#         type: DT_UINT64
+#       }
+#     }
+#   }
+#   attr {
+#     name: "Tindices"
+#     type: "type"
+#     allowed_values {
+#       list {
+#         type: DT_INT32
+#         type: DT_INT64
+#       }
+#     }
+#   }
+#   is_stateful: true
+# }
+# op {
+#   name: "ResourceScatterSub"
+#   input_arg {
+#     name: "resource"
+#     type: DT_RESOURCE
+#   }
+#   input_arg {
+#     name: "indices"
+#     type_attr: "Tindices"
+#   }
+#   input_arg {
+#     name: "updates"
+#     type_attr: "dtype"
+#   }
+#   attr {
+#     name: "dtype"
+#     type: "type"
+#     allowed_values {
+#       list {
+#         type: DT_FLOAT
+#         type: DT_DOUBLE
+#         type: DT_INT32
+#         type: DT_UINT8
+#         type: DT_INT16
+#         type: DT_INT8
+#         type: DT_COMPLEX64
+#         type: DT_INT64
+#         type: DT_QINT8
+#         type: DT_QUINT8
+#         type: DT_QINT32
+#         type: DT_BFLOAT16
+#         type: DT_UINT16
+#         type: DT_COMPLEX128
+#         type: DT_HALF
+#         type: DT_UINT32
+#         type: DT_UINT64
+#       }
+#     }
+#   }
+#   attr {
+#     name: "Tindices"
+#     type: "type"
+#     allowed_values {
+#       list {
+#         type: DT_INT32
+#         type: DT_INT64
+#       }
+#     }
+#   }
+#   is_stateful: true
+# }
+# op {
 #   name: "ResourceScatterUpdate"
 #   input_arg {
 #     name: "resource"
@@ -1292,4 +1940,4 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #   }
 #   is_stateful: true
 # }
-_op_def_lib = _InitOpDefLibrary(b"\nE\n\023AssignAddVariableOp\022\014\n\010resource\030\024\022\016\n\005value\"\005dtype\"\r\n\005dtype\022\004type\210\001\001\nE\n\023AssignSubVariableOp\022\014\n\010resource\030\024\022\016\n\005value\"\005dtype\"\r\n\005dtype\022\004type\210\001\001\nB\n\020AssignVariableOp\022\014\n\010resource\030\024\022\016\n\005value\"\005dtype\"\r\n\005dtype\022\004type\210\001\001\n%\n\020ConsumeMutexLock\022\016\n\nmutex_lock\030\025\210\001\001\nE\n\021DestroyResourceOp\022\014\n\010resource\030\024\"\037\n\023ignore_lookup_error\022\004bool\032\002(\001\210\001\001\n)\n\tMutexLock\022\t\n\005mutex\030\024\032\016\n\nmutex_lock\030\025\210\001\001\nN\n\007MutexV2\032\014\n\010resource\030\024\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n@\n\016ReadVariableOp\022\014\n\010resource\030\024\032\016\n\005value\"\005dtype\"\r\n\005dtype\022\004type\210\001\001\n\216\001\n\016ResourceGather\022\014\n\010resource\030\024\022\023\n\007indices\"\010Tindices\032\017\n\006output\"\005dtype\"\034\n\020validate_indices\022\004bool\032\002(\001\"\r\n\005dtype\022\004type\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\210\001\001\n\214\001\n\022ResourceScatterAdd\022\014\n\010resource\030\024\022\023\n\007indices\"\010Tindices\022\020\n\007updates\"\005dtype\"$\n\005dtype\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\210\001\001\nx\n\025ResourceScatterUpdate\022\014\n\010resource\030\024\022\023\n\007indices\"\010Tindices\022\020\n\007updates\"\005dtype\"\r\n\005dtype\022\004type\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\210\001\001\nq\n\013VarHandleOp\032\014\n\010resource\030\024\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\"\r\n\005dtype\022\004type\"\016\n\005shape\022\005shape\210\001\001\n9\n\022VarIsInitializedOp\022\014\n\010resource\030\024\032\022\n\016is_initialized\030\n\210\001\001\nO\n\rVariableShape\022\t\n\005input\030\024\032\022\n\006output\"\010out_type\"\034\n\010out_type\022\004type\032\0020\003:\006\n\0042\002\003\t\210\001\001")
+_op_def_lib = _InitOpDefLibrary(b"\nE\n\023AssignAddVariableOp\022\014\n\010resource\030\024\022\016\n\005value\"\005dtype\"\r\n\005dtype\022\004type\210\001\001\nE\n\023AssignSubVariableOp\022\014\n\010resource\030\024\022\016\n\005value\"\005dtype\"\r\n\005dtype\022\004type\210\001\001\nB\n\020AssignVariableOp\022\014\n\010resource\030\024\022\016\n\005value\"\005dtype\"\r\n\005dtype\022\004type\210\001\001\n%\n\020ConsumeMutexLock\022\016\n\nmutex_lock\030\025\210\001\001\nE\n\021DestroyResourceOp\022\014\n\010resource\030\024\"\037\n\023ignore_lookup_error\022\004bool\032\002(\001\210\001\001\n)\n\tMutexLock\022\t\n\005mutex\030\024\032\016\n\nmutex_lock\030\025\210\001\001\nN\n\007MutexV2\032\014\n\010resource\030\024\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n@\n\016ReadVariableOp\022\014\n\010resource\030\024\032\016\n\005value\"\005dtype\"\r\n\005dtype\022\004type\210\001\001\n\216\001\n\016ResourceGather\022\014\n\010resource\030\024\022\023\n\007indices\"\010Tindices\032\017\n\006output\"\005dtype\"\034\n\020validate_indices\022\004bool\032\002(\001\"\r\n\005dtype\022\004type\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\210\001\001\n\214\001\n\022ResourceScatterAdd\022\014\n\010resource\030\024\022\023\n\007indices\"\010Tindices\022\020\n\007updates\"\005dtype\"$\n\005dtype\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\210\001\001\n\214\001\n\022ResourceScatterDiv\022\014\n\010resource\030\024\022\023\n\007indices\"\010Tindices\022\020\n\007updates\"\005dtype\"$\n\005dtype\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\210\001\001\n\214\001\n\022ResourceScatterMax\022\014\n\010resource\030\024\022\023\n\007indices\"\010Tindices\022\020\n\007updates\"\005dtype\"$\n\005dtype\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\210\001\001\n\214\001\n\022ResourceScatterMin\022\014\n\010resource\030\024\022\023\n\007indices\"\010Tindices\022\020\n\007updates\"\005dtype\"$\n\005dtype\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\210\001\001\n\214\001\n\022ResourceScatterMul\022\014\n\010resource\030\024\022\023\n\007indices\"\010Tindices\022\020\n\007updates\"\005dtype\"$\n\005dtype\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\210\001\001\n\214\001\n\022ResourceScatterSub\022\014\n\010resource\030\024\022\023\n\007indices\"\010Tindices\022\020\n\007updates\"\005dtype\"$\n\005dtype\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\210\001\001\nx\n\025ResourceScatterUpdate\022\014\n\010resource\030\024\022\023\n\007indices\"\010Tindices\022\020\n\007updates\"\005dtype\"\r\n\005dtype\022\004type\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\210\001\001\nq\n\013VarHandleOp\032\014\n\010resource\030\024\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\"\r\n\005dtype\022\004type\"\016\n\005shape\022\005shape\210\001\001\n9\n\022VarIsInitializedOp\022\014\n\010resource\030\024\032\022\n\016is_initialized\030\n\210\001\001\nO\n\rVariableShape\022\t\n\005input\030\024\032\022\n\006output\"\010out_type\"\034\n\010out_type\022\004type\032\0020\003:\006\n\0042\002\003\t\210\001\001")

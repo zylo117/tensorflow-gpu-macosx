@@ -40,8 +40,8 @@ def decode_video(contents, name=None):
     A `Tensor` of type `uint8`.
     A rank-4 `Tensor` that has `[frames, height, width, 3]` RGB as output.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "DecodeVideo", contents=contents, name=name)
     _result = _op.outputs[:]
@@ -55,12 +55,12 @@ def decode_video(contents, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DecodeVideo", name,
-        _ctx._post_execution_callbacks, contents)
+        _ctx._context_handle, _ctx._eager_context.device_name, "DecodeVideo",
+        name, _ctx._post_execution_callbacks, contents)
       return _result
     except _core._FallbackException:
       return decode_video_eager_fallback(
-          contents, name=name)
+          contents, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -69,11 +69,11 @@ def decode_video(contents, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def decode_video_eager_fallback(contents, name=None):
+def decode_video_eager_fallback(contents, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function decode_video
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   contents = _ops.convert_to_tensor(contents, _dtypes.string)
   _inputs_flat = [contents]
   _attrs = None

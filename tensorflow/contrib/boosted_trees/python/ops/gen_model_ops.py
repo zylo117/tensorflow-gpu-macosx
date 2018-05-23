@@ -40,8 +40,8 @@ def create_tree_ensemble_variable(tree_ensemble_handle, stamp_token, tree_ensemb
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "CreateTreeEnsembleVariable",
         tree_ensemble_handle=tree_ensemble_handle, stamp_token=stamp_token,
@@ -53,13 +53,14 @@ def create_tree_ensemble_variable(tree_ensemble_handle, stamp_token, tree_ensemb
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "CreateTreeEnsembleVariable", name,
-        _ctx._post_execution_callbacks, tree_ensemble_handle, stamp_token,
-        tree_ensemble_config)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "CreateTreeEnsembleVariable", name, _ctx._post_execution_callbacks,
+        tree_ensemble_handle, stamp_token, tree_ensemble_config)
       return _result
     except _core._FallbackException:
       return create_tree_ensemble_variable_eager_fallback(
-          tree_ensemble_handle, stamp_token, tree_ensemble_config, name=name)
+          tree_ensemble_handle, stamp_token, tree_ensemble_config, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -68,11 +69,11 @@ def create_tree_ensemble_variable(tree_ensemble_handle, stamp_token, tree_ensemb
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def create_tree_ensemble_variable_eager_fallback(tree_ensemble_handle, stamp_token, tree_ensemble_config, name=None):
+def create_tree_ensemble_variable_eager_fallback(tree_ensemble_handle, stamp_token, tree_ensemble_config, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function create_tree_ensemble_variable
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   tree_ensemble_handle = _ops.convert_to_tensor(tree_ensemble_handle, _dtypes.resource)
   stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
   tree_ensemble_config = _ops.convert_to_tensor(tree_ensemble_config, _dtypes.string)
@@ -89,7 +90,7 @@ _ops.RegisterShape("CreateTreeEnsembleVariable")(None)
 
 @tf_export('decision_tree_ensemble_resource_handle_op')
 def decision_tree_ensemble_resource_handle_op(container="", shared_name="", name=None):
-  r"""Creates a handle to a DecisionTreeEnsembleResource
+  r"""TODO: add doc.
 
   Args:
     container: An optional `string`. Defaults to `""`.
@@ -99,8 +100,8 @@ def decision_tree_ensemble_resource_handle_op(container="", shared_name="", name
   Returns:
     A `Tensor` of type `resource`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if container is None:
       container = ""
     container = _execute.make_str(container, "container")
@@ -122,14 +123,14 @@ def decision_tree_ensemble_resource_handle_op(container="", shared_name="", name
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name,
+        _ctx._context_handle, _ctx._eager_context.device_name,
         "DecisionTreeEnsembleResourceHandleOp", name,
         _ctx._post_execution_callbacks, "container", container, "shared_name",
         shared_name)
       return _result
     except _core._FallbackException:
       return decision_tree_ensemble_resource_handle_op_eager_fallback(
-          container=container, shared_name=shared_name, name=name)
+          container=container, shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -138,11 +139,11 @@ def decision_tree_ensemble_resource_handle_op(container="", shared_name="", name
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def decision_tree_ensemble_resource_handle_op_eager_fallback(container="", shared_name="", name=None):
+def decision_tree_ensemble_resource_handle_op_eager_fallback(container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function decision_tree_ensemble_resource_handle_op
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if container is None:
     container = ""
   container = _execute.make_str(container, "container")
@@ -180,8 +181,8 @@ def tree_ensemble_deserialize(tree_ensemble_handle, stamp_token, tree_ensemble_c
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "TreeEnsembleDeserialize", tree_ensemble_handle=tree_ensemble_handle,
         stamp_token=stamp_token, tree_ensemble_config=tree_ensemble_config,
@@ -193,13 +194,14 @@ def tree_ensemble_deserialize(tree_ensemble_handle, stamp_token, tree_ensemble_c
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TreeEnsembleDeserialize", name,
-        _ctx._post_execution_callbacks, tree_ensemble_handle, stamp_token,
-        tree_ensemble_config)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TreeEnsembleDeserialize", name, _ctx._post_execution_callbacks,
+        tree_ensemble_handle, stamp_token, tree_ensemble_config)
       return _result
     except _core._FallbackException:
       return tree_ensemble_deserialize_eager_fallback(
-          tree_ensemble_handle, stamp_token, tree_ensemble_config, name=name)
+          tree_ensemble_handle, stamp_token, tree_ensemble_config, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -208,11 +210,11 @@ def tree_ensemble_deserialize(tree_ensemble_handle, stamp_token, tree_ensemble_c
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tree_ensemble_deserialize_eager_fallback(tree_ensemble_handle, stamp_token, tree_ensemble_config, name=None):
+def tree_ensemble_deserialize_eager_fallback(tree_ensemble_handle, stamp_token, tree_ensemble_config, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tree_ensemble_deserialize
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   tree_ensemble_handle = _ops.convert_to_tensor(tree_ensemble_handle, _dtypes.resource)
   stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
   tree_ensemble_config = _ops.convert_to_tensor(tree_ensemble_config, _dtypes.string)
@@ -238,8 +240,8 @@ def tree_ensemble_is_initialized_op(tree_ensemble_handle, name=None):
   Returns:
     A `Tensor` of type `bool`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "TreeEnsembleIsInitializedOp",
         tree_ensemble_handle=tree_ensemble_handle, name=name)
@@ -254,12 +256,13 @@ def tree_ensemble_is_initialized_op(tree_ensemble_handle, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TreeEnsembleIsInitializedOp", name,
-        _ctx._post_execution_callbacks, tree_ensemble_handle)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TreeEnsembleIsInitializedOp", name, _ctx._post_execution_callbacks,
+        tree_ensemble_handle)
       return _result
     except _core._FallbackException:
       return tree_ensemble_is_initialized_op_eager_fallback(
-          tree_ensemble_handle, name=name)
+          tree_ensemble_handle, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -268,11 +271,11 @@ def tree_ensemble_is_initialized_op(tree_ensemble_handle, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tree_ensemble_is_initialized_op_eager_fallback(tree_ensemble_handle, name=None):
+def tree_ensemble_is_initialized_op_eager_fallback(tree_ensemble_handle, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tree_ensemble_is_initialized_op
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   tree_ensemble_handle = _ops.convert_to_tensor(tree_ensemble_handle, _dtypes.resource)
   _inputs_flat = [tree_ensemble_handle]
   _attrs = None
@@ -307,8 +310,8 @@ def tree_ensemble_serialize(tree_ensemble_handle, name=None):
     stamp_token: A `Tensor` of type `int64`. Stamp token of the tree ensemble resource.
     tree_ensemble_config: A `Tensor` of type `string`. Serialized proto of the ensemble.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "TreeEnsembleSerialize", tree_ensemble_handle=tree_ensemble_handle,
         name=name)
@@ -323,13 +326,14 @@ def tree_ensemble_serialize(tree_ensemble_handle, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TreeEnsembleSerialize", name,
-        _ctx._post_execution_callbacks, tree_ensemble_handle)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TreeEnsembleSerialize", name, _ctx._post_execution_callbacks,
+        tree_ensemble_handle)
       _result = _TreeEnsembleSerializeOutput._make(_result)
       return _result
     except _core._FallbackException:
       return tree_ensemble_serialize_eager_fallback(
-          tree_ensemble_handle, name=name)
+          tree_ensemble_handle, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -338,11 +342,11 @@ def tree_ensemble_serialize(tree_ensemble_handle, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tree_ensemble_serialize_eager_fallback(tree_ensemble_handle, name=None):
+def tree_ensemble_serialize_eager_fallback(tree_ensemble_handle, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tree_ensemble_serialize
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   tree_ensemble_handle = _ops.convert_to_tensor(tree_ensemble_handle, _dtypes.resource)
   _inputs_flat = [tree_ensemble_handle]
   _attrs = None
@@ -368,8 +372,8 @@ def tree_ensemble_stamp_token(tree_ensemble_handle, name=None):
   Returns:
     A `Tensor` of type `int64`. Stamp token of the tree ensemble resource.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "TreeEnsembleStampToken", tree_ensemble_handle=tree_ensemble_handle,
         name=name)
@@ -384,12 +388,13 @@ def tree_ensemble_stamp_token(tree_ensemble_handle, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TreeEnsembleStampToken", name,
-        _ctx._post_execution_callbacks, tree_ensemble_handle)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TreeEnsembleStampToken", name, _ctx._post_execution_callbacks,
+        tree_ensemble_handle)
       return _result
     except _core._FallbackException:
       return tree_ensemble_stamp_token_eager_fallback(
-          tree_ensemble_handle, name=name)
+          tree_ensemble_handle, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -398,11 +403,11 @@ def tree_ensemble_stamp_token(tree_ensemble_handle, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tree_ensemble_stamp_token_eager_fallback(tree_ensemble_handle, name=None):
+def tree_ensemble_stamp_token_eager_fallback(tree_ensemble_handle, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tree_ensemble_stamp_token
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   tree_ensemble_handle = _ops.convert_to_tensor(tree_ensemble_handle, _dtypes.resource)
   _inputs_flat = [tree_ensemble_handle]
   _attrs = None
@@ -444,8 +449,8 @@ def tree_ensemble_used_handlers(tree_ensemble_handle, stamp_token, num_all_handl
     used_handlers_mask: A `Tensor` of type `bool`. A boolean vector of showing which handlers are used in the
       model.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     num_all_handlers = _execute.make_int(num_all_handlers, "num_all_handlers")
     _, _, _op = _op_def_lib._apply_op_helper(
         "TreeEnsembleUsedHandlers", tree_ensemble_handle=tree_ensemble_handle,
@@ -461,15 +466,16 @@ def tree_ensemble_used_handlers(tree_ensemble_handle, stamp_token, num_all_handl
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TreeEnsembleUsedHandlers", name,
-        _ctx._post_execution_callbacks, tree_ensemble_handle, stamp_token,
-        "num_all_handlers", num_all_handlers)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TreeEnsembleUsedHandlers", name, _ctx._post_execution_callbacks,
+        tree_ensemble_handle, stamp_token, "num_all_handlers",
+        num_all_handlers)
       _result = _TreeEnsembleUsedHandlersOutput._make(_result)
       return _result
     except _core._FallbackException:
       return tree_ensemble_used_handlers_eager_fallback(
           tree_ensemble_handle, stamp_token,
-          num_all_handlers=num_all_handlers, name=name)
+          num_all_handlers=num_all_handlers, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -478,11 +484,11 @@ def tree_ensemble_used_handlers(tree_ensemble_handle, stamp_token, num_all_handl
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tree_ensemble_used_handlers_eager_fallback(tree_ensemble_handle, stamp_token, num_all_handlers, name=None):
+def tree_ensemble_used_handlers_eager_fallback(tree_ensemble_handle, stamp_token, num_all_handlers, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tree_ensemble_used_handlers
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   num_all_handlers = _execute.make_int(num_all_handlers, "num_all_handlers")
   tree_ensemble_handle = _ops.convert_to_tensor(tree_ensemble_handle, _dtypes.resource)
   stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)

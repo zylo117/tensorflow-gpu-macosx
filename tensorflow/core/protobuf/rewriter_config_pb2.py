@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='tensorflow/core/protobuf/rewriter_config.proto',
   package='tensorflow',
   syntax='proto3',
-  serialized_pb=_b('\n.tensorflow/core/protobuf/rewriter_config.proto\x12\ntensorflow\";\n\x13\x41utoParallelOptions\x12\x0e\n\x06\x65nable\x18\x01 \x01(\x08\x12\x14\n\x0cnum_replicas\x18\x02 \x01(\x05\"\xcc\x06\n\x0eRewriterConfig\x12;\n\x10layout_optimizer\x18\x01 \x01(\x0e\x32!.tensorflow.RewriterConfig.Toggle\x12;\n\x10\x63onstant_folding\x18\x03 \x01(\x0e\x32!.tensorflow.RewriterConfig.Toggle\x12\x42\n\x17\x61rithmetic_optimization\x18\x07 \x01(\x0e\x32!.tensorflow.RewriterConfig.Toggle\x12\x42\n\x17\x64\x65pendency_optimization\x18\x08 \x01(\x0e\x32!.tensorflow.RewriterConfig.Toggle\x12<\n\x11loop_optimization\x18\t \x01(\x0e\x32!.tensorflow.RewriterConfig.Toggle\x12@\n\x15\x66unction_optimization\x18\n \x01(\x0e\x32!.tensorflow.RewriterConfig.Toggle\x12\x1d\n\x15\x64isable_model_pruning\x18\x02 \x01(\x08\x12\x42\n\x13memory_optimization\x18\x04 \x01(\x0e\x32%.tensorflow.RewriterConfig.MemOptType\x12/\n\'memory_optimizer_target_node_name_scope\x18\x06 \x01(\t\x12\x36\n\rauto_parallel\x18\x05 \x01(\x0b\x32\x1f.tensorflow.AutoParallelOptions\x12\x12\n\noptimizers\x18\x64 \x03(\t\"6\n\x06Toggle\x12\x0b\n\x07\x44\x45\x46\x41ULT\x10\x00\x12\x06\n\x02ON\x10\x01\x12\x07\n\x03OFF\x10\x02\x12\x0e\n\nAGGRESSIVE\x10\x03\"\x9f\x01\n\nMemOptType\x12\x13\n\x0f\x44\x45\x46\x41ULT_MEM_OPT\x10\x00\x12\x0e\n\nNO_MEM_OPT\x10\x01\x12\n\n\x06MANUAL\x10\x02\x12\x17\n\x13SWAPPING_HEURISTICS\x10\x04\x12\x1c\n\x18RECOMPUTATION_HEURISTICS\x10\x05\x12\x19\n\x15SCHEDULING_HEURISTICS\x10\x06\x12\x0e\n\nHEURISTICS\x10\x03\x42\x35\n\x18org.tensorflow.frameworkB\x14RewriterConfigProtosP\x01\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n.tensorflow/core/protobuf/rewriter_config.proto\x12\ntensorflow\";\n\x13\x41utoParallelOptions\x12\x0e\n\x06\x65nable\x18\x01 \x01(\x08\x12\x14\n\x0cnum_replicas\x18\x02 \x01(\x05\"\x96\x08\n\x0eRewriterConfig\x12;\n\x10layout_optimizer\x18\x01 \x01(\x0e\x32!.tensorflow.RewriterConfig.Toggle\x12;\n\x10\x63onstant_folding\x18\x03 \x01(\x0e\x32!.tensorflow.RewriterConfig.Toggle\x12\x42\n\x17\x61rithmetic_optimization\x18\x07 \x01(\x0e\x32!.tensorflow.RewriterConfig.Toggle\x12\x42\n\x17\x64\x65pendency_optimization\x18\x08 \x01(\x0e\x32!.tensorflow.RewriterConfig.Toggle\x12<\n\x11loop_optimization\x18\t \x01(\x0e\x32!.tensorflow.RewriterConfig.Toggle\x12@\n\x15\x66unction_optimization\x18\n \x01(\x0e\x32!.tensorflow.RewriterConfig.Toggle\x12\x39\n\x0e\x64\x65\x62ug_stripper\x18\x0b \x01(\x0e\x32!.tensorflow.RewriterConfig.Toggle\x12\x1d\n\x15\x64isable_model_pruning\x18\x02 \x01(\x08\x12O\n\x19meta_optimizer_iterations\x18\x0c \x01(\x0e\x32,.tensorflow.RewriterConfig.NumIterationsType\x12\x42\n\x13memory_optimization\x18\x04 \x01(\x0e\x32%.tensorflow.RewriterConfig.MemOptType\x12/\n\'memory_optimizer_target_node_name_scope\x18\x06 \x01(\t\x12\x36\n\rauto_parallel\x18\x05 \x01(\x0b\x32\x1f.tensorflow.AutoParallelOptions\x12\x12\n\noptimizers\x18\x64 \x03(\t\"6\n\x06Toggle\x12\x0b\n\x07\x44\x45\x46\x41ULT\x10\x00\x12\x06\n\x02ON\x10\x01\x12\x07\n\x03OFF\x10\x02\x12\x0e\n\nAGGRESSIVE\x10\x03\"<\n\x11NumIterationsType\x12\x15\n\x11\x44\x45\x46\x41ULT_NUM_ITERS\x10\x00\x12\x07\n\x03ONE\x10\x01\x12\x07\n\x03TWO\x10\x02\"\x9f\x01\n\nMemOptType\x12\x13\n\x0f\x44\x45\x46\x41ULT_MEM_OPT\x10\x00\x12\x0e\n\nNO_MEM_OPT\x10\x01\x12\n\n\x06MANUAL\x10\x02\x12\x17\n\x13SWAPPING_HEURISTICS\x10\x04\x12\x1c\n\x18RECOMPUTATION_HEURISTICS\x10\x05\x12\x19\n\x15SCHEDULING_HEURISTICS\x10\x06\x12\x0e\n\nHEURISTICS\x10\x03\x42\x35\n\x18org.tensorflow.frameworkB\x14RewriterConfigProtosP\x01\xf8\x01\x01\x62\x06proto3')
 )
 
 
@@ -49,10 +49,36 @@ _REWRITERCONFIG_TOGGLE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=752,
-  serialized_end=806,
+  serialized_start=892,
+  serialized_end=946,
 )
 _sym_db.RegisterEnumDescriptor(_REWRITERCONFIG_TOGGLE)
+
+_REWRITERCONFIG_NUMITERATIONSTYPE = _descriptor.EnumDescriptor(
+  name='NumIterationsType',
+  full_name='tensorflow.RewriterConfig.NumIterationsType',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='DEFAULT_NUM_ITERS', index=0, number=0,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='ONE', index=1, number=1,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='TWO', index=2, number=2,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=948,
+  serialized_end=1008,
+)
+_sym_db.RegisterEnumDescriptor(_REWRITERCONFIG_NUMITERATIONSTYPE)
 
 _REWRITERCONFIG_MEMOPTTYPE = _descriptor.EnumDescriptor(
   name='MemOptType',
@@ -91,8 +117,8 @@ _REWRITERCONFIG_MEMOPTTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=809,
-  serialized_end=968,
+  serialized_start=1011,
+  serialized_end=1170,
 )
 _sym_db.RegisterEnumDescriptor(_REWRITERCONFIG_MEMOPTTYPE)
 
@@ -185,35 +211,49 @@ _REWRITERCONFIG = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='disable_model_pruning', full_name='tensorflow.RewriterConfig.disable_model_pruning', index=6,
+      name='debug_stripper', full_name='tensorflow.RewriterConfig.debug_stripper', index=6,
+      number=11, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='disable_model_pruning', full_name='tensorflow.RewriterConfig.disable_model_pruning', index=7,
       number=2, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='memory_optimization', full_name='tensorflow.RewriterConfig.memory_optimization', index=7,
+      name='meta_optimizer_iterations', full_name='tensorflow.RewriterConfig.meta_optimizer_iterations', index=8,
+      number=12, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='memory_optimization', full_name='tensorflow.RewriterConfig.memory_optimization', index=9,
       number=4, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='memory_optimizer_target_node_name_scope', full_name='tensorflow.RewriterConfig.memory_optimizer_target_node_name_scope', index=8,
+      name='memory_optimizer_target_node_name_scope', full_name='tensorflow.RewriterConfig.memory_optimizer_target_node_name_scope', index=10,
       number=6, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='auto_parallel', full_name='tensorflow.RewriterConfig.auto_parallel', index=9,
+      name='auto_parallel', full_name='tensorflow.RewriterConfig.auto_parallel', index=11,
       number=5, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='optimizers', full_name='tensorflow.RewriterConfig.optimizers', index=10,
+      name='optimizers', full_name='tensorflow.RewriterConfig.optimizers', index=12,
       number=100, type=9, cpp_type=9, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -225,6 +265,7 @@ _REWRITERCONFIG = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
     _REWRITERCONFIG_TOGGLE,
+    _REWRITERCONFIG_NUMITERATIONSTYPE,
     _REWRITERCONFIG_MEMOPTTYPE,
   ],
   options=None,
@@ -234,7 +275,7 @@ _REWRITERCONFIG = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=124,
-  serialized_end=968,
+  serialized_end=1170,
 )
 
 _REWRITERCONFIG.fields_by_name['layout_optimizer'].enum_type = _REWRITERCONFIG_TOGGLE
@@ -243,9 +284,12 @@ _REWRITERCONFIG.fields_by_name['arithmetic_optimization'].enum_type = _REWRITERC
 _REWRITERCONFIG.fields_by_name['dependency_optimization'].enum_type = _REWRITERCONFIG_TOGGLE
 _REWRITERCONFIG.fields_by_name['loop_optimization'].enum_type = _REWRITERCONFIG_TOGGLE
 _REWRITERCONFIG.fields_by_name['function_optimization'].enum_type = _REWRITERCONFIG_TOGGLE
+_REWRITERCONFIG.fields_by_name['debug_stripper'].enum_type = _REWRITERCONFIG_TOGGLE
+_REWRITERCONFIG.fields_by_name['meta_optimizer_iterations'].enum_type = _REWRITERCONFIG_NUMITERATIONSTYPE
 _REWRITERCONFIG.fields_by_name['memory_optimization'].enum_type = _REWRITERCONFIG_MEMOPTTYPE
 _REWRITERCONFIG.fields_by_name['auto_parallel'].message_type = _AUTOPARALLELOPTIONS
 _REWRITERCONFIG_TOGGLE.containing_type = _REWRITERCONFIG
+_REWRITERCONFIG_NUMITERATIONSTYPE.containing_type = _REWRITERCONFIG
 _REWRITERCONFIG_MEMOPTTYPE.containing_type = _REWRITERCONFIG
 DESCRIPTOR.message_types_by_name['AutoParallelOptions'] = _AUTOPARALLELOPTIONS
 DESCRIPTOR.message_types_by_name['RewriterConfig'] = _REWRITERCONFIG

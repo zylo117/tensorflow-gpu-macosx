@@ -43,8 +43,8 @@ def reinterpret_string_to_float(input_data, name=None):
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ReinterpretStringToFloat", input_data=input_data, name=name)
     _result = _op.outputs[:]
@@ -58,12 +58,13 @@ def reinterpret_string_to_float(input_data, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ReinterpretStringToFloat", name,
-        _ctx._post_execution_callbacks, input_data)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ReinterpretStringToFloat", name, _ctx._post_execution_callbacks,
+        input_data)
       return _result
     except _core._FallbackException:
       return reinterpret_string_to_float_eager_fallback(
-          input_data, name=name)
+          input_data, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -72,11 +73,11 @@ def reinterpret_string_to_float(input_data, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def reinterpret_string_to_float_eager_fallback(input_data, name=None):
+def reinterpret_string_to_float_eager_fallback(input_data, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function reinterpret_string_to_float
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   input_data = _ops.convert_to_tensor(input_data, _dtypes.string)
   _inputs_flat = [input_data]
   _attrs = None
@@ -114,8 +115,8 @@ def scatter_add_ndim(input, indices, deltas, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ScatterAddNdim", input=input, indices=indices, deltas=deltas,
         name=name)

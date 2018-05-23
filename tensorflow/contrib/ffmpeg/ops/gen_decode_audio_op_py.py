@@ -50,8 +50,8 @@ def decode_audio(contents, file_format, samples_per_second, channel_count, name=
     is time and dimension 1 is the channel. If ffmpeg fails to decode the audio
     then an empty tensor will be returned.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     file_format = _execute.make_str(file_format, "file_format")
     samples_per_second = _execute.make_int(samples_per_second, "samples_per_second")
     channel_count = _execute.make_int(channel_count, "channel_count")
@@ -72,16 +72,16 @@ def decode_audio(contents, file_format, samples_per_second, channel_count, name=
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DecodeAudio", name,
-        _ctx._post_execution_callbacks, contents, "file_format", file_format,
-        "samples_per_second", samples_per_second, "channel_count",
-        channel_count)
+        _ctx._context_handle, _ctx._eager_context.device_name, "DecodeAudio",
+        name, _ctx._post_execution_callbacks, contents, "file_format",
+        file_format, "samples_per_second", samples_per_second,
+        "channel_count", channel_count)
       return _result
     except _core._FallbackException:
       return decode_audio_eager_fallback(
           contents, file_format=file_format,
           samples_per_second=samples_per_second, channel_count=channel_count,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -90,11 +90,11 @@ def decode_audio(contents, file_format, samples_per_second, channel_count, name=
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def decode_audio_eager_fallback(contents, file_format, samples_per_second, channel_count, name=None):
+def decode_audio_eager_fallback(contents, file_format, samples_per_second, channel_count, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function decode_audio
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   file_format = _execute.make_str(file_format, "file_format")
   samples_per_second = _execute.make_int(samples_per_second, "samples_per_second")
   channel_count = _execute.make_int(channel_count, "channel_count")
@@ -144,8 +144,8 @@ def decode_audio_v2(contents, file_format, samples_per_second, channel_count, st
     Dimension 0 is time and dimension 1 is the channel. If ffmpeg fails
     to decode the audio then an empty tensor will be returned.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if stream is None:
       stream = ""
     stream = _execute.make_str(stream, "stream")
@@ -164,14 +164,14 @@ def decode_audio_v2(contents, file_format, samples_per_second, channel_count, st
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DecodeAudioV2", name,
-        _ctx._post_execution_callbacks, contents, file_format,
-        samples_per_second, channel_count, "stream", stream)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "DecodeAudioV2", name, _ctx._post_execution_callbacks, contents,
+        file_format, samples_per_second, channel_count, "stream", stream)
       return _result
     except _core._FallbackException:
       return decode_audio_v2_eager_fallback(
           contents, file_format, samples_per_second, channel_count,
-          stream=stream, name=name)
+          stream=stream, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -180,11 +180,11 @@ def decode_audio_v2(contents, file_format, samples_per_second, channel_count, st
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def decode_audio_v2_eager_fallback(contents, file_format, samples_per_second, channel_count, stream="", name=None):
+def decode_audio_v2_eager_fallback(contents, file_format, samples_per_second, channel_count, stream="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function decode_audio_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if stream is None:
     stream = ""
   stream = _execute.make_str(stream, "stream")

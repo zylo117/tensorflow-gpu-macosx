@@ -54,8 +54,8 @@ def apply_adadelta(var, accum, accum_update, lr, rho, epsilon, grad, use_locking
   Returns:
     A mutable `Tensor`. Has the same type as `var`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -101,8 +101,8 @@ def apply_adagrad(var, accum, lr, grad, use_locking=False, name=None):
   Returns:
     A mutable `Tensor`. Has the same type as `var`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -151,8 +151,8 @@ def apply_adagrad_da(var, gradient_accumulator, gradient_squared_accumulator, gr
   Returns:
     A mutable `Tensor`. Has the same type as `var`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -215,8 +215,8 @@ def apply_adam(var, m, v, beta1_power, beta2_power, lr, beta1, beta2, epsilon, g
   Returns:
     A mutable `Tensor`. Has the same type as `var`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -272,8 +272,8 @@ def apply_add_sign(var, m, lr, alpha, sign_decay, beta, grad, use_locking=False,
   Returns:
     A mutable `Tensor`. Has the same type as `var`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -344,8 +344,8 @@ def apply_centered_rms_prop(var, mg, ms, mom, lr, rho, momentum, epsilon, grad, 
   Returns:
     A mutable `Tensor`. Has the same type as `var`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -402,8 +402,8 @@ def apply_ftrl(var, accum, linear, grad, lr, l1, l2, lr_power, use_locking=False
   Returns:
     A mutable `Tensor`. Has the same type as `var`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -462,8 +462,8 @@ def apply_ftrl_v2(var, accum, linear, grad, lr, l1, l2, l2_shrinkage, lr_power, 
   Returns:
     A mutable `Tensor`. Has the same type as `var`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -503,8 +503,8 @@ def apply_gradient_descent(var, alpha, delta, use_locking=False, name=None):
   Returns:
     A mutable `Tensor`. Has the same type as `var`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -557,8 +557,8 @@ def apply_momentum(var, accum, lr, grad, momentum, use_locking=False, use_nester
   Returns:
     A mutable `Tensor`. Has the same type as `var`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -613,8 +613,8 @@ def apply_power_sign(var, m, lr, logbase, sign_decay, beta, grad, use_locking=Fa
   Returns:
     A mutable `Tensor`. Has the same type as `var`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -664,8 +664,8 @@ def apply_proximal_adagrad(var, accum, lr, l1, l2, grad, use_locking=False, name
   Returns:
     A mutable `Tensor`. Has the same type as `var`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -711,8 +711,8 @@ def apply_proximal_gradient_descent(var, alpha, l1, l2, delta, use_locking=False
   Returns:
     A mutable `Tensor`. Has the same type as `var`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -772,8 +772,8 @@ def apply_rms_prop(var, ms, mom, lr, rho, momentum, epsilon, grad, use_locking=F
   Returns:
     A mutable `Tensor`. Has the same type as `var`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -823,8 +823,8 @@ def resource_apply_adadelta(var, accum, accum_update, lr, rho, epsilon, grad, us
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -839,14 +839,15 @@ def resource_apply_adadelta(var, accum, accum_update, lr, rho, epsilon, grad, us
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceApplyAdadelta", name,
-        _ctx._post_execution_callbacks, var, accum, accum_update, lr, rho,
-        epsilon, grad, "use_locking", use_locking)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceApplyAdadelta", name, _ctx._post_execution_callbacks, var,
+        accum, accum_update, lr, rho, epsilon, grad, "use_locking",
+        use_locking)
       return _result
     except _core._FallbackException:
       return resource_apply_adadelta_eager_fallback(
           var, accum, accum_update, lr, rho, epsilon, grad,
-          use_locking=use_locking, name=name)
+          use_locking=use_locking, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -855,11 +856,11 @@ def resource_apply_adadelta(var, accum, accum_update, lr, rho, epsilon, grad, us
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_apply_adadelta_eager_fallback(var, accum, accum_update, lr, rho, epsilon, grad, use_locking=False, name=None):
+def resource_apply_adadelta_eager_fallback(var, accum, accum_update, lr, rho, epsilon, grad, use_locking=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_apply_adadelta
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if use_locking is None:
     use_locking = False
   use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -897,8 +898,8 @@ def resource_apply_adagrad(var, accum, lr, grad, use_locking=False, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -912,13 +913,13 @@ def resource_apply_adagrad(var, accum, lr, grad, use_locking=False, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceApplyAdagrad", name,
-        _ctx._post_execution_callbacks, var, accum, lr, grad, "use_locking",
-        use_locking)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceApplyAdagrad", name, _ctx._post_execution_callbacks, var,
+        accum, lr, grad, "use_locking", use_locking)
       return _result
     except _core._FallbackException:
       return resource_apply_adagrad_eager_fallback(
-          var, accum, lr, grad, use_locking=use_locking, name=name)
+          var, accum, lr, grad, use_locking=use_locking, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -927,11 +928,11 @@ def resource_apply_adagrad(var, accum, lr, grad, use_locking=False, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_apply_adagrad_eager_fallback(var, accum, lr, grad, use_locking=False, name=None):
+def resource_apply_adagrad_eager_fallback(var, accum, lr, grad, use_locking=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_apply_adagrad
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if use_locking is None:
     use_locking = False
   use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -974,8 +975,8 @@ def resource_apply_adagrad_da(var, gradient_accumulator, gradient_squared_accumu
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -992,15 +993,15 @@ def resource_apply_adagrad_da(var, gradient_accumulator, gradient_squared_accumu
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceApplyAdagradDA", name,
-        _ctx._post_execution_callbacks, var, gradient_accumulator,
-        gradient_squared_accumulator, grad, lr, l1, l2, global_step,
-        "use_locking", use_locking)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceApplyAdagradDA", name, _ctx._post_execution_callbacks, var,
+        gradient_accumulator, gradient_squared_accumulator, grad, lr, l1, l2,
+        global_step, "use_locking", use_locking)
       return _result
     except _core._FallbackException:
       return resource_apply_adagrad_da_eager_fallback(
           var, gradient_accumulator, gradient_squared_accumulator, grad, lr,
-          l1, l2, global_step, use_locking=use_locking, name=name)
+          l1, l2, global_step, use_locking=use_locking, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1009,11 +1010,11 @@ def resource_apply_adagrad_da(var, gradient_accumulator, gradient_squared_accumu
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_apply_adagrad_da_eager_fallback(var, gradient_accumulator, gradient_squared_accumulator, grad, lr, l1, l2, global_step, use_locking=False, name=None):
+def resource_apply_adagrad_da_eager_fallback(var, gradient_accumulator, gradient_squared_accumulator, grad, lr, l1, l2, global_step, use_locking=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_apply_adagrad_da
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if use_locking is None:
     use_locking = False
   use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -1068,8 +1069,8 @@ def resource_apply_adam(var, m, v, beta1_power, beta2_power, lr, beta1, beta2, e
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -1088,15 +1089,16 @@ def resource_apply_adam(var, m, v, beta1_power, beta2_power, lr, beta1, beta2, e
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceApplyAdam", name,
-        _ctx._post_execution_callbacks, var, m, v, beta1_power, beta2_power,
-        lr, beta1, beta2, epsilon, grad, "use_locking", use_locking,
-        "use_nesterov", use_nesterov)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceApplyAdam", name, _ctx._post_execution_callbacks, var, m, v,
+        beta1_power, beta2_power, lr, beta1, beta2, epsilon, grad,
+        "use_locking", use_locking, "use_nesterov", use_nesterov)
       return _result
     except _core._FallbackException:
       return resource_apply_adam_eager_fallback(
           var, m, v, beta1_power, beta2_power, lr, beta1, beta2, epsilon,
-          grad, use_locking=use_locking, use_nesterov=use_nesterov, name=name)
+          grad, use_locking=use_locking, use_nesterov=use_nesterov, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1105,11 +1107,11 @@ def resource_apply_adam(var, m, v, beta1_power, beta2_power, lr, beta1, beta2, e
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_apply_adam_eager_fallback(var, m, v, beta1_power, beta2_power, lr, beta1, beta2, epsilon, grad, use_locking=False, use_nesterov=False, name=None):
+def resource_apply_adam_eager_fallback(var, m, v, beta1_power, beta2_power, lr, beta1, beta2, epsilon, grad, use_locking=False, use_nesterov=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_apply_adam
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if use_locking is None:
     use_locking = False
   use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -1155,8 +1157,8 @@ def resource_apply_add_sign(var, m, lr, alpha, sign_decay, beta, grad, use_locki
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -1171,14 +1173,14 @@ def resource_apply_add_sign(var, m, lr, alpha, sign_decay, beta, grad, use_locki
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceApplyAddSign", name,
-        _ctx._post_execution_callbacks, var, m, lr, alpha, sign_decay, beta,
-        grad, "use_locking", use_locking)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceApplyAddSign", name, _ctx._post_execution_callbacks, var, m,
+        lr, alpha, sign_decay, beta, grad, "use_locking", use_locking)
       return _result
     except _core._FallbackException:
       return resource_apply_add_sign_eager_fallback(
           var, m, lr, alpha, sign_decay, beta, grad, use_locking=use_locking,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1187,11 +1189,11 @@ def resource_apply_add_sign(var, m, lr, alpha, sign_decay, beta, grad, use_locki
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_apply_add_sign_eager_fallback(var, m, lr, alpha, sign_decay, beta, grad, use_locking=False, name=None):
+def resource_apply_add_sign_eager_fallback(var, m, lr, alpha, sign_decay, beta, grad, use_locking=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_apply_add_sign
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if use_locking is None:
     use_locking = False
   use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -1251,8 +1253,8 @@ def resource_apply_centered_rms_prop(var, mg, ms, mom, lr, rho, momentum, epsilo
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -1267,14 +1269,15 @@ def resource_apply_centered_rms_prop(var, mg, ms, mom, lr, rho, momentum, epsilo
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceApplyCenteredRMSProp", name,
-        _ctx._post_execution_callbacks, var, mg, ms, mom, lr, rho, momentum,
-        epsilon, grad, "use_locking", use_locking)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceApplyCenteredRMSProp", name, _ctx._post_execution_callbacks,
+        var, mg, ms, mom, lr, rho, momentum, epsilon, grad, "use_locking",
+        use_locking)
       return _result
     except _core._FallbackException:
       return resource_apply_centered_rms_prop_eager_fallback(
           var, mg, ms, mom, lr, rho, momentum, epsilon, grad,
-          use_locking=use_locking, name=name)
+          use_locking=use_locking, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1283,11 +1286,11 @@ def resource_apply_centered_rms_prop(var, mg, ms, mom, lr, rho, momentum, epsilo
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_apply_centered_rms_prop_eager_fallback(var, mg, ms, mom, lr, rho, momentum, epsilon, grad, use_locking=False, name=None):
+def resource_apply_centered_rms_prop_eager_fallback(var, mg, ms, mom, lr, rho, momentum, epsilon, grad, use_locking=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_apply_centered_rms_prop
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if use_locking is None:
     use_locking = False
   use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -1338,8 +1341,8 @@ def resource_apply_ftrl(var, accum, linear, grad, lr, l1, l2, lr_power, use_lock
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -1354,14 +1357,14 @@ def resource_apply_ftrl(var, accum, linear, grad, lr, l1, l2, lr_power, use_lock
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceApplyFtrl", name,
-        _ctx._post_execution_callbacks, var, accum, linear, grad, lr, l1, l2,
-        lr_power, "use_locking", use_locking)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceApplyFtrl", name, _ctx._post_execution_callbacks, var, accum,
+        linear, grad, lr, l1, l2, lr_power, "use_locking", use_locking)
       return _result
     except _core._FallbackException:
       return resource_apply_ftrl_eager_fallback(
           var, accum, linear, grad, lr, l1, l2, lr_power,
-          use_locking=use_locking, name=name)
+          use_locking=use_locking, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1370,11 +1373,11 @@ def resource_apply_ftrl(var, accum, linear, grad, lr, l1, l2, lr_power, use_lock
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_apply_ftrl_eager_fallback(var, accum, linear, grad, lr, l1, l2, lr_power, use_locking=False, name=None):
+def resource_apply_ftrl_eager_fallback(var, accum, linear, grad, lr, l1, l2, lr_power, use_locking=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_apply_ftrl
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if use_locking is None:
     use_locking = False
   use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -1426,8 +1429,8 @@ def resource_apply_ftrl_v2(var, accum, linear, grad, lr, l1, l2, l2_shrinkage, l
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -1442,14 +1445,15 @@ def resource_apply_ftrl_v2(var, accum, linear, grad, lr, l1, l2, l2_shrinkage, l
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceApplyFtrlV2", name,
-        _ctx._post_execution_callbacks, var, accum, linear, grad, lr, l1, l2,
-        l2_shrinkage, lr_power, "use_locking", use_locking)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceApplyFtrlV2", name, _ctx._post_execution_callbacks, var,
+        accum, linear, grad, lr, l1, l2, l2_shrinkage, lr_power,
+        "use_locking", use_locking)
       return _result
     except _core._FallbackException:
       return resource_apply_ftrl_v2_eager_fallback(
           var, accum, linear, grad, lr, l1, l2, l2_shrinkage, lr_power,
-          use_locking=use_locking, name=name)
+          use_locking=use_locking, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1458,11 +1462,11 @@ def resource_apply_ftrl_v2(var, accum, linear, grad, lr, l1, l2, l2_shrinkage, l
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_apply_ftrl_v2_eager_fallback(var, accum, linear, grad, lr, l1, l2, l2_shrinkage, lr_power, use_locking=False, name=None):
+def resource_apply_ftrl_v2_eager_fallback(var, accum, linear, grad, lr, l1, l2, l2_shrinkage, lr_power, use_locking=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_apply_ftrl_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if use_locking is None:
     use_locking = False
   use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -1495,8 +1499,8 @@ def resource_apply_gradient_descent(var, alpha, delta, use_locking=False, name=N
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -1510,13 +1514,13 @@ def resource_apply_gradient_descent(var, alpha, delta, use_locking=False, name=N
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceApplyGradientDescent", name,
-        _ctx._post_execution_callbacks, var, alpha, delta, "use_locking",
-        use_locking)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceApplyGradientDescent", name, _ctx._post_execution_callbacks,
+        var, alpha, delta, "use_locking", use_locking)
       return _result
     except _core._FallbackException:
       return resource_apply_gradient_descent_eager_fallback(
-          var, alpha, delta, use_locking=use_locking, name=name)
+          var, alpha, delta, use_locking=use_locking, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1525,11 +1529,11 @@ def resource_apply_gradient_descent(var, alpha, delta, use_locking=False, name=N
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_apply_gradient_descent_eager_fallback(var, alpha, delta, use_locking=False, name=None):
+def resource_apply_gradient_descent_eager_fallback(var, alpha, delta, use_locking=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_apply_gradient_descent
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if use_locking is None:
     use_locking = False
   use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -1574,8 +1578,8 @@ def resource_apply_momentum(var, accum, lr, grad, momentum, use_locking=False, u
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -1593,14 +1597,15 @@ def resource_apply_momentum(var, accum, lr, grad, momentum, use_locking=False, u
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceApplyMomentum", name,
-        _ctx._post_execution_callbacks, var, accum, lr, grad, momentum,
-        "use_locking", use_locking, "use_nesterov", use_nesterov)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceApplyMomentum", name, _ctx._post_execution_callbacks, var,
+        accum, lr, grad, momentum, "use_locking", use_locking, "use_nesterov",
+        use_nesterov)
       return _result
     except _core._FallbackException:
       return resource_apply_momentum_eager_fallback(
           var, accum, lr, grad, momentum, use_locking=use_locking,
-          use_nesterov=use_nesterov, name=name)
+          use_nesterov=use_nesterov, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1609,11 +1614,11 @@ def resource_apply_momentum(var, accum, lr, grad, momentum, use_locking=False, u
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_apply_momentum_eager_fallback(var, accum, lr, grad, momentum, use_locking=False, use_nesterov=False, name=None):
+def resource_apply_momentum_eager_fallback(var, accum, lr, grad, momentum, use_locking=False, use_nesterov=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_apply_momentum
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if use_locking is None:
     use_locking = False
   use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -1658,8 +1663,8 @@ def resource_apply_power_sign(var, m, lr, logbase, sign_decay, beta, grad, use_l
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -1674,14 +1679,14 @@ def resource_apply_power_sign(var, m, lr, logbase, sign_decay, beta, grad, use_l
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceApplyPowerSign", name,
-        _ctx._post_execution_callbacks, var, m, lr, logbase, sign_decay, beta,
-        grad, "use_locking", use_locking)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceApplyPowerSign", name, _ctx._post_execution_callbacks, var,
+        m, lr, logbase, sign_decay, beta, grad, "use_locking", use_locking)
       return _result
     except _core._FallbackException:
       return resource_apply_power_sign_eager_fallback(
           var, m, lr, logbase, sign_decay, beta, grad,
-          use_locking=use_locking, name=name)
+          use_locking=use_locking, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1690,11 +1695,11 @@ def resource_apply_power_sign(var, m, lr, logbase, sign_decay, beta, grad, use_l
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_apply_power_sign_eager_fallback(var, m, lr, logbase, sign_decay, beta, grad, use_locking=False, name=None):
+def resource_apply_power_sign_eager_fallback(var, m, lr, logbase, sign_decay, beta, grad, use_locking=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_apply_power_sign
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if use_locking is None:
     use_locking = False
   use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -1736,8 +1741,8 @@ def resource_apply_proximal_adagrad(var, accum, lr, l1, l2, grad, use_locking=Fa
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -1751,13 +1756,14 @@ def resource_apply_proximal_adagrad(var, accum, lr, l1, l2, grad, use_locking=Fa
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceApplyProximalAdagrad", name,
-        _ctx._post_execution_callbacks, var, accum, lr, l1, l2, grad,
-        "use_locking", use_locking)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceApplyProximalAdagrad", name, _ctx._post_execution_callbacks,
+        var, accum, lr, l1, l2, grad, "use_locking", use_locking)
       return _result
     except _core._FallbackException:
       return resource_apply_proximal_adagrad_eager_fallback(
-          var, accum, lr, l1, l2, grad, use_locking=use_locking, name=name)
+          var, accum, lr, l1, l2, grad, use_locking=use_locking, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1766,11 +1772,11 @@ def resource_apply_proximal_adagrad(var, accum, lr, l1, l2, grad, use_locking=Fa
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_apply_proximal_adagrad_eager_fallback(var, accum, lr, l1, l2, grad, use_locking=False, name=None):
+def resource_apply_proximal_adagrad_eager_fallback(var, accum, lr, l1, l2, grad, use_locking=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_apply_proximal_adagrad
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if use_locking is None:
     use_locking = False
   use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -1810,8 +1816,8 @@ def resource_apply_proximal_gradient_descent(var, alpha, l1, l2, delta, use_lock
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -1825,14 +1831,15 @@ def resource_apply_proximal_gradient_descent(var, alpha, l1, l2, delta, use_lock
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name,
+        _ctx._context_handle, _ctx._eager_context.device_name,
         "ResourceApplyProximalGradientDescent", name,
         _ctx._post_execution_callbacks, var, alpha, l1, l2, delta,
         "use_locking", use_locking)
       return _result
     except _core._FallbackException:
       return resource_apply_proximal_gradient_descent_eager_fallback(
-          var, alpha, l1, l2, delta, use_locking=use_locking, name=name)
+          var, alpha, l1, l2, delta, use_locking=use_locking, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1841,11 +1848,11 @@ def resource_apply_proximal_gradient_descent(var, alpha, l1, l2, delta, use_lock
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_apply_proximal_gradient_descent_eager_fallback(var, alpha, l1, l2, delta, use_locking=False, name=None):
+def resource_apply_proximal_gradient_descent_eager_fallback(var, alpha, l1, l2, delta, use_locking=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_apply_proximal_gradient_descent
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if use_locking is None:
     use_locking = False
   use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -1896,8 +1903,8 @@ def resource_apply_rms_prop(var, ms, mom, lr, rho, momentum, epsilon, grad, use_
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -1912,14 +1919,14 @@ def resource_apply_rms_prop(var, ms, mom, lr, rho, momentum, epsilon, grad, use_
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceApplyRMSProp", name,
-        _ctx._post_execution_callbacks, var, ms, mom, lr, rho, momentum,
-        epsilon, grad, "use_locking", use_locking)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceApplyRMSProp", name, _ctx._post_execution_callbacks, var, ms,
+        mom, lr, rho, momentum, epsilon, grad, "use_locking", use_locking)
       return _result
     except _core._FallbackException:
       return resource_apply_rms_prop_eager_fallback(
           var, ms, mom, lr, rho, momentum, epsilon, grad,
-          use_locking=use_locking, name=name)
+          use_locking=use_locking, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1928,11 +1935,11 @@ def resource_apply_rms_prop(var, ms, mom, lr, rho, momentum, epsilon, grad, use_
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_apply_rms_prop_eager_fallback(var, ms, mom, lr, rho, momentum, epsilon, grad, use_locking=False, name=None):
+def resource_apply_rms_prop_eager_fallback(var, ms, mom, lr, rho, momentum, epsilon, grad, use_locking=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_apply_rms_prop
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if use_locking is None:
     use_locking = False
   use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -1974,8 +1981,8 @@ def resource_sparse_apply_adadelta(var, accum, accum_update, lr, rho, epsilon, g
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -1990,14 +1997,15 @@ def resource_sparse_apply_adadelta(var, accum, accum_update, lr, rho, epsilon, g
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceSparseApplyAdadelta", name,
-        _ctx._post_execution_callbacks, var, accum, accum_update, lr, rho,
-        epsilon, grad, indices, "use_locking", use_locking)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceSparseApplyAdadelta", name, _ctx._post_execution_callbacks,
+        var, accum, accum_update, lr, rho, epsilon, grad, indices,
+        "use_locking", use_locking)
       return _result
     except _core._FallbackException:
       return resource_sparse_apply_adadelta_eager_fallback(
           var, accum, accum_update, lr, rho, epsilon, grad, indices,
-          use_locking=use_locking, name=name)
+          use_locking=use_locking, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2006,11 +2014,11 @@ def resource_sparse_apply_adadelta(var, accum, accum_update, lr, rho, epsilon, g
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_sparse_apply_adadelta_eager_fallback(var, accum, accum_update, lr, rho, epsilon, grad, indices, use_locking=False, name=None):
+def resource_sparse_apply_adadelta_eager_fallback(var, accum, accum_update, lr, rho, epsilon, grad, indices, use_locking=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_sparse_apply_adadelta
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if use_locking is None:
     use_locking = False
   use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -2054,8 +2062,8 @@ def resource_sparse_apply_adagrad(var, accum, lr, grad, indices, use_locking=Fal
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -2069,13 +2077,14 @@ def resource_sparse_apply_adagrad(var, accum, lr, grad, indices, use_locking=Fal
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceSparseApplyAdagrad", name,
-        _ctx._post_execution_callbacks, var, accum, lr, grad, indices,
-        "use_locking", use_locking)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceSparseApplyAdagrad", name, _ctx._post_execution_callbacks,
+        var, accum, lr, grad, indices, "use_locking", use_locking)
       return _result
     except _core._FallbackException:
       return resource_sparse_apply_adagrad_eager_fallback(
-          var, accum, lr, grad, indices, use_locking=use_locking, name=name)
+          var, accum, lr, grad, indices, use_locking=use_locking, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2084,11 +2093,11 @@ def resource_sparse_apply_adagrad(var, accum, lr, grad, indices, use_locking=Fal
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_sparse_apply_adagrad_eager_fallback(var, accum, lr, grad, indices, use_locking=False, name=None):
+def resource_sparse_apply_adagrad_eager_fallback(var, accum, lr, grad, indices, use_locking=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_sparse_apply_adagrad
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if use_locking is None:
     use_locking = False
   use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -2136,8 +2145,8 @@ def resource_sparse_apply_adagrad_da(var, gradient_accumulator, gradient_squared
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -2154,16 +2163,16 @@ def resource_sparse_apply_adagrad_da(var, gradient_accumulator, gradient_squared
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceSparseApplyAdagradDA", name,
-        _ctx._post_execution_callbacks, var, gradient_accumulator,
-        gradient_squared_accumulator, grad, indices, lr, l1, l2, global_step,
-        "use_locking", use_locking)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceSparseApplyAdagradDA", name, _ctx._post_execution_callbacks,
+        var, gradient_accumulator, gradient_squared_accumulator, grad,
+        indices, lr, l1, l2, global_step, "use_locking", use_locking)
       return _result
     except _core._FallbackException:
       return resource_sparse_apply_adagrad_da_eager_fallback(
           var, gradient_accumulator, gradient_squared_accumulator, grad,
           indices, lr, l1, l2, global_step, use_locking=use_locking,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2172,11 +2181,11 @@ def resource_sparse_apply_adagrad_da(var, gradient_accumulator, gradient_squared
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_sparse_apply_adagrad_da_eager_fallback(var, gradient_accumulator, gradient_squared_accumulator, grad, indices, lr, l1, l2, global_step, use_locking=False, name=None):
+def resource_sparse_apply_adagrad_da_eager_fallback(var, gradient_accumulator, gradient_squared_accumulator, grad, indices, lr, l1, l2, global_step, use_locking=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_sparse_apply_adagrad_da
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if use_locking is None:
     use_locking = False
   use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -2241,8 +2250,8 @@ def resource_sparse_apply_centered_rms_prop(var, mg, ms, mom, lr, rho, momentum,
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -2257,14 +2266,15 @@ def resource_sparse_apply_centered_rms_prop(var, mg, ms, mom, lr, rho, momentum,
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceSparseApplyCenteredRMSProp",
-        name, _ctx._post_execution_callbacks, var, mg, ms, mom, lr, rho,
-        momentum, epsilon, grad, indices, "use_locking", use_locking)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceSparseApplyCenteredRMSProp", name,
+        _ctx._post_execution_callbacks, var, mg, ms, mom, lr, rho, momentum,
+        epsilon, grad, indices, "use_locking", use_locking)
       return _result
     except _core._FallbackException:
       return resource_sparse_apply_centered_rms_prop_eager_fallback(
           var, mg, ms, mom, lr, rho, momentum, epsilon, grad, indices,
-          use_locking=use_locking, name=name)
+          use_locking=use_locking, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2273,11 +2283,11 @@ def resource_sparse_apply_centered_rms_prop(var, mg, ms, mom, lr, rho, momentum,
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_sparse_apply_centered_rms_prop_eager_fallback(var, mg, ms, mom, lr, rho, momentum, epsilon, grad, indices, use_locking=False, name=None):
+def resource_sparse_apply_centered_rms_prop_eager_fallback(var, mg, ms, mom, lr, rho, momentum, epsilon, grad, indices, use_locking=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_sparse_apply_centered_rms_prop
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if use_locking is None:
     use_locking = False
   use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -2333,8 +2343,8 @@ def resource_sparse_apply_ftrl(var, accum, linear, grad, indices, lr, l1, l2, lr
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -2349,14 +2359,15 @@ def resource_sparse_apply_ftrl(var, accum, linear, grad, indices, lr, l1, l2, lr
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceSparseApplyFtrl", name,
-        _ctx._post_execution_callbacks, var, accum, linear, grad, indices, lr,
-        l1, l2, lr_power, "use_locking", use_locking)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceSparseApplyFtrl", name, _ctx._post_execution_callbacks, var,
+        accum, linear, grad, indices, lr, l1, l2, lr_power, "use_locking",
+        use_locking)
       return _result
     except _core._FallbackException:
       return resource_sparse_apply_ftrl_eager_fallback(
           var, accum, linear, grad, indices, lr, l1, l2, lr_power,
-          use_locking=use_locking, name=name)
+          use_locking=use_locking, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2365,11 +2376,11 @@ def resource_sparse_apply_ftrl(var, accum, linear, grad, indices, lr, l1, l2, lr
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_sparse_apply_ftrl_eager_fallback(var, accum, linear, grad, indices, lr, l1, l2, lr_power, use_locking=False, name=None):
+def resource_sparse_apply_ftrl_eager_fallback(var, accum, linear, grad, indices, lr, l1, l2, lr_power, use_locking=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_sparse_apply_ftrl
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if use_locking is None:
     use_locking = False
   use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -2427,8 +2438,8 @@ def resource_sparse_apply_ftrl_v2(var, accum, linear, grad, indices, lr, l1, l2,
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -2444,14 +2455,15 @@ def resource_sparse_apply_ftrl_v2(var, accum, linear, grad, indices, lr, l1, l2,
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceSparseApplyFtrlV2", name,
-        _ctx._post_execution_callbacks, var, accum, linear, grad, indices, lr,
-        l1, l2, l2_shrinkage, lr_power, "use_locking", use_locking)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceSparseApplyFtrlV2", name, _ctx._post_execution_callbacks,
+        var, accum, linear, grad, indices, lr, l1, l2, l2_shrinkage, lr_power,
+        "use_locking", use_locking)
       return _result
     except _core._FallbackException:
       return resource_sparse_apply_ftrl_v2_eager_fallback(
           var, accum, linear, grad, indices, lr, l1, l2, l2_shrinkage,
-          lr_power, use_locking=use_locking, name=name)
+          lr_power, use_locking=use_locking, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2460,11 +2472,11 @@ def resource_sparse_apply_ftrl_v2(var, accum, linear, grad, indices, lr, l1, l2,
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_sparse_apply_ftrl_v2_eager_fallback(var, accum, linear, grad, indices, lr, l1, l2, l2_shrinkage, lr_power, use_locking=False, name=None):
+def resource_sparse_apply_ftrl_v2_eager_fallback(var, accum, linear, grad, indices, lr, l1, l2, l2_shrinkage, lr_power, use_locking=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_sparse_apply_ftrl_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if use_locking is None:
     use_locking = False
   use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -2517,8 +2529,8 @@ def resource_sparse_apply_momentum(var, accum, lr, grad, indices, momentum, use_
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -2536,14 +2548,15 @@ def resource_sparse_apply_momentum(var, accum, lr, grad, indices, momentum, use_
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceSparseApplyMomentum", name,
-        _ctx._post_execution_callbacks, var, accum, lr, grad, indices,
-        momentum, "use_locking", use_locking, "use_nesterov", use_nesterov)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceSparseApplyMomentum", name, _ctx._post_execution_callbacks,
+        var, accum, lr, grad, indices, momentum, "use_locking", use_locking,
+        "use_nesterov", use_nesterov)
       return _result
     except _core._FallbackException:
       return resource_sparse_apply_momentum_eager_fallback(
           var, accum, lr, grad, indices, momentum, use_locking=use_locking,
-          use_nesterov=use_nesterov, name=name)
+          use_nesterov=use_nesterov, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2552,11 +2565,11 @@ def resource_sparse_apply_momentum(var, accum, lr, grad, indices, momentum, use_
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_sparse_apply_momentum_eager_fallback(var, accum, lr, grad, indices, momentum, use_locking=False, use_nesterov=False, name=None):
+def resource_sparse_apply_momentum_eager_fallback(var, accum, lr, grad, indices, momentum, use_locking=False, use_nesterov=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_sparse_apply_momentum
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if use_locking is None:
     use_locking = False
   use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -2607,8 +2620,8 @@ def resource_sparse_apply_proximal_adagrad(var, accum, lr, l1, l2, grad, indices
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -2623,14 +2636,15 @@ def resource_sparse_apply_proximal_adagrad(var, accum, lr, l1, l2, grad, indices
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceSparseApplyProximalAdagrad",
-        name, _ctx._post_execution_callbacks, var, accum, lr, l1, l2, grad,
-        indices, "use_locking", use_locking)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceSparseApplyProximalAdagrad", name,
+        _ctx._post_execution_callbacks, var, accum, lr, l1, l2, grad, indices,
+        "use_locking", use_locking)
       return _result
     except _core._FallbackException:
       return resource_sparse_apply_proximal_adagrad_eager_fallback(
           var, accum, lr, l1, l2, grad, indices, use_locking=use_locking,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2639,11 +2653,11 @@ def resource_sparse_apply_proximal_adagrad(var, accum, lr, l1, l2, grad, indices
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_sparse_apply_proximal_adagrad_eager_fallback(var, accum, lr, l1, l2, grad, indices, use_locking=False, name=None):
+def resource_sparse_apply_proximal_adagrad_eager_fallback(var, accum, lr, l1, l2, grad, indices, use_locking=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_sparse_apply_proximal_adagrad
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if use_locking is None:
     use_locking = False
   use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -2688,8 +2702,8 @@ def resource_sparse_apply_proximal_gradient_descent(var, alpha, l1, l2, grad, in
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -2704,7 +2718,7 @@ def resource_sparse_apply_proximal_gradient_descent(var, alpha, l1, l2, grad, in
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name,
+        _ctx._context_handle, _ctx._eager_context.device_name,
         "ResourceSparseApplyProximalGradientDescent", name,
         _ctx._post_execution_callbacks, var, alpha, l1, l2, grad, indices,
         "use_locking", use_locking)
@@ -2712,7 +2726,7 @@ def resource_sparse_apply_proximal_gradient_descent(var, alpha, l1, l2, grad, in
     except _core._FallbackException:
       return resource_sparse_apply_proximal_gradient_descent_eager_fallback(
           var, alpha, l1, l2, grad, indices, use_locking=use_locking,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2721,11 +2735,11 @@ def resource_sparse_apply_proximal_gradient_descent(var, alpha, l1, l2, grad, in
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_sparse_apply_proximal_gradient_descent_eager_fallback(var, alpha, l1, l2, grad, indices, use_locking=False, name=None):
+def resource_sparse_apply_proximal_gradient_descent_eager_fallback(var, alpha, l1, l2, grad, indices, use_locking=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_sparse_apply_proximal_gradient_descent
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if use_locking is None:
     use_locking = False
   use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -2780,8 +2794,8 @@ def resource_sparse_apply_rms_prop(var, ms, mom, lr, rho, momentum, epsilon, gra
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -2796,14 +2810,15 @@ def resource_sparse_apply_rms_prop(var, ms, mom, lr, rho, momentum, epsilon, gra
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceSparseApplyRMSProp", name,
-        _ctx._post_execution_callbacks, var, ms, mom, lr, rho, momentum,
-        epsilon, grad, indices, "use_locking", use_locking)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceSparseApplyRMSProp", name, _ctx._post_execution_callbacks,
+        var, ms, mom, lr, rho, momentum, epsilon, grad, indices,
+        "use_locking", use_locking)
       return _result
     except _core._FallbackException:
       return resource_sparse_apply_rms_prop_eager_fallback(
           var, ms, mom, lr, rho, momentum, epsilon, grad, indices,
-          use_locking=use_locking, name=name)
+          use_locking=use_locking, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2812,11 +2827,11 @@ def resource_sparse_apply_rms_prop(var, ms, mom, lr, rho, momentum, epsilon, gra
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_sparse_apply_rms_prop_eager_fallback(var, ms, mom, lr, rho, momentum, epsilon, grad, indices, use_locking=False, name=None):
+def resource_sparse_apply_rms_prop_eager_fallback(var, ms, mom, lr, rho, momentum, epsilon, grad, indices, use_locking=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_sparse_apply_rms_prop
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if use_locking is None:
     use_locking = False
   use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -2862,8 +2877,8 @@ def sparse_apply_adadelta(var, accum, accum_update, lr, rho, epsilon, grad, indi
   Returns:
     A mutable `Tensor`. Has the same type as `var`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -2912,8 +2927,8 @@ def sparse_apply_adagrad(var, accum, lr, grad, indices, use_locking=False, name=
   Returns:
     A mutable `Tensor`. Has the same type as `var`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -2964,8 +2979,8 @@ def sparse_apply_adagrad_da(var, gradient_accumulator, gradient_squared_accumula
   Returns:
     A mutable `Tensor`. Has the same type as `var`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -3038,8 +3053,8 @@ def sparse_apply_centered_rms_prop(var, mg, ms, mom, lr, rho, momentum, epsilon,
   Returns:
     A mutable `Tensor`. Has the same type as `var`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -3099,8 +3114,8 @@ def sparse_apply_ftrl(var, accum, linear, grad, indices, lr, l1, l2, lr_power, u
   Returns:
     A mutable `Tensor`. Has the same type as `var`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -3163,8 +3178,8 @@ def sparse_apply_ftrl_v2(var, accum, linear, grad, indices, lr, l1, l2, l2_shrin
   Returns:
     A mutable `Tensor`. Has the same type as `var`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -3222,8 +3237,8 @@ def sparse_apply_momentum(var, accum, lr, grad, indices, momentum, use_locking=F
   Returns:
     A mutable `Tensor`. Has the same type as `var`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -3281,8 +3296,8 @@ def sparse_apply_proximal_adagrad(var, accum, lr, l1, l2, grad, indices, use_loc
   Returns:
     A mutable `Tensor`. Has the same type as `var`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -3331,8 +3346,8 @@ def sparse_apply_proximal_gradient_descent(var, alpha, l1, l2, grad, indices, us
   Returns:
     A mutable `Tensor`. Has the same type as `var`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -3394,8 +3409,8 @@ def sparse_apply_rms_prop(var, ms, mom, lr, rho, momentum, epsilon, grad, indice
   Returns:
     A mutable `Tensor`. Has the same type as `var`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")

@@ -39,8 +39,8 @@ def eager_py_func(input, token, Tout, name=None):
   Returns:
     A list of `Tensor` objects of type `Tout`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     token = _execute.make_str(token, "token")
     if not isinstance(Tout, (list, tuple)):
       raise TypeError(
@@ -62,12 +62,13 @@ def eager_py_func(input, token, Tout, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "EagerPyFunc", name,
-        _ctx._post_execution_callbacks, input, "token", token, "Tout", Tout)
+        _ctx._context_handle, _ctx._eager_context.device_name, "EagerPyFunc",
+        name, _ctx._post_execution_callbacks, input, "token", token, "Tout",
+        Tout)
       return _result
     except _core._FallbackException:
       return eager_py_func_eager_fallback(
-          input, token=token, Tout=Tout, name=name)
+          input, token=token, Tout=Tout, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -76,11 +77,11 @@ def eager_py_func(input, token, Tout, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def eager_py_func_eager_fallback(input, token, Tout, name=None):
+def eager_py_func_eager_fallback(input, token, Tout, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function eager_py_func
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   token = _execute.make_str(token, "token")
   if not isinstance(Tout, (list, tuple)):
     raise TypeError(
@@ -115,8 +116,8 @@ def py_func(input, token, Tout, name=None):
   Returns:
     A list of `Tensor` objects of type `Tout`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     token = _execute.make_str(token, "token")
     if not isinstance(Tout, (list, tuple)):
       raise TypeError(
@@ -138,12 +139,12 @@ def py_func(input, token, Tout, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "PyFunc", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "PyFunc", name,
         _ctx._post_execution_callbacks, input, "token", token, "Tout", Tout)
       return _result
     except _core._FallbackException:
       return py_func_eager_fallback(
-          input, token=token, Tout=Tout, name=name)
+          input, token=token, Tout=Tout, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -152,11 +153,11 @@ def py_func(input, token, Tout, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def py_func_eager_fallback(input, token, Tout, name=None):
+def py_func_eager_fallback(input, token, Tout, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function py_func
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   token = _execute.make_str(token, "token")
   if not isinstance(Tout, (list, tuple)):
     raise TypeError(
@@ -185,8 +186,8 @@ def py_func_stateless(input, token, Tout, name=None):
   Returns:
     A list of `Tensor` objects of type `Tout`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     token = _execute.make_str(token, "token")
     if not isinstance(Tout, (list, tuple)):
       raise TypeError(
@@ -206,12 +207,13 @@ def py_func_stateless(input, token, Tout, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "PyFuncStateless", name,
-        _ctx._post_execution_callbacks, input, "token", token, "Tout", Tout)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "PyFuncStateless", name, _ctx._post_execution_callbacks, input,
+        "token", token, "Tout", Tout)
       return _result
     except _core._FallbackException:
       return py_func_stateless_eager_fallback(
-          input, token=token, Tout=Tout, name=name)
+          input, token=token, Tout=Tout, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -220,11 +222,11 @@ def py_func_stateless(input, token, Tout, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def py_func_stateless_eager_fallback(input, token, Tout, name=None):
+def py_func_stateless_eager_fallback(input, token, Tout, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function py_func_stateless
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   token = _execute.make_str(token, "token")
   if not isinstance(Tout, (list, tuple)):
     raise TypeError(

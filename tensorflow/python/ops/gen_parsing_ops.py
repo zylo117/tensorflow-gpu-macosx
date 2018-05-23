@@ -51,8 +51,8 @@ def decode_csv(records, record_defaults, field_delim=",", use_quote_delim=True, 
   Returns:
     A list of `Tensor` objects. Has the same type as `record_defaults`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if field_delim is None:
       field_delim = ","
     field_delim = _execute.make_str(field_delim, "field_delim")
@@ -79,15 +79,16 @@ def decode_csv(records, record_defaults, field_delim=",", use_quote_delim=True, 
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DecodeCSV", name,
-        _ctx._post_execution_callbacks, records, record_defaults,
+        _ctx._context_handle, _ctx._eager_context.device_name, "DecodeCSV",
+        name, _ctx._post_execution_callbacks, records, record_defaults,
         "field_delim", field_delim, "use_quote_delim", use_quote_delim,
         "na_value", na_value)
       return _result
     except _core._FallbackException:
       return decode_csv_eager_fallback(
           records, record_defaults, field_delim=field_delim,
-          use_quote_delim=use_quote_delim, na_value=na_value, name=name)
+          use_quote_delim=use_quote_delim, na_value=na_value, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -96,11 +97,11 @@ def decode_csv(records, record_defaults, field_delim=",", use_quote_delim=True, 
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def decode_csv_eager_fallback(records, record_defaults, field_delim=",", use_quote_delim=True, na_value="", name=None):
+def decode_csv_eager_fallback(records, record_defaults, field_delim=",", use_quote_delim=True, na_value="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function decode_csv
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if field_delim is None:
     field_delim = ","
   field_delim = _execute.make_str(field_delim, "field_delim")
@@ -144,8 +145,8 @@ def decode_compressed(bytes, compression_type="", name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if compression_type is None:
       compression_type = ""
     compression_type = _execute.make_str(compression_type, "compression_type")
@@ -163,13 +164,13 @@ def decode_compressed(bytes, compression_type="", name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DecodeCompressed", name,
-        _ctx._post_execution_callbacks, bytes, "compression_type",
-        compression_type)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "DecodeCompressed", name, _ctx._post_execution_callbacks, bytes,
+        "compression_type", compression_type)
       return _result
     except _core._FallbackException:
       return decode_compressed_eager_fallback(
-          bytes, compression_type=compression_type, name=name)
+          bytes, compression_type=compression_type, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -178,11 +179,11 @@ def decode_compressed(bytes, compression_type="", name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def decode_compressed_eager_fallback(bytes, compression_type="", name=None):
+def decode_compressed_eager_fallback(bytes, compression_type="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function decode_compressed
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if compression_type is None:
     compression_type = ""
   compression_type = _execute.make_str(compression_type, "compression_type")
@@ -217,8 +218,8 @@ def decode_json_example(json_examples, name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "DecodeJSONExample", json_examples=json_examples, name=name)
     _result = _op.outputs[:]
@@ -232,12 +233,13 @@ def decode_json_example(json_examples, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DecodeJSONExample", name,
-        _ctx._post_execution_callbacks, json_examples)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "DecodeJSONExample", name, _ctx._post_execution_callbacks,
+        json_examples)
       return _result
     except _core._FallbackException:
       return decode_json_example_eager_fallback(
-          json_examples, name=name)
+          json_examples, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -246,11 +248,11 @@ def decode_json_example(json_examples, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def decode_json_example_eager_fallback(json_examples, name=None):
+def decode_json_example_eager_fallback(json_examples, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function decode_json_example
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   json_examples = _ops.convert_to_tensor(json_examples, _dtypes.string)
   _inputs_flat = [json_examples]
   _attrs = None
@@ -279,8 +281,8 @@ def decode_raw(bytes, out_type, little_endian=True, name=None):
   Returns:
     A `Tensor` of type `out_type`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     out_type = _execute.make_type(out_type, "out_type")
     if little_endian is None:
       little_endian = True
@@ -300,13 +302,14 @@ def decode_raw(bytes, out_type, little_endian=True, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DecodeRaw", name,
-        _ctx._post_execution_callbacks, bytes, "out_type", out_type,
+        _ctx._context_handle, _ctx._eager_context.device_name, "DecodeRaw",
+        name, _ctx._post_execution_callbacks, bytes, "out_type", out_type,
         "little_endian", little_endian)
       return _result
     except _core._FallbackException:
       return decode_raw_eager_fallback(
-          bytes, out_type=out_type, little_endian=little_endian, name=name)
+          bytes, out_type=out_type, little_endian=little_endian, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -315,11 +318,11 @@ def decode_raw(bytes, out_type, little_endian=True, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def decode_raw_eager_fallback(bytes, out_type, little_endian=True, name=None):
+def decode_raw_eager_fallback(bytes, out_type, little_endian=True, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function decode_raw
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   out_type = _execute.make_type(out_type, "out_type")
   if little_endian is None:
     little_endian = True
@@ -401,8 +404,8 @@ def parse_example(serialized, names, sparse_keys, dense_keys, dense_defaults, sp
     sparse_shapes: A list with the same length as `sparse_keys` of `Tensor` objects with type `int64`.
     dense_values: A list of `Tensor` objects. Has the same type as `dense_defaults`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(sparse_keys, (list, tuple)):
       raise TypeError(
           "Expected list for 'sparse_keys' argument to "
@@ -446,8 +449,8 @@ def parse_example(serialized, names, sparse_keys, dense_keys, dense_defaults, sp
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ParseExample", name,
-        _ctx._post_execution_callbacks, serialized, names, sparse_keys,
+        _ctx._context_handle, _ctx._eager_context.device_name, "ParseExample",
+        name, _ctx._post_execution_callbacks, serialized, names, sparse_keys,
         dense_keys, dense_defaults, "sparse_types", sparse_types,
         "dense_shapes", dense_shapes)
       _result = _ParseExampleOutput._make(_result)
@@ -455,7 +458,8 @@ def parse_example(serialized, names, sparse_keys, dense_keys, dense_defaults, sp
     except _core._FallbackException:
       return parse_example_eager_fallback(
           serialized, names, sparse_keys, dense_keys, dense_defaults,
-          sparse_types=sparse_types, dense_shapes=dense_shapes, name=name)
+          sparse_types=sparse_types, dense_shapes=dense_shapes, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -464,11 +468,11 @@ def parse_example(serialized, names, sparse_keys, dense_keys, dense_defaults, sp
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def parse_example_eager_fallback(serialized, names, sparse_keys, dense_keys, dense_defaults, sparse_types, dense_shapes, name=None):
+def parse_example_eager_fallback(serialized, names, sparse_keys, dense_keys, dense_defaults, sparse_types, dense_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function parse_example
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(sparse_keys, (list, tuple)):
     raise TypeError(
         "Expected list for 'sparse_keys' argument to "
@@ -567,8 +571,8 @@ def parse_single_example(serialized, dense_defaults, num_sparse, sparse_keys, de
     sparse_shapes: A list of `num_sparse` `Tensor` objects with type `int64`.
     dense_values: A list of `Tensor` objects. Has the same type as `dense_defaults`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     num_sparse = _execute.make_int(num_sparse, "num_sparse")
     if not isinstance(sparse_keys, (list, tuple)):
       raise TypeError(
@@ -614,18 +618,19 @@ def parse_single_example(serialized, dense_defaults, num_sparse, sparse_keys, de
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ParseSingleExample", name,
-        _ctx._post_execution_callbacks, serialized, dense_defaults,
-        "num_sparse", num_sparse, "sparse_keys", sparse_keys, "dense_keys",
-        dense_keys, "sparse_types", sparse_types, "dense_shapes",
-        dense_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ParseSingleExample", name, _ctx._post_execution_callbacks,
+        serialized, dense_defaults, "num_sparse", num_sparse, "sparse_keys",
+        sparse_keys, "dense_keys", dense_keys, "sparse_types", sparse_types,
+        "dense_shapes", dense_shapes)
       _result = _ParseSingleExampleOutput._make(_result)
       return _result
     except _core._FallbackException:
       return parse_single_example_eager_fallback(
           serialized, dense_defaults, num_sparse=num_sparse,
           sparse_keys=sparse_keys, dense_keys=dense_keys,
-          sparse_types=sparse_types, dense_shapes=dense_shapes, name=name)
+          sparse_types=sparse_types, dense_shapes=dense_shapes, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -634,11 +639,11 @@ def parse_single_example(serialized, dense_defaults, num_sparse, sparse_keys, de
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def parse_single_example_eager_fallback(serialized, dense_defaults, num_sparse, sparse_keys, dense_keys, sparse_types, dense_shapes, name=None):
+def parse_single_example_eager_fallback(serialized, dense_defaults, num_sparse, sparse_keys, dense_keys, sparse_types, dense_shapes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function parse_single_example
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   num_sparse = _execute.make_int(num_sparse, "num_sparse")
   if not isinstance(sparse_keys, (list, tuple)):
     raise TypeError(
@@ -771,8 +776,8 @@ def parse_single_sequence_example(serialized, feature_list_dense_missing_assumed
     feature_list_sparse_shapes: A list with the same length as `feature_list_sparse_keys` of `Tensor` objects with type `int64`.
     feature_list_dense_values: A list of `Tensor` objects of type `feature_list_dense_types`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(context_sparse_keys, (list, tuple)):
       raise TypeError(
           "Expected list for 'context_sparse_keys' argument to "
@@ -872,16 +877,16 @@ def parse_single_sequence_example(serialized, feature_list_dense_missing_assumed
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ParseSingleSequenceExample", name,
-        _ctx._post_execution_callbacks, serialized,
-        feature_list_dense_missing_assumed_empty, context_sparse_keys,
-        context_dense_keys, feature_list_sparse_keys, feature_list_dense_keys,
-        context_dense_defaults, debug_name, "context_sparse_types",
-        context_sparse_types, "feature_list_dense_types",
-        feature_list_dense_types, "context_dense_shapes",
-        context_dense_shapes, "feature_list_sparse_types",
-        feature_list_sparse_types, "feature_list_dense_shapes",
-        feature_list_dense_shapes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ParseSingleSequenceExample", name, _ctx._post_execution_callbacks,
+        serialized, feature_list_dense_missing_assumed_empty,
+        context_sparse_keys, context_dense_keys, feature_list_sparse_keys,
+        feature_list_dense_keys, context_dense_defaults, debug_name,
+        "context_sparse_types", context_sparse_types,
+        "feature_list_dense_types", feature_list_dense_types,
+        "context_dense_shapes", context_dense_shapes,
+        "feature_list_sparse_types", feature_list_sparse_types,
+        "feature_list_dense_shapes", feature_list_dense_shapes)
       _result = _ParseSingleSequenceExampleOutput._make(_result)
       return _result
     except _core._FallbackException:
@@ -893,7 +898,8 @@ def parse_single_sequence_example(serialized, feature_list_dense_missing_assumed
           feature_list_dense_types=feature_list_dense_types,
           context_dense_shapes=context_dense_shapes,
           feature_list_sparse_types=feature_list_sparse_types,
-          feature_list_dense_shapes=feature_list_dense_shapes, name=name)
+          feature_list_dense_shapes=feature_list_dense_shapes, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -902,11 +908,11 @@ def parse_single_sequence_example(serialized, feature_list_dense_missing_assumed
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def parse_single_sequence_example_eager_fallback(serialized, feature_list_dense_missing_assumed_empty, context_sparse_keys, context_dense_keys, feature_list_sparse_keys, feature_list_dense_keys, context_dense_defaults, debug_name, context_sparse_types=[], feature_list_dense_types=[], context_dense_shapes=[], feature_list_sparse_types=[], feature_list_dense_shapes=[], name=None):
+def parse_single_sequence_example_eager_fallback(serialized, feature_list_dense_missing_assumed_empty, context_sparse_keys, context_dense_keys, feature_list_sparse_keys, feature_list_dense_keys, context_dense_defaults, debug_name, context_sparse_types=[], feature_list_dense_types=[], context_dense_shapes=[], feature_list_sparse_types=[], feature_list_dense_shapes=[], name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function parse_single_sequence_example
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(context_sparse_keys, (list, tuple)):
     raise TypeError(
         "Expected list for 'context_sparse_keys' argument to "
@@ -1018,8 +1024,8 @@ def parse_tensor(serialized, out_type, name=None):
   Returns:
     A `Tensor` of type `out_type`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     out_type = _execute.make_type(out_type, "out_type")
     _, _, _op = _op_def_lib._apply_op_helper(
         "ParseTensor", serialized=serialized, out_type=out_type, name=name)
@@ -1034,12 +1040,13 @@ def parse_tensor(serialized, out_type, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ParseTensor", name,
-        _ctx._post_execution_callbacks, serialized, "out_type", out_type)
+        _ctx._context_handle, _ctx._eager_context.device_name, "ParseTensor",
+        name, _ctx._post_execution_callbacks, serialized, "out_type",
+        out_type)
       return _result
     except _core._FallbackException:
       return parse_tensor_eager_fallback(
-          serialized, out_type=out_type, name=name)
+          serialized, out_type=out_type, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1048,11 +1055,11 @@ def parse_tensor(serialized, out_type, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def parse_tensor_eager_fallback(serialized, out_type, name=None):
+def parse_tensor_eager_fallback(serialized, out_type, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function parse_tensor
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   out_type = _execute.make_type(out_type, "out_type")
   serialized = _ops.convert_to_tensor(serialized, _dtypes.string)
   _inputs_flat = [serialized]
@@ -1076,8 +1083,8 @@ def serialize_tensor(tensor, name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "SerializeTensor", tensor=tensor, name=name)
     _result = _op.outputs[:]
@@ -1091,12 +1098,12 @@ def serialize_tensor(tensor, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SerializeTensor", name,
-        _ctx._post_execution_callbacks, tensor)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SerializeTensor", name, _ctx._post_execution_callbacks, tensor)
       return _result
     except _core._FallbackException:
       return serialize_tensor_eager_fallback(
-          tensor, name=name)
+          tensor, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1105,11 +1112,11 @@ def serialize_tensor(tensor, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def serialize_tensor_eager_fallback(tensor, name=None):
+def serialize_tensor_eager_fallback(tensor, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function serialize_tensor
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (tensor,) = _execute.args_to_matching_eager([tensor], _ctx)
   _inputs_flat = [tensor]
   _attrs = ("T", _attr_T)
@@ -1137,8 +1144,8 @@ def string_to_number(string_tensor, out_type=_dtypes.float32, name=None):
   Returns:
     A `Tensor` of type `out_type`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if out_type is None:
       out_type = _dtypes.float32
     out_type = _execute.make_type(out_type, "out_type")
@@ -1156,12 +1163,13 @@ def string_to_number(string_tensor, out_type=_dtypes.float32, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StringToNumber", name,
-        _ctx._post_execution_callbacks, string_tensor, "out_type", out_type)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "StringToNumber", name, _ctx._post_execution_callbacks, string_tensor,
+        "out_type", out_type)
       return _result
     except _core._FallbackException:
       return string_to_number_eager_fallback(
-          string_tensor, out_type=out_type, name=name)
+          string_tensor, out_type=out_type, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1170,11 +1178,11 @@ def string_to_number(string_tensor, out_type=_dtypes.float32, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def string_to_number_eager_fallback(string_tensor, out_type=_dtypes.float32, name=None):
+def string_to_number_eager_fallback(string_tensor, out_type=_dtypes.float32, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function string_to_number
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if out_type is None:
     out_type = _dtypes.float32
   out_type = _execute.make_type(out_type, "out_type")

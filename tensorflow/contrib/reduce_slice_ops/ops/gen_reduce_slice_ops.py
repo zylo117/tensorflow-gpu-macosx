@@ -79,8 +79,8 @@ def reduce_slice_max(data, indices, axis, name=None):
   Returns:
     A `Tensor`. Has the same type as `data`. the computed product values.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ReduceSliceMax", data=data, indices=indices, axis=axis, name=name)
     _result = _op.outputs[:]
@@ -94,12 +94,13 @@ def reduce_slice_max(data, indices, axis, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ReduceSliceMax", name,
-        _ctx._post_execution_callbacks, data, indices, axis)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ReduceSliceMax", name, _ctx._post_execution_callbacks, data, indices,
+        axis)
       return _result
     except _core._FallbackException:
       return reduce_slice_max_eager_fallback(
-          data, indices, axis, name=name)
+          data, indices, axis, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -108,11 +109,11 @@ def reduce_slice_max(data, indices, axis, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def reduce_slice_max_eager_fallback(data, indices, axis, name=None):
+def reduce_slice_max_eager_fallback(data, indices, axis, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function reduce_slice_max
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (data,) = _execute.args_to_matching_eager([data], _ctx)
   _attr_Tindices, (indices,) = _execute.args_to_matching_eager([indices], _ctx)
   axis = _ops.convert_to_tensor(axis, _dtypes.int64)
@@ -183,8 +184,8 @@ def reduce_slice_min(data, indices, axis, name=None):
   Returns:
     A `Tensor`. Has the same type as `data`. the computed product values.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ReduceSliceMin", data=data, indices=indices, axis=axis, name=name)
     _result = _op.outputs[:]
@@ -198,12 +199,13 @@ def reduce_slice_min(data, indices, axis, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ReduceSliceMin", name,
-        _ctx._post_execution_callbacks, data, indices, axis)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ReduceSliceMin", name, _ctx._post_execution_callbacks, data, indices,
+        axis)
       return _result
     except _core._FallbackException:
       return reduce_slice_min_eager_fallback(
-          data, indices, axis, name=name)
+          data, indices, axis, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -212,11 +214,11 @@ def reduce_slice_min(data, indices, axis, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def reduce_slice_min_eager_fallback(data, indices, axis, name=None):
+def reduce_slice_min_eager_fallback(data, indices, axis, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function reduce_slice_min
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (data,) = _execute.args_to_matching_eager([data], _ctx)
   _attr_Tindices, (indices,) = _execute.args_to_matching_eager([indices], _ctx)
   axis = _ops.convert_to_tensor(axis, _dtypes.int64)
@@ -287,8 +289,8 @@ def reduce_slice_prod(data, indices, axis, name=None):
   Returns:
     A `Tensor`. Has the same type as `data`. the computed product values.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ReduceSliceProd", data=data, indices=indices, axis=axis, name=name)
     _result = _op.outputs[:]
@@ -302,12 +304,13 @@ def reduce_slice_prod(data, indices, axis, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ReduceSliceProd", name,
-        _ctx._post_execution_callbacks, data, indices, axis)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ReduceSliceProd", name, _ctx._post_execution_callbacks, data,
+        indices, axis)
       return _result
     except _core._FallbackException:
       return reduce_slice_prod_eager_fallback(
-          data, indices, axis, name=name)
+          data, indices, axis, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -316,11 +319,11 @@ def reduce_slice_prod(data, indices, axis, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def reduce_slice_prod_eager_fallback(data, indices, axis, name=None):
+def reduce_slice_prod_eager_fallback(data, indices, axis, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function reduce_slice_prod
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (data,) = _execute.args_to_matching_eager([data], _ctx)
   _attr_Tindices, (indices,) = _execute.args_to_matching_eager([indices], _ctx)
   axis = _ops.convert_to_tensor(axis, _dtypes.int64)
@@ -379,8 +382,8 @@ def reduce_slice_sum(data, indices, axis, name=None):
   Returns:
     A `Tensor`. Has the same type as `data`. the computed sum values.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ReduceSliceSum", data=data, indices=indices, axis=axis, name=name)
     _result = _op.outputs[:]
@@ -394,12 +397,13 @@ def reduce_slice_sum(data, indices, axis, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ReduceSliceSum", name,
-        _ctx._post_execution_callbacks, data, indices, axis)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ReduceSliceSum", name, _ctx._post_execution_callbacks, data, indices,
+        axis)
       return _result
     except _core._FallbackException:
       return reduce_slice_sum_eager_fallback(
-          data, indices, axis, name=name)
+          data, indices, axis, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -408,11 +412,11 @@ def reduce_slice_sum(data, indices, axis, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def reduce_slice_sum_eager_fallback(data, indices, axis, name=None):
+def reduce_slice_sum_eager_fallback(data, indices, axis, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function reduce_slice_sum
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (data,) = _execute.args_to_matching_eager([data], _ctx)
   _attr_Tindices, (indices,) = _execute.args_to_matching_eager([indices], _ctx)
   axis = _ops.convert_to_tensor(axis, _dtypes.int64)

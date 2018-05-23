@@ -47,8 +47,8 @@ def fixed_length_record_reader(record_bytes, header_bytes=0, footer_bytes=0, hop
   Returns:
     A `Tensor` of type mutable `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     record_bytes = _execute.make_int(record_bytes, "record_bytes")
     if header_bytes is None:
       header_bytes = 0
@@ -115,8 +115,8 @@ def fixed_length_record_reader_v2(record_bytes, header_bytes=0, footer_bytes=0, 
   Returns:
     A `Tensor` of type `resource`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     record_bytes = _execute.make_int(record_bytes, "record_bytes")
     if header_bytes is None:
       header_bytes = 0
@@ -158,17 +158,17 @@ def fixed_length_record_reader_v2(record_bytes, header_bytes=0, footer_bytes=0, 
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "FixedLengthRecordReaderV2", name,
-        _ctx._post_execution_callbacks, "header_bytes", header_bytes,
-        "record_bytes", record_bytes, "footer_bytes", footer_bytes,
-        "hop_bytes", hop_bytes, "container", container, "shared_name",
-        shared_name, "encoding", encoding)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "FixedLengthRecordReaderV2", name, _ctx._post_execution_callbacks,
+        "header_bytes", header_bytes, "record_bytes", record_bytes,
+        "footer_bytes", footer_bytes, "hop_bytes", hop_bytes, "container",
+        container, "shared_name", shared_name, "encoding", encoding)
       return _result
     except _core._FallbackException:
       return fixed_length_record_reader_v2_eager_fallback(
           header_bytes=header_bytes, record_bytes=record_bytes,
           footer_bytes=footer_bytes, hop_bytes=hop_bytes, container=container,
-          shared_name=shared_name, encoding=encoding, name=name)
+          shared_name=shared_name, encoding=encoding, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -177,11 +177,11 @@ def fixed_length_record_reader_v2(record_bytes, header_bytes=0, footer_bytes=0, 
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def fixed_length_record_reader_v2_eager_fallback(record_bytes, header_bytes=0, footer_bytes=0, hop_bytes=0, container="", shared_name="", encoding="", name=None):
+def fixed_length_record_reader_v2_eager_fallback(record_bytes, header_bytes=0, footer_bytes=0, hop_bytes=0, container="", shared_name="", encoding="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function fixed_length_record_reader_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   record_bytes = _execute.make_int(record_bytes, "record_bytes")
   if header_bytes is None:
     header_bytes = 0
@@ -232,8 +232,8 @@ def identity_reader(container="", shared_name="", name=None):
   Returns:
     A `Tensor` of type mutable `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if container is None:
       container = ""
     container = _execute.make_str(container, "container")
@@ -276,8 +276,8 @@ def identity_reader_v2(container="", shared_name="", name=None):
   Returns:
     A `Tensor` of type `resource`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if container is None:
       container = ""
     container = _execute.make_str(container, "container")
@@ -299,13 +299,13 @@ def identity_reader_v2(container="", shared_name="", name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "IdentityReaderV2", name,
-        _ctx._post_execution_callbacks, "container", container, "shared_name",
-        shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "IdentityReaderV2", name, _ctx._post_execution_callbacks, "container",
+        container, "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return identity_reader_v2_eager_fallback(
-          container=container, shared_name=shared_name, name=name)
+          container=container, shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -314,11 +314,11 @@ def identity_reader_v2(container="", shared_name="", name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def identity_reader_v2_eager_fallback(container="", shared_name="", name=None):
+def identity_reader_v2_eager_fallback(container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function identity_reader_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if container is None:
     container = ""
   container = _execute.make_str(container, "container")
@@ -350,8 +350,8 @@ def lmdb_reader(container="", shared_name="", name=None):
   Returns:
     A `Tensor` of type mutable `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if container is None:
       container = ""
     container = _execute.make_str(container, "container")
@@ -391,8 +391,8 @@ def matching_files(pattern, name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "MatchingFiles", pattern=pattern, name=name)
     _result = _op.outputs[:]
@@ -406,12 +406,12 @@ def matching_files(pattern, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MatchingFiles", name,
-        _ctx._post_execution_callbacks, pattern)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "MatchingFiles", name, _ctx._post_execution_callbacks, pattern)
       return _result
     except _core._FallbackException:
       return matching_files_eager_fallback(
-          pattern, name=name)
+          pattern, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -420,11 +420,11 @@ def matching_files(pattern, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def matching_files_eager_fallback(pattern, name=None):
+def matching_files_eager_fallback(pattern, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function matching_files
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   pattern = _ops.convert_to_tensor(pattern, _dtypes.string)
   _inputs_flat = [pattern]
   _attrs = None
@@ -460,8 +460,8 @@ def merge_v2_checkpoints(checkpoint_prefixes, destination_prefix, delete_old_dir
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if delete_old_dirs is None:
       delete_old_dirs = True
     delete_old_dirs = _execute.make_bool(delete_old_dirs, "delete_old_dirs")
@@ -476,14 +476,15 @@ def merge_v2_checkpoints(checkpoint_prefixes, destination_prefix, delete_old_dir
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MergeV2Checkpoints", name,
-        _ctx._post_execution_callbacks, checkpoint_prefixes,
-        destination_prefix, "delete_old_dirs", delete_old_dirs)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "MergeV2Checkpoints", name, _ctx._post_execution_callbacks,
+        checkpoint_prefixes, destination_prefix, "delete_old_dirs",
+        delete_old_dirs)
       return _result
     except _core._FallbackException:
       return merge_v2_checkpoints_eager_fallback(
           checkpoint_prefixes, destination_prefix,
-          delete_old_dirs=delete_old_dirs, name=name)
+          delete_old_dirs=delete_old_dirs, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -492,11 +493,11 @@ def merge_v2_checkpoints(checkpoint_prefixes, destination_prefix, delete_old_dir
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def merge_v2_checkpoints_eager_fallback(checkpoint_prefixes, destination_prefix, delete_old_dirs=True, name=None):
+def merge_v2_checkpoints_eager_fallback(checkpoint_prefixes, destination_prefix, delete_old_dirs=True, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function merge_v2_checkpoints
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if delete_old_dirs is None:
     delete_old_dirs = True
   delete_old_dirs = _execute.make_bool(delete_old_dirs, "delete_old_dirs")
@@ -521,8 +522,8 @@ def read_file(filename, name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ReadFile", filename=filename, name=name)
     _result = _op.outputs[:]
@@ -536,12 +537,12 @@ def read_file(filename, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ReadFile", name,
-        _ctx._post_execution_callbacks, filename)
+        _ctx._context_handle, _ctx._eager_context.device_name, "ReadFile",
+        name, _ctx._post_execution_callbacks, filename)
       return _result
     except _core._FallbackException:
       return read_file_eager_fallback(
-          filename, name=name)
+          filename, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -550,11 +551,11 @@ def read_file(filename, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def read_file_eager_fallback(filename, name=None):
+def read_file_eager_fallback(filename, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function read_file
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   filename = _ops.convert_to_tensor(filename, _dtypes.string)
   _inputs_flat = [filename]
   _attrs = None
@@ -579,8 +580,8 @@ def reader_num_records_produced(reader_handle, name=None):
   Returns:
     A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ReaderNumRecordsProduced", reader_handle=reader_handle, name=name)
     _result = _op.outputs[:]
@@ -610,8 +611,8 @@ def reader_num_records_produced_v2(reader_handle, name=None):
   Returns:
     A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ReaderNumRecordsProducedV2", reader_handle=reader_handle, name=name)
     _result = _op.outputs[:]
@@ -625,12 +626,13 @@ def reader_num_records_produced_v2(reader_handle, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ReaderNumRecordsProducedV2", name,
-        _ctx._post_execution_callbacks, reader_handle)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ReaderNumRecordsProducedV2", name, _ctx._post_execution_callbacks,
+        reader_handle)
       return _result
     except _core._FallbackException:
       return reader_num_records_produced_v2_eager_fallback(
-          reader_handle, name=name)
+          reader_handle, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -639,11 +641,11 @@ def reader_num_records_produced_v2(reader_handle, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def reader_num_records_produced_v2_eager_fallback(reader_handle, name=None):
+def reader_num_records_produced_v2_eager_fallback(reader_handle, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function reader_num_records_produced_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   reader_handle = _ops.convert_to_tensor(reader_handle, _dtypes.resource)
   _inputs_flat = [reader_handle]
   _attrs = None
@@ -666,8 +668,8 @@ def reader_num_work_units_completed(reader_handle, name=None):
   Returns:
     A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ReaderNumWorkUnitsCompleted", reader_handle=reader_handle, name=name)
     _result = _op.outputs[:]
@@ -694,8 +696,8 @@ def reader_num_work_units_completed_v2(reader_handle, name=None):
   Returns:
     A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ReaderNumWorkUnitsCompletedV2", reader_handle=reader_handle,
         name=name)
@@ -710,12 +712,13 @@ def reader_num_work_units_completed_v2(reader_handle, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ReaderNumWorkUnitsCompletedV2", name,
-        _ctx._post_execution_callbacks, reader_handle)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ReaderNumWorkUnitsCompletedV2", name, _ctx._post_execution_callbacks,
+        reader_handle)
       return _result
     except _core._FallbackException:
       return reader_num_work_units_completed_v2_eager_fallback(
-          reader_handle, name=name)
+          reader_handle, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -724,11 +727,11 @@ def reader_num_work_units_completed_v2(reader_handle, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def reader_num_work_units_completed_v2_eager_fallback(reader_handle, name=None):
+def reader_num_work_units_completed_v2_eager_fallback(reader_handle, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function reader_num_work_units_completed_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   reader_handle = _ops.convert_to_tensor(reader_handle, _dtypes.resource)
   _inputs_flat = [reader_handle]
   _attrs = None
@@ -765,8 +768,8 @@ def reader_read(reader_handle, queue_handle, name=None):
     key: A `Tensor` of type `string`.
     value: A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ReaderRead", reader_handle=reader_handle, queue_handle=queue_handle,
         name=name)
@@ -811,8 +814,8 @@ def reader_read_up_to(reader_handle, queue_handle, num_records, name=None):
     keys: A `Tensor` of type `string`.
     values: A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ReaderReadUpTo", reader_handle=reader_handle,
         queue_handle=queue_handle, num_records=num_records, name=name)
@@ -857,8 +860,8 @@ def reader_read_up_to_v2(reader_handle, queue_handle, num_records, name=None):
     keys: A `Tensor` of type `string`.
     values: A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ReaderReadUpToV2", reader_handle=reader_handle,
         queue_handle=queue_handle, num_records=num_records, name=name)
@@ -873,14 +876,14 @@ def reader_read_up_to_v2(reader_handle, queue_handle, num_records, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ReaderReadUpToV2", name,
-        _ctx._post_execution_callbacks, reader_handle, queue_handle,
-        num_records)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ReaderReadUpToV2", name, _ctx._post_execution_callbacks,
+        reader_handle, queue_handle, num_records)
       _result = _ReaderReadUpToV2Output._make(_result)
       return _result
     except _core._FallbackException:
       return reader_read_up_to_v2_eager_fallback(
-          reader_handle, queue_handle, num_records, name=name)
+          reader_handle, queue_handle, num_records, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -889,11 +892,11 @@ def reader_read_up_to_v2(reader_handle, queue_handle, num_records, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def reader_read_up_to_v2_eager_fallback(reader_handle, queue_handle, num_records, name=None):
+def reader_read_up_to_v2_eager_fallback(reader_handle, queue_handle, num_records, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function reader_read_up_to_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   reader_handle = _ops.convert_to_tensor(reader_handle, _dtypes.resource)
   queue_handle = _ops.convert_to_tensor(queue_handle, _dtypes.resource)
   num_records = _ops.convert_to_tensor(num_records, _dtypes.int64)
@@ -931,8 +934,8 @@ def reader_read_v2(reader_handle, queue_handle, name=None):
     key: A `Tensor` of type `string`.
     value: A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ReaderReadV2", reader_handle=reader_handle,
         queue_handle=queue_handle, name=name)
@@ -947,13 +950,13 @@ def reader_read_v2(reader_handle, queue_handle, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ReaderReadV2", name,
-        _ctx._post_execution_callbacks, reader_handle, queue_handle)
+        _ctx._context_handle, _ctx._eager_context.device_name, "ReaderReadV2",
+        name, _ctx._post_execution_callbacks, reader_handle, queue_handle)
       _result = _ReaderReadV2Output._make(_result)
       return _result
     except _core._FallbackException:
       return reader_read_v2_eager_fallback(
-          reader_handle, queue_handle, name=name)
+          reader_handle, queue_handle, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -962,11 +965,11 @@ def reader_read_v2(reader_handle, queue_handle, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def reader_read_v2_eager_fallback(reader_handle, queue_handle, name=None):
+def reader_read_v2_eager_fallback(reader_handle, queue_handle, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function reader_read_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   reader_handle = _ops.convert_to_tensor(reader_handle, _dtypes.resource)
   queue_handle = _ops.convert_to_tensor(queue_handle, _dtypes.resource)
   _inputs_flat = [reader_handle, queue_handle]
@@ -989,8 +992,8 @@ def reader_reset(reader_handle, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ReaderReset", reader_handle=reader_handle, name=name)
     return _op
@@ -1013,8 +1016,8 @@ def reader_reset_v2(reader_handle, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ReaderResetV2", reader_handle=reader_handle, name=name)
     return _op
@@ -1024,12 +1027,12 @@ def reader_reset_v2(reader_handle, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ReaderResetV2", name,
-        _ctx._post_execution_callbacks, reader_handle)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ReaderResetV2", name, _ctx._post_execution_callbacks, reader_handle)
       return _result
     except _core._FallbackException:
       return reader_reset_v2_eager_fallback(
-          reader_handle, name=name)
+          reader_handle, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1038,11 +1041,11 @@ def reader_reset_v2(reader_handle, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def reader_reset_v2_eager_fallback(reader_handle, name=None):
+def reader_reset_v2_eager_fallback(reader_handle, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function reader_reset_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   reader_handle = _ops.convert_to_tensor(reader_handle, _dtypes.resource)
   _inputs_flat = [reader_handle]
   _attrs = None
@@ -1068,8 +1071,8 @@ def reader_restore_state(reader_handle, state, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ReaderRestoreState", reader_handle=reader_handle, state=state,
         name=name)
@@ -1099,8 +1102,8 @@ def reader_restore_state_v2(reader_handle, state, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ReaderRestoreStateV2", reader_handle=reader_handle, state=state,
         name=name)
@@ -1111,12 +1114,13 @@ def reader_restore_state_v2(reader_handle, state, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ReaderRestoreStateV2", name,
-        _ctx._post_execution_callbacks, reader_handle, state)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ReaderRestoreStateV2", name, _ctx._post_execution_callbacks,
+        reader_handle, state)
       return _result
     except _core._FallbackException:
       return reader_restore_state_v2_eager_fallback(
-          reader_handle, state, name=name)
+          reader_handle, state, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1125,11 +1129,11 @@ def reader_restore_state_v2(reader_handle, state, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def reader_restore_state_v2_eager_fallback(reader_handle, state, name=None):
+def reader_restore_state_v2_eager_fallback(reader_handle, state, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function reader_restore_state_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   reader_handle = _ops.convert_to_tensor(reader_handle, _dtypes.resource)
   state = _ops.convert_to_tensor(state, _dtypes.string)
   _inputs_flat = [reader_handle, state]
@@ -1153,8 +1157,8 @@ def reader_serialize_state(reader_handle, name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ReaderSerializeState", reader_handle=reader_handle, name=name)
     _result = _op.outputs[:]
@@ -1184,8 +1188,8 @@ def reader_serialize_state_v2(reader_handle, name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ReaderSerializeStateV2", reader_handle=reader_handle, name=name)
     _result = _op.outputs[:]
@@ -1199,12 +1203,13 @@ def reader_serialize_state_v2(reader_handle, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ReaderSerializeStateV2", name,
-        _ctx._post_execution_callbacks, reader_handle)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ReaderSerializeStateV2", name, _ctx._post_execution_callbacks,
+        reader_handle)
       return _result
     except _core._FallbackException:
       return reader_serialize_state_v2_eager_fallback(
-          reader_handle, name=name)
+          reader_handle, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1213,11 +1218,11 @@ def reader_serialize_state_v2(reader_handle, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def reader_serialize_state_v2_eager_fallback(reader_handle, name=None):
+def reader_serialize_state_v2_eager_fallback(reader_handle, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function reader_serialize_state_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   reader_handle = _ops.convert_to_tensor(reader_handle, _dtypes.resource)
   _inputs_flat = [reader_handle]
   _attrs = None
@@ -1266,8 +1271,8 @@ def restore(file_pattern, tensor_name, dt, preferred_shard=-1, name=None):
   Returns:
     A `Tensor` of type `dt`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dt = _execute.make_type(dt, "dt")
     if preferred_shard is None:
       preferred_shard = -1
@@ -1287,14 +1292,14 @@ def restore(file_pattern, tensor_name, dt, preferred_shard=-1, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Restore", name,
-        _ctx._post_execution_callbacks, file_pattern, tensor_name, "dt", dt,
-        "preferred_shard", preferred_shard)
+        _ctx._context_handle, _ctx._eager_context.device_name, "Restore",
+        name, _ctx._post_execution_callbacks, file_pattern, tensor_name, "dt",
+        dt, "preferred_shard", preferred_shard)
       return _result
     except _core._FallbackException:
       return restore_eager_fallback(
           file_pattern, tensor_name, dt=dt, preferred_shard=preferred_shard,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1303,11 +1308,11 @@ def restore(file_pattern, tensor_name, dt, preferred_shard=-1, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def restore_eager_fallback(file_pattern, tensor_name, dt, preferred_shard=-1, name=None):
+def restore_eager_fallback(file_pattern, tensor_name, dt, preferred_shard=-1, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function restore
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   dt = _execute.make_type(dt, "dt")
   if preferred_shard is None:
     preferred_shard = -1
@@ -1353,8 +1358,8 @@ def restore_slice(file_pattern, tensor_name, shape_and_slice, dt, preferred_shar
   Returns:
     A `Tensor` of type `dt`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dt = _execute.make_type(dt, "dt")
     if preferred_shard is None:
       preferred_shard = -1
@@ -1375,14 +1380,14 @@ def restore_slice(file_pattern, tensor_name, shape_and_slice, dt, preferred_shar
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "RestoreSlice", name,
-        _ctx._post_execution_callbacks, file_pattern, tensor_name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "RestoreSlice",
+        name, _ctx._post_execution_callbacks, file_pattern, tensor_name,
         shape_and_slice, "dt", dt, "preferred_shard", preferred_shard)
       return _result
     except _core._FallbackException:
       return restore_slice_eager_fallback(
           file_pattern, tensor_name, shape_and_slice, dt=dt,
-          preferred_shard=preferred_shard, name=name)
+          preferred_shard=preferred_shard, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1391,11 +1396,11 @@ def restore_slice(file_pattern, tensor_name, shape_and_slice, dt, preferred_shar
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def restore_slice_eager_fallback(file_pattern, tensor_name, shape_and_slice, dt, preferred_shard=-1, name=None):
+def restore_slice_eager_fallback(file_pattern, tensor_name, shape_and_slice, dt, preferred_shard=-1, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function restore_slice
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   dt = _execute.make_type(dt, "dt")
   if preferred_shard is None:
     preferred_shard = -1
@@ -1446,8 +1451,8 @@ def restore_v2(prefix, tensor_names, shape_and_slices, dtypes, name=None):
   Returns:
     A list of `Tensor` objects of type `dtypes`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(dtypes, (list, tuple)):
       raise TypeError(
           "Expected list for 'dtypes' argument to "
@@ -1468,13 +1473,14 @@ def restore_v2(prefix, tensor_names, shape_and_slices, dtypes, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "RestoreV2", name,
-        _ctx._post_execution_callbacks, prefix, tensor_names,
+        _ctx._context_handle, _ctx._eager_context.device_name, "RestoreV2",
+        name, _ctx._post_execution_callbacks, prefix, tensor_names,
         shape_and_slices, "dtypes", dtypes)
       return _result
     except _core._FallbackException:
       return restore_v2_eager_fallback(
-          prefix, tensor_names, shape_and_slices, dtypes=dtypes, name=name)
+          prefix, tensor_names, shape_and_slices, dtypes=dtypes, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1483,11 +1489,11 @@ def restore_v2(prefix, tensor_names, shape_and_slices, dtypes, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def restore_v2_eager_fallback(prefix, tensor_names, shape_and_slices, dtypes, name=None):
+def restore_v2_eager_fallback(prefix, tensor_names, shape_and_slices, dtypes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function restore_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -1525,8 +1531,8 @@ def save(filename, tensor_names, data, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "Save", filename=filename, tensor_names=tensor_names, data=data,
         name=name)
@@ -1537,12 +1543,12 @@ def save(filename, tensor_names, data, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Save", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Save", name,
         _ctx._post_execution_callbacks, filename, tensor_names, data)
       return _result
     except _core._FallbackException:
       return save_eager_fallback(
-          filename, tensor_names, data, name=name)
+          filename, tensor_names, data, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1551,11 +1557,11 @@ def save(filename, tensor_names, data, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def save_eager_fallback(filename, tensor_names, data, name=None):
+def save_eager_fallback(filename, tensor_names, data, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function save
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, data = _execute.convert_to_mixed_eager_tensors(data, _ctx)
   filename = _ops.convert_to_tensor(filename, _dtypes.string)
   tensor_names = _ops.convert_to_tensor(tensor_names, _dtypes.string)
@@ -1607,8 +1613,8 @@ def save_slices(filename, tensor_names, shapes_and_slices, data, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "SaveSlices", filename=filename, tensor_names=tensor_names,
         shapes_and_slices=shapes_and_slices, data=data, name=name)
@@ -1619,13 +1625,14 @@ def save_slices(filename, tensor_names, shapes_and_slices, data, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SaveSlices", name,
-        _ctx._post_execution_callbacks, filename, tensor_names,
+        _ctx._context_handle, _ctx._eager_context.device_name, "SaveSlices",
+        name, _ctx._post_execution_callbacks, filename, tensor_names,
         shapes_and_slices, data)
       return _result
     except _core._FallbackException:
       return save_slices_eager_fallback(
-          filename, tensor_names, shapes_and_slices, data, name=name)
+          filename, tensor_names, shapes_and_slices, data, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1634,11 +1641,11 @@ def save_slices(filename, tensor_names, shapes_and_slices, data, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def save_slices_eager_fallback(filename, tensor_names, shapes_and_slices, data, name=None):
+def save_slices_eager_fallback(filename, tensor_names, shapes_and_slices, data, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function save_slices
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, data = _execute.convert_to_mixed_eager_tensors(data, _ctx)
   filename = _ops.convert_to_tensor(filename, _dtypes.string)
   tensor_names = _ops.convert_to_tensor(tensor_names, _dtypes.string)
@@ -1673,8 +1680,8 @@ def save_v2(prefix, tensor_names, shape_and_slices, tensors, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "SaveV2", prefix=prefix, tensor_names=tensor_names,
         shape_and_slices=shape_and_slices, tensors=tensors, name=name)
@@ -1685,13 +1692,14 @@ def save_v2(prefix, tensor_names, shape_and_slices, tensors, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SaveV2", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "SaveV2", name,
         _ctx._post_execution_callbacks, prefix, tensor_names,
         shape_and_slices, tensors)
       return _result
     except _core._FallbackException:
       return save_v2_eager_fallback(
-          prefix, tensor_names, shape_and_slices, tensors, name=name)
+          prefix, tensor_names, shape_and_slices, tensors, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1700,11 +1708,11 @@ def save_v2(prefix, tensor_names, shape_and_slices, tensors, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def save_v2_eager_fallback(prefix, tensor_names, shape_and_slices, tensors, name=None):
+def save_v2_eager_fallback(prefix, tensor_names, shape_and_slices, tensors, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function save_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_dtypes, tensors = _execute.convert_to_mixed_eager_tensors(tensors, _ctx)
   prefix = _ops.convert_to_tensor(prefix, _dtypes.string)
   tensor_names = _ops.convert_to_tensor(tensor_names, _dtypes.string)
@@ -1731,8 +1739,8 @@ def sharded_filename(basename, shard, num_shards, name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ShardedFilename", basename=basename, shard=shard,
         num_shards=num_shards, name=name)
@@ -1747,12 +1755,13 @@ def sharded_filename(basename, shard, num_shards, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ShardedFilename", name,
-        _ctx._post_execution_callbacks, basename, shard, num_shards)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ShardedFilename", name, _ctx._post_execution_callbacks, basename,
+        shard, num_shards)
       return _result
     except _core._FallbackException:
       return sharded_filename_eager_fallback(
-          basename, shard, num_shards, name=name)
+          basename, shard, num_shards, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1761,11 +1770,11 @@ def sharded_filename(basename, shard, num_shards, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sharded_filename_eager_fallback(basename, shard, num_shards, name=None):
+def sharded_filename_eager_fallback(basename, shard, num_shards, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sharded_filename
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   basename = _ops.convert_to_tensor(basename, _dtypes.string)
   shard = _ops.convert_to_tensor(shard, _dtypes.int32)
   num_shards = _ops.convert_to_tensor(num_shards, _dtypes.int32)
@@ -1790,8 +1799,8 @@ def sharded_filespec(basename, num_shards, name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ShardedFilespec", basename=basename, num_shards=num_shards,
         name=name)
@@ -1806,12 +1815,13 @@ def sharded_filespec(basename, num_shards, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ShardedFilespec", name,
-        _ctx._post_execution_callbacks, basename, num_shards)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ShardedFilespec", name, _ctx._post_execution_callbacks, basename,
+        num_shards)
       return _result
     except _core._FallbackException:
       return sharded_filespec_eager_fallback(
-          basename, num_shards, name=name)
+          basename, num_shards, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1820,11 +1830,11 @@ def sharded_filespec(basename, num_shards, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sharded_filespec_eager_fallback(basename, num_shards, name=None):
+def sharded_filespec_eager_fallback(basename, num_shards, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sharded_filespec
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   basename = _ops.convert_to_tensor(basename, _dtypes.string)
   num_shards = _ops.convert_to_tensor(num_shards, _dtypes.int32)
   _inputs_flat = [basename, num_shards]
@@ -1853,8 +1863,8 @@ def tf_record_reader(container="", shared_name="", compression_type="", name=Non
   Returns:
     A `Tensor` of type mutable `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if container is None:
       container = ""
     container = _execute.make_str(container, "container")
@@ -1899,8 +1909,8 @@ def tf_record_reader_v2(container="", shared_name="", compression_type="", name=
   Returns:
     A `Tensor` of type `resource`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if container is None:
       container = ""
     container = _execute.make_str(container, "container")
@@ -1926,14 +1936,15 @@ def tf_record_reader_v2(container="", shared_name="", compression_type="", name=
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TFRecordReaderV2", name,
-        _ctx._post_execution_callbacks, "container", container, "shared_name",
-        shared_name, "compression_type", compression_type)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TFRecordReaderV2", name, _ctx._post_execution_callbacks, "container",
+        container, "shared_name", shared_name, "compression_type",
+        compression_type)
       return _result
     except _core._FallbackException:
       return tf_record_reader_v2_eager_fallback(
           container=container, shared_name=shared_name,
-          compression_type=compression_type, name=name)
+          compression_type=compression_type, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1942,11 +1953,11 @@ def tf_record_reader_v2(container="", shared_name="", compression_type="", name=
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tf_record_reader_v2_eager_fallback(container="", shared_name="", compression_type="", name=None):
+def tf_record_reader_v2_eager_fallback(container="", shared_name="", compression_type="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tf_record_reader_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if container is None:
     container = ""
   container = _execute.make_str(container, "container")
@@ -1984,8 +1995,8 @@ def text_line_reader(skip_header_lines=0, container="", shared_name="", name=Non
   Returns:
     A `Tensor` of type mutable `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if skip_header_lines is None:
       skip_header_lines = 0
     skip_header_lines = _execute.make_int(skip_header_lines, "skip_header_lines")
@@ -2031,8 +2042,8 @@ def text_line_reader_v2(skip_header_lines=0, container="", shared_name="", name=
   Returns:
     A `Tensor` of type `resource`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if skip_header_lines is None:
       skip_header_lines = 0
     skip_header_lines = _execute.make_int(skip_header_lines, "skip_header_lines")
@@ -2058,14 +2069,15 @@ def text_line_reader_v2(skip_header_lines=0, container="", shared_name="", name=
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TextLineReaderV2", name,
-        _ctx._post_execution_callbacks, "skip_header_lines",
-        skip_header_lines, "container", container, "shared_name", shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TextLineReaderV2", name, _ctx._post_execution_callbacks,
+        "skip_header_lines", skip_header_lines, "container", container,
+        "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return text_line_reader_v2_eager_fallback(
           skip_header_lines=skip_header_lines, container=container,
-          shared_name=shared_name, name=name)
+          shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2074,11 +2086,11 @@ def text_line_reader_v2(skip_header_lines=0, container="", shared_name="", name=
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def text_line_reader_v2_eager_fallback(skip_header_lines=0, container="", shared_name="", name=None):
+def text_line_reader_v2_eager_fallback(skip_header_lines=0, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function text_line_reader_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if skip_header_lines is None:
     skip_header_lines = 0
   skip_header_lines = _execute.make_int(skip_header_lines, "skip_header_lines")
@@ -2117,8 +2129,8 @@ def whole_file_reader(container="", shared_name="", name=None):
   Returns:
     A `Tensor` of type mutable `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if container is None:
       container = ""
     container = _execute.make_str(container, "container")
@@ -2161,8 +2173,8 @@ def whole_file_reader_v2(container="", shared_name="", name=None):
   Returns:
     A `Tensor` of type `resource`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if container is None:
       container = ""
     container = _execute.make_str(container, "container")
@@ -2184,13 +2196,13 @@ def whole_file_reader_v2(container="", shared_name="", name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "WholeFileReaderV2", name,
-        _ctx._post_execution_callbacks, "container", container, "shared_name",
-        shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "WholeFileReaderV2", name, _ctx._post_execution_callbacks,
+        "container", container, "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return whole_file_reader_v2_eager_fallback(
-          container=container, shared_name=shared_name, name=name)
+          container=container, shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2199,11 +2211,11 @@ def whole_file_reader_v2(container="", shared_name="", name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def whole_file_reader_v2_eager_fallback(container="", shared_name="", name=None):
+def whole_file_reader_v2_eager_fallback(container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function whole_file_reader_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if container is None:
     container = ""
   container = _execute.make_str(container, "container")
@@ -2236,8 +2248,8 @@ def write_file(filename, contents, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "WriteFile", filename=filename, contents=contents, name=name)
     return _op
@@ -2247,12 +2259,12 @@ def write_file(filename, contents, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "WriteFile", name,
-        _ctx._post_execution_callbacks, filename, contents)
+        _ctx._context_handle, _ctx._eager_context.device_name, "WriteFile",
+        name, _ctx._post_execution_callbacks, filename, contents)
       return _result
     except _core._FallbackException:
       return write_file_eager_fallback(
-          filename, contents, name=name)
+          filename, contents, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2261,11 +2273,11 @@ def write_file(filename, contents, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def write_file_eager_fallback(filename, contents, name=None):
+def write_file_eager_fallback(filename, contents, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function write_file
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   filename = _ops.convert_to_tensor(filename, _dtypes.string)
   contents = _ops.convert_to_tensor(contents, _dtypes.string)
   _inputs_flat = [filename, contents]

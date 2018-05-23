@@ -52,8 +52,8 @@ def skip_gram_generate_candidates(input_tensor, min_skips, max_skips, start, lim
     tokens: A `Tensor`. Has the same type as `input_tensor`.
     labels: A `Tensor`. Has the same type as `input_tensor`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if seed is None:
       seed = 0
     seed = _execute.make_int(seed, "seed")
@@ -77,15 +77,16 @@ def skip_gram_generate_candidates(input_tensor, min_skips, max_skips, start, lim
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SkipGramGenerateCandidates", name,
-        _ctx._post_execution_callbacks, input_tensor, min_skips, max_skips,
-        start, limit, emit_self_as_target, "seed", seed, "seed2", seed2)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SkipGramGenerateCandidates", name, _ctx._post_execution_callbacks,
+        input_tensor, min_skips, max_skips, start, limit, emit_self_as_target,
+        "seed", seed, "seed2", seed2)
       _result = _SkipGramGenerateCandidatesOutput._make(_result)
       return _result
     except _core._FallbackException:
       return skip_gram_generate_candidates_eager_fallback(
           input_tensor, min_skips, max_skips, start, limit,
-          emit_self_as_target, seed=seed, seed2=seed2, name=name)
+          emit_self_as_target, seed=seed, seed2=seed2, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -94,11 +95,11 @@ def skip_gram_generate_candidates(input_tensor, min_skips, max_skips, start, lim
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def skip_gram_generate_candidates_eager_fallback(input_tensor, min_skips, max_skips, start, limit, emit_self_as_target, seed=0, seed2=0, name=None):
+def skip_gram_generate_candidates_eager_fallback(input_tensor, min_skips, max_skips, start, limit, emit_self_as_target, seed=0, seed2=0, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function skip_gram_generate_candidates
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if seed is None:
     seed = 0
   seed = _execute.make_int(seed, "seed")

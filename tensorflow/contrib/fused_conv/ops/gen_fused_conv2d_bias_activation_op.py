@@ -97,8 +97,8 @@ def fused_conv2d_bias_activation(conv_input, filter, bias, side_input, conv_inpu
   Returns:
     A `Tensor`. Has the same type as `conv_input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(strides, (list, tuple)):
       raise TypeError(
           "Expected list for 'strides' argument to "
@@ -144,10 +144,11 @@ def fused_conv2d_bias_activation(conv_input, filter, bias, side_input, conv_inpu
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "FusedConv2DBiasActivation", name,
-        _ctx._post_execution_callbacks, conv_input, filter, bias, side_input,
-        conv_input_scale, side_input_scale, "strides", strides, "padding",
-        padding, "data_format", data_format, "filter_format", filter_format,
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "FusedConv2DBiasActivation", name, _ctx._post_execution_callbacks,
+        conv_input, filter, bias, side_input, conv_input_scale,
+        side_input_scale, "strides", strides, "padding", padding,
+        "data_format", data_format, "filter_format", filter_format,
         "activation_mode", activation_mode, "dilations", dilations)
       return _result
     except _core._FallbackException:
@@ -155,7 +156,8 @@ def fused_conv2d_bias_activation(conv_input, filter, bias, side_input, conv_inpu
           conv_input, filter, bias, side_input, conv_input_scale,
           side_input_scale, strides=strides, padding=padding,
           data_format=data_format, filter_format=filter_format,
-          activation_mode=activation_mode, dilations=dilations, name=name)
+          activation_mode=activation_mode, dilations=dilations, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -164,11 +166,11 @@ def fused_conv2d_bias_activation(conv_input, filter, bias, side_input, conv_inpu
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def fused_conv2d_bias_activation_eager_fallback(conv_input, filter, bias, side_input, conv_input_scale, side_input_scale, strides, padding, data_format="NHWC", filter_format="HWIO", activation_mode="Relu", dilations=[1, 1, 1, 1], name=None):
+def fused_conv2d_bias_activation_eager_fallback(conv_input, filter, bias, side_input, conv_input_scale, side_input_scale, strides, padding, data_format="NHWC", filter_format="HWIO", activation_mode="Relu", dilations=[1, 1, 1, 1], name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function fused_conv2d_bias_activation
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(strides, (list, tuple)):
     raise TypeError(
         "Expected list for 'strides' argument to "

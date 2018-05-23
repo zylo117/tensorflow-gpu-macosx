@@ -24,7 +24,6 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('assign')
 def assign(ref, value, validate_shape=True, use_locking=True, name=None):
   r"""Update 'ref' by assigning 'value' to it.
 
@@ -48,8 +47,8 @@ def assign(ref, value, validate_shape=True, use_locking=True, name=None):
   Returns:
     A mutable `Tensor`. Has the same type as `ref`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if validate_shape is None:
       validate_shape = True
     validate_shape = _execute.make_bool(validate_shape, "validate_shape")
@@ -75,7 +74,6 @@ def assign(ref, value, validate_shape=True, use_locking=True, name=None):
 
   raise RuntimeError("assign op does not support eager execution. Arg 'output_ref' is a ref.")
 
-@tf_export('assign_add')
 def assign_add(ref, value, use_locking=False, name=None):
   r"""Update 'ref' by adding 'value' to it.
 
@@ -95,8 +93,8 @@ def assign_add(ref, value, use_locking=False, name=None):
   Returns:
     A mutable `Tensor`. Has the same type as `ref`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -117,7 +115,6 @@ def assign_add(ref, value, use_locking=False, name=None):
 
   raise RuntimeError("assign_add op does not support eager execution. Arg 'output_ref' is a ref.")
 
-@tf_export('assign_sub')
 def assign_sub(ref, value, use_locking=False, name=None):
   r"""Update 'ref' by subtracting 'value' from it.
 
@@ -137,8 +134,8 @@ def assign_sub(ref, value, use_locking=False, name=None):
   Returns:
     A mutable `Tensor`. Has the same type as `ref`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -159,7 +156,6 @@ def assign_sub(ref, value, use_locking=False, name=None):
 
   raise RuntimeError("assign_sub op does not support eager execution. Arg 'output_ref' is a ref.")
 
-@tf_export('count_up_to')
 def count_up_to(ref, limit, name=None):
   r"""Increments 'ref' until it reaches 'limit'.
 
@@ -174,8 +170,8 @@ def count_up_to(ref, limit, name=None):
   Returns:
     A `Tensor`. Has the same type as `ref`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     limit = _execute.make_int(limit, "limit")
     _, _, _op = _op_def_lib._apply_op_helper(
         "CountUpTo", ref=ref, limit=limit, name=name)
@@ -214,8 +210,8 @@ def destroy_temporary_variable(ref, var_name, name=None):
   Returns:
     A `Tensor`. Has the same type as `ref`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     var_name = _execute.make_str(var_name, "var_name")
     _, _, _op = _op_def_lib._apply_op_helper(
         "DestroyTemporaryVariable", ref=ref, var_name=var_name, name=name)
@@ -246,8 +242,8 @@ def is_variable_initialized(ref, name=None):
   Returns:
     A `Tensor` of type `bool`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "IsVariableInitialized", ref=ref, name=name)
     _result = _op.outputs[:]
@@ -279,8 +275,8 @@ def resource_count_up_to(resource, limit, T, name=None):
   Returns:
     A `Tensor` of type `T`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     limit = _execute.make_int(limit, "limit")
     T = _execute.make_type(T, "T")
     _, _, _op = _op_def_lib._apply_op_helper(
@@ -296,12 +292,13 @@ def resource_count_up_to(resource, limit, T, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceCountUpTo", name,
-        _ctx._post_execution_callbacks, resource, "limit", limit, "T", T)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceCountUpTo", name, _ctx._post_execution_callbacks, resource,
+        "limit", limit, "T", T)
       return _result
     except _core._FallbackException:
       return resource_count_up_to_eager_fallback(
-          resource, limit=limit, T=T, name=name)
+          resource, limit=limit, T=T, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -310,11 +307,11 @@ def resource_count_up_to(resource, limit, T, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_count_up_to_eager_fallback(resource, limit, T, name=None):
+def resource_count_up_to_eager_fallback(resource, limit, T, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_count_up_to
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   limit = _execute.make_int(limit, "limit")
   T = _execute.make_type(T, "T")
   resource = _ops.convert_to_tensor(resource, _dtypes.resource)
@@ -385,8 +382,8 @@ def resource_scatter_nd_update(ref, indices, updates, use_locking=True, name=Non
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = True
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -400,13 +397,13 @@ def resource_scatter_nd_update(ref, indices, updates, use_locking=True, name=Non
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResourceScatterNdUpdate", name,
-        _ctx._post_execution_callbacks, ref, indices, updates, "use_locking",
-        use_locking)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResourceScatterNdUpdate", name, _ctx._post_execution_callbacks, ref,
+        indices, updates, "use_locking", use_locking)
       return _result
     except _core._FallbackException:
       return resource_scatter_nd_update_eager_fallback(
-          ref, indices, updates, use_locking=use_locking, name=name)
+          ref, indices, updates, use_locking=use_locking, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -415,11 +412,11 @@ def resource_scatter_nd_update(ref, indices, updates, use_locking=True, name=Non
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resource_scatter_nd_update_eager_fallback(ref, indices, updates, use_locking=True, name=None):
+def resource_scatter_nd_update_eager_fallback(ref, indices, updates, use_locking=True, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resource_scatter_nd_update
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if use_locking is None:
     use_locking = True
   use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -436,7 +433,6 @@ def resource_scatter_nd_update_eager_fallback(ref, indices, updates, use_locking
   return _result
 
 
-@tf_export('scatter_add')
 def scatter_add(ref, indices, updates, use_locking=False, name=None):
   r"""Adds sparse updates to a variable reference.
 
@@ -457,7 +453,7 @@ def scatter_add(ref, indices, updates, use_locking=False, name=None):
   Duplicate entries are handled correctly: if multiple `indices` reference
   the same location, their contributions add.
 
-  Requires `updates.shape = indices.shape + ref.shape[1:]`.
+  Requires `updates.shape = indices.shape + ref.shape[1:]` or `updates.shape = []`.
 
   <div style="width:70%; margin:auto; margin-bottom:10px; margin-top:20px;">
   <img style="width:100%" src="https://www.tensorflow.org/images/ScatterAdd.png" alt>
@@ -478,8 +474,8 @@ def scatter_add(ref, indices, updates, use_locking=False, name=None):
   Returns:
     A mutable `Tensor`. Has the same type as `ref`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -524,7 +520,7 @@ def scatter_div(ref, indices, updates, use_locking=False, name=None):
   Duplicate entries are handled correctly: if multiple `indices` reference
   the same location, their contributions divide.
 
-  Requires `updates.shape = indices.shape + ref.shape[1:]`.
+  Requires `updates.shape = indices.shape + ref.shape[1:]` or `updates.shape = []`.
 
   Args:
     ref: A mutable `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `complex64`, `int64`, `qint8`, `quint8`, `qint32`, `bfloat16`, `uint16`, `complex128`, `half`, `uint32`, `uint64`.
@@ -541,8 +537,8 @@ def scatter_div(ref, indices, updates, use_locking=False, name=None):
   Returns:
     A mutable `Tensor`. Has the same type as `ref`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -563,6 +559,136 @@ def scatter_div(ref, indices, updates, use_locking=False, name=None):
 
 
   raise RuntimeError("scatter_div op does not support eager execution. Arg 'output_ref' is a ref.")
+
+@tf_export('scatter_max')
+def scatter_max(ref, indices, updates, use_locking=False, name=None):
+  r"""Reduces sparse updates into a variable reference using the `max` operation.
+
+  This operation computes
+
+      # Scalar indices
+      ref[indices, ...] = max(ref[indices, ...], updates[...])
+
+      # Vector indices (for each i)
+      ref[indices[i], ...] = max(ref[indices[i], ...], updates[i, ...])
+
+      # High rank indices (for each i, ..., j)
+      ref[indices[i, ..., j], ...] = max(ref[indices[i, ..., j], ...], updates[i, ..., j, ...])
+
+  This operation outputs `ref` after the update is done.
+  This makes it easier to chain operations that need to use the reset value.
+
+  Duplicate entries are handled correctly: if multiple `indices` reference
+  the same location, their contributions combine.
+
+  Requires `updates.shape = indices.shape + ref.shape[1:]` or `updates.shape = []`.
+
+  <div style="width:70%; margin:auto; margin-bottom:10px; margin-top:20px;">
+  <img style="width:100%" src="https://www.tensorflow.org/images/ScatterAdd.png" alt>
+  </div>
+
+  Args:
+    ref: A mutable `Tensor`. Must be one of the following types: `half`, `bfloat16`, `float32`, `float64`, `int32`, `int64`.
+      Should be from a `Variable` node.
+    indices: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A tensor of indices into the first dimension of `ref`.
+    updates: A `Tensor`. Must have the same type as `ref`.
+      A tensor of updated values to reduce into `ref`.
+    use_locking: An optional `bool`. Defaults to `False`.
+      If True, the update will be protected by a lock;
+      otherwise the behavior is undefined, but may exhibit less contention.
+    name: A name for the operation (optional).
+
+  Returns:
+    A mutable `Tensor`. Has the same type as `ref`.
+  """
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
+    if use_locking is None:
+      use_locking = False
+    use_locking = _execute.make_bool(use_locking, "use_locking")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "ScatterMax", ref=ref, indices=indices, updates=updates,
+        use_locking=use_locking, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("T", _op.get_attr("T"), "Tindices", _op.get_attr("Tindices"),
+              "use_locking", _op.get_attr("use_locking"))
+    _execute.record_gradient(
+      "ScatterMax", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("scatter_max op does not support eager execution. Arg 'output_ref' is a ref.")
+
+
+  raise RuntimeError("scatter_max op does not support eager execution. Arg 'output_ref' is a ref.")
+
+@tf_export('scatter_min')
+def scatter_min(ref, indices, updates, use_locking=False, name=None):
+  r"""Reduces sparse updates into a variable reference using the `min` operation.
+
+  This operation computes
+
+      # Scalar indices
+      ref[indices, ...] = min(ref[indices, ...], updates[...])
+
+      # Vector indices (for each i)
+      ref[indices[i], ...] = min(ref[indices[i], ...], updates[i, ...])
+
+      # High rank indices (for each i, ..., j)
+      ref[indices[i, ..., j], ...] = min(ref[indices[i, ..., j], ...], updates[i, ..., j, ...])
+
+  This operation outputs `ref` after the update is done.
+  This makes it easier to chain operations that need to use the reset value.
+
+  Duplicate entries are handled correctly: if multiple `indices` reference
+  the same location, their contributions combine.
+
+  Requires `updates.shape = indices.shape + ref.shape[1:]` or `updates.shape = []`.
+
+  <div style="width:70%; margin:auto; margin-bottom:10px; margin-top:20px;">
+  <img style="width:100%" src="https://www.tensorflow.org/images/ScatterAdd.png" alt>
+  </div>
+
+  Args:
+    ref: A mutable `Tensor`. Must be one of the following types: `half`, `bfloat16`, `float32`, `float64`, `int32`, `int64`.
+      Should be from a `Variable` node.
+    indices: A `Tensor`. Must be one of the following types: `int32`, `int64`.
+      A tensor of indices into the first dimension of `ref`.
+    updates: A `Tensor`. Must have the same type as `ref`.
+      A tensor of updated values to reduce into `ref`.
+    use_locking: An optional `bool`. Defaults to `False`.
+      If True, the update will be protected by a lock;
+      otherwise the behavior is undefined, but may exhibit less contention.
+    name: A name for the operation (optional).
+
+  Returns:
+    A mutable `Tensor`. Has the same type as `ref`.
+  """
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
+    if use_locking is None:
+      use_locking = False
+    use_locking = _execute.make_bool(use_locking, "use_locking")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "ScatterMin", ref=ref, indices=indices, updates=updates,
+        use_locking=use_locking, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("T", _op.get_attr("T"), "Tindices", _op.get_attr("Tindices"),
+              "use_locking", _op.get_attr("use_locking"))
+    _execute.record_gradient(
+      "ScatterMin", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("scatter_min op does not support eager execution. Arg 'output_ref' is a ref.")
+
+
+  raise RuntimeError("scatter_min op does not support eager execution. Arg 'output_ref' is a ref.")
 
 @tf_export('scatter_mul')
 def scatter_mul(ref, indices, updates, use_locking=False, name=None):
@@ -587,7 +713,7 @@ def scatter_mul(ref, indices, updates, use_locking=False, name=None):
   Duplicate entries are handled correctly: if multiple `indices` reference
   the same location, their contributions multiply.
 
-  Requires `updates.shape = indices.shape + ref.shape[1:]`.
+  Requires `updates.shape = indices.shape + ref.shape[1:]` or `updates.shape = []`.
 
   Args:
     ref: A mutable `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `complex64`, `int64`, `qint8`, `quint8`, `qint32`, `bfloat16`, `uint16`, `complex128`, `half`, `uint32`, `uint64`.
@@ -604,8 +730,8 @@ def scatter_mul(ref, indices, updates, use_locking=False, name=None):
   Returns:
     A mutable `Tensor`. Has the same type as `ref`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -683,8 +809,8 @@ def scatter_nd_add(ref, indices, updates, use_locking=False, name=None):
   Returns:
     A mutable `Tensor`. Has the same type as `ref`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -762,8 +888,8 @@ def scatter_nd_sub(ref, indices, updates, use_locking=False, name=None):
   Returns:
     A mutable `Tensor`. Has the same type as `ref`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -785,7 +911,6 @@ def scatter_nd_sub(ref, indices, updates, use_locking=False, name=None):
 
   raise RuntimeError("scatter_nd_sub op does not support eager execution. Arg 'output_ref' is a ref.")
 
-@tf_export('scatter_nd_update')
 def scatter_nd_update(ref, indices, updates, use_locking=True, name=None):
   r"""Applies sparse `updates` to individual values or slices within a given
 
@@ -842,8 +967,8 @@ def scatter_nd_update(ref, indices, updates, use_locking=True, name=None):
   Returns:
     A mutable `Tensor`. Has the same type as `ref`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = True
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -886,7 +1011,7 @@ def scatter_sub(ref, indices, updates, use_locking=False, name=None):
   Duplicate entries are handled correctly: if multiple `indices` reference
   the same location, their (negated) contributions add.
 
-  Requires `updates.shape = indices.shape + ref.shape[1:]`.
+  Requires `updates.shape = indices.shape + ref.shape[1:]` or `updates.shape = []`.
 
   <div style="width:70%; margin:auto; margin-bottom:10px; margin-top:20px;">
   <img style="width:100%" src="https://www.tensorflow.org/images/ScatterSub.png" alt>
@@ -907,8 +1032,8 @@ def scatter_sub(ref, indices, updates, use_locking=False, name=None):
   Returns:
     A mutable `Tensor`. Has the same type as `ref`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = False
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -930,7 +1055,6 @@ def scatter_sub(ref, indices, updates, use_locking=False, name=None):
 
   raise RuntimeError("scatter_sub op does not support eager execution. Arg 'output_ref' is a ref.")
 
-@tf_export('scatter_update')
 def scatter_update(ref, indices, updates, use_locking=True, name=None):
   r"""Applies sparse updates to a variable reference.
 
@@ -954,7 +1078,7 @@ def scatter_update(ref, indices, updates, use_locking=True, name=None):
   duplicate entries in `indices`, the order at which the updates happen
   for each value is undefined.
 
-  Requires `updates.shape = indices.shape + ref.shape[1:]`.
+  Requires `updates.shape = indices.shape + ref.shape[1:]` or `updates.shape = []`.
 
   <div style="width:70%; margin:auto; margin-bottom:10px; margin-top:20px;">
   <img style="width:100%" src="https://www.tensorflow.org/images/ScatterUpdate.png" alt>
@@ -974,8 +1098,8 @@ def scatter_update(ref, indices, updates, use_locking=True, name=None):
   Returns:
     A mutable `Tensor`. Has the same type as `ref`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if use_locking is None:
       use_locking = True
     use_locking = _execute.make_bool(use_locking, "use_locking")
@@ -1027,8 +1151,8 @@ def temporary_variable(shape, dtype, var_name="", name=None):
   Returns:
     A mutable `Tensor` of type `dtype`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     shape = _execute.make_shape(shape, "shape")
     dtype = _execute.make_type(dtype, "dtype")
     if var_name is None:
@@ -1065,8 +1189,8 @@ def variable(shape, dtype, container="", shared_name="", name=None):
   Returns:
     A mutable `Tensor` of type `dtype`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     shape = _execute.make_shape(shape, "shape")
     dtype = _execute.make_type(dtype, "dtype")
     if container is None:
@@ -1116,8 +1240,8 @@ def variable_v2(shape, dtype, container="", shared_name="", name=None):
   Returns:
     A mutable `Tensor` of type `dtype`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     shape = _execute.make_shape(shape, "shape")
     dtype = _execute.make_type(dtype, "dtype")
     if container is None:
@@ -1516,6 +1640,110 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #         type: DT_HALF
 #         type: DT_UINT32
 #         type: DT_UINT64
+#       }
+#     }
+#   }
+#   attr {
+#     name: "Tindices"
+#     type: "type"
+#     allowed_values {
+#       list {
+#         type: DT_INT32
+#         type: DT_INT64
+#       }
+#     }
+#   }
+#   attr {
+#     name: "use_locking"
+#     type: "bool"
+#     default_value {
+#       b: false
+#     }
+#   }
+# }
+# op {
+#   name: "ScatterMax"
+#   input_arg {
+#     name: "ref"
+#     type_attr: "T"
+#     is_ref: true
+#   }
+#   input_arg {
+#     name: "indices"
+#     type_attr: "Tindices"
+#   }
+#   input_arg {
+#     name: "updates"
+#     type_attr: "T"
+#   }
+#   output_arg {
+#     name: "output_ref"
+#     type_attr: "T"
+#     is_ref: true
+#   }
+#   attr {
+#     name: "T"
+#     type: "type"
+#     allowed_values {
+#       list {
+#         type: DT_HALF
+#         type: DT_BFLOAT16
+#         type: DT_FLOAT
+#         type: DT_DOUBLE
+#         type: DT_INT32
+#         type: DT_INT64
+#       }
+#     }
+#   }
+#   attr {
+#     name: "Tindices"
+#     type: "type"
+#     allowed_values {
+#       list {
+#         type: DT_INT32
+#         type: DT_INT64
+#       }
+#     }
+#   }
+#   attr {
+#     name: "use_locking"
+#     type: "bool"
+#     default_value {
+#       b: false
+#     }
+#   }
+# }
+# op {
+#   name: "ScatterMin"
+#   input_arg {
+#     name: "ref"
+#     type_attr: "T"
+#     is_ref: true
+#   }
+#   input_arg {
+#     name: "indices"
+#     type_attr: "Tindices"
+#   }
+#   input_arg {
+#     name: "updates"
+#     type_attr: "T"
+#   }
+#   output_arg {
+#     name: "output_ref"
+#     type_attr: "T"
+#     is_ref: true
+#   }
+#   attr {
+#     name: "T"
+#     type: "type"
+#     allowed_values {
+#       list {
+#         type: DT_HALF
+#         type: DT_BFLOAT16
+#         type: DT_FLOAT
+#         type: DT_DOUBLE
+#         type: DT_INT32
+#         type: DT_INT64
 #       }
 #     }
 #   }
@@ -1959,4 +2187,4 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #   }
 #   is_stateful: true
 # }
-_op_def_lib = _InitOpDefLibrary(b"\nx\n\006Assign\022\013\n\003ref\"\001T\200\001\001\022\n\n\005value\"\001T\032\022\n\noutput_ref\"\001T\200\001\001\"\t\n\001T\022\004type\"\032\n\016validate_shape\022\004bool\032\002(\001\"\027\n\013use_locking\022\004bool\032\002(\001\230\001\001\ns\n\tAssignAdd\022\013\n\003ref\"\001T\200\001\001\022\n\n\005value\"\001T\032\022\n\noutput_ref\"\001T\200\001\001\" \n\001T\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\027\n\013use_locking\022\004bool\032\002(\000\ns\n\tAssignSub\022\013\n\003ref\"\001T\200\001\001\022\n\n\005value\"\001T\032\022\n\noutput_ref\"\001T\200\001\001\" \n\001T\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\027\n\013use_locking\022\004bool\032\002(\000\nF\n\tCountUpTo\022\013\n\003ref\"\001T\200\001\001\032\013\n\006output\"\001T\"\014\n\005limit\022\003int\"\021\n\001T\022\004type:\006\n\0042\002\003\t\nR\n\030DestroyTemporaryVariable\022\013\n\003ref\"\001T\200\001\001\032\n\n\005value\"\001T\"\t\n\001T\022\004type\"\022\n\010var_name\022\006string\nN\n\025IsVariableInitialized\022\017\n\003ref\"\005dtype\200\001\001\032\022\n\016is_initialized\030\n\"\r\n\005dtype\022\004type\230\001\001\nR\n\021ResourceCountUpTo\022\014\n\010resource\030\024\032\013\n\006output\"\001T\"\014\n\005limit\022\003int\"\021\n\001T\022\004type:\006\n\0042\002\003\t\210\001\001\n\206\001\n\027ResourceScatterNdUpdate\022\007\n\003ref\030\024\022\023\n\007indices\"\010Tindices\022\014\n\007updates\"\001T\"\t\n\001T\022\004type\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\"\027\n\013use_locking\022\004bool\032\002(\001\210\001\001\n\245\001\n\nScatterAdd\022\013\n\003ref\"\001T\200\001\001\022\023\n\007indices\"\010Tindices\022\014\n\007updates\"\001T\032\022\n\noutput_ref\"\001T\200\001\001\" \n\001T\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\"\027\n\013use_locking\022\004bool\032\002(\000\n\245\001\n\nScatterDiv\022\013\n\003ref\"\001T\200\001\001\022\023\n\007indices\"\010Tindices\022\014\n\007updates\"\001T\032\022\n\noutput_ref\"\001T\200\001\001\" \n\001T\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\"\027\n\013use_locking\022\004bool\032\002(\000\n\245\001\n\nScatterMul\022\013\n\003ref\"\001T\200\001\001\022\023\n\007indices\"\010Tindices\022\014\n\007updates\"\001T\032\022\n\noutput_ref\"\001T\200\001\001\" \n\001T\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\"\027\n\013use_locking\022\004bool\032\002(\000\n\247\001\n\014ScatterNdAdd\022\013\n\003ref\"\001T\200\001\001\022\023\n\007indices\"\010Tindices\022\014\n\007updates\"\001T\032\022\n\noutput_ref\"\001T\200\001\001\" \n\001T\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\"\027\n\013use_locking\022\004bool\032\002(\000\n\247\001\n\014ScatterNdSub\022\013\n\003ref\"\001T\200\001\001\022\023\n\007indices\"\010Tindices\022\014\n\007updates\"\001T\032\022\n\noutput_ref\"\001T\200\001\001\" \n\001T\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\"\027\n\013use_locking\022\004bool\032\002(\000\n\223\001\n\017ScatterNdUpdate\022\013\n\003ref\"\001T\200\001\001\022\023\n\007indices\"\010Tindices\022\014\n\007updates\"\001T\032\022\n\noutput_ref\"\001T\200\001\001\"\t\n\001T\022\004type\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\"\027\n\013use_locking\022\004bool\032\002(\001\n\245\001\n\nScatterSub\022\013\n\003ref\"\001T\200\001\001\022\023\n\007indices\"\010Tindices\022\014\n\007updates\"\001T\032\022\n\noutput_ref\"\001T\200\001\001\" \n\001T\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\"\027\n\013use_locking\022\004bool\032\002(\000\n\221\001\n\rScatterUpdate\022\013\n\003ref\"\001T\200\001\001\022\023\n\007indices\"\010Tindices\022\014\n\007updates\"\001T\032\022\n\noutput_ref\"\001T\200\001\001\"\t\n\001T\022\004type\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\"\027\n\013use_locking\022\004bool\032\002(\001\n^\n\021TemporaryVariable\032\017\n\003ref\"\005dtype\200\001\001\"\016\n\005shape\022\005shape\"\r\n\005dtype\022\004type\"\026\n\010var_name\022\006string\032\002\022\000\210\001\001\nq\n\010Variable\032\017\n\003ref\"\005dtype\200\001\001\"\016\n\005shape\022\005shape\"\r\n\005dtype\022\004type\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\ns\n\nVariableV2\032\017\n\003ref\"\005dtype\200\001\001\"\016\n\005shape\022\005shape\"\r\n\005dtype\022\004type\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001")
+_op_def_lib = _InitOpDefLibrary(b"\nx\n\006Assign\022\013\n\003ref\"\001T\200\001\001\022\n\n\005value\"\001T\032\022\n\noutput_ref\"\001T\200\001\001\"\t\n\001T\022\004type\"\032\n\016validate_shape\022\004bool\032\002(\001\"\027\n\013use_locking\022\004bool\032\002(\001\230\001\001\ns\n\tAssignAdd\022\013\n\003ref\"\001T\200\001\001\022\n\n\005value\"\001T\032\022\n\noutput_ref\"\001T\200\001\001\" \n\001T\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\027\n\013use_locking\022\004bool\032\002(\000\ns\n\tAssignSub\022\013\n\003ref\"\001T\200\001\001\022\n\n\005value\"\001T\032\022\n\noutput_ref\"\001T\200\001\001\" \n\001T\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\027\n\013use_locking\022\004bool\032\002(\000\nF\n\tCountUpTo\022\013\n\003ref\"\001T\200\001\001\032\013\n\006output\"\001T\"\014\n\005limit\022\003int\"\021\n\001T\022\004type:\006\n\0042\002\003\t\nR\n\030DestroyTemporaryVariable\022\013\n\003ref\"\001T\200\001\001\032\n\n\005value\"\001T\"\t\n\001T\022\004type\"\022\n\010var_name\022\006string\nN\n\025IsVariableInitialized\022\017\n\003ref\"\005dtype\200\001\001\032\022\n\016is_initialized\030\n\"\r\n\005dtype\022\004type\230\001\001\nR\n\021ResourceCountUpTo\022\014\n\010resource\030\024\032\013\n\006output\"\001T\"\014\n\005limit\022\003int\"\021\n\001T\022\004type:\006\n\0042\002\003\t\210\001\001\n\206\001\n\027ResourceScatterNdUpdate\022\007\n\003ref\030\024\022\023\n\007indices\"\010Tindices\022\014\n\007updates\"\001T\"\t\n\001T\022\004type\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\"\027\n\013use_locking\022\004bool\032\002(\001\210\001\001\n\245\001\n\nScatterAdd\022\013\n\003ref\"\001T\200\001\001\022\023\n\007indices\"\010Tindices\022\014\n\007updates\"\001T\032\022\n\noutput_ref\"\001T\200\001\001\" \n\001T\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\"\027\n\013use_locking\022\004bool\032\002(\000\n\245\001\n\nScatterDiv\022\013\n\003ref\"\001T\200\001\001\022\023\n\007indices\"\010Tindices\022\014\n\007updates\"\001T\032\022\n\noutput_ref\"\001T\200\001\001\" \n\001T\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\"\027\n\013use_locking\022\004bool\032\002(\000\n\232\001\n\nScatterMax\022\013\n\003ref\"\001T\200\001\001\022\023\n\007indices\"\010Tindices\022\014\n\007updates\"\001T\032\022\n\noutput_ref\"\001T\200\001\001\"\025\n\001T\022\004type:\n\n\0102\006\023\016\001\002\003\t\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\"\027\n\013use_locking\022\004bool\032\002(\000\n\232\001\n\nScatterMin\022\013\n\003ref\"\001T\200\001\001\022\023\n\007indices\"\010Tindices\022\014\n\007updates\"\001T\032\022\n\noutput_ref\"\001T\200\001\001\"\025\n\001T\022\004type:\n\n\0102\006\023\016\001\002\003\t\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\"\027\n\013use_locking\022\004bool\032\002(\000\n\245\001\n\nScatterMul\022\013\n\003ref\"\001T\200\001\001\022\023\n\007indices\"\010Tindices\022\014\n\007updates\"\001T\032\022\n\noutput_ref\"\001T\200\001\001\" \n\001T\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\"\027\n\013use_locking\022\004bool\032\002(\000\n\247\001\n\014ScatterNdAdd\022\013\n\003ref\"\001T\200\001\001\022\023\n\007indices\"\010Tindices\022\014\n\007updates\"\001T\032\022\n\noutput_ref\"\001T\200\001\001\" \n\001T\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\"\027\n\013use_locking\022\004bool\032\002(\000\n\247\001\n\014ScatterNdSub\022\013\n\003ref\"\001T\200\001\001\022\023\n\007indices\"\010Tindices\022\014\n\007updates\"\001T\032\022\n\noutput_ref\"\001T\200\001\001\" \n\001T\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\"\027\n\013use_locking\022\004bool\032\002(\000\n\223\001\n\017ScatterNdUpdate\022\013\n\003ref\"\001T\200\001\001\022\023\n\007indices\"\010Tindices\022\014\n\007updates\"\001T\032\022\n\noutput_ref\"\001T\200\001\001\"\t\n\001T\022\004type\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\"\027\n\013use_locking\022\004bool\032\002(\001\n\245\001\n\nScatterSub\022\013\n\003ref\"\001T\200\001\001\022\023\n\007indices\"\010Tindices\022\014\n\007updates\"\001T\032\022\n\noutput_ref\"\001T\200\001\001\" \n\001T\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\"\027\n\013use_locking\022\004bool\032\002(\000\n\221\001\n\rScatterUpdate\022\013\n\003ref\"\001T\200\001\001\022\023\n\007indices\"\010Tindices\022\014\n\007updates\"\001T\032\022\n\noutput_ref\"\001T\200\001\001\"\t\n\001T\022\004type\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\"\027\n\013use_locking\022\004bool\032\002(\001\n^\n\021TemporaryVariable\032\017\n\003ref\"\005dtype\200\001\001\"\016\n\005shape\022\005shape\"\r\n\005dtype\022\004type\"\026\n\010var_name\022\006string\032\002\022\000\210\001\001\nq\n\010Variable\032\017\n\003ref\"\005dtype\200\001\001\"\016\n\005shape\022\005shape\"\r\n\005dtype\022\004type\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\ns\n\nVariableV2\032\017\n\003ref\"\005dtype\200\001\001\"\016\n\005shape\022\005shape\"\r\n\005dtype\022\004type\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001")

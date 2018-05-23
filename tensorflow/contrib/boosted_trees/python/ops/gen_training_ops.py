@@ -46,8 +46,8 @@ def center_tree_ensemble_bias(tree_ensemble_handle, stamp_token, next_stamp_toke
     A `Tensor` of type `bool`.
     Scalar indicating whether more centering is needed.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     learner_config = _execute.make_str(learner_config, "learner_config")
     if centering_epsilon is None:
       centering_epsilon = 0.01
@@ -69,16 +69,17 @@ def center_tree_ensemble_bias(tree_ensemble_handle, stamp_token, next_stamp_toke
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "CenterTreeEnsembleBias", name,
-        _ctx._post_execution_callbacks, tree_ensemble_handle, stamp_token,
-        next_stamp_token, delta_updates, "learner_config", learner_config,
-        "centering_epsilon", centering_epsilon)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "CenterTreeEnsembleBias", name, _ctx._post_execution_callbacks,
+        tree_ensemble_handle, stamp_token, next_stamp_token, delta_updates,
+        "learner_config", learner_config, "centering_epsilon",
+        centering_epsilon)
       return _result
     except _core._FallbackException:
       return center_tree_ensemble_bias_eager_fallback(
           tree_ensemble_handle, stamp_token, next_stamp_token, delta_updates,
           learner_config=learner_config, centering_epsilon=centering_epsilon,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -87,11 +88,11 @@ def center_tree_ensemble_bias(tree_ensemble_handle, stamp_token, next_stamp_toke
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def center_tree_ensemble_bias_eager_fallback(tree_ensemble_handle, stamp_token, next_stamp_token, delta_updates, learner_config, centering_epsilon=0.01, name=None):
+def center_tree_ensemble_bias_eager_fallback(tree_ensemble_handle, stamp_token, next_stamp_token, delta_updates, learner_config, centering_epsilon=0.01, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function center_tree_ensemble_bias
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   learner_config = _execute.make_str(learner_config, "learner_config")
   if centering_epsilon is None:
     centering_epsilon = 0.01
@@ -143,8 +144,8 @@ def grow_tree_ensemble(tree_ensemble_handle, stamp_token, next_stamp_token, lear
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(partition_ids, (list, tuple)):
       raise TypeError(
           "Expected list for 'partition_ids' argument to "
@@ -183,16 +184,18 @@ def grow_tree_ensemble(tree_ensemble_handle, stamp_token, next_stamp_token, lear
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "GrowTreeEnsemble", name,
-        _ctx._post_execution_callbacks, tree_ensemble_handle, stamp_token,
-        next_stamp_token, learning_rate, dropout_seed, partition_ids, gains,
-        splits, "learner_config", learner_config, "center_bias", center_bias)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "GrowTreeEnsemble", name, _ctx._post_execution_callbacks,
+        tree_ensemble_handle, stamp_token, next_stamp_token, learning_rate,
+        dropout_seed, partition_ids, gains, splits, "learner_config",
+        learner_config, "center_bias", center_bias)
       return _result
     except _core._FallbackException:
       return grow_tree_ensemble_eager_fallback(
           tree_ensemble_handle, stamp_token, next_stamp_token, learning_rate,
           dropout_seed, partition_ids, gains, splits,
-          learner_config=learner_config, center_bias=center_bias, name=name)
+          learner_config=learner_config, center_bias=center_bias, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -201,11 +204,11 @@ def grow_tree_ensemble(tree_ensemble_handle, stamp_token, next_stamp_token, lear
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def grow_tree_ensemble_eager_fallback(tree_ensemble_handle, stamp_token, next_stamp_token, learning_rate, dropout_seed, partition_ids, gains, splits, learner_config, center_bias, name=None):
+def grow_tree_ensemble_eager_fallback(tree_ensemble_handle, stamp_token, next_stamp_token, learning_rate, dropout_seed, partition_ids, gains, splits, learner_config, center_bias, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function grow_tree_ensemble
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(partition_ids, (list, tuple)):
     raise TypeError(
         "Expected list for 'partition_ids' argument to "
@@ -278,8 +281,8 @@ def tree_ensemble_stats(tree_ensemble_handle, stamp_token, name=None):
     attempted_trees: A `Tensor` of type `int64`.
     attempted_layers: A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "TreeEnsembleStats", tree_ensemble_handle=tree_ensemble_handle,
         stamp_token=stamp_token, name=name)
@@ -294,13 +297,14 @@ def tree_ensemble_stats(tree_ensemble_handle, stamp_token, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TreeEnsembleStats", name,
-        _ctx._post_execution_callbacks, tree_ensemble_handle, stamp_token)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TreeEnsembleStats", name, _ctx._post_execution_callbacks,
+        tree_ensemble_handle, stamp_token)
       _result = _TreeEnsembleStatsOutput._make(_result)
       return _result
     except _core._FallbackException:
       return tree_ensemble_stats_eager_fallback(
-          tree_ensemble_handle, stamp_token, name=name)
+          tree_ensemble_handle, stamp_token, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -309,11 +313,11 @@ def tree_ensemble_stats(tree_ensemble_handle, stamp_token, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tree_ensemble_stats_eager_fallback(tree_ensemble_handle, stamp_token, name=None):
+def tree_ensemble_stats_eager_fallback(tree_ensemble_handle, stamp_token, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tree_ensemble_stats
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   tree_ensemble_handle = _ops.convert_to_tensor(tree_ensemble_handle, _dtypes.resource)
   stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
   _inputs_flat = [tree_ensemble_handle, stamp_token]

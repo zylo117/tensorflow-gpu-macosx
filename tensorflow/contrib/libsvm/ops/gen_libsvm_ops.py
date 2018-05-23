@@ -53,8 +53,8 @@ def decode_libsvm(input, num_features, dtype=_dtypes.float32, label_dtype=_dtype
     feature_values: A `Tensor` of type `dtype`. A 1-D tensor of any type and dense_shape [N].
     feature_shape: A `Tensor` of type `int64`. A 1-D int64 tensor of dense_shape [ndims].
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     num_features = _execute.make_int(num_features, "num_features")
     if dtype is None:
       dtype = _dtypes.float32
@@ -78,15 +78,15 @@ def decode_libsvm(input, num_features, dtype=_dtypes.float32, label_dtype=_dtype
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DecodeLibsvm", name,
-        _ctx._post_execution_callbacks, input, "dtype", dtype, "label_dtype",
-        label_dtype, "num_features", num_features)
+        _ctx._context_handle, _ctx._eager_context.device_name, "DecodeLibsvm",
+        name, _ctx._post_execution_callbacks, input, "dtype", dtype,
+        "label_dtype", label_dtype, "num_features", num_features)
       _result = _DecodeLibsvmOutput._make(_result)
       return _result
     except _core._FallbackException:
       return decode_libsvm_eager_fallback(
           input, dtype=dtype, label_dtype=label_dtype,
-          num_features=num_features, name=name)
+          num_features=num_features, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -95,11 +95,11 @@ def decode_libsvm(input, num_features, dtype=_dtypes.float32, label_dtype=_dtype
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def decode_libsvm_eager_fallback(input, num_features, dtype=_dtypes.float32, label_dtype=_dtypes.int64, name=None):
+def decode_libsvm_eager_fallback(input, num_features, dtype=_dtypes.float32, label_dtype=_dtypes.int64, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function decode_libsvm
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   num_features = _execute.make_int(num_features, "num_features")
   if dtype is None:
     dtype = _dtypes.float32

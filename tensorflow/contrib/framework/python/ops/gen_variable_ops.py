@@ -40,8 +40,8 @@ def zero_initializer(ref, name=None):
   Returns:
     Same as "ref".
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "ZeroInitializer", ref=ref, name=name)
     _result = _op.outputs[:]

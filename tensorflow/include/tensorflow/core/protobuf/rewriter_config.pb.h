@@ -91,6 +91,28 @@ inline bool RewriterConfig_Toggle_Parse(
   return ::google::protobuf::internal::ParseNamedEnum<RewriterConfig_Toggle>(
     RewriterConfig_Toggle_descriptor(), name, value);
 }
+enum RewriterConfig_NumIterationsType {
+  RewriterConfig_NumIterationsType_DEFAULT_NUM_ITERS = 0,
+  RewriterConfig_NumIterationsType_ONE = 1,
+  RewriterConfig_NumIterationsType_TWO = 2,
+  RewriterConfig_NumIterationsType_RewriterConfig_NumIterationsType_INT_MIN_SENTINEL_DO_NOT_USE_ = ::google::protobuf::kint32min,
+  RewriterConfig_NumIterationsType_RewriterConfig_NumIterationsType_INT_MAX_SENTINEL_DO_NOT_USE_ = ::google::protobuf::kint32max
+};
+bool RewriterConfig_NumIterationsType_IsValid(int value);
+const RewriterConfig_NumIterationsType RewriterConfig_NumIterationsType_NumIterationsType_MIN = RewriterConfig_NumIterationsType_DEFAULT_NUM_ITERS;
+const RewriterConfig_NumIterationsType RewriterConfig_NumIterationsType_NumIterationsType_MAX = RewriterConfig_NumIterationsType_TWO;
+const int RewriterConfig_NumIterationsType_NumIterationsType_ARRAYSIZE = RewriterConfig_NumIterationsType_NumIterationsType_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* RewriterConfig_NumIterationsType_descriptor();
+inline const ::std::string& RewriterConfig_NumIterationsType_Name(RewriterConfig_NumIterationsType value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    RewriterConfig_NumIterationsType_descriptor(), value);
+}
+inline bool RewriterConfig_NumIterationsType_Parse(
+    const ::std::string& name, RewriterConfig_NumIterationsType* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<RewriterConfig_NumIterationsType>(
+    RewriterConfig_NumIterationsType_descriptor(), name, value);
+}
 enum RewriterConfig_MemOptType {
   RewriterConfig_MemOptType_DEFAULT_MEM_OPT = 0,
   RewriterConfig_MemOptType_NO_MEM_OPT = 1,
@@ -370,6 +392,34 @@ class RewriterConfig : public ::google::protobuf::Message /* @@protoc_insertion_
     return RewriterConfig_Toggle_Parse(name, value);
   }
 
+  typedef RewriterConfig_NumIterationsType NumIterationsType;
+  static const NumIterationsType DEFAULT_NUM_ITERS =
+    RewriterConfig_NumIterationsType_DEFAULT_NUM_ITERS;
+  static const NumIterationsType ONE =
+    RewriterConfig_NumIterationsType_ONE;
+  static const NumIterationsType TWO =
+    RewriterConfig_NumIterationsType_TWO;
+  static inline bool NumIterationsType_IsValid(int value) {
+    return RewriterConfig_NumIterationsType_IsValid(value);
+  }
+  static const NumIterationsType NumIterationsType_MIN =
+    RewriterConfig_NumIterationsType_NumIterationsType_MIN;
+  static const NumIterationsType NumIterationsType_MAX =
+    RewriterConfig_NumIterationsType_NumIterationsType_MAX;
+  static const int NumIterationsType_ARRAYSIZE =
+    RewriterConfig_NumIterationsType_NumIterationsType_ARRAYSIZE;
+  static inline const ::google::protobuf::EnumDescriptor*
+  NumIterationsType_descriptor() {
+    return RewriterConfig_NumIterationsType_descriptor();
+  }
+  static inline const ::std::string& NumIterationsType_Name(NumIterationsType value) {
+    return RewriterConfig_NumIterationsType_Name(value);
+  }
+  static inline bool NumIterationsType_Parse(const ::std::string& name,
+      NumIterationsType* value) {
+    return RewriterConfig_NumIterationsType_Parse(name, value);
+  }
+
   typedef RewriterConfig_MemOptType MemOptType;
   static const MemOptType DEFAULT_MEM_OPT =
     RewriterConfig_MemOptType_DEFAULT_MEM_OPT;
@@ -513,6 +563,18 @@ class RewriterConfig : public ::google::protobuf::Message /* @@protoc_insertion_
   ::tensorflow::RewriterConfig_Toggle function_optimization() const;
   void set_function_optimization(::tensorflow::RewriterConfig_Toggle value);
 
+  // .tensorflow.RewriterConfig.Toggle debug_stripper = 11;
+  void clear_debug_stripper();
+  static const int kDebugStripperFieldNumber = 11;
+  ::tensorflow::RewriterConfig_Toggle debug_stripper() const;
+  void set_debug_stripper(::tensorflow::RewriterConfig_Toggle value);
+
+  // .tensorflow.RewriterConfig.NumIterationsType meta_optimizer_iterations = 12;
+  void clear_meta_optimizer_iterations();
+  static const int kMetaOptimizerIterationsFieldNumber = 12;
+  ::tensorflow::RewriterConfig_NumIterationsType meta_optimizer_iterations() const;
+  void set_meta_optimizer_iterations(::tensorflow::RewriterConfig_NumIterationsType value);
+
   // @@protoc_insertion_point(class_scope:tensorflow.RewriterConfig)
  private:
 
@@ -531,6 +593,8 @@ class RewriterConfig : public ::google::protobuf::Message /* @@protoc_insertion_
   int dependency_optimization_;
   int loop_optimization_;
   int function_optimization_;
+  int debug_stripper_;
+  int meta_optimizer_iterations_;
   mutable int _cached_size_;
   friend struct ::protobuf_tensorflow_2fcore_2fprotobuf_2frewriter_5fconfig_2eproto::TableStruct;
   friend void ::protobuf_tensorflow_2fcore_2fprotobuf_2frewriter_5fconfig_2eproto::InitDefaultsRewriterConfigImpl();
@@ -662,6 +726,20 @@ inline void RewriterConfig::set_function_optimization(::tensorflow::RewriterConf
   // @@protoc_insertion_point(field_set:tensorflow.RewriterConfig.function_optimization)
 }
 
+// .tensorflow.RewriterConfig.Toggle debug_stripper = 11;
+inline void RewriterConfig::clear_debug_stripper() {
+  debug_stripper_ = 0;
+}
+inline ::tensorflow::RewriterConfig_Toggle RewriterConfig::debug_stripper() const {
+  // @@protoc_insertion_point(field_get:tensorflow.RewriterConfig.debug_stripper)
+  return static_cast< ::tensorflow::RewriterConfig_Toggle >(debug_stripper_);
+}
+inline void RewriterConfig::set_debug_stripper(::tensorflow::RewriterConfig_Toggle value) {
+  
+  debug_stripper_ = value;
+  // @@protoc_insertion_point(field_set:tensorflow.RewriterConfig.debug_stripper)
+}
+
 // bool disable_model_pruning = 2;
 inline void RewriterConfig::clear_disable_model_pruning() {
   disable_model_pruning_ = false;
@@ -674,6 +752,20 @@ inline void RewriterConfig::set_disable_model_pruning(bool value) {
   
   disable_model_pruning_ = value;
   // @@protoc_insertion_point(field_set:tensorflow.RewriterConfig.disable_model_pruning)
+}
+
+// .tensorflow.RewriterConfig.NumIterationsType meta_optimizer_iterations = 12;
+inline void RewriterConfig::clear_meta_optimizer_iterations() {
+  meta_optimizer_iterations_ = 0;
+}
+inline ::tensorflow::RewriterConfig_NumIterationsType RewriterConfig::meta_optimizer_iterations() const {
+  // @@protoc_insertion_point(field_get:tensorflow.RewriterConfig.meta_optimizer_iterations)
+  return static_cast< ::tensorflow::RewriterConfig_NumIterationsType >(meta_optimizer_iterations_);
+}
+inline void RewriterConfig::set_meta_optimizer_iterations(::tensorflow::RewriterConfig_NumIterationsType value) {
+  
+  meta_optimizer_iterations_ = value;
+  // @@protoc_insertion_point(field_set:tensorflow.RewriterConfig.meta_optimizer_iterations)
 }
 
 // .tensorflow.RewriterConfig.MemOptType memory_optimization = 4;
@@ -913,6 +1005,11 @@ template <> struct is_proto_enum< ::tensorflow::RewriterConfig_Toggle> : ::googl
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::tensorflow::RewriterConfig_Toggle>() {
   return ::tensorflow::RewriterConfig_Toggle_descriptor();
+}
+template <> struct is_proto_enum< ::tensorflow::RewriterConfig_NumIterationsType> : ::google::protobuf::internal::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::tensorflow::RewriterConfig_NumIterationsType>() {
+  return ::tensorflow::RewriterConfig_NumIterationsType_descriptor();
 }
 template <> struct is_proto_enum< ::tensorflow::RewriterConfig_MemOptType> : ::google::protobuf::internal::true_type {};
 template <>

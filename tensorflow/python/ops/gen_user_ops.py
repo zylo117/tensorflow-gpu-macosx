@@ -33,8 +33,8 @@ def fact(name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "Fact", name=name)
     _result = _op.outputs[:]
@@ -48,12 +48,12 @@ def fact(name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Fact", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Fact", name,
         _ctx._post_execution_callbacks)
       return _result
     except _core._FallbackException:
       return fact_eager_fallback(
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -62,11 +62,11 @@ def fact(name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def fact_eager_fallback(name=None):
+def fact_eager_fallback(name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function fact
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _inputs_flat = []
   _attrs = None
   _result = _execute.execute(b"Fact", 1, inputs=_inputs_flat, attrs=_attrs,

@@ -24,6 +24,161 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
+def _for(start, limit, delta, input, body, name=None):
+  r"""  ```python
+   output = input;
+   for i in range(start, limit, delta)
+     output = body(i, output);
+  ```
+
+  Args:
+    start: A `Tensor` of type `int32`. The lower bound. An int32
+    limit: A `Tensor` of type `int32`. The upper bound. An int32
+    delta: A `Tensor` of type `int32`. The increment. An int32
+    input: A list of `Tensor` objects.
+      A list of input tensors whose types are T.
+    body: A function decorated with @Defun.
+          A function that takes a list of tensors (int32, T) and returns another
+          list of tensors (T).
+    name: A name for the operation (optional).
+
+  Returns:
+    A list of `Tensor` objects. Has the same type as `input`.
+  """
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "For", start=start, limit=limit, delta=delta, input=input, body=body,
+        name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("T", _op.get_attr("T"), "body", _op.get_attr("body"))
+    _execute.record_gradient(
+      "For", _inputs_flat, _attrs, _result, name)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._context_handle, _ctx._eager_context.device_name, "For", name,
+        _ctx._post_execution_callbacks, start, limit, delta, input, "body",
+        body)
+      return _result
+    except _core._FallbackException:
+      return _for_eager_fallback(
+          start, limit, delta, input, body=body, name=name, ctx=_ctx)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def _for_eager_fallback(start, limit, delta, input, body, name=None, ctx=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function _for
+  """
+  _ctx = ctx if ctx else _context.context()
+  _attr_T, input = _execute.convert_to_mixed_eager_tensors(input, _ctx)
+  start = _ops.convert_to_tensor(start, _dtypes.int32)
+  limit = _ops.convert_to_tensor(limit, _dtypes.int32)
+  delta = _ops.convert_to_tensor(delta, _dtypes.int32)
+  _inputs_flat = [start, limit, delta] + list(input)
+  _attrs = ("T", _attr_T, "body", body)
+  _result = _execute.execute(b"For", len(input), inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _execute.record_gradient(
+      "For", _inputs_flat, _attrs, _result, name)
+  return _result
+
+
+def _if(cond, input, Tout, then_branch, else_branch, name=None):
+  r"""output = cond ? then_branch(input) : else_branch(input)
+
+  Args:
+    cond: A `Tensor`.
+            A Tensor. If the tensor is a scalar of non-boolean type, the
+            scalar is converted to a boolean according to the
+            following rule: if the scalar is a numerical value, non-zero means
+            `True` and zero means False; if the scalar is a string, non-empty
+            means `True` and empty means `False`. If the tensor is not a scalar,
+            being empty means False and being non-empty means True.
+    input: A list of `Tensor` objects. A list of input tensors.
+    Tout: A list of `tf.DTypes` that has length `>= 1`.
+      A list of output types.
+    then_branch: A function decorated with @Defun.
+            A function that takes 'inputs' and returns a list of tensors, whose
+            types are the same as what else_branch returns.
+    else_branch: A function decorated with @Defun.
+          A function that takes 'inputs' and returns a list of tensors, whose
+          types are the same as what then_branch returns.
+    name: A name for the operation (optional).
+
+  Returns:
+    A list of `Tensor` objects of type `Tout`.
+  """
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
+    if not isinstance(Tout, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'Tout' argument to "
+          "'if' Op, not %r." % Tout)
+    Tout = [_execute.make_type(_t, "Tout") for _t in Tout]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "If", cond=cond, input=input, Tout=Tout, then_branch=then_branch,
+        else_branch=else_branch, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("Tcond", _op.get_attr("Tcond"), "Tin", _op.get_attr("Tin"),
+              "Tout", _op.get_attr("Tout"), "then_branch",
+              _op.get_attr("then_branch"), "else_branch",
+              _op.get_attr("else_branch"))
+    _execute.record_gradient(
+      "If", _inputs_flat, _attrs, _result, name)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._context_handle, _ctx._eager_context.device_name, "If", name,
+        _ctx._post_execution_callbacks, cond, input, "Tout", Tout,
+        "then_branch", then_branch, "else_branch", else_branch)
+      return _result
+    except _core._FallbackException:
+      return _if_eager_fallback(
+          cond, input, Tout=Tout, then_branch=then_branch,
+          else_branch=else_branch, name=name, ctx=_ctx)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def _if_eager_fallback(cond, input, Tout, then_branch, else_branch, name=None, ctx=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function _if
+  """
+  _ctx = ctx if ctx else _context.context()
+  if not isinstance(Tout, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'Tout' argument to "
+        "'if' Op, not %r." % Tout)
+  Tout = [_execute.make_type(_t, "Tout") for _t in Tout]
+  _attr_Tcond, (cond,) = _execute.args_to_matching_eager([cond], _ctx)
+  _attr_Tin, input = _execute.convert_to_mixed_eager_tensors(input, _ctx)
+  _inputs_flat = [cond] + list(input)
+  _attrs = ("Tcond", _attr_Tcond, "Tin", _attr_Tin, "Tout", Tout,
+  "then_branch", then_branch, "else_branch", else_branch)
+  _result = _execute.execute(b"If", len(Tout), inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _execute.record_gradient(
+      "If", _inputs_flat, _attrs, _result, name)
+  return _result
+
+
 def remote_call(target, args, Tout, f, name=None):
   r"""Runs function `f` on a remote device indicated by `target`.
 
@@ -39,8 +194,8 @@ def remote_call(target, args, Tout, f, name=None):
   Returns:
     A list of `Tensor` objects of type `Tout`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(Tout, (list, tuple)):
       raise TypeError(
           "Expected list for 'Tout' argument to "
@@ -61,12 +216,13 @@ def remote_call(target, args, Tout, f, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "RemoteCall", name,
-        _ctx._post_execution_callbacks, target, args, "Tout", Tout, "f", f)
+        _ctx._context_handle, _ctx._eager_context.device_name, "RemoteCall",
+        name, _ctx._post_execution_callbacks, target, args, "Tout", Tout, "f",
+        f)
       return _result
     except _core._FallbackException:
       return remote_call_eager_fallback(
-          target, args, Tout=Tout, f=f, name=name)
+          target, args, Tout=Tout, f=f, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -75,11 +231,11 @@ def remote_call(target, args, Tout, f, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def remote_call_eager_fallback(target, args, Tout, f, name=None):
+def remote_call_eager_fallback(target, args, Tout, f, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function remote_call
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(Tout, (list, tuple)):
     raise TypeError(
         "Expected list for 'Tout' argument to "
@@ -127,8 +283,8 @@ def symbolic_gradient(input, Tout, f, name=None):
   Returns:
     A list of `Tensor` objects of type `Tout`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(Tout, (list, tuple)):
       raise TypeError(
           "Expected list for 'Tout' argument to "
@@ -147,12 +303,13 @@ def symbolic_gradient(input, Tout, f, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SymbolicGradient", name,
-        _ctx._post_execution_callbacks, input, "Tout", Tout, "f", f)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SymbolicGradient", name, _ctx._post_execution_callbacks, input,
+        "Tout", Tout, "f", f)
       return _result
     except _core._FallbackException:
       return symbolic_gradient_eager_fallback(
-          input, Tout=Tout, f=f, name=name)
+          input, Tout=Tout, f=f, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -161,11 +318,11 @@ def symbolic_gradient(input, Tout, f, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def symbolic_gradient_eager_fallback(input, Tout, f, name=None):
+def symbolic_gradient_eager_fallback(input, Tout, f, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function symbolic_gradient
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(Tout, (list, tuple)):
     raise TypeError(
         "Expected list for 'Tout' argument to "
@@ -181,6 +338,75 @@ def symbolic_gradient_eager_fallback(input, Tout, f, name=None):
       "SymbolicGradient", _inputs_flat, _attrs, _result, name)
   return _result
 
+
+def _while(input, cond, body, name=None):
+  r"""output = input; While (Cond(output)) { output = Body(output) }
+
+  Args:
+    input: A list of `Tensor` objects.
+      A list of input tensors whose types are T.
+    cond: A function decorated with @Defun.
+            A function takes 'input' and returns a tensor.  If the tensor is
+            a scalar of non-boolean, the scalar is converted to a boolean
+            according to the following rule: if the scalar is a numerical
+            value, non-zero means True and zero means False; if the scalar is
+            a string, non-empty means True and empty means False. If the
+            tensor is not a scalar, non-emptiness means True and False
+            otherwise.
+    body: A function decorated with @Defun.
+            A function that takes a list of tensors and returns another
+            list of tensors. Both lists have the same types as specified
+            by T.
+    name: A name for the operation (optional).
+
+  Returns:
+    A list of `Tensor` objects. Has the same type as `input`.
+  """
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "While", input=input, cond=cond, body=body, name=name)
+    _result = _op.outputs[:]
+    if not _result:
+      return _op
+    _inputs_flat = _op.inputs
+    _attrs = ("T", _op.get_attr("T"), "cond", _op.get_attr("cond"), "body",
+              _op.get_attr("body"))
+    _execute.record_gradient(
+      "While", _inputs_flat, _attrs, _result, name)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._context_handle, _ctx._eager_context.device_name, "While", name,
+        _ctx._post_execution_callbacks, input, "cond", cond, "body", body)
+      return _result
+    except _core._FallbackException:
+      return _while_eager_fallback(
+          input, cond=cond, body=body, name=name, ctx=_ctx)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def _while_eager_fallback(input, cond, body, name=None, ctx=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function _while
+  """
+  _ctx = ctx if ctx else _context.context()
+  _attr_T, input = _execute.convert_to_mixed_eager_tensors(input, _ctx)
+  _inputs_flat = list(input)
+  _attrs = ("T", _attr_T, "cond", cond, "body", body)
+  _result = _execute.execute(b"While", len(input), inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _execute.record_gradient(
+      "While", _inputs_flat, _attrs, _result, name)
+  return _result
+
 def _InitOpDefLibrary(op_list_proto_bytes):
   op_list = _op_def_pb2.OpList()
   op_list.ParseFromString(op_list_proto_bytes)
@@ -188,6 +414,77 @@ def _InitOpDefLibrary(op_list_proto_bytes):
   op_def_lib = _op_def_library.OpDefLibrary()
   op_def_lib.add_op_list(op_list)
   return op_def_lib
+# op {
+#   name: "For"
+#   input_arg {
+#     name: "start"
+#     type: DT_INT32
+#   }
+#   input_arg {
+#     name: "limit"
+#     type: DT_INT32
+#   }
+#   input_arg {
+#     name: "delta"
+#     type: DT_INT32
+#   }
+#   input_arg {
+#     name: "input"
+#     type_list_attr: "T"
+#   }
+#   output_arg {
+#     name: "output"
+#     type_list_attr: "T"
+#   }
+#   attr {
+#     name: "T"
+#     type: "list(type)"
+#     has_minimum: true
+#   }
+#   attr {
+#     name: "body"
+#     type: "func"
+#   }
+# }
+# op {
+#   name: "If"
+#   input_arg {
+#     name: "cond"
+#     type_attr: "Tcond"
+#   }
+#   input_arg {
+#     name: "input"
+#     type_list_attr: "Tin"
+#   }
+#   output_arg {
+#     name: "output"
+#     type_list_attr: "Tout"
+#   }
+#   attr {
+#     name: "Tcond"
+#     type: "type"
+#   }
+#   attr {
+#     name: "Tin"
+#     type: "list(type)"
+#     has_minimum: true
+#     minimum: 1
+#   }
+#   attr {
+#     name: "Tout"
+#     type: "list(type)"
+#     has_minimum: true
+#     minimum: 1
+#   }
+#   attr {
+#     name: "then_branch"
+#     type: "func"
+#   }
+#   attr {
+#     name: "else_branch"
+#     type: "func"
+#   }
+# }
 # op {
 #   name: "RemoteCall"
 #   input_arg {
@@ -247,4 +544,29 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     type: "func"
 #   }
 # }
-_op_def_lib = _InitOpDefLibrary(b"\nr\n\nRemoteCall\022\n\n\006target\030\007\022\013\n\004args2\003Tin\032\016\n\006output2\004Tout\"\025\n\003Tin\022\nlist(type)(\0010\001\"\026\n\004Tout\022\nlist(type)(\0010\001\"\t\n\001f\022\004func\210\001\001\nj\n\020SymbolicGradient\022\014\n\005input2\003Tin\032\016\n\006output2\004Tout\"\025\n\003Tin\022\nlist(type)(\0010\001\"\026\n\004Tout\022\nlist(type)(\0010\001\"\t\n\001f\022\004func")
+# op {
+#   name: "While"
+#   input_arg {
+#     name: "input"
+#     type_list_attr: "T"
+#   }
+#   output_arg {
+#     name: "output"
+#     type_list_attr: "T"
+#   }
+#   attr {
+#     name: "T"
+#     type: "list(type)"
+#     has_minimum: true
+#   }
+#   attr {
+#     name: "cond"
+#     type: "func"
+#   }
+#   attr {
+#     name: "body"
+#     type: "func"
+#   }
+#   is_stateful: true
+# }
+_op_def_lib = _InitOpDefLibrary(b"\n`\n\003For\022\t\n\005start\030\003\022\t\n\005limit\030\003\022\t\n\005delta\030\003\022\n\n\005input2\001T\032\013\n\006output2\001T\"\021\n\001T\022\nlist(type)(\001\"\014\n\004body\022\004func\n\231\001\n\002If\022\r\n\004cond\"\005Tcond\022\014\n\005input2\003Tin\032\016\n\006output2\004Tout\"\r\n\005Tcond\022\004type\"\025\n\003Tin\022\nlist(type)(\0010\001\"\026\n\004Tout\022\nlist(type)(\0010\001\"\023\n\013then_branch\022\004func\"\023\n\013else_branch\022\004func\nr\n\nRemoteCall\022\n\n\006target\030\007\022\013\n\004args2\003Tin\032\016\n\006output2\004Tout\"\025\n\003Tin\022\nlist(type)(\0010\001\"\026\n\004Tout\022\nlist(type)(\0010\001\"\t\n\001f\022\004func\210\001\001\nj\n\020SymbolicGradient\022\014\n\005input2\003Tin\032\016\n\006output2\004Tout\"\025\n\003Tin\022\nlist(type)(\0010\001\"\026\n\004Tout\022\nlist(type)(\0010\001\"\t\n\001f\022\004func\nR\n\005While\022\n\n\005input2\001T\032\013\n\006output2\001T\"\021\n\001T\022\nlist(type)(\001\"\014\n\004cond\022\004func\"\014\n\004body\022\004func\210\001\001")

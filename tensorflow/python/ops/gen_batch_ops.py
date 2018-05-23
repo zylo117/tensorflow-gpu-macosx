@@ -90,8 +90,8 @@ def batch(in_tensors, num_batch_threads, max_batch_size, batch_timeout_micros, g
     batch_index: A `Tensor` of type `int64`.
     id: A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     num_batch_threads = _execute.make_int(num_batch_threads, "num_batch_threads")
     max_batch_size = _execute.make_int(max_batch_size, "max_batch_size")
     batch_timeout_micros = _execute.make_int(batch_timeout_micros, "batch_timeout_micros")
@@ -143,7 +143,7 @@ def batch(in_tensors, num_batch_threads, max_batch_size, batch_timeout_micros, g
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Batch", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Batch", name,
         _ctx._post_execution_callbacks, in_tensors, "num_batch_threads",
         num_batch_threads, "max_batch_size", max_batch_size,
         "max_enqueued_batches", max_enqueued_batches, "batch_timeout_micros",
@@ -160,7 +160,8 @@ def batch(in_tensors, num_batch_threads, max_batch_size, batch_timeout_micros, g
           batch_timeout_micros=batch_timeout_micros,
           allowed_batch_sizes=allowed_batch_sizes,
           grad_timeout_micros=grad_timeout_micros, container=container,
-          shared_name=shared_name, batching_queue=batching_queue, name=name)
+          shared_name=shared_name, batching_queue=batching_queue, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -169,11 +170,11 @@ def batch(in_tensors, num_batch_threads, max_batch_size, batch_timeout_micros, g
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def batch_eager_fallback(in_tensors, num_batch_threads, max_batch_size, batch_timeout_micros, grad_timeout_micros, max_enqueued_batches=10, allowed_batch_sizes=[], container="", shared_name="", batching_queue="", name=None):
+def batch_eager_fallback(in_tensors, num_batch_threads, max_batch_size, batch_timeout_micros, grad_timeout_micros, max_enqueued_batches=10, allowed_batch_sizes=[], container="", shared_name="", batching_queue="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function batch
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   num_batch_threads = _execute.make_int(num_batch_threads, "num_batch_threads")
   max_batch_size = _execute.make_int(max_batch_size, "max_batch_size")
   batch_timeout_micros = _execute.make_int(batch_timeout_micros, "batch_timeout_micros")
@@ -250,8 +251,8 @@ def unbatch(batched_tensor, batch_index, id, timeout_micros, container="", share
   Returns:
     A `Tensor`. Has the same type as `batched_tensor`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     timeout_micros = _execute.make_int(timeout_micros, "timeout_micros")
     if container is None:
       container = ""
@@ -276,15 +277,15 @@ def unbatch(batched_tensor, batch_index, id, timeout_micros, container="", share
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Unbatch", name,
-        _ctx._post_execution_callbacks, batched_tensor, batch_index, id,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Unbatch",
+        name, _ctx._post_execution_callbacks, batched_tensor, batch_index, id,
         "timeout_micros", timeout_micros, "container", container,
         "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return unbatch_eager_fallback(
           batched_tensor, batch_index, id, timeout_micros=timeout_micros,
-          container=container, shared_name=shared_name, name=name)
+          container=container, shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -293,11 +294,11 @@ def unbatch(batched_tensor, batch_index, id, timeout_micros, container="", share
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def unbatch_eager_fallback(batched_tensor, batch_index, id, timeout_micros, container="", shared_name="", name=None):
+def unbatch_eager_fallback(batched_tensor, batch_index, id, timeout_micros, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function unbatch
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   timeout_micros = _execute.make_int(timeout_micros, "timeout_micros")
   if container is None:
     container = ""
@@ -350,8 +351,8 @@ def unbatch_grad(original_input, batch_index, grad, id, container="", shared_nam
   Returns:
     A `Tensor`. Has the same type as `original_input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if container is None:
       container = ""
     container = _execute.make_str(container, "container")
@@ -374,14 +375,14 @@ def unbatch_grad(original_input, batch_index, grad, id, container="", shared_nam
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "UnbatchGrad", name,
-        _ctx._post_execution_callbacks, original_input, batch_index, grad, id,
-        "container", container, "shared_name", shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name, "UnbatchGrad",
+        name, _ctx._post_execution_callbacks, original_input, batch_index,
+        grad, id, "container", container, "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return unbatch_grad_eager_fallback(
           original_input, batch_index, grad, id, container=container,
-          shared_name=shared_name, name=name)
+          shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -390,11 +391,11 @@ def unbatch_grad(original_input, batch_index, grad, id, container="", shared_nam
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def unbatch_grad_eager_fallback(original_input, batch_index, grad, id, container="", shared_name="", name=None):
+def unbatch_grad_eager_fallback(original_input, batch_index, grad, id, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function unbatch_grad
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if container is None:
     container = ""
   container = _execute.make_str(container, "container")

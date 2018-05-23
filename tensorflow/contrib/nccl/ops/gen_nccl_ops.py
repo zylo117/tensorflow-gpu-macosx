@@ -35,7 +35,7 @@ def nccl_all_reduce(input, reduction, num_devices, shared_name, name=None):
   will cause the graph execution to fail to complete.
 
   Args:
-    input: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `int64`.
+    input: A `Tensor`. Must be one of the following types: `half`, `float32`, `float64`, `int32`, `int64`.
       the input to the reduction
     reduction: A `string` from: `"min", "max", "prod", "sum"`.
       the reduction operation to perform.
@@ -49,8 +49,8 @@ def nccl_all_reduce(input, reduction, num_devices, shared_name, name=None):
     A `Tensor`. Has the same type as `input`.
     the value of the reduction across all `num_devices` devices.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     reduction = _execute.make_str(reduction, "reduction")
     num_devices = _execute.make_int(num_devices, "num_devices")
     shared_name = _execute.make_str(shared_name, "shared_name")
@@ -70,14 +70,15 @@ def nccl_all_reduce(input, reduction, num_devices, shared_name, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "NcclAllReduce", name,
-        _ctx._post_execution_callbacks, input, "reduction", reduction,
-        "num_devices", num_devices, "shared_name", shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "NcclAllReduce", name, _ctx._post_execution_callbacks, input,
+        "reduction", reduction, "num_devices", num_devices, "shared_name",
+        shared_name)
       return _result
     except _core._FallbackException:
       return nccl_all_reduce_eager_fallback(
           input, reduction=reduction, num_devices=num_devices,
-          shared_name=shared_name, name=name)
+          shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -86,11 +87,11 @@ def nccl_all_reduce(input, reduction, num_devices, shared_name, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def nccl_all_reduce_eager_fallback(input, reduction, num_devices, shared_name, name=None):
+def nccl_all_reduce_eager_fallback(input, reduction, num_devices, shared_name, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function nccl_all_reduce
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   reduction = _execute.make_str(reduction, "reduction")
   num_devices = _execute.make_int(num_devices, "num_devices")
   shared_name = _execute.make_str(shared_name, "shared_name")
@@ -116,7 +117,7 @@ def nccl_broadcast(input, shape, name=None):
   valid device assignment, and the op itself is assigned one of these devices.
 
   Args:
-    input: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `int64`.
+    input: A `Tensor`. Must be one of the following types: `half`, `float32`, `float64`, `int32`, `int64`.
       The input to the broadcast.
     shape: A `tf.TensorShape` or list of `ints`.
       The shape of the input tensor.
@@ -125,8 +126,8 @@ def nccl_broadcast(input, shape, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`. The same as input.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     shape = _execute.make_shape(shape, "shape")
     _, _, _op = _op_def_lib._apply_op_helper(
         "NcclBroadcast", input=input, shape=shape, name=name)
@@ -141,12 +142,13 @@ def nccl_broadcast(input, shape, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "NcclBroadcast", name,
-        _ctx._post_execution_callbacks, input, "shape", shape)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "NcclBroadcast", name, _ctx._post_execution_callbacks, input, "shape",
+        shape)
       return _result
     except _core._FallbackException:
       return nccl_broadcast_eager_fallback(
-          input, shape=shape, name=name)
+          input, shape=shape, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -155,11 +157,11 @@ def nccl_broadcast(input, shape, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def nccl_broadcast_eager_fallback(input, shape, name=None):
+def nccl_broadcast_eager_fallback(input, shape, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function nccl_broadcast
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   shape = _execute.make_shape(shape, "shape")
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _inputs_flat = [input]
@@ -182,7 +184,7 @@ def nccl_reduce(input, reduction, name=None):
   assignment, and the op itself is assigned one of these devices.
 
   Args:
-    input: A list of at least 1 `Tensor` objects with the same type in: `float32`, `float64`, `int32`, `int64`.
+    input: A list of at least 1 `Tensor` objects with the same type in: `half`, `float32`, `float64`, `int32`, `int64`.
       The input to the reduction.
     reduction: A `string` from: `"min", "max", "prod", "sum"`.
       the reduction operation to perform.
@@ -192,8 +194,8 @@ def nccl_reduce(input, reduction, name=None):
     A `Tensor`. Has the same type as `input`.
     the value of the reduction across all `num_devices` devices.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(input, (list, tuple)):
       raise TypeError(
           "Expected list for 'input' argument to "
@@ -214,12 +216,12 @@ def nccl_reduce(input, reduction, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "NcclReduce", name,
-        _ctx._post_execution_callbacks, input, "reduction", reduction)
+        _ctx._context_handle, _ctx._eager_context.device_name, "NcclReduce",
+        name, _ctx._post_execution_callbacks, input, "reduction", reduction)
       return _result
     except _core._FallbackException:
       return nccl_reduce_eager_fallback(
-          input, reduction=reduction, name=name)
+          input, reduction=reduction, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -228,11 +230,11 @@ def nccl_reduce(input, reduction, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def nccl_reduce_eager_fallback(input, reduction, name=None):
+def nccl_reduce_eager_fallback(input, reduction, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function nccl_reduce
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(input, (list, tuple)):
     raise TypeError(
         "Expected list for 'input' argument to "
@@ -286,6 +288,7 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     type: "type"
 #     allowed_values {
 #       list {
+#         type: DT_HALF
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
 #         type: DT_INT32
@@ -318,6 +321,7 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     type: "type"
 #     allowed_values {
 #       list {
+#         type: DT_HALF
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
 #         type: DT_INT32
@@ -359,6 +363,7 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     type: "type"
 #     allowed_values {
 #       list {
+#         type: DT_HALF
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
 #         type: DT_INT32
@@ -374,4 +379,4 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #   }
 #   is_stateful: true
 # }
-_op_def_lib = _InitOpDefLibrary(b"\n\227\001\n\rNcclAllReduce\022\n\n\005input\"\001T\032\t\n\004data\"\001T\",\n\treduction\022\006string:\027\n\025\022\003min\022\003max\022\004prod\022\003sum\"\023\n\001T\022\004type:\010\n\0062\004\001\002\003\t\"\022\n\013num_devices\022\003int\"\025\n\013shared_name\022\006string\210\001\001\nP\n\rNcclBroadcast\022\n\n\005input\"\001T\032\013\n\006output\"\001T\"\023\n\001T\022\004type:\010\n\0062\004\001\002\003\t\"\016\n\005shape\022\005shape\210\001\001\n\216\001\n\nNcclReduce\022\027\n\005input\"\001T*\013num_devices\032\t\n\004data\"\001T\",\n\treduction\022\006string:\027\n\025\022\003min\022\003max\022\004prod\022\003sum\"\023\n\001T\022\004type:\010\n\0062\004\001\002\003\t\"\026\n\013num_devices\022\003int(\0010\001\210\001\001")
+_op_def_lib = _InitOpDefLibrary(b"\n\230\001\n\rNcclAllReduce\022\n\n\005input\"\001T\032\t\n\004data\"\001T\",\n\treduction\022\006string:\027\n\025\022\003min\022\003max\022\004prod\022\003sum\"\024\n\001T\022\004type:\t\n\0072\005\023\001\002\003\t\"\022\n\013num_devices\022\003int\"\025\n\013shared_name\022\006string\210\001\001\nQ\n\rNcclBroadcast\022\n\n\005input\"\001T\032\013\n\006output\"\001T\"\024\n\001T\022\004type:\t\n\0072\005\023\001\002\003\t\"\016\n\005shape\022\005shape\210\001\001\n\217\001\n\nNcclReduce\022\027\n\005input\"\001T*\013num_devices\032\t\n\004data\"\001T\",\n\treduction\022\006string:\027\n\025\022\003min\022\003max\022\004prod\022\003sum\"\024\n\001T\022\004type:\t\n\0072\005\023\001\002\003\t\"\026\n\013num_devices\022\003int(\0010\001\210\001\001")

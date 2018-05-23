@@ -2,7 +2,7 @@ from distutils.core import setup
 
 from setuptools import find_packages
 
-__version__ = '1.7.1'
+__version__ = '1.8.0'
 
 REQUIRED_PACKAGES = [
     'absl-py >= 0.1.6',

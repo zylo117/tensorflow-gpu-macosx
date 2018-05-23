@@ -46,7 +46,7 @@ namespace protobuf_tensorflow_2fcore_2fprotobuf_2fconfig_2eproto {
 struct TableStruct {
   static const ::google::protobuf::internal::ParseTableField entries[];
   static const ::google::protobuf::internal::AuxillaryParseTableField aux[];
-  static const ::google::protobuf::internal::ParseTable schema[11];
+  static const ::google::protobuf::internal::ParseTable schema[13];
   static const ::google::protobuf::internal::FieldMetadata field_metadata[];
   static const ::google::protobuf::internal::SerializationTable serialization_table[];
   static const ::google::protobuf::uint32 offsets[];
@@ -74,6 +74,10 @@ void InitDefaultsRunOptionsImpl();
 void InitDefaultsRunOptions();
 void InitDefaultsRunMetadataImpl();
 void InitDefaultsRunMetadata();
+void InitDefaultsTensorConnectionImpl();
+void InitDefaultsTensorConnection();
+void InitDefaultsCallableOptionsImpl();
+void InitDefaultsCallableOptions();
 inline void InitDefaults() {
   InitDefaultsGPUOptions_Experimental_VirtualDevices();
   InitDefaultsGPUOptions_Experimental();
@@ -86,9 +90,14 @@ inline void InitDefaults() {
   InitDefaultsConfigProto();
   InitDefaultsRunOptions();
   InitDefaultsRunMetadata();
+  InitDefaultsTensorConnection();
+  InitDefaultsCallableOptions();
 }
 }  // namespace protobuf_tensorflow_2fcore_2fprotobuf_2fconfig_2eproto
 namespace tensorflow {
+class CallableOptions;
+class CallableOptionsDefaultTypeInternal;
+extern CallableOptionsDefaultTypeInternal _CallableOptions_default_instance_;
 class ConfigProto;
 class ConfigProtoDefaultTypeInternal;
 extern ConfigProtoDefaultTypeInternal _ConfigProto_default_instance_;
@@ -119,12 +128,16 @@ extern RunMetadataDefaultTypeInternal _RunMetadata_default_instance_;
 class RunOptions;
 class RunOptionsDefaultTypeInternal;
 extern RunOptionsDefaultTypeInternal _RunOptions_default_instance_;
+class TensorConnection;
+class TensorConnectionDefaultTypeInternal;
+extern TensorConnectionDefaultTypeInternal _TensorConnection_default_instance_;
 class ThreadPoolOptionProto;
 class ThreadPoolOptionProtoDefaultTypeInternal;
 extern ThreadPoolOptionProtoDefaultTypeInternal _ThreadPoolOptionProto_default_instance_;
 }  // namespace tensorflow
 namespace google {
 namespace protobuf {
+template<> ::tensorflow::CallableOptions* Arena::CreateMessage< ::tensorflow::CallableOptions>(Arena*);
 template<> ::tensorflow::ConfigProto* Arena::CreateMessage< ::tensorflow::ConfigProto>(Arena*);
 template<> ::tensorflow::ConfigProto_DeviceCountEntry_DoNotUse* Arena::CreateMessage< ::tensorflow::ConfigProto_DeviceCountEntry_DoNotUse>(Arena*);
 template<> ::tensorflow::GPUOptions* Arena::CreateMessage< ::tensorflow::GPUOptions>(Arena*);
@@ -135,6 +148,7 @@ template<> ::tensorflow::OptimizerOptions* Arena::CreateMessage< ::tensorflow::O
 template<> ::tensorflow::RPCOptions* Arena::CreateMessage< ::tensorflow::RPCOptions>(Arena*);
 template<> ::tensorflow::RunMetadata* Arena::CreateMessage< ::tensorflow::RunMetadata>(Arena*);
 template<> ::tensorflow::RunOptions* Arena::CreateMessage< ::tensorflow::RunOptions>(Arena*);
+template<> ::tensorflow::TensorConnection* Arena::CreateMessage< ::tensorflow::TensorConnection>(Arena*);
 template<> ::tensorflow::ThreadPoolOptionProto* Arena::CreateMessage< ::tensorflow::ThreadPoolOptionProto>(Arena*);
 }  // namespace protobuf
 }  // namespace google
@@ -1960,6 +1974,371 @@ class RunMetadata : public ::google::protobuf::Message /* @@protoc_insertion_poi
   friend struct ::protobuf_tensorflow_2fcore_2fprotobuf_2fconfig_2eproto::TableStruct;
   friend void ::protobuf_tensorflow_2fcore_2fprotobuf_2fconfig_2eproto::InitDefaultsRunMetadataImpl();
 };
+// -------------------------------------------------------------------
+
+class TensorConnection : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:tensorflow.TensorConnection) */ {
+ public:
+  TensorConnection();
+  virtual ~TensorConnection();
+
+  TensorConnection(const TensorConnection& from);
+
+  inline TensorConnection& operator=(const TensorConnection& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  #if LANG_CXX11
+  TensorConnection(TensorConnection&& from) noexcept
+    : TensorConnection() {
+    *this = ::std::move(from);
+  }
+
+  inline TensorConnection& operator=(TensorConnection&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+  #endif
+  inline ::google::protobuf::Arena* GetArena() const PROTOBUF_FINAL {
+    return GetArenaNoVirtual();
+  }
+  inline void* GetMaybeArenaPointer() const PROTOBUF_FINAL {
+    return MaybeArenaPtr();
+  }
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const TensorConnection& default_instance();
+
+  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
+  static inline const TensorConnection* internal_default_instance() {
+    return reinterpret_cast<const TensorConnection*>(
+               &_TensorConnection_default_instance_);
+  }
+  static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
+    11;
+
+  void UnsafeArenaSwap(TensorConnection* other);
+  void Swap(TensorConnection* other);
+  friend void swap(TensorConnection& a, TensorConnection& b) {
+    a.Swap(&b);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline TensorConnection* New() const PROTOBUF_FINAL {
+    return ::google::protobuf::Arena::CreateMessage<TensorConnection>(NULL);
+  }
+
+  TensorConnection* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL {
+    return ::google::protobuf::Arena::CreateMessage<TensorConnection>(arena);
+  }
+  void CopyFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void MergeFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void CopyFrom(const TensorConnection& from);
+  void MergeFrom(const TensorConnection& from);
+  void Clear() PROTOBUF_FINAL;
+  bool IsInitialized() const PROTOBUF_FINAL;
+
+  size_t ByteSizeLong() const PROTOBUF_FINAL;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input) PROTOBUF_FINAL;
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const PROTOBUF_FINAL;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* target) const PROTOBUF_FINAL;
+  int GetCachedSize() const PROTOBUF_FINAL { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const PROTOBUF_FINAL;
+  void InternalSwap(TensorConnection* other);
+  protected:
+  explicit TensorConnection(::google::protobuf::Arena* arena);
+  private:
+  static void ArenaDtor(void* object);
+  inline void RegisterArenaDtor(::google::protobuf::Arena* arena);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return _internal_metadata_.arena();
+  }
+  inline void* MaybeArenaPtr() const {
+    return _internal_metadata_.raw_arena_ptr();
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const PROTOBUF_FINAL;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // string from_tensor = 1;
+  void clear_from_tensor();
+  static const int kFromTensorFieldNumber = 1;
+  const ::std::string& from_tensor() const;
+  void set_from_tensor(const ::std::string& value);
+  #if LANG_CXX11
+  void set_from_tensor(::std::string&& value);
+  #endif
+  void set_from_tensor(const char* value);
+  void set_from_tensor(const char* value, size_t size);
+  ::std::string* mutable_from_tensor();
+  ::std::string* release_from_tensor();
+  void set_allocated_from_tensor(::std::string* from_tensor);
+  PROTOBUF_RUNTIME_DEPRECATED("The unsafe_arena_ accessors for"
+  "    string fields are deprecated and will be removed in a"
+  "    future release.")
+  ::std::string* unsafe_arena_release_from_tensor();
+  PROTOBUF_RUNTIME_DEPRECATED("The unsafe_arena_ accessors for"
+  "    string fields are deprecated and will be removed in a"
+  "    future release.")
+  void unsafe_arena_set_allocated_from_tensor(
+      ::std::string* from_tensor);
+
+  // string to_tensor = 2;
+  void clear_to_tensor();
+  static const int kToTensorFieldNumber = 2;
+  const ::std::string& to_tensor() const;
+  void set_to_tensor(const ::std::string& value);
+  #if LANG_CXX11
+  void set_to_tensor(::std::string&& value);
+  #endif
+  void set_to_tensor(const char* value);
+  void set_to_tensor(const char* value, size_t size);
+  ::std::string* mutable_to_tensor();
+  ::std::string* release_to_tensor();
+  void set_allocated_to_tensor(::std::string* to_tensor);
+  PROTOBUF_RUNTIME_DEPRECATED("The unsafe_arena_ accessors for"
+  "    string fields are deprecated and will be removed in a"
+  "    future release.")
+  ::std::string* unsafe_arena_release_to_tensor();
+  PROTOBUF_RUNTIME_DEPRECATED("The unsafe_arena_ accessors for"
+  "    string fields are deprecated and will be removed in a"
+  "    future release.")
+  void unsafe_arena_set_allocated_to_tensor(
+      ::std::string* to_tensor);
+
+  // @@protoc_insertion_point(class_scope:tensorflow.TensorConnection)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  template <typename T> friend class ::google::protobuf::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  ::google::protobuf::internal::ArenaStringPtr from_tensor_;
+  ::google::protobuf::internal::ArenaStringPtr to_tensor_;
+  mutable int _cached_size_;
+  friend struct ::protobuf_tensorflow_2fcore_2fprotobuf_2fconfig_2eproto::TableStruct;
+  friend void ::protobuf_tensorflow_2fcore_2fprotobuf_2fconfig_2eproto::InitDefaultsTensorConnectionImpl();
+};
+// -------------------------------------------------------------------
+
+class CallableOptions : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:tensorflow.CallableOptions) */ {
+ public:
+  CallableOptions();
+  virtual ~CallableOptions();
+
+  CallableOptions(const CallableOptions& from);
+
+  inline CallableOptions& operator=(const CallableOptions& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  #if LANG_CXX11
+  CallableOptions(CallableOptions&& from) noexcept
+    : CallableOptions() {
+    *this = ::std::move(from);
+  }
+
+  inline CallableOptions& operator=(CallableOptions&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+  #endif
+  inline ::google::protobuf::Arena* GetArena() const PROTOBUF_FINAL {
+    return GetArenaNoVirtual();
+  }
+  inline void* GetMaybeArenaPointer() const PROTOBUF_FINAL {
+    return MaybeArenaPtr();
+  }
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const CallableOptions& default_instance();
+
+  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
+  static inline const CallableOptions* internal_default_instance() {
+    return reinterpret_cast<const CallableOptions*>(
+               &_CallableOptions_default_instance_);
+  }
+  static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
+    12;
+
+  void UnsafeArenaSwap(CallableOptions* other);
+  void Swap(CallableOptions* other);
+  friend void swap(CallableOptions& a, CallableOptions& b) {
+    a.Swap(&b);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline CallableOptions* New() const PROTOBUF_FINAL {
+    return ::google::protobuf::Arena::CreateMessage<CallableOptions>(NULL);
+  }
+
+  CallableOptions* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL {
+    return ::google::protobuf::Arena::CreateMessage<CallableOptions>(arena);
+  }
+  void CopyFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void MergeFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void CopyFrom(const CallableOptions& from);
+  void MergeFrom(const CallableOptions& from);
+  void Clear() PROTOBUF_FINAL;
+  bool IsInitialized() const PROTOBUF_FINAL;
+
+  size_t ByteSizeLong() const PROTOBUF_FINAL;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input) PROTOBUF_FINAL;
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const PROTOBUF_FINAL;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* target) const PROTOBUF_FINAL;
+  int GetCachedSize() const PROTOBUF_FINAL { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const PROTOBUF_FINAL;
+  void InternalSwap(CallableOptions* other);
+  protected:
+  explicit CallableOptions(::google::protobuf::Arena* arena);
+  private:
+  static void ArenaDtor(void* object);
+  inline void RegisterArenaDtor(::google::protobuf::Arena* arena);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return _internal_metadata_.arena();
+  }
+  inline void* MaybeArenaPtr() const {
+    return _internal_metadata_.raw_arena_ptr();
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const PROTOBUF_FINAL;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // repeated string feed = 1;
+  int feed_size() const;
+  void clear_feed();
+  static const int kFeedFieldNumber = 1;
+  const ::std::string& feed(int index) const;
+  ::std::string* mutable_feed(int index);
+  void set_feed(int index, const ::std::string& value);
+  #if LANG_CXX11
+  void set_feed(int index, ::std::string&& value);
+  #endif
+  void set_feed(int index, const char* value);
+  void set_feed(int index, const char* value, size_t size);
+  ::std::string* add_feed();
+  void add_feed(const ::std::string& value);
+  #if LANG_CXX11
+  void add_feed(::std::string&& value);
+  #endif
+  void add_feed(const char* value);
+  void add_feed(const char* value, size_t size);
+  const ::google::protobuf::RepeatedPtrField< ::std::string>& feed() const;
+  ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_feed();
+
+  // repeated string fetch = 2;
+  int fetch_size() const;
+  void clear_fetch();
+  static const int kFetchFieldNumber = 2;
+  const ::std::string& fetch(int index) const;
+  ::std::string* mutable_fetch(int index);
+  void set_fetch(int index, const ::std::string& value);
+  #if LANG_CXX11
+  void set_fetch(int index, ::std::string&& value);
+  #endif
+  void set_fetch(int index, const char* value);
+  void set_fetch(int index, const char* value, size_t size);
+  ::std::string* add_fetch();
+  void add_fetch(const ::std::string& value);
+  #if LANG_CXX11
+  void add_fetch(::std::string&& value);
+  #endif
+  void add_fetch(const char* value);
+  void add_fetch(const char* value, size_t size);
+  const ::google::protobuf::RepeatedPtrField< ::std::string>& fetch() const;
+  ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_fetch();
+
+  // repeated string target = 3;
+  int target_size() const;
+  void clear_target();
+  static const int kTargetFieldNumber = 3;
+  const ::std::string& target(int index) const;
+  ::std::string* mutable_target(int index);
+  void set_target(int index, const ::std::string& value);
+  #if LANG_CXX11
+  void set_target(int index, ::std::string&& value);
+  #endif
+  void set_target(int index, const char* value);
+  void set_target(int index, const char* value, size_t size);
+  ::std::string* add_target();
+  void add_target(const ::std::string& value);
+  #if LANG_CXX11
+  void add_target(::std::string&& value);
+  #endif
+  void add_target(const char* value);
+  void add_target(const char* value, size_t size);
+  const ::google::protobuf::RepeatedPtrField< ::std::string>& target() const;
+  ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_target();
+
+  // repeated .tensorflow.TensorConnection tensor_connection = 5;
+  int tensor_connection_size() const;
+  void clear_tensor_connection();
+  static const int kTensorConnectionFieldNumber = 5;
+  ::tensorflow::TensorConnection* mutable_tensor_connection(int index);
+  ::google::protobuf::RepeatedPtrField< ::tensorflow::TensorConnection >*
+      mutable_tensor_connection();
+  const ::tensorflow::TensorConnection& tensor_connection(int index) const;
+  ::tensorflow::TensorConnection* add_tensor_connection();
+  const ::google::protobuf::RepeatedPtrField< ::tensorflow::TensorConnection >&
+      tensor_connection() const;
+
+  // .tensorflow.RunOptions run_options = 4;
+  bool has_run_options() const;
+  void clear_run_options();
+  static const int kRunOptionsFieldNumber = 4;
+  const ::tensorflow::RunOptions& run_options() const;
+  ::tensorflow::RunOptions* release_run_options();
+  ::tensorflow::RunOptions* mutable_run_options();
+  void set_allocated_run_options(::tensorflow::RunOptions* run_options);
+  void unsafe_arena_set_allocated_run_options(
+      ::tensorflow::RunOptions* run_options);
+  ::tensorflow::RunOptions* unsafe_arena_release_run_options();
+
+  // @@protoc_insertion_point(class_scope:tensorflow.CallableOptions)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  template <typename T> friend class ::google::protobuf::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> feed_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> fetch_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> target_;
+  ::google::protobuf::RepeatedPtrField< ::tensorflow::TensorConnection > tensor_connection_;
+  ::tensorflow::RunOptions* run_options_;
+  mutable int _cached_size_;
+  friend struct ::protobuf_tensorflow_2fcore_2fprotobuf_2fconfig_2eproto::TableStruct;
+  friend void ::protobuf_tensorflow_2fcore_2fprotobuf_2fconfig_2eproto::InitDefaultsCallableOptionsImpl();
+};
 // ===================================================================
 
 
@@ -3504,9 +3883,470 @@ RunMetadata::partition_graphs() const {
   return partition_graphs_;
 }
 
+// -------------------------------------------------------------------
+
+// TensorConnection
+
+// string from_tensor = 1;
+inline void TensorConnection::clear_from_tensor() {
+  from_tensor_.ClearToEmpty(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), GetArenaNoVirtual());
+}
+inline const ::std::string& TensorConnection::from_tensor() const {
+  // @@protoc_insertion_point(field_get:tensorflow.TensorConnection.from_tensor)
+  return from_tensor_.Get();
+}
+inline void TensorConnection::set_from_tensor(const ::std::string& value) {
+  
+  from_tensor_.Set(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value, GetArenaNoVirtual());
+  // @@protoc_insertion_point(field_set:tensorflow.TensorConnection.from_tensor)
+}
+#if LANG_CXX11
+inline void TensorConnection::set_from_tensor(::std::string&& value) {
+  
+  from_tensor_.Set(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value), GetArenaNoVirtual());
+  // @@protoc_insertion_point(field_set_rvalue:tensorflow.TensorConnection.from_tensor)
+}
+#endif
+inline void TensorConnection::set_from_tensor(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  from_tensor_.Set(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value),
+              GetArenaNoVirtual());
+  // @@protoc_insertion_point(field_set_char:tensorflow.TensorConnection.from_tensor)
+}
+inline void TensorConnection::set_from_tensor(const char* value,
+    size_t size) {
+  
+  from_tensor_.Set(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(
+      reinterpret_cast<const char*>(value), size), GetArenaNoVirtual());
+  // @@protoc_insertion_point(field_set_pointer:tensorflow.TensorConnection.from_tensor)
+}
+inline ::std::string* TensorConnection::mutable_from_tensor() {
+  
+  // @@protoc_insertion_point(field_mutable:tensorflow.TensorConnection.from_tensor)
+  return from_tensor_.Mutable(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), GetArenaNoVirtual());
+}
+inline ::std::string* TensorConnection::release_from_tensor() {
+  // @@protoc_insertion_point(field_release:tensorflow.TensorConnection.from_tensor)
+  
+  return from_tensor_.Release(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), GetArenaNoVirtual());
+}
+inline void TensorConnection::set_allocated_from_tensor(::std::string* from_tensor) {
+  if (from_tensor != NULL) {
+    
+  } else {
+    
+  }
+  from_tensor_.SetAllocated(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from_tensor,
+      GetArenaNoVirtual());
+  // @@protoc_insertion_point(field_set_allocated:tensorflow.TensorConnection.from_tensor)
+}
+inline ::std::string* TensorConnection::unsafe_arena_release_from_tensor() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:tensorflow.TensorConnection.from_tensor)
+  GOOGLE_DCHECK(GetArenaNoVirtual() != NULL);
+  
+  return from_tensor_.UnsafeArenaRelease(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      GetArenaNoVirtual());
+}
+inline void TensorConnection::unsafe_arena_set_allocated_from_tensor(
+    ::std::string* from_tensor) {
+  GOOGLE_DCHECK(GetArenaNoVirtual() != NULL);
+  if (from_tensor != NULL) {
+    
+  } else {
+    
+  }
+  from_tensor_.UnsafeArenaSetAllocated(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      from_tensor, GetArenaNoVirtual());
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:tensorflow.TensorConnection.from_tensor)
+}
+
+// string to_tensor = 2;
+inline void TensorConnection::clear_to_tensor() {
+  to_tensor_.ClearToEmpty(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), GetArenaNoVirtual());
+}
+inline const ::std::string& TensorConnection::to_tensor() const {
+  // @@protoc_insertion_point(field_get:tensorflow.TensorConnection.to_tensor)
+  return to_tensor_.Get();
+}
+inline void TensorConnection::set_to_tensor(const ::std::string& value) {
+  
+  to_tensor_.Set(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value, GetArenaNoVirtual());
+  // @@protoc_insertion_point(field_set:tensorflow.TensorConnection.to_tensor)
+}
+#if LANG_CXX11
+inline void TensorConnection::set_to_tensor(::std::string&& value) {
+  
+  to_tensor_.Set(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value), GetArenaNoVirtual());
+  // @@protoc_insertion_point(field_set_rvalue:tensorflow.TensorConnection.to_tensor)
+}
+#endif
+inline void TensorConnection::set_to_tensor(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  to_tensor_.Set(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value),
+              GetArenaNoVirtual());
+  // @@protoc_insertion_point(field_set_char:tensorflow.TensorConnection.to_tensor)
+}
+inline void TensorConnection::set_to_tensor(const char* value,
+    size_t size) {
+  
+  to_tensor_.Set(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(
+      reinterpret_cast<const char*>(value), size), GetArenaNoVirtual());
+  // @@protoc_insertion_point(field_set_pointer:tensorflow.TensorConnection.to_tensor)
+}
+inline ::std::string* TensorConnection::mutable_to_tensor() {
+  
+  // @@protoc_insertion_point(field_mutable:tensorflow.TensorConnection.to_tensor)
+  return to_tensor_.Mutable(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), GetArenaNoVirtual());
+}
+inline ::std::string* TensorConnection::release_to_tensor() {
+  // @@protoc_insertion_point(field_release:tensorflow.TensorConnection.to_tensor)
+  
+  return to_tensor_.Release(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), GetArenaNoVirtual());
+}
+inline void TensorConnection::set_allocated_to_tensor(::std::string* to_tensor) {
+  if (to_tensor != NULL) {
+    
+  } else {
+    
+  }
+  to_tensor_.SetAllocated(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), to_tensor,
+      GetArenaNoVirtual());
+  // @@protoc_insertion_point(field_set_allocated:tensorflow.TensorConnection.to_tensor)
+}
+inline ::std::string* TensorConnection::unsafe_arena_release_to_tensor() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:tensorflow.TensorConnection.to_tensor)
+  GOOGLE_DCHECK(GetArenaNoVirtual() != NULL);
+  
+  return to_tensor_.UnsafeArenaRelease(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      GetArenaNoVirtual());
+}
+inline void TensorConnection::unsafe_arena_set_allocated_to_tensor(
+    ::std::string* to_tensor) {
+  GOOGLE_DCHECK(GetArenaNoVirtual() != NULL);
+  if (to_tensor != NULL) {
+    
+  } else {
+    
+  }
+  to_tensor_.UnsafeArenaSetAllocated(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      to_tensor, GetArenaNoVirtual());
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:tensorflow.TensorConnection.to_tensor)
+}
+
+// -------------------------------------------------------------------
+
+// CallableOptions
+
+// repeated string feed = 1;
+inline int CallableOptions::feed_size() const {
+  return feed_.size();
+}
+inline void CallableOptions::clear_feed() {
+  feed_.Clear();
+}
+inline const ::std::string& CallableOptions::feed(int index) const {
+  // @@protoc_insertion_point(field_get:tensorflow.CallableOptions.feed)
+  return feed_.Get(index);
+}
+inline ::std::string* CallableOptions::mutable_feed(int index) {
+  // @@protoc_insertion_point(field_mutable:tensorflow.CallableOptions.feed)
+  return feed_.Mutable(index);
+}
+inline void CallableOptions::set_feed(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:tensorflow.CallableOptions.feed)
+  feed_.Mutable(index)->assign(value);
+}
+#if LANG_CXX11
+inline void CallableOptions::set_feed(int index, ::std::string&& value) {
+  // @@protoc_insertion_point(field_set:tensorflow.CallableOptions.feed)
+  feed_.Mutable(index)->assign(std::move(value));
+}
+#endif
+inline void CallableOptions::set_feed(int index, const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  feed_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:tensorflow.CallableOptions.feed)
+}
+inline void CallableOptions::set_feed(int index, const char* value, size_t size) {
+  feed_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:tensorflow.CallableOptions.feed)
+}
+inline ::std::string* CallableOptions::add_feed() {
+  // @@protoc_insertion_point(field_add_mutable:tensorflow.CallableOptions.feed)
+  return feed_.Add();
+}
+inline void CallableOptions::add_feed(const ::std::string& value) {
+  feed_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:tensorflow.CallableOptions.feed)
+}
+#if LANG_CXX11
+inline void CallableOptions::add_feed(::std::string&& value) {
+  feed_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:tensorflow.CallableOptions.feed)
+}
+#endif
+inline void CallableOptions::add_feed(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  feed_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:tensorflow.CallableOptions.feed)
+}
+inline void CallableOptions::add_feed(const char* value, size_t size) {
+  feed_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:tensorflow.CallableOptions.feed)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+CallableOptions::feed() const {
+  // @@protoc_insertion_point(field_list:tensorflow.CallableOptions.feed)
+  return feed_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+CallableOptions::mutable_feed() {
+  // @@protoc_insertion_point(field_mutable_list:tensorflow.CallableOptions.feed)
+  return &feed_;
+}
+
+// repeated string fetch = 2;
+inline int CallableOptions::fetch_size() const {
+  return fetch_.size();
+}
+inline void CallableOptions::clear_fetch() {
+  fetch_.Clear();
+}
+inline const ::std::string& CallableOptions::fetch(int index) const {
+  // @@protoc_insertion_point(field_get:tensorflow.CallableOptions.fetch)
+  return fetch_.Get(index);
+}
+inline ::std::string* CallableOptions::mutable_fetch(int index) {
+  // @@protoc_insertion_point(field_mutable:tensorflow.CallableOptions.fetch)
+  return fetch_.Mutable(index);
+}
+inline void CallableOptions::set_fetch(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:tensorflow.CallableOptions.fetch)
+  fetch_.Mutable(index)->assign(value);
+}
+#if LANG_CXX11
+inline void CallableOptions::set_fetch(int index, ::std::string&& value) {
+  // @@protoc_insertion_point(field_set:tensorflow.CallableOptions.fetch)
+  fetch_.Mutable(index)->assign(std::move(value));
+}
+#endif
+inline void CallableOptions::set_fetch(int index, const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  fetch_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:tensorflow.CallableOptions.fetch)
+}
+inline void CallableOptions::set_fetch(int index, const char* value, size_t size) {
+  fetch_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:tensorflow.CallableOptions.fetch)
+}
+inline ::std::string* CallableOptions::add_fetch() {
+  // @@protoc_insertion_point(field_add_mutable:tensorflow.CallableOptions.fetch)
+  return fetch_.Add();
+}
+inline void CallableOptions::add_fetch(const ::std::string& value) {
+  fetch_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:tensorflow.CallableOptions.fetch)
+}
+#if LANG_CXX11
+inline void CallableOptions::add_fetch(::std::string&& value) {
+  fetch_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:tensorflow.CallableOptions.fetch)
+}
+#endif
+inline void CallableOptions::add_fetch(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  fetch_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:tensorflow.CallableOptions.fetch)
+}
+inline void CallableOptions::add_fetch(const char* value, size_t size) {
+  fetch_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:tensorflow.CallableOptions.fetch)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+CallableOptions::fetch() const {
+  // @@protoc_insertion_point(field_list:tensorflow.CallableOptions.fetch)
+  return fetch_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+CallableOptions::mutable_fetch() {
+  // @@protoc_insertion_point(field_mutable_list:tensorflow.CallableOptions.fetch)
+  return &fetch_;
+}
+
+// repeated string target = 3;
+inline int CallableOptions::target_size() const {
+  return target_.size();
+}
+inline void CallableOptions::clear_target() {
+  target_.Clear();
+}
+inline const ::std::string& CallableOptions::target(int index) const {
+  // @@protoc_insertion_point(field_get:tensorflow.CallableOptions.target)
+  return target_.Get(index);
+}
+inline ::std::string* CallableOptions::mutable_target(int index) {
+  // @@protoc_insertion_point(field_mutable:tensorflow.CallableOptions.target)
+  return target_.Mutable(index);
+}
+inline void CallableOptions::set_target(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:tensorflow.CallableOptions.target)
+  target_.Mutable(index)->assign(value);
+}
+#if LANG_CXX11
+inline void CallableOptions::set_target(int index, ::std::string&& value) {
+  // @@protoc_insertion_point(field_set:tensorflow.CallableOptions.target)
+  target_.Mutable(index)->assign(std::move(value));
+}
+#endif
+inline void CallableOptions::set_target(int index, const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  target_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:tensorflow.CallableOptions.target)
+}
+inline void CallableOptions::set_target(int index, const char* value, size_t size) {
+  target_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:tensorflow.CallableOptions.target)
+}
+inline ::std::string* CallableOptions::add_target() {
+  // @@protoc_insertion_point(field_add_mutable:tensorflow.CallableOptions.target)
+  return target_.Add();
+}
+inline void CallableOptions::add_target(const ::std::string& value) {
+  target_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:tensorflow.CallableOptions.target)
+}
+#if LANG_CXX11
+inline void CallableOptions::add_target(::std::string&& value) {
+  target_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:tensorflow.CallableOptions.target)
+}
+#endif
+inline void CallableOptions::add_target(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  target_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:tensorflow.CallableOptions.target)
+}
+inline void CallableOptions::add_target(const char* value, size_t size) {
+  target_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:tensorflow.CallableOptions.target)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+CallableOptions::target() const {
+  // @@protoc_insertion_point(field_list:tensorflow.CallableOptions.target)
+  return target_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+CallableOptions::mutable_target() {
+  // @@protoc_insertion_point(field_mutable_list:tensorflow.CallableOptions.target)
+  return &target_;
+}
+
+// .tensorflow.RunOptions run_options = 4;
+inline bool CallableOptions::has_run_options() const {
+  return this != internal_default_instance() && run_options_ != NULL;
+}
+inline void CallableOptions::clear_run_options() {
+  if (GetArenaNoVirtual() == NULL && run_options_ != NULL) {
+    delete run_options_;
+  }
+  run_options_ = NULL;
+}
+inline const ::tensorflow::RunOptions& CallableOptions::run_options() const {
+  const ::tensorflow::RunOptions* p = run_options_;
+  // @@protoc_insertion_point(field_get:tensorflow.CallableOptions.run_options)
+  return p != NULL ? *p : *reinterpret_cast<const ::tensorflow::RunOptions*>(
+      &::tensorflow::_RunOptions_default_instance_);
+}
+inline ::tensorflow::RunOptions* CallableOptions::release_run_options() {
+  // @@protoc_insertion_point(field_release:tensorflow.CallableOptions.run_options)
+  
+  ::tensorflow::RunOptions* temp = run_options_;
+  if (GetArenaNoVirtual() != NULL) {
+    temp = ::google::protobuf::internal::DuplicateIfNonNull(temp, NULL);
+  }
+  run_options_ = NULL;
+  return temp;
+}
+inline ::tensorflow::RunOptions* CallableOptions::unsafe_arena_release_run_options() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:tensorflow.CallableOptions.run_options)
+  
+  ::tensorflow::RunOptions* temp = run_options_;
+  run_options_ = NULL;
+  return temp;
+}
+inline ::tensorflow::RunOptions* CallableOptions::mutable_run_options() {
+  
+  if (run_options_ == NULL) {
+    run_options_ = ::google::protobuf::Arena::CreateMessage< ::tensorflow::RunOptions >(
+        GetArenaNoVirtual());
+  }
+  // @@protoc_insertion_point(field_mutable:tensorflow.CallableOptions.run_options)
+  return run_options_;
+}
+inline void CallableOptions::set_allocated_run_options(::tensorflow::RunOptions* run_options) {
+  ::google::protobuf::Arena* message_arena = GetArenaNoVirtual();
+  if (message_arena == NULL) {
+    delete run_options_;
+  }
+  if (run_options) {
+    ::google::protobuf::Arena* submessage_arena =
+      ::google::protobuf::Arena::GetArena(run_options);
+    if (message_arena != submessage_arena) {
+      run_options = ::google::protobuf::internal::GetOwnedMessage(
+          message_arena, run_options, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  run_options_ = run_options;
+  // @@protoc_insertion_point(field_set_allocated:tensorflow.CallableOptions.run_options)
+}
+
+// repeated .tensorflow.TensorConnection tensor_connection = 5;
+inline int CallableOptions::tensor_connection_size() const {
+  return tensor_connection_.size();
+}
+inline void CallableOptions::clear_tensor_connection() {
+  tensor_connection_.Clear();
+}
+inline ::tensorflow::TensorConnection* CallableOptions::mutable_tensor_connection(int index) {
+  // @@protoc_insertion_point(field_mutable:tensorflow.CallableOptions.tensor_connection)
+  return tensor_connection_.Mutable(index);
+}
+inline ::google::protobuf::RepeatedPtrField< ::tensorflow::TensorConnection >*
+CallableOptions::mutable_tensor_connection() {
+  // @@protoc_insertion_point(field_mutable_list:tensorflow.CallableOptions.tensor_connection)
+  return &tensor_connection_;
+}
+inline const ::tensorflow::TensorConnection& CallableOptions::tensor_connection(int index) const {
+  // @@protoc_insertion_point(field_get:tensorflow.CallableOptions.tensor_connection)
+  return tensor_connection_.Get(index);
+}
+inline ::tensorflow::TensorConnection* CallableOptions::add_tensor_connection() {
+  // @@protoc_insertion_point(field_add:tensorflow.CallableOptions.tensor_connection)
+  return tensor_connection_.Add();
+}
+inline const ::google::protobuf::RepeatedPtrField< ::tensorflow::TensorConnection >&
+CallableOptions::tensor_connection() const {
+  // @@protoc_insertion_point(field_list:tensorflow.CallableOptions.tensor_connection)
+  return tensor_connection_;
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

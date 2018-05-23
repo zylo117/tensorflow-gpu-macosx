@@ -58,8 +58,8 @@ def adjust_hsv_in_yiq(images, delta_h, scale_s, scale_v, name=None):
     The hsv-adjusted image or images. No clipping will be done in this op.
     The client can clip them using additional ops in their graph.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "AdjustHsvInYiq", images=images, delta_h=delta_h, scale_s=scale_s,
         scale_v=scale_v, name=name)
@@ -74,12 +74,13 @@ def adjust_hsv_in_yiq(images, delta_h, scale_s, scale_v, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "AdjustHsvInYiq", name,
-        _ctx._post_execution_callbacks, images, delta_h, scale_s, scale_v)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "AdjustHsvInYiq", name, _ctx._post_execution_callbacks, images,
+        delta_h, scale_s, scale_v)
       return _result
     except _core._FallbackException:
       return adjust_hsv_in_yiq_eager_fallback(
-          images, delta_h, scale_s, scale_v, name=name)
+          images, delta_h, scale_s, scale_v, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -88,11 +89,11 @@ def adjust_hsv_in_yiq(images, delta_h, scale_s, scale_v, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def adjust_hsv_in_yiq_eager_fallback(images, delta_h, scale_s, scale_v, name=None):
+def adjust_hsv_in_yiq_eager_fallback(images, delta_h, scale_s, scale_v, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function adjust_hsv_in_yiq
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (images,) = _execute.args_to_matching_eager([images], _ctx)
   delta_h = _ops.convert_to_tensor(delta_h, _dtypes.float32)
   scale_s = _ops.convert_to_tensor(scale_s, _dtypes.float32)

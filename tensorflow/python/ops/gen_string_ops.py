@@ -52,8 +52,8 @@ def as_string(input, precision=-1, scientific=False, shortest=False, width=-1, f
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if precision is None:
       precision = -1
     precision = _execute.make_int(precision, "precision")
@@ -86,15 +86,15 @@ def as_string(input, precision=-1, scientific=False, shortest=False, width=-1, f
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "AsString", name,
-        _ctx._post_execution_callbacks, input, "precision", precision,
+        _ctx._context_handle, _ctx._eager_context.device_name, "AsString",
+        name, _ctx._post_execution_callbacks, input, "precision", precision,
         "scientific", scientific, "shortest", shortest, "width", width,
         "fill", fill)
       return _result
     except _core._FallbackException:
       return as_string_eager_fallback(
           input, precision=precision, scientific=scientific,
-          shortest=shortest, width=width, fill=fill, name=name)
+          shortest=shortest, width=width, fill=fill, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -103,11 +103,11 @@ def as_string(input, precision=-1, scientific=False, shortest=False, width=-1, f
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def as_string_eager_fallback(input, precision=-1, scientific=False, shortest=False, width=-1, fill="", name=None):
+def as_string_eager_fallback(input, precision=-1, scientific=False, shortest=False, width=-1, fill="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function as_string
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if precision is None:
     precision = -1
   precision = _execute.make_int(precision, "precision")
@@ -149,8 +149,8 @@ def decode_base64(input, name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "DecodeBase64", input=input, name=name)
     _result = _op.outputs[:]
@@ -164,12 +164,12 @@ def decode_base64(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DecodeBase64", name,
-        _ctx._post_execution_callbacks, input)
+        _ctx._context_handle, _ctx._eager_context.device_name, "DecodeBase64",
+        name, _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return decode_base64_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -178,11 +178,11 @@ def decode_base64(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def decode_base64_eager_fallback(input, name=None):
+def decode_base64_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function decode_base64
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   input = _ops.convert_to_tensor(input, _dtypes.string)
   _inputs_flat = [input]
   _attrs = None
@@ -214,8 +214,8 @@ def encode_base64(input, pad=False, name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if pad is None:
       pad = False
     pad = _execute.make_bool(pad, "pad")
@@ -232,12 +232,12 @@ def encode_base64(input, pad=False, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "EncodeBase64", name,
-        _ctx._post_execution_callbacks, input, "pad", pad)
+        _ctx._context_handle, _ctx._eager_context.device_name, "EncodeBase64",
+        name, _ctx._post_execution_callbacks, input, "pad", pad)
       return _result
     except _core._FallbackException:
       return encode_base64_eager_fallback(
-          input, pad=pad, name=name)
+          input, pad=pad, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -246,11 +246,11 @@ def encode_base64(input, pad=False, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def encode_base64_eager_fallback(input, pad=False, name=None):
+def encode_base64_eager_fallback(input, pad=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function encode_base64
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if pad is None:
     pad = False
   pad = _execute.make_bool(pad, "pad")
@@ -305,8 +305,8 @@ def reduce_join(inputs, reduction_indices, keep_dims=False, separator="", name=N
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if keep_dims is None:
       keep_dims = False
     keep_dims = _execute.make_bool(keep_dims, "keep_dims")
@@ -328,14 +328,14 @@ def reduce_join(inputs, reduction_indices, keep_dims=False, separator="", name=N
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ReduceJoin", name,
-        _ctx._post_execution_callbacks, inputs, reduction_indices,
+        _ctx._context_handle, _ctx._eager_context.device_name, "ReduceJoin",
+        name, _ctx._post_execution_callbacks, inputs, reduction_indices,
         "keep_dims", keep_dims, "separator", separator)
       return _result
     except _core._FallbackException:
       return reduce_join_eager_fallback(
           inputs, reduction_indices, keep_dims=keep_dims, separator=separator,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -344,11 +344,11 @@ def reduce_join(inputs, reduction_indices, keep_dims=False, separator="", name=N
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def reduce_join_eager_fallback(inputs, reduction_indices, keep_dims=False, separator="", name=None):
+def reduce_join_eager_fallback(inputs, reduction_indices, keep_dims=False, separator="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function reduce_join
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if keep_dims is None:
     keep_dims = False
   keep_dims = _execute.make_bool(keep_dims, "keep_dims")
@@ -387,8 +387,8 @@ def regex_replace(input, pattern, rewrite, replace_global=True, name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if replace_global is None:
       replace_global = True
     replace_global = _execute.make_bool(replace_global, "replace_global")
@@ -406,13 +406,14 @@ def regex_replace(input, pattern, rewrite, replace_global=True, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "RegexReplace", name,
-        _ctx._post_execution_callbacks, input, pattern, rewrite,
+        _ctx._context_handle, _ctx._eager_context.device_name, "RegexReplace",
+        name, _ctx._post_execution_callbacks, input, pattern, rewrite,
         "replace_global", replace_global)
       return _result
     except _core._FallbackException:
       return regex_replace_eager_fallback(
-          input, pattern, rewrite, replace_global=replace_global, name=name)
+          input, pattern, rewrite, replace_global=replace_global, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -421,11 +422,11 @@ def regex_replace(input, pattern, rewrite, replace_global=True, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def regex_replace_eager_fallback(input, pattern, rewrite, replace_global=True, name=None):
+def regex_replace_eager_fallback(input, pattern, rewrite, replace_global=True, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function regex_replace
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if replace_global is None:
     replace_global = True
   replace_global = _execute.make_bool(replace_global, "replace_global")
@@ -460,8 +461,8 @@ def string_join(inputs, separator="", name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(inputs, (list, tuple)):
       raise TypeError(
           "Expected list for 'inputs' argument to "
@@ -483,12 +484,12 @@ def string_join(inputs, separator="", name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StringJoin", name,
-        _ctx._post_execution_callbacks, inputs, "separator", separator)
+        _ctx._context_handle, _ctx._eager_context.device_name, "StringJoin",
+        name, _ctx._post_execution_callbacks, inputs, "separator", separator)
       return _result
     except _core._FallbackException:
       return string_join_eager_fallback(
-          inputs, separator=separator, name=name)
+          inputs, separator=separator, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -497,11 +498,11 @@ def string_join(inputs, separator="", name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def string_join_eager_fallback(inputs, separator="", name=None):
+def string_join_eager_fallback(inputs, separator="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function string_join
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(inputs, (list, tuple)):
     raise TypeError(
         "Expected list for 'inputs' argument to "
@@ -565,8 +566,8 @@ def string_split(input, delimiter, skip_empty=True, name=None):
     values: A `Tensor` of type `string`.
     shape: A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if skip_empty is None:
       skip_empty = True
     skip_empty = _execute.make_bool(skip_empty, "skip_empty")
@@ -584,14 +585,14 @@ def string_split(input, delimiter, skip_empty=True, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StringSplit", name,
-        _ctx._post_execution_callbacks, input, delimiter, "skip_empty",
+        _ctx._context_handle, _ctx._eager_context.device_name, "StringSplit",
+        name, _ctx._post_execution_callbacks, input, delimiter, "skip_empty",
         skip_empty)
       _result = _StringSplitOutput._make(_result)
       return _result
     except _core._FallbackException:
       return string_split_eager_fallback(
-          input, delimiter, skip_empty=skip_empty, name=name)
+          input, delimiter, skip_empty=skip_empty, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -600,11 +601,11 @@ def string_split(input, delimiter, skip_empty=True, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def string_split_eager_fallback(input, delimiter, skip_empty=True, name=None):
+def string_split_eager_fallback(input, delimiter, skip_empty=True, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function string_split
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if skip_empty is None:
     skip_empty = True
   skip_empty = _execute.make_bool(skip_empty, "skip_empty")
@@ -639,8 +640,8 @@ def string_to_hash_bucket(string_tensor, num_buckets, name=None):
   Returns:
     A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     num_buckets = _execute.make_int(num_buckets, "num_buckets")
     _, _, _op = _op_def_lib._apply_op_helper(
         "StringToHashBucket", string_tensor=string_tensor,
@@ -656,13 +657,13 @@ def string_to_hash_bucket(string_tensor, num_buckets, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StringToHashBucket", name,
-        _ctx._post_execution_callbacks, string_tensor, "num_buckets",
-        num_buckets)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "StringToHashBucket", name, _ctx._post_execution_callbacks,
+        string_tensor, "num_buckets", num_buckets)
       return _result
     except _core._FallbackException:
       return string_to_hash_bucket_eager_fallback(
-          string_tensor, num_buckets=num_buckets, name=name)
+          string_tensor, num_buckets=num_buckets, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -671,11 +672,11 @@ def string_to_hash_bucket(string_tensor, num_buckets, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def string_to_hash_bucket_eager_fallback(string_tensor, num_buckets, name=None):
+def string_to_hash_bucket_eager_fallback(string_tensor, num_buckets, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function string_to_hash_bucket
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   num_buckets = _execute.make_int(num_buckets, "num_buckets")
   string_tensor = _ops.convert_to_tensor(string_tensor, _dtypes.string)
   _inputs_flat = [string_tensor]
@@ -707,8 +708,8 @@ def string_to_hash_bucket_fast(input, num_buckets, name=None):
   Returns:
     A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     num_buckets = _execute.make_int(num_buckets, "num_buckets")
     _, _, _op = _op_def_lib._apply_op_helper(
         "StringToHashBucketFast", input=input, num_buckets=num_buckets,
@@ -724,12 +725,13 @@ def string_to_hash_bucket_fast(input, num_buckets, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StringToHashBucketFast", name,
-        _ctx._post_execution_callbacks, input, "num_buckets", num_buckets)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "StringToHashBucketFast", name, _ctx._post_execution_callbacks, input,
+        "num_buckets", num_buckets)
       return _result
     except _core._FallbackException:
       return string_to_hash_bucket_fast_eager_fallback(
-          input, num_buckets=num_buckets, name=name)
+          input, num_buckets=num_buckets, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -738,11 +740,11 @@ def string_to_hash_bucket_fast(input, num_buckets, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def string_to_hash_bucket_fast_eager_fallback(input, num_buckets, name=None):
+def string_to_hash_bucket_fast_eager_fallback(input, num_buckets, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function string_to_hash_bucket_fast
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   num_buckets = _execute.make_int(num_buckets, "num_buckets")
   input = _ops.convert_to_tensor(input, _dtypes.string)
   _inputs_flat = [input]
@@ -782,8 +784,8 @@ def string_to_hash_bucket_strong(input, num_buckets, key, name=None):
   Returns:
     A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     num_buckets = _execute.make_int(num_buckets, "num_buckets")
     if not isinstance(key, (list, tuple)):
       raise TypeError(
@@ -805,13 +807,13 @@ def string_to_hash_bucket_strong(input, num_buckets, key, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StringToHashBucketStrong", name,
-        _ctx._post_execution_callbacks, input, "num_buckets", num_buckets,
-        "key", key)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "StringToHashBucketStrong", name, _ctx._post_execution_callbacks,
+        input, "num_buckets", num_buckets, "key", key)
       return _result
     except _core._FallbackException:
       return string_to_hash_bucket_strong_eager_fallback(
-          input, num_buckets=num_buckets, key=key, name=name)
+          input, num_buckets=num_buckets, key=key, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -820,11 +822,11 @@ def string_to_hash_bucket_strong(input, num_buckets, key, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def string_to_hash_bucket_strong_eager_fallback(input, num_buckets, key, name=None):
+def string_to_hash_bucket_strong_eager_fallback(input, num_buckets, key, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function string_to_hash_bucket_strong
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   num_buckets = _execute.make_int(num_buckets, "num_buckets")
   if not isinstance(key, (list, tuple)):
     raise TypeError(
@@ -932,8 +934,8 @@ def substr(input, pos, len, name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "Substr", input=input, pos=pos, len=len, name=name)
     _result = _op.outputs[:]
@@ -947,12 +949,12 @@ def substr(input, pos, len, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Substr", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Substr", name,
         _ctx._post_execution_callbacks, input, pos, len)
       return _result
     except _core._FallbackException:
       return substr_eager_fallback(
-          input, pos, len, name=name)
+          input, pos, len, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -961,11 +963,11 @@ def substr(input, pos, len, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def substr_eager_fallback(input, pos, len, name=None):
+def substr_eager_fallback(input, pos, len, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function substr
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, _inputs_T = _execute.args_to_matching_eager([pos, len], _ctx)
   (pos, len) = _inputs_T
   input = _ops.convert_to_tensor(input, _dtypes.string)

@@ -38,8 +38,8 @@ def create_fertile_stats_variable(stats_handle, stats_config, params, name=None)
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     params = _execute.make_str(params, "params")
     _, _, _op = _op_def_lib._apply_op_helper(
         "CreateFertileStatsVariable", stats_handle=stats_handle,
@@ -51,13 +51,13 @@ def create_fertile_stats_variable(stats_handle, stats_config, params, name=None)
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "CreateFertileStatsVariable", name,
-        _ctx._post_execution_callbacks, stats_handle, stats_config, "params",
-        params)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "CreateFertileStatsVariable", name, _ctx._post_execution_callbacks,
+        stats_handle, stats_config, "params", params)
       return _result
     except _core._FallbackException:
       return create_fertile_stats_variable_eager_fallback(
-          stats_handle, stats_config, params=params, name=name)
+          stats_handle, stats_config, params=params, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -66,11 +66,11 @@ def create_fertile_stats_variable(stats_handle, stats_config, params, name=None)
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def create_fertile_stats_variable_eager_fallback(stats_handle, stats_config, params, name=None):
+def create_fertile_stats_variable_eager_fallback(stats_handle, stats_config, params, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function create_fertile_stats_variable
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   params = _execute.make_str(params, "params")
   stats_handle = _ops.convert_to_tensor(stats_handle, _dtypes.resource)
   stats_config = _ops.convert_to_tensor(stats_config, _dtypes.string)
@@ -98,8 +98,8 @@ def fertile_stats_deserialize(stats_handle, stats_config, params, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     params = _execute.make_str(params, "params")
     _, _, _op = _op_def_lib._apply_op_helper(
         "FertileStatsDeserialize", stats_handle=stats_handle,
@@ -111,13 +111,13 @@ def fertile_stats_deserialize(stats_handle, stats_config, params, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "FertileStatsDeserialize", name,
-        _ctx._post_execution_callbacks, stats_handle, stats_config, "params",
-        params)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "FertileStatsDeserialize", name, _ctx._post_execution_callbacks,
+        stats_handle, stats_config, "params", params)
       return _result
     except _core._FallbackException:
       return fertile_stats_deserialize_eager_fallback(
-          stats_handle, stats_config, params=params, name=name)
+          stats_handle, stats_config, params=params, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -126,11 +126,11 @@ def fertile_stats_deserialize(stats_handle, stats_config, params, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def fertile_stats_deserialize_eager_fallback(stats_handle, stats_config, params, name=None):
+def fertile_stats_deserialize_eager_fallback(stats_handle, stats_config, params, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function fertile_stats_deserialize
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   params = _execute.make_str(params, "params")
   stats_handle = _ops.convert_to_tensor(stats_handle, _dtypes.resource)
   stats_config = _ops.convert_to_tensor(stats_config, _dtypes.string)
@@ -156,8 +156,8 @@ def fertile_stats_is_initialized_op(stats_handle, name=None):
   Returns:
     A `Tensor` of type `bool`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "FertileStatsIsInitializedOp", stats_handle=stats_handle, name=name)
     _result = _op.outputs[:]
@@ -171,12 +171,13 @@ def fertile_stats_is_initialized_op(stats_handle, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "FertileStatsIsInitializedOp", name,
-        _ctx._post_execution_callbacks, stats_handle)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "FertileStatsIsInitializedOp", name, _ctx._post_execution_callbacks,
+        stats_handle)
       return _result
     except _core._FallbackException:
       return fertile_stats_is_initialized_op_eager_fallback(
-          stats_handle, name=name)
+          stats_handle, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -185,11 +186,11 @@ def fertile_stats_is_initialized_op(stats_handle, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def fertile_stats_is_initialized_op_eager_fallback(stats_handle, name=None):
+def fertile_stats_is_initialized_op_eager_fallback(stats_handle, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function fertile_stats_is_initialized_op
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   stats_handle = _ops.convert_to_tensor(stats_handle, _dtypes.resource)
   _inputs_flat = [stats_handle]
   _attrs = None
@@ -206,7 +207,7 @@ _ops.RegisterShape("FertileStatsIsInitializedOp")(None)
 
 @tf_export('fertile_stats_resource_handle_op')
 def fertile_stats_resource_handle_op(container="", shared_name="", name=None):
-  r"""Creates a handle to a FertileStatsResource
+  r"""TODO: add doc.
 
   Args:
     container: An optional `string`. Defaults to `""`.
@@ -216,8 +217,8 @@ def fertile_stats_resource_handle_op(container="", shared_name="", name=None):
   Returns:
     A `Tensor` of type `resource`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if container is None:
       container = ""
     container = _execute.make_str(container, "container")
@@ -239,13 +240,13 @@ def fertile_stats_resource_handle_op(container="", shared_name="", name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "FertileStatsResourceHandleOp", name,
-        _ctx._post_execution_callbacks, "container", container, "shared_name",
-        shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "FertileStatsResourceHandleOp", name, _ctx._post_execution_callbacks,
+        "container", container, "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return fertile_stats_resource_handle_op_eager_fallback(
-          container=container, shared_name=shared_name, name=name)
+          container=container, shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -254,11 +255,11 @@ def fertile_stats_resource_handle_op(container="", shared_name="", name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def fertile_stats_resource_handle_op_eager_fallback(container="", shared_name="", name=None):
+def fertile_stats_resource_handle_op_eager_fallback(container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function fertile_stats_resource_handle_op
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if container is None:
     container = ""
   container = _execute.make_str(container, "container")
@@ -290,8 +291,8 @@ def fertile_stats_serialize(stats_handle, params, name=None):
   Returns:
     A `Tensor` of type `string`. Serialized proto of the stats.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     params = _execute.make_str(params, "params")
     _, _, _op = _op_def_lib._apply_op_helper(
         "FertileStatsSerialize", stats_handle=stats_handle, params=params,
@@ -307,12 +308,13 @@ def fertile_stats_serialize(stats_handle, params, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "FertileStatsSerialize", name,
-        _ctx._post_execution_callbacks, stats_handle, "params", params)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "FertileStatsSerialize", name, _ctx._post_execution_callbacks,
+        stats_handle, "params", params)
       return _result
     except _core._FallbackException:
       return fertile_stats_serialize_eager_fallback(
-          stats_handle, params=params, name=name)
+          stats_handle, params=params, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -321,11 +323,11 @@ def fertile_stats_serialize(stats_handle, params, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def fertile_stats_serialize_eager_fallback(stats_handle, params, name=None):
+def fertile_stats_serialize_eager_fallback(stats_handle, params, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function fertile_stats_serialize
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   params = _execute.make_str(params, "params")
   stats_handle = _ops.convert_to_tensor(stats_handle, _dtypes.resource)
   _inputs_flat = [stats_handle]
@@ -356,8 +358,8 @@ def finalize_tree(tree_handle, stats_handle, params, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     params = _execute.make_str(params, "params")
     _, _, _op = _op_def_lib._apply_op_helper(
         "FinalizeTree", tree_handle=tree_handle, stats_handle=stats_handle,
@@ -369,13 +371,13 @@ def finalize_tree(tree_handle, stats_handle, params, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "FinalizeTree", name,
-        _ctx._post_execution_callbacks, tree_handle, stats_handle, "params",
-        params)
+        _ctx._context_handle, _ctx._eager_context.device_name, "FinalizeTree",
+        name, _ctx._post_execution_callbacks, tree_handle, stats_handle,
+        "params", params)
       return _result
     except _core._FallbackException:
       return finalize_tree_eager_fallback(
-          tree_handle, stats_handle, params=params, name=name)
+          tree_handle, stats_handle, params=params, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -384,11 +386,11 @@ def finalize_tree(tree_handle, stats_handle, params, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def finalize_tree_eager_fallback(tree_handle, stats_handle, params, name=None):
+def finalize_tree_eager_fallback(tree_handle, stats_handle, params, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function finalize_tree
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   params = _execute.make_str(params, "params")
   tree_handle = _ops.convert_to_tensor(tree_handle, _dtypes.resource)
   stats_handle = _ops.convert_to_tensor(stats_handle, _dtypes.resource)
@@ -417,8 +419,8 @@ def grow_tree_v4(tree_handle, stats_handle, finshed_nodes, params, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     params = _execute.make_str(params, "params")
     _, _, _op = _op_def_lib._apply_op_helper(
         "GrowTreeV4", tree_handle=tree_handle, stats_handle=stats_handle,
@@ -430,13 +432,14 @@ def grow_tree_v4(tree_handle, stats_handle, finshed_nodes, params, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "GrowTreeV4", name,
-        _ctx._post_execution_callbacks, tree_handle, stats_handle,
+        _ctx._context_handle, _ctx._eager_context.device_name, "GrowTreeV4",
+        name, _ctx._post_execution_callbacks, tree_handle, stats_handle,
         finshed_nodes, "params", params)
       return _result
     except _core._FallbackException:
       return grow_tree_v4_eager_fallback(
-          tree_handle, stats_handle, finshed_nodes, params=params, name=name)
+          tree_handle, stats_handle, finshed_nodes, params=params, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -445,11 +448,11 @@ def grow_tree_v4(tree_handle, stats_handle, finshed_nodes, params, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def grow_tree_v4_eager_fallback(tree_handle, stats_handle, finshed_nodes, params, name=None):
+def grow_tree_v4_eager_fallback(tree_handle, stats_handle, finshed_nodes, params, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function grow_tree_v4
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   params = _execute.make_str(params, "params")
   tree_handle = _ops.convert_to_tensor(tree_handle, _dtypes.resource)
   stats_handle = _ops.convert_to_tensor(stats_handle, _dtypes.resource)
@@ -500,8 +503,8 @@ def process_input_v4(tree_handle, stats_handle, input_data, sparse_input_indices
     A 1-d tensor of node ids that have finished and are ready to
     grow.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     random_seed = _execute.make_int(random_seed, "random_seed")
     input_spec = _execute.make_str(input_spec, "input_spec")
     params = _execute.make_str(params, "params")
@@ -525,18 +528,19 @@ def process_input_v4(tree_handle, stats_handle, input_data, sparse_input_indices
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ProcessInputV4", name,
-        _ctx._post_execution_callbacks, tree_handle, stats_handle, input_data,
-        sparse_input_indices, sparse_input_values, sparse_input_shape,
-        input_labels, input_weights, leaf_ids, "random_seed", random_seed,
-        "input_spec", input_spec, "params", params)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ProcessInputV4", name, _ctx._post_execution_callbacks, tree_handle,
+        stats_handle, input_data, sparse_input_indices, sparse_input_values,
+        sparse_input_shape, input_labels, input_weights, leaf_ids,
+        "random_seed", random_seed, "input_spec", input_spec, "params",
+        params)
       return _result
     except _core._FallbackException:
       return process_input_v4_eager_fallback(
           tree_handle, stats_handle, input_data, sparse_input_indices,
           sparse_input_values, sparse_input_shape, input_labels,
           input_weights, leaf_ids, random_seed=random_seed,
-          input_spec=input_spec, params=params, name=name)
+          input_spec=input_spec, params=params, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -545,11 +549,11 @@ def process_input_v4(tree_handle, stats_handle, input_data, sparse_input_indices
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def process_input_v4_eager_fallback(tree_handle, stats_handle, input_data, sparse_input_indices, sparse_input_values, sparse_input_shape, input_labels, input_weights, leaf_ids, random_seed, input_spec, params, name=None):
+def process_input_v4_eager_fallback(tree_handle, stats_handle, input_data, sparse_input_indices, sparse_input_values, sparse_input_shape, input_labels, input_weights, leaf_ids, random_seed, input_spec, params, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function process_input_v4
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   random_seed = _execute.make_int(random_seed, "random_seed")
   input_spec = _execute.make_str(input_spec, "input_spec")
   params = _execute.make_str(params, "params")

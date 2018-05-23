@@ -38,8 +38,8 @@ def create_stats_accumulator_scalar(stats_accumulator_handle, stamp_token, name=
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "CreateStatsAccumulatorScalar",
         stats_accumulator_handle=stats_accumulator_handle,
@@ -51,12 +51,13 @@ def create_stats_accumulator_scalar(stats_accumulator_handle, stamp_token, name=
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "CreateStatsAccumulatorScalar", name,
-        _ctx._post_execution_callbacks, stats_accumulator_handle, stamp_token)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "CreateStatsAccumulatorScalar", name, _ctx._post_execution_callbacks,
+        stats_accumulator_handle, stamp_token)
       return _result
     except _core._FallbackException:
       return create_stats_accumulator_scalar_eager_fallback(
-          stats_accumulator_handle, stamp_token, name=name)
+          stats_accumulator_handle, stamp_token, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -65,11 +66,11 @@ def create_stats_accumulator_scalar(stats_accumulator_handle, stamp_token, name=
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def create_stats_accumulator_scalar_eager_fallback(stats_accumulator_handle, stamp_token, name=None):
+def create_stats_accumulator_scalar_eager_fallback(stats_accumulator_handle, stamp_token, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function create_stats_accumulator_scalar
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
   stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
   _inputs_flat = [stats_accumulator_handle, stamp_token]
@@ -101,8 +102,8 @@ def create_stats_accumulator_tensor(stats_accumulator_handle, stamp_token, per_s
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "CreateStatsAccumulatorTensor",
         stats_accumulator_handle=stats_accumulator_handle,
@@ -116,14 +117,15 @@ def create_stats_accumulator_tensor(stats_accumulator_handle, stamp_token, per_s
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "CreateStatsAccumulatorTensor", name,
-        _ctx._post_execution_callbacks, stats_accumulator_handle, stamp_token,
-        per_slot_gradient_shape, per_slot_hessian_shape)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "CreateStatsAccumulatorTensor", name, _ctx._post_execution_callbacks,
+        stats_accumulator_handle, stamp_token, per_slot_gradient_shape,
+        per_slot_hessian_shape)
       return _result
     except _core._FallbackException:
       return create_stats_accumulator_tensor_eager_fallback(
           stats_accumulator_handle, stamp_token, per_slot_gradient_shape,
-          per_slot_hessian_shape, name=name)
+          per_slot_hessian_shape, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -132,11 +134,11 @@ def create_stats_accumulator_tensor(stats_accumulator_handle, stamp_token, per_s
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def create_stats_accumulator_tensor_eager_fallback(stats_accumulator_handle, stamp_token, per_slot_gradient_shape, per_slot_hessian_shape, name=None):
+def create_stats_accumulator_tensor_eager_fallback(stats_accumulator_handle, stamp_token, per_slot_gradient_shape, per_slot_hessian_shape, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function create_stats_accumulator_tensor
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
   stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
   per_slot_gradient_shape = _ops.convert_to_tensor(per_slot_gradient_shape, _dtypes.int64)
@@ -177,8 +179,8 @@ def stats_accumulator_scalar_add(stats_accumulator_handles, stamp_token, partiti
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(stats_accumulator_handles, (list, tuple)):
       raise TypeError(
           "Expected list for 'stats_accumulator_handles' argument to "
@@ -233,14 +235,15 @@ def stats_accumulator_scalar_add(stats_accumulator_handles, stamp_token, partiti
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StatsAccumulatorScalarAdd", name,
-        _ctx._post_execution_callbacks, stats_accumulator_handles,
-        stamp_token, partition_ids, feature_ids, gradients, hessians)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "StatsAccumulatorScalarAdd", name, _ctx._post_execution_callbacks,
+        stats_accumulator_handles, stamp_token, partition_ids, feature_ids,
+        gradients, hessians)
       return _result
     except _core._FallbackException:
       return stats_accumulator_scalar_add_eager_fallback(
           stats_accumulator_handles, stamp_token, partition_ids, feature_ids,
-          gradients, hessians, name=name)
+          gradients, hessians, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -249,11 +252,11 @@ def stats_accumulator_scalar_add(stats_accumulator_handles, stamp_token, partiti
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stats_accumulator_scalar_add_eager_fallback(stats_accumulator_handles, stamp_token, partition_ids, feature_ids, gradients, hessians, name=None):
+def stats_accumulator_scalar_add_eager_fallback(stats_accumulator_handles, stamp_token, partition_ids, feature_ids, gradients, hessians, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stats_accumulator_scalar_add
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(stats_accumulator_handles, (list, tuple)):
     raise TypeError(
         "Expected list for 'stats_accumulator_handles' argument to "
@@ -339,8 +342,8 @@ def stats_accumulator_scalar_deserialize(stats_accumulator_handle, stamp_token, 
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatsAccumulatorScalarDeserialize",
         stats_accumulator_handle=stats_accumulator_handle,
@@ -354,15 +357,15 @@ def stats_accumulator_scalar_deserialize(stats_accumulator_handle, stamp_token, 
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StatsAccumulatorScalarDeserialize",
-        name, _ctx._post_execution_callbacks, stats_accumulator_handle,
-        stamp_token, num_updates, partition_ids, feature_ids, gradients,
-        hessians)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "StatsAccumulatorScalarDeserialize", name,
+        _ctx._post_execution_callbacks, stats_accumulator_handle, stamp_token,
+        num_updates, partition_ids, feature_ids, gradients, hessians)
       return _result
     except _core._FallbackException:
       return stats_accumulator_scalar_deserialize_eager_fallback(
           stats_accumulator_handle, stamp_token, num_updates, partition_ids,
-          feature_ids, gradients, hessians, name=name)
+          feature_ids, gradients, hessians, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -371,11 +374,11 @@ def stats_accumulator_scalar_deserialize(stats_accumulator_handle, stamp_token, 
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stats_accumulator_scalar_deserialize_eager_fallback(stats_accumulator_handle, stamp_token, num_updates, partition_ids, feature_ids, gradients, hessians, name=None):
+def stats_accumulator_scalar_deserialize_eager_fallback(stats_accumulator_handle, stamp_token, num_updates, partition_ids, feature_ids, gradients, hessians, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stats_accumulator_scalar_deserialize
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
   stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
   num_updates = _ops.convert_to_tensor(num_updates, _dtypes.int64)
@@ -430,8 +433,8 @@ def stats_accumulator_scalar_flush(stats_accumulator_handle, stamp_token, next_s
     output_hessians: A `Tensor` of type `float32`. A vector of hessians, with a value for each slot
       in <output_partition_id, output_feature_id>.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatsAccumulatorScalarFlush",
         stats_accumulator_handle=stats_accumulator_handle,
@@ -447,14 +450,15 @@ def stats_accumulator_scalar_flush(stats_accumulator_handle, stamp_token, next_s
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StatsAccumulatorScalarFlush", name,
-        _ctx._post_execution_callbacks, stats_accumulator_handle, stamp_token,
-        next_stamp_token)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "StatsAccumulatorScalarFlush", name, _ctx._post_execution_callbacks,
+        stats_accumulator_handle, stamp_token, next_stamp_token)
       _result = _StatsAccumulatorScalarFlushOutput._make(_result)
       return _result
     except _core._FallbackException:
       return stats_accumulator_scalar_flush_eager_fallback(
-          stats_accumulator_handle, stamp_token, next_stamp_token, name=name)
+          stats_accumulator_handle, stamp_token, next_stamp_token, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -463,11 +467,11 @@ def stats_accumulator_scalar_flush(stats_accumulator_handle, stamp_token, next_s
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stats_accumulator_scalar_flush_eager_fallback(stats_accumulator_handle, stamp_token, next_stamp_token, name=None):
+def stats_accumulator_scalar_flush_eager_fallback(stats_accumulator_handle, stamp_token, next_stamp_token, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stats_accumulator_scalar_flush
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
   stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
   next_stamp_token = _ops.convert_to_tensor(next_stamp_token, _dtypes.int64)
@@ -495,8 +499,8 @@ def stats_accumulator_scalar_is_initialized(stats_accumulator_handle, name=None)
   Returns:
     A `Tensor` of type `bool`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatsAccumulatorScalarIsInitialized",
         stats_accumulator_handle=stats_accumulator_handle, name=name)
@@ -511,12 +515,13 @@ def stats_accumulator_scalar_is_initialized(stats_accumulator_handle, name=None)
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StatsAccumulatorScalarIsInitialized",
-        name, _ctx._post_execution_callbacks, stats_accumulator_handle)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "StatsAccumulatorScalarIsInitialized", name,
+        _ctx._post_execution_callbacks, stats_accumulator_handle)
       return _result
     except _core._FallbackException:
       return stats_accumulator_scalar_is_initialized_eager_fallback(
-          stats_accumulator_handle, name=name)
+          stats_accumulator_handle, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -525,11 +530,11 @@ def stats_accumulator_scalar_is_initialized(stats_accumulator_handle, name=None)
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stats_accumulator_scalar_is_initialized_eager_fallback(stats_accumulator_handle, name=None):
+def stats_accumulator_scalar_is_initialized_eager_fallback(stats_accumulator_handle, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stats_accumulator_scalar_is_initialized
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
   _inputs_flat = [stats_accumulator_handle]
   _attrs = None
@@ -572,8 +577,8 @@ def stats_accumulator_scalar_make_summary(partition_ids, feature_ids, gradients,
     output_gradients: A `Tensor` of type `float32`.
     output_hessians: A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatsAccumulatorScalarMakeSummary", partition_ids=partition_ids,
         feature_ids=feature_ids, gradients=gradients, hessians=hessians,
@@ -589,14 +594,16 @@ def stats_accumulator_scalar_make_summary(partition_ids, feature_ids, gradients,
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StatsAccumulatorScalarMakeSummary",
-        name, _ctx._post_execution_callbacks, partition_ids, feature_ids,
-        gradients, hessians)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "StatsAccumulatorScalarMakeSummary", name,
+        _ctx._post_execution_callbacks, partition_ids, feature_ids, gradients,
+        hessians)
       _result = _StatsAccumulatorScalarMakeSummaryOutput._make(_result)
       return _result
     except _core._FallbackException:
       return stats_accumulator_scalar_make_summary_eager_fallback(
-          partition_ids, feature_ids, gradients, hessians, name=name)
+          partition_ids, feature_ids, gradients, hessians, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -605,11 +612,11 @@ def stats_accumulator_scalar_make_summary(partition_ids, feature_ids, gradients,
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stats_accumulator_scalar_make_summary_eager_fallback(partition_ids, feature_ids, gradients, hessians, name=None):
+def stats_accumulator_scalar_make_summary_eager_fallback(partition_ids, feature_ids, gradients, hessians, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stats_accumulator_scalar_make_summary
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   partition_ids = _ops.convert_to_tensor(partition_ids, _dtypes.int32)
   feature_ids = _ops.convert_to_tensor(feature_ids, _dtypes.int64)
   gradients = _ops.convert_to_tensor(gradients, _dtypes.float32)
@@ -629,7 +636,7 @@ _ops.RegisterShape("StatsAccumulatorScalarMakeSummary")(None)
 
 @tf_export('stats_accumulator_scalar_resource_handle_op')
 def stats_accumulator_scalar_resource_handle_op(container="", shared_name="", name=None):
-  r"""Creates a handle to a StatsAccumulatorScalarResource
+  r"""TODO: add doc.
 
   Args:
     container: An optional `string`. Defaults to `""`.
@@ -639,8 +646,8 @@ def stats_accumulator_scalar_resource_handle_op(container="", shared_name="", na
   Returns:
     A `Tensor` of type `resource`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if container is None:
       container = ""
     container = _execute.make_str(container, "container")
@@ -662,14 +669,14 @@ def stats_accumulator_scalar_resource_handle_op(container="", shared_name="", na
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name,
+        _ctx._context_handle, _ctx._eager_context.device_name,
         "StatsAccumulatorScalarResourceHandleOp", name,
         _ctx._post_execution_callbacks, "container", container, "shared_name",
         shared_name)
       return _result
     except _core._FallbackException:
       return stats_accumulator_scalar_resource_handle_op_eager_fallback(
-          container=container, shared_name=shared_name, name=name)
+          container=container, shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -678,11 +685,11 @@ def stats_accumulator_scalar_resource_handle_op(container="", shared_name="", na
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stats_accumulator_scalar_resource_handle_op_eager_fallback(container="", shared_name="", name=None):
+def stats_accumulator_scalar_resource_handle_op_eager_fallback(container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stats_accumulator_scalar_resource_handle_op
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if container is None:
     container = ""
   container = _execute.make_str(container, "container")
@@ -735,8 +742,8 @@ def stats_accumulator_scalar_serialize(stats_accumulator_handle, name=None):
     output_hessians: A `Tensor` of type `float32`. A vector of hessians, with a value for each slot
       in <output_partition_id, output_feature_id>.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatsAccumulatorScalarSerialize",
         stats_accumulator_handle=stats_accumulator_handle, name=name)
@@ -751,13 +758,14 @@ def stats_accumulator_scalar_serialize(stats_accumulator_handle, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StatsAccumulatorScalarSerialize",
-        name, _ctx._post_execution_callbacks, stats_accumulator_handle)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "StatsAccumulatorScalarSerialize", name,
+        _ctx._post_execution_callbacks, stats_accumulator_handle)
       _result = _StatsAccumulatorScalarSerializeOutput._make(_result)
       return _result
     except _core._FallbackException:
       return stats_accumulator_scalar_serialize_eager_fallback(
-          stats_accumulator_handle, name=name)
+          stats_accumulator_handle, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -766,11 +774,11 @@ def stats_accumulator_scalar_serialize(stats_accumulator_handle, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stats_accumulator_scalar_serialize_eager_fallback(stats_accumulator_handle, name=None):
+def stats_accumulator_scalar_serialize_eager_fallback(stats_accumulator_handle, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stats_accumulator_scalar_serialize
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
   _inputs_flat = [stats_accumulator_handle]
   _attrs = None
@@ -810,8 +818,8 @@ def stats_accumulator_tensor_add(stats_accumulator_handles, stamp_token, partiti
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(stats_accumulator_handles, (list, tuple)):
       raise TypeError(
           "Expected list for 'stats_accumulator_handles' argument to "
@@ -866,14 +874,15 @@ def stats_accumulator_tensor_add(stats_accumulator_handles, stamp_token, partiti
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StatsAccumulatorTensorAdd", name,
-        _ctx._post_execution_callbacks, stats_accumulator_handles,
-        stamp_token, partition_ids, feature_ids, gradients, hessians)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "StatsAccumulatorTensorAdd", name, _ctx._post_execution_callbacks,
+        stats_accumulator_handles, stamp_token, partition_ids, feature_ids,
+        gradients, hessians)
       return _result
     except _core._FallbackException:
       return stats_accumulator_tensor_add_eager_fallback(
           stats_accumulator_handles, stamp_token, partition_ids, feature_ids,
-          gradients, hessians, name=name)
+          gradients, hessians, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -882,11 +891,11 @@ def stats_accumulator_tensor_add(stats_accumulator_handles, stamp_token, partiti
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stats_accumulator_tensor_add_eager_fallback(stats_accumulator_handles, stamp_token, partition_ids, feature_ids, gradients, hessians, name=None):
+def stats_accumulator_tensor_add_eager_fallback(stats_accumulator_handles, stamp_token, partition_ids, feature_ids, gradients, hessians, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stats_accumulator_tensor_add
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(stats_accumulator_handles, (list, tuple)):
     raise TypeError(
         "Expected list for 'stats_accumulator_handles' argument to "
@@ -972,8 +981,8 @@ def stats_accumulator_tensor_deserialize(stats_accumulator_handle, stamp_token, 
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatsAccumulatorTensorDeserialize",
         stats_accumulator_handle=stats_accumulator_handle,
@@ -987,15 +996,15 @@ def stats_accumulator_tensor_deserialize(stats_accumulator_handle, stamp_token, 
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StatsAccumulatorTensorDeserialize",
-        name, _ctx._post_execution_callbacks, stats_accumulator_handle,
-        stamp_token, num_updates, partition_ids, feature_ids, gradients,
-        hessians)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "StatsAccumulatorTensorDeserialize", name,
+        _ctx._post_execution_callbacks, stats_accumulator_handle, stamp_token,
+        num_updates, partition_ids, feature_ids, gradients, hessians)
       return _result
     except _core._FallbackException:
       return stats_accumulator_tensor_deserialize_eager_fallback(
           stats_accumulator_handle, stamp_token, num_updates, partition_ids,
-          feature_ids, gradients, hessians, name=name)
+          feature_ids, gradients, hessians, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1004,11 +1013,11 @@ def stats_accumulator_tensor_deserialize(stats_accumulator_handle, stamp_token, 
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stats_accumulator_tensor_deserialize_eager_fallback(stats_accumulator_handle, stamp_token, num_updates, partition_ids, feature_ids, gradients, hessians, name=None):
+def stats_accumulator_tensor_deserialize_eager_fallback(stats_accumulator_handle, stamp_token, num_updates, partition_ids, feature_ids, gradients, hessians, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stats_accumulator_tensor_deserialize
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
   stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
   num_updates = _ops.convert_to_tensor(num_updates, _dtypes.int64)
@@ -1062,8 +1071,8 @@ def stats_accumulator_tensor_flush(stats_accumulator_handle, stamp_token, next_s
     output_hessians: A `Tensor` of type `float32`. A tensor of hessians, first dimension matches slots
       in <partition_id, feature_id, feature_dimension_id>>.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatsAccumulatorTensorFlush",
         stats_accumulator_handle=stats_accumulator_handle,
@@ -1079,14 +1088,15 @@ def stats_accumulator_tensor_flush(stats_accumulator_handle, stamp_token, next_s
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StatsAccumulatorTensorFlush", name,
-        _ctx._post_execution_callbacks, stats_accumulator_handle, stamp_token,
-        next_stamp_token)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "StatsAccumulatorTensorFlush", name, _ctx._post_execution_callbacks,
+        stats_accumulator_handle, stamp_token, next_stamp_token)
       _result = _StatsAccumulatorTensorFlushOutput._make(_result)
       return _result
     except _core._FallbackException:
       return stats_accumulator_tensor_flush_eager_fallback(
-          stats_accumulator_handle, stamp_token, next_stamp_token, name=name)
+          stats_accumulator_handle, stamp_token, next_stamp_token, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1095,11 +1105,11 @@ def stats_accumulator_tensor_flush(stats_accumulator_handle, stamp_token, next_s
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stats_accumulator_tensor_flush_eager_fallback(stats_accumulator_handle, stamp_token, next_stamp_token, name=None):
+def stats_accumulator_tensor_flush_eager_fallback(stats_accumulator_handle, stamp_token, next_stamp_token, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stats_accumulator_tensor_flush
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
   stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
   next_stamp_token = _ops.convert_to_tensor(next_stamp_token, _dtypes.int64)
@@ -1127,8 +1137,8 @@ def stats_accumulator_tensor_is_initialized(stats_accumulator_handle, name=None)
   Returns:
     A `Tensor` of type `bool`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatsAccumulatorTensorIsInitialized",
         stats_accumulator_handle=stats_accumulator_handle, name=name)
@@ -1143,12 +1153,13 @@ def stats_accumulator_tensor_is_initialized(stats_accumulator_handle, name=None)
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StatsAccumulatorTensorIsInitialized",
-        name, _ctx._post_execution_callbacks, stats_accumulator_handle)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "StatsAccumulatorTensorIsInitialized", name,
+        _ctx._post_execution_callbacks, stats_accumulator_handle)
       return _result
     except _core._FallbackException:
       return stats_accumulator_tensor_is_initialized_eager_fallback(
-          stats_accumulator_handle, name=name)
+          stats_accumulator_handle, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1157,11 +1168,11 @@ def stats_accumulator_tensor_is_initialized(stats_accumulator_handle, name=None)
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stats_accumulator_tensor_is_initialized_eager_fallback(stats_accumulator_handle, name=None):
+def stats_accumulator_tensor_is_initialized_eager_fallback(stats_accumulator_handle, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stats_accumulator_tensor_is_initialized
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
   _inputs_flat = [stats_accumulator_handle]
   _attrs = None
@@ -1213,8 +1224,8 @@ def stats_accumulator_tensor_make_summary(partition_ids, feature_ids, gradients,
     output_hessians: A `Tensor` of type `float32`. A tensor of hessians, first dimension matches slots
       in <partition_id, feature_id, feature_dimension_id>.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatsAccumulatorTensorMakeSummary", partition_ids=partition_ids,
         feature_ids=feature_ids, gradients=gradients, hessians=hessians,
@@ -1230,14 +1241,16 @@ def stats_accumulator_tensor_make_summary(partition_ids, feature_ids, gradients,
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StatsAccumulatorTensorMakeSummary",
-        name, _ctx._post_execution_callbacks, partition_ids, feature_ids,
-        gradients, hessians)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "StatsAccumulatorTensorMakeSummary", name,
+        _ctx._post_execution_callbacks, partition_ids, feature_ids, gradients,
+        hessians)
       _result = _StatsAccumulatorTensorMakeSummaryOutput._make(_result)
       return _result
     except _core._FallbackException:
       return stats_accumulator_tensor_make_summary_eager_fallback(
-          partition_ids, feature_ids, gradients, hessians, name=name)
+          partition_ids, feature_ids, gradients, hessians, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1246,11 +1259,11 @@ def stats_accumulator_tensor_make_summary(partition_ids, feature_ids, gradients,
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stats_accumulator_tensor_make_summary_eager_fallback(partition_ids, feature_ids, gradients, hessians, name=None):
+def stats_accumulator_tensor_make_summary_eager_fallback(partition_ids, feature_ids, gradients, hessians, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stats_accumulator_tensor_make_summary
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   partition_ids = _ops.convert_to_tensor(partition_ids, _dtypes.int32)
   feature_ids = _ops.convert_to_tensor(feature_ids, _dtypes.int64)
   gradients = _ops.convert_to_tensor(gradients, _dtypes.float32)
@@ -1270,7 +1283,7 @@ _ops.RegisterShape("StatsAccumulatorTensorMakeSummary")(None)
 
 @tf_export('stats_accumulator_tensor_resource_handle_op')
 def stats_accumulator_tensor_resource_handle_op(container="", shared_name="", name=None):
-  r"""Creates a handle to a StatsAccumulatorTensorResource
+  r"""TODO: add doc.
 
   Args:
     container: An optional `string`. Defaults to `""`.
@@ -1280,8 +1293,8 @@ def stats_accumulator_tensor_resource_handle_op(container="", shared_name="", na
   Returns:
     A `Tensor` of type `resource`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if container is None:
       container = ""
     container = _execute.make_str(container, "container")
@@ -1303,14 +1316,14 @@ def stats_accumulator_tensor_resource_handle_op(container="", shared_name="", na
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name,
+        _ctx._context_handle, _ctx._eager_context.device_name,
         "StatsAccumulatorTensorResourceHandleOp", name,
         _ctx._post_execution_callbacks, "container", container, "shared_name",
         shared_name)
       return _result
     except _core._FallbackException:
       return stats_accumulator_tensor_resource_handle_op_eager_fallback(
-          container=container, shared_name=shared_name, name=name)
+          container=container, shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1319,11 +1332,11 @@ def stats_accumulator_tensor_resource_handle_op(container="", shared_name="", na
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stats_accumulator_tensor_resource_handle_op_eager_fallback(container="", shared_name="", name=None):
+def stats_accumulator_tensor_resource_handle_op_eager_fallback(container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stats_accumulator_tensor_resource_handle_op
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if container is None:
     container = ""
   container = _execute.make_str(container, "container")
@@ -1376,8 +1389,8 @@ def stats_accumulator_tensor_serialize(stats_accumulator_handle, name=None):
     output_hessians: A `Tensor` of type `float32`. A tensor of hessians, first dimension matches slots
       in <partition_id, feature_id, feature_dimension_id>.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatsAccumulatorTensorSerialize",
         stats_accumulator_handle=stats_accumulator_handle, name=name)
@@ -1392,13 +1405,14 @@ def stats_accumulator_tensor_serialize(stats_accumulator_handle, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StatsAccumulatorTensorSerialize",
-        name, _ctx._post_execution_callbacks, stats_accumulator_handle)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "StatsAccumulatorTensorSerialize", name,
+        _ctx._post_execution_callbacks, stats_accumulator_handle)
       _result = _StatsAccumulatorTensorSerializeOutput._make(_result)
       return _result
     except _core._FallbackException:
       return stats_accumulator_tensor_serialize_eager_fallback(
-          stats_accumulator_handle, name=name)
+          stats_accumulator_handle, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1407,11 +1421,11 @@ def stats_accumulator_tensor_serialize(stats_accumulator_handle, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stats_accumulator_tensor_serialize_eager_fallback(stats_accumulator_handle, name=None):
+def stats_accumulator_tensor_serialize_eager_fallback(stats_accumulator_handle, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stats_accumulator_tensor_serialize
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
   _inputs_flat = [stats_accumulator_handle]
   _attrs = None

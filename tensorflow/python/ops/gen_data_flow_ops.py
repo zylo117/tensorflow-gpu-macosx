@@ -40,8 +40,8 @@ def accumulator_apply_gradient(handle, local_step, gradient, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "AccumulatorApplyGradient", handle=handle, local_step=local_step,
         gradient=gradient, name=name)
@@ -65,8 +65,8 @@ def accumulator_num_accumulated(handle, name=None):
   Returns:
     A `Tensor` of type `int32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "AccumulatorNumAccumulated", handle=handle, name=name)
     _result = _op.outputs[:]
@@ -98,8 +98,8 @@ def accumulator_set_global_step(handle, new_global_step, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "AccumulatorSetGlobalStep", handle=handle,
         new_global_step=new_global_step, name=name)
@@ -134,8 +134,8 @@ def accumulator_take_gradient(handle, num_required, dtype, name=None):
   Returns:
     A `Tensor` of type `dtype`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     _, _, _op = _op_def_lib._apply_op_helper(
         "AccumulatorTakeGradient", handle=handle, num_required=num_required,
@@ -187,8 +187,8 @@ def barrier(component_types, shapes=[], capacity=-1, container="", shared_name="
   Returns:
     A `Tensor` of type mutable `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(component_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'component_types' argument to "
@@ -252,8 +252,8 @@ def barrier_close(handle, cancel_pending_enqueues=False, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if cancel_pending_enqueues is None:
       cancel_pending_enqueues = False
     cancel_pending_enqueues = _execute.make_bool(cancel_pending_enqueues, "cancel_pending_enqueues")
@@ -280,8 +280,8 @@ def barrier_incomplete_size(handle, name=None):
   Returns:
     A `Tensor` of type `int32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "BarrierIncompleteSize", handle=handle, name=name)
     _result = _op.outputs[:]
@@ -320,8 +320,8 @@ def barrier_insert_many(handle, keys, values, component_index, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     component_index = _execute.make_int(component_index, "component_index")
     _, _, _op = _op_def_lib._apply_op_helper(
         "BarrierInsertMany", handle=handle, keys=keys, values=values,
@@ -346,8 +346,8 @@ def barrier_ready_size(handle, name=None):
   Returns:
     A `Tensor` of type `int32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "BarrierReadySize", handle=handle, name=name)
     _result = _op.outputs[:]
@@ -404,8 +404,8 @@ def barrier_take_many(handle, num_elements, component_types, allow_small_batch=F
     keys: A `Tensor` of type `string`.
     values: A list of `Tensor` objects of type `component_types`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(component_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'component_types' argument to "
@@ -469,8 +469,8 @@ def conditional_accumulator(dtype, shape, container="", shared_name="", name=Non
   Returns:
     A `Tensor` of type mutable `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     shape = _execute.make_shape(shape, "shape")
     if container is None:
@@ -509,8 +509,8 @@ def delete_session_tensor(handle, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "DeleteSessionTensor", handle=handle, name=name)
     return _op
@@ -520,12 +520,12 @@ def delete_session_tensor(handle, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DeleteSessionTensor", name,
-        _ctx._post_execution_callbacks, handle)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "DeleteSessionTensor", name, _ctx._post_execution_callbacks, handle)
       return _result
     except _core._FallbackException:
       return delete_session_tensor_eager_fallback(
-          handle, name=name)
+          handle, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -534,11 +534,11 @@ def delete_session_tensor(handle, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def delete_session_tensor_eager_fallback(handle, name=None):
+def delete_session_tensor_eager_fallback(handle, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function delete_session_tensor
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   handle = _ops.convert_to_tensor(handle, _dtypes.string)
   _inputs_flat = [handle]
   _attrs = None
@@ -601,8 +601,8 @@ def dynamic_partition(data, partitions, num_partitions, name=None):
   Returns:
     A list of `num_partitions` `Tensor` objects with the same type as `data`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     num_partitions = _execute.make_int(num_partitions, "num_partitions")
     _, _, _op = _op_def_lib._apply_op_helper(
         "DynamicPartition", data=data, partitions=partitions,
@@ -618,13 +618,14 @@ def dynamic_partition(data, partitions, num_partitions, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DynamicPartition", name,
-        _ctx._post_execution_callbacks, data, partitions, "num_partitions",
-        num_partitions)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "DynamicPartition", name, _ctx._post_execution_callbacks, data,
+        partitions, "num_partitions", num_partitions)
       return _result
     except _core._FallbackException:
       return dynamic_partition_eager_fallback(
-          data, partitions, num_partitions=num_partitions, name=name)
+          data, partitions, num_partitions=num_partitions, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -633,11 +634,11 @@ def dynamic_partition(data, partitions, num_partitions, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def dynamic_partition_eager_fallback(data, partitions, num_partitions, name=None):
+def dynamic_partition_eager_fallback(data, partitions, num_partitions, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function dynamic_partition
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   num_partitions = _execute.make_int(num_partitions, "num_partitions")
   _attr_T, (data,) = _execute.args_to_matching_eager([data], _ctx)
   partitions = _ops.convert_to_tensor(partitions, _dtypes.int32)
@@ -726,8 +727,8 @@ def dynamic_stitch(indices, data, name=None):
   Returns:
     A `Tensor`. Has the same type as `data`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(indices, (list, tuple)):
       raise TypeError(
           "Expected list for 'indices' argument to "
@@ -755,12 +756,12 @@ def dynamic_stitch(indices, data, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DynamicStitch", name,
-        _ctx._post_execution_callbacks, indices, data)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "DynamicStitch", name, _ctx._post_execution_callbacks, indices, data)
       return _result
     except _core._FallbackException:
       return dynamic_stitch_eager_fallback(
-          indices, data, name=name)
+          indices, data, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -769,11 +770,11 @@ def dynamic_stitch(indices, data, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def dynamic_stitch_eager_fallback(indices, data, name=None):
+def dynamic_stitch_eager_fallback(indices, data, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function dynamic_stitch
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(indices, (list, tuple)):
     raise TypeError(
         "Expected list for 'indices' argument to "
@@ -825,8 +826,8 @@ def fifo_queue(component_types, shapes=[], capacity=-1, container="", shared_nam
   Returns:
     A `Tensor` of type mutable `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(component_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'component_types' argument to "
@@ -894,8 +895,8 @@ def fifo_queue_v2(component_types, shapes=[], capacity=-1, container="", shared_
   Returns:
     A `Tensor` of type `resource`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(component_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'component_types' argument to "
@@ -935,15 +936,15 @@ def fifo_queue_v2(component_types, shapes=[], capacity=-1, container="", shared_
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "FIFOQueueV2", name,
-        _ctx._post_execution_callbacks, "component_types", component_types,
-        "shapes", shapes, "capacity", capacity, "container", container,
-        "shared_name", shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name, "FIFOQueueV2",
+        name, _ctx._post_execution_callbacks, "component_types",
+        component_types, "shapes", shapes, "capacity", capacity, "container",
+        container, "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return fifo_queue_v2_eager_fallback(
           component_types=component_types, shapes=shapes, capacity=capacity,
-          container=container, shared_name=shared_name, name=name)
+          container=container, shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -952,11 +953,11 @@ def fifo_queue_v2(component_types, shapes=[], capacity=-1, container="", shared_
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def fifo_queue_v2_eager_fallback(component_types, shapes=[], capacity=-1, container="", shared_name="", name=None):
+def fifo_queue_v2_eager_fallback(component_types, shapes=[], capacity=-1, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function fifo_queue_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(component_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'component_types' argument to "
@@ -999,8 +1000,8 @@ def fake_queue(resource, name=None):
   Returns:
     A `Tensor` of type mutable `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "FakeQueue", resource=resource, name=name)
     _result = _op.outputs[:]
@@ -1027,8 +1028,8 @@ def get_session_handle(value, name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "GetSessionHandle", value=value, name=name)
     _result = _op.outputs[:]
@@ -1042,12 +1043,12 @@ def get_session_handle(value, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "GetSessionHandle", name,
-        _ctx._post_execution_callbacks, value)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "GetSessionHandle", name, _ctx._post_execution_callbacks, value)
       return _result
     except _core._FallbackException:
       return get_session_handle_eager_fallback(
-          value, name=name)
+          value, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1056,11 +1057,11 @@ def get_session_handle(value, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def get_session_handle_eager_fallback(value, name=None):
+def get_session_handle_eager_fallback(value, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function get_session_handle
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
   _inputs_flat = [value]
   _attrs = ("T", _attr_T)
@@ -1082,8 +1083,8 @@ def get_session_handle_v2(value, name=None):
   Returns:
     A `Tensor` of type `resource`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "GetSessionHandleV2", value=value, name=name)
     _result = _op.outputs[:]
@@ -1097,12 +1098,12 @@ def get_session_handle_v2(value, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "GetSessionHandleV2", name,
-        _ctx._post_execution_callbacks, value)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "GetSessionHandleV2", name, _ctx._post_execution_callbacks, value)
       return _result
     except _core._FallbackException:
       return get_session_handle_v2_eager_fallback(
-          value, name=name)
+          value, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1111,11 +1112,11 @@ def get_session_handle_v2(value, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def get_session_handle_v2_eager_fallback(value, name=None):
+def get_session_handle_v2_eager_fallback(value, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function get_session_handle_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
   _inputs_flat = [value]
   _attrs = ("T", _attr_T)
@@ -1139,8 +1140,8 @@ def get_session_tensor(handle, dtype, name=None):
   Returns:
     A `Tensor` of type `dtype`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     _, _, _op = _op_def_lib._apply_op_helper(
         "GetSessionTensor", handle=handle, dtype=dtype, name=name)
@@ -1155,12 +1156,13 @@ def get_session_tensor(handle, dtype, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "GetSessionTensor", name,
-        _ctx._post_execution_callbacks, handle, "dtype", dtype)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "GetSessionTensor", name, _ctx._post_execution_callbacks, handle,
+        "dtype", dtype)
       return _result
     except _core._FallbackException:
       return get_session_tensor_eager_fallback(
-          handle, dtype=dtype, name=name)
+          handle, dtype=dtype, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1169,11 +1171,11 @@ def get_session_tensor(handle, dtype, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def get_session_tensor_eager_fallback(handle, dtype, name=None):
+def get_session_tensor_eager_fallback(handle, dtype, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function get_session_tensor
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   dtype = _execute.make_type(dtype, "dtype")
   handle = _ops.convert_to_tensor(handle, _dtypes.string)
   _inputs_flat = [handle]
@@ -1200,8 +1202,8 @@ def map_clear(dtypes, capacity=0, memory_limit=0, container="", shared_name="", 
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(dtypes, (list, tuple)):
       raise TypeError(
           "Expected list for 'dtypes' argument to "
@@ -1230,15 +1232,15 @@ def map_clear(dtypes, capacity=0, memory_limit=0, container="", shared_name="", 
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MapClear", name,
-        _ctx._post_execution_callbacks, "capacity", capacity, "memory_limit",
-        memory_limit, "dtypes", dtypes, "container", container, "shared_name",
-        shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name, "MapClear",
+        name, _ctx._post_execution_callbacks, "capacity", capacity,
+        "memory_limit", memory_limit, "dtypes", dtypes, "container",
+        container, "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return map_clear_eager_fallback(
           capacity=capacity, memory_limit=memory_limit, dtypes=dtypes,
-          container=container, shared_name=shared_name, name=name)
+          container=container, shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1247,11 +1249,11 @@ def map_clear(dtypes, capacity=0, memory_limit=0, container="", shared_name="", 
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def map_clear_eager_fallback(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+def map_clear_eager_fallback(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function map_clear
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -1292,8 +1294,8 @@ def map_incomplete_size(dtypes, capacity=0, memory_limit=0, container="", shared
   Returns:
     A `Tensor` of type `int32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(dtypes, (list, tuple)):
       raise TypeError(
           "Expected list for 'dtypes' argument to "
@@ -1329,15 +1331,15 @@ def map_incomplete_size(dtypes, capacity=0, memory_limit=0, container="", shared
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MapIncompleteSize", name,
-        _ctx._post_execution_callbacks, "capacity", capacity, "memory_limit",
-        memory_limit, "dtypes", dtypes, "container", container, "shared_name",
-        shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "MapIncompleteSize", name, _ctx._post_execution_callbacks, "capacity",
+        capacity, "memory_limit", memory_limit, "dtypes", dtypes, "container",
+        container, "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return map_incomplete_size_eager_fallback(
           capacity=capacity, memory_limit=memory_limit, dtypes=dtypes,
-          container=container, shared_name=shared_name, name=name)
+          container=container, shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1346,11 +1348,11 @@ def map_incomplete_size(dtypes, capacity=0, memory_limit=0, container="", shared
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def map_incomplete_size_eager_fallback(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+def map_incomplete_size_eager_fallback(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function map_incomplete_size
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -1398,8 +1400,8 @@ def map_peek(key, indices, dtypes, capacity=0, memory_limit=0, container="", sha
   Returns:
     A list of `Tensor` objects of type `dtypes`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(dtypes, (list, tuple)):
       raise TypeError(
           "Expected list for 'dtypes' argument to "
@@ -1436,16 +1438,16 @@ def map_peek(key, indices, dtypes, capacity=0, memory_limit=0, container="", sha
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MapPeek", name,
-        _ctx._post_execution_callbacks, key, indices, "capacity", capacity,
-        "memory_limit", memory_limit, "dtypes", dtypes, "container",
+        _ctx._context_handle, _ctx._eager_context.device_name, "MapPeek",
+        name, _ctx._post_execution_callbacks, key, indices, "capacity",
+        capacity, "memory_limit", memory_limit, "dtypes", dtypes, "container",
         container, "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return map_peek_eager_fallback(
           key, indices, capacity=capacity, memory_limit=memory_limit,
           dtypes=dtypes, container=container, shared_name=shared_name,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1454,11 +1456,11 @@ def map_peek(key, indices, dtypes, capacity=0, memory_limit=0, container="", sha
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def map_peek_eager_fallback(key, indices, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+def map_peek_eager_fallback(key, indices, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function map_peek
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -1502,8 +1504,8 @@ def map_size(dtypes, capacity=0, memory_limit=0, container="", shared_name="", n
   Returns:
     A `Tensor` of type `int32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(dtypes, (list, tuple)):
       raise TypeError(
           "Expected list for 'dtypes' argument to "
@@ -1539,15 +1541,15 @@ def map_size(dtypes, capacity=0, memory_limit=0, container="", shared_name="", n
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MapSize", name,
-        _ctx._post_execution_callbacks, "capacity", capacity, "memory_limit",
-        memory_limit, "dtypes", dtypes, "container", container, "shared_name",
-        shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name, "MapSize",
+        name, _ctx._post_execution_callbacks, "capacity", capacity,
+        "memory_limit", memory_limit, "dtypes", dtypes, "container",
+        container, "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return map_size_eager_fallback(
           capacity=capacity, memory_limit=memory_limit, dtypes=dtypes,
-          container=container, shared_name=shared_name, name=name)
+          container=container, shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1556,11 +1558,11 @@ def map_size(dtypes, capacity=0, memory_limit=0, container="", shared_name="", n
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def map_size_eager_fallback(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+def map_size_eager_fallback(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function map_size
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -1612,8 +1614,8 @@ def map_stage(key, indices, values, dtypes, capacity=0, memory_limit=0, containe
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(dtypes, (list, tuple)):
       raise TypeError(
           "Expected list for 'dtypes' argument to "
@@ -1642,16 +1644,16 @@ def map_stage(key, indices, values, dtypes, capacity=0, memory_limit=0, containe
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MapStage", name,
-        _ctx._post_execution_callbacks, key, indices, values, "capacity",
-        capacity, "memory_limit", memory_limit, "dtypes", dtypes, "container",
-        container, "shared_name", shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name, "MapStage",
+        name, _ctx._post_execution_callbacks, key, indices, values,
+        "capacity", capacity, "memory_limit", memory_limit, "dtypes", dtypes,
+        "container", container, "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return map_stage_eager_fallback(
           key, indices, values, capacity=capacity, memory_limit=memory_limit,
           dtypes=dtypes, container=container, shared_name=shared_name,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1660,11 +1662,11 @@ def map_stage(key, indices, values, dtypes, capacity=0, memory_limit=0, containe
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def map_stage_eager_fallback(key, indices, values, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+def map_stage_eager_fallback(key, indices, values, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function map_stage
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -1714,8 +1716,8 @@ def map_unstage(key, indices, dtypes, capacity=0, memory_limit=0, container="", 
   Returns:
     A list of `Tensor` objects of type `dtypes`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(dtypes, (list, tuple)):
       raise TypeError(
           "Expected list for 'dtypes' argument to "
@@ -1752,16 +1754,16 @@ def map_unstage(key, indices, dtypes, capacity=0, memory_limit=0, container="", 
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MapUnstage", name,
-        _ctx._post_execution_callbacks, key, indices, "capacity", capacity,
-        "memory_limit", memory_limit, "dtypes", dtypes, "container",
+        _ctx._context_handle, _ctx._eager_context.device_name, "MapUnstage",
+        name, _ctx._post_execution_callbacks, key, indices, "capacity",
+        capacity, "memory_limit", memory_limit, "dtypes", dtypes, "container",
         container, "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return map_unstage_eager_fallback(
           key, indices, capacity=capacity, memory_limit=memory_limit,
           dtypes=dtypes, container=container, shared_name=shared_name,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1770,11 +1772,11 @@ def map_unstage(key, indices, dtypes, capacity=0, memory_limit=0, container="", 
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def map_unstage_eager_fallback(key, indices, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+def map_unstage_eager_fallback(key, indices, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function map_unstage
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -1830,8 +1832,8 @@ def map_unstage_no_key(indices, dtypes, capacity=0, memory_limit=0, container=""
     key: A `Tensor` of type `int64`.
     values: A list of `Tensor` objects of type `dtypes`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(dtypes, (list, tuple)):
       raise TypeError(
           "Expected list for 'dtypes' argument to "
@@ -1868,17 +1870,17 @@ def map_unstage_no_key(indices, dtypes, capacity=0, memory_limit=0, container=""
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MapUnstageNoKey", name,
-        _ctx._post_execution_callbacks, indices, "capacity", capacity,
-        "memory_limit", memory_limit, "dtypes", dtypes, "container",
-        container, "shared_name", shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "MapUnstageNoKey", name, _ctx._post_execution_callbacks, indices,
+        "capacity", capacity, "memory_limit", memory_limit, "dtypes", dtypes,
+        "container", container, "shared_name", shared_name)
       _result = _MapUnstageNoKeyOutput._make(_result)
       return _result
     except _core._FallbackException:
       return map_unstage_no_key_eager_fallback(
           indices, capacity=capacity, memory_limit=memory_limit,
           dtypes=dtypes, container=container, shared_name=shared_name,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1887,11 +1889,11 @@ def map_unstage_no_key(indices, dtypes, capacity=0, memory_limit=0, container=""
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def map_unstage_no_key_eager_fallback(indices, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+def map_unstage_no_key_eager_fallback(indices, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function map_unstage_no_key
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -1937,8 +1939,8 @@ def ordered_map_clear(dtypes, capacity=0, memory_limit=0, container="", shared_n
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(dtypes, (list, tuple)):
       raise TypeError(
           "Expected list for 'dtypes' argument to "
@@ -1967,15 +1969,15 @@ def ordered_map_clear(dtypes, capacity=0, memory_limit=0, container="", shared_n
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "OrderedMapClear", name,
-        _ctx._post_execution_callbacks, "capacity", capacity, "memory_limit",
-        memory_limit, "dtypes", dtypes, "container", container, "shared_name",
-        shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "OrderedMapClear", name, _ctx._post_execution_callbacks, "capacity",
+        capacity, "memory_limit", memory_limit, "dtypes", dtypes, "container",
+        container, "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return ordered_map_clear_eager_fallback(
           capacity=capacity, memory_limit=memory_limit, dtypes=dtypes,
-          container=container, shared_name=shared_name, name=name)
+          container=container, shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1984,11 +1986,11 @@ def ordered_map_clear(dtypes, capacity=0, memory_limit=0, container="", shared_n
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def ordered_map_clear_eager_fallback(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+def ordered_map_clear_eager_fallback(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function ordered_map_clear
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -2029,8 +2031,8 @@ def ordered_map_incomplete_size(dtypes, capacity=0, memory_limit=0, container=""
   Returns:
     A `Tensor` of type `int32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(dtypes, (list, tuple)):
       raise TypeError(
           "Expected list for 'dtypes' argument to "
@@ -2066,15 +2068,15 @@ def ordered_map_incomplete_size(dtypes, capacity=0, memory_limit=0, container=""
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "OrderedMapIncompleteSize", name,
-        _ctx._post_execution_callbacks, "capacity", capacity, "memory_limit",
-        memory_limit, "dtypes", dtypes, "container", container, "shared_name",
-        shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "OrderedMapIncompleteSize", name, _ctx._post_execution_callbacks,
+        "capacity", capacity, "memory_limit", memory_limit, "dtypes", dtypes,
+        "container", container, "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return ordered_map_incomplete_size_eager_fallback(
           capacity=capacity, memory_limit=memory_limit, dtypes=dtypes,
-          container=container, shared_name=shared_name, name=name)
+          container=container, shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2083,11 +2085,11 @@ def ordered_map_incomplete_size(dtypes, capacity=0, memory_limit=0, container=""
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def ordered_map_incomplete_size_eager_fallback(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+def ordered_map_incomplete_size_eager_fallback(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function ordered_map_incomplete_size
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -2137,8 +2139,8 @@ def ordered_map_peek(key, indices, dtypes, capacity=0, memory_limit=0, container
   Returns:
     A list of `Tensor` objects of type `dtypes`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(dtypes, (list, tuple)):
       raise TypeError(
           "Expected list for 'dtypes' argument to "
@@ -2175,16 +2177,16 @@ def ordered_map_peek(key, indices, dtypes, capacity=0, memory_limit=0, container
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "OrderedMapPeek", name,
-        _ctx._post_execution_callbacks, key, indices, "capacity", capacity,
-        "memory_limit", memory_limit, "dtypes", dtypes, "container",
-        container, "shared_name", shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "OrderedMapPeek", name, _ctx._post_execution_callbacks, key, indices,
+        "capacity", capacity, "memory_limit", memory_limit, "dtypes", dtypes,
+        "container", container, "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return ordered_map_peek_eager_fallback(
           key, indices, capacity=capacity, memory_limit=memory_limit,
           dtypes=dtypes, container=container, shared_name=shared_name,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2193,11 +2195,11 @@ def ordered_map_peek(key, indices, dtypes, capacity=0, memory_limit=0, container
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def ordered_map_peek_eager_fallback(key, indices, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+def ordered_map_peek_eager_fallback(key, indices, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function ordered_map_peek
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -2242,8 +2244,8 @@ def ordered_map_size(dtypes, capacity=0, memory_limit=0, container="", shared_na
   Returns:
     A `Tensor` of type `int32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(dtypes, (list, tuple)):
       raise TypeError(
           "Expected list for 'dtypes' argument to "
@@ -2279,15 +2281,15 @@ def ordered_map_size(dtypes, capacity=0, memory_limit=0, container="", shared_na
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "OrderedMapSize", name,
-        _ctx._post_execution_callbacks, "capacity", capacity, "memory_limit",
-        memory_limit, "dtypes", dtypes, "container", container, "shared_name",
-        shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "OrderedMapSize", name, _ctx._post_execution_callbacks, "capacity",
+        capacity, "memory_limit", memory_limit, "dtypes", dtypes, "container",
+        container, "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return ordered_map_size_eager_fallback(
           capacity=capacity, memory_limit=memory_limit, dtypes=dtypes,
-          container=container, shared_name=shared_name, name=name)
+          container=container, shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2296,11 +2298,11 @@ def ordered_map_size(dtypes, capacity=0, memory_limit=0, container="", shared_na
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def ordered_map_size_eager_fallback(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+def ordered_map_size_eager_fallback(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function ordered_map_size
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -2354,8 +2356,8 @@ def ordered_map_stage(key, indices, values, dtypes, capacity=0, memory_limit=0, 
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(dtypes, (list, tuple)):
       raise TypeError(
           "Expected list for 'dtypes' argument to "
@@ -2384,16 +2386,16 @@ def ordered_map_stage(key, indices, values, dtypes, capacity=0, memory_limit=0, 
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "OrderedMapStage", name,
-        _ctx._post_execution_callbacks, key, indices, values, "capacity",
-        capacity, "memory_limit", memory_limit, "dtypes", dtypes, "container",
-        container, "shared_name", shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "OrderedMapStage", name, _ctx._post_execution_callbacks, key, indices,
+        values, "capacity", capacity, "memory_limit", memory_limit, "dtypes",
+        dtypes, "container", container, "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return ordered_map_stage_eager_fallback(
           key, indices, values, capacity=capacity, memory_limit=memory_limit,
           dtypes=dtypes, container=container, shared_name=shared_name,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2402,11 +2404,11 @@ def ordered_map_stage(key, indices, values, dtypes, capacity=0, memory_limit=0, 
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def ordered_map_stage_eager_fallback(key, indices, values, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+def ordered_map_stage_eager_fallback(key, indices, values, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function ordered_map_stage
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -2456,8 +2458,8 @@ def ordered_map_unstage(key, indices, dtypes, capacity=0, memory_limit=0, contai
   Returns:
     A list of `Tensor` objects of type `dtypes`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(dtypes, (list, tuple)):
       raise TypeError(
           "Expected list for 'dtypes' argument to "
@@ -2494,16 +2496,16 @@ def ordered_map_unstage(key, indices, dtypes, capacity=0, memory_limit=0, contai
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "OrderedMapUnstage", name,
-        _ctx._post_execution_callbacks, key, indices, "capacity", capacity,
-        "memory_limit", memory_limit, "dtypes", dtypes, "container",
-        container, "shared_name", shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "OrderedMapUnstage", name, _ctx._post_execution_callbacks, key,
+        indices, "capacity", capacity, "memory_limit", memory_limit, "dtypes",
+        dtypes, "container", container, "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return ordered_map_unstage_eager_fallback(
           key, indices, capacity=capacity, memory_limit=memory_limit,
           dtypes=dtypes, container=container, shared_name=shared_name,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2512,11 +2514,11 @@ def ordered_map_unstage(key, indices, dtypes, capacity=0, memory_limit=0, contai
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def ordered_map_unstage_eager_fallback(key, indices, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+def ordered_map_unstage_eager_fallback(key, indices, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function ordered_map_unstage
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -2573,8 +2575,8 @@ def ordered_map_unstage_no_key(indices, dtypes, capacity=0, memory_limit=0, cont
     key: A `Tensor` of type `int64`.
     values: A list of `Tensor` objects of type `dtypes`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(dtypes, (list, tuple)):
       raise TypeError(
           "Expected list for 'dtypes' argument to "
@@ -2611,17 +2613,17 @@ def ordered_map_unstage_no_key(indices, dtypes, capacity=0, memory_limit=0, cont
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "OrderedMapUnstageNoKey", name,
-        _ctx._post_execution_callbacks, indices, "capacity", capacity,
-        "memory_limit", memory_limit, "dtypes", dtypes, "container",
-        container, "shared_name", shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "OrderedMapUnstageNoKey", name, _ctx._post_execution_callbacks,
+        indices, "capacity", capacity, "memory_limit", memory_limit, "dtypes",
+        dtypes, "container", container, "shared_name", shared_name)
       _result = _OrderedMapUnstageNoKeyOutput._make(_result)
       return _result
     except _core._FallbackException:
       return ordered_map_unstage_no_key_eager_fallback(
           indices, capacity=capacity, memory_limit=memory_limit,
           dtypes=dtypes, container=container, shared_name=shared_name,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2630,11 +2632,11 @@ def ordered_map_unstage_no_key(indices, dtypes, capacity=0, memory_limit=0, cont
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def ordered_map_unstage_no_key_eager_fallback(indices, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+def ordered_map_unstage_no_key_eager_fallback(indices, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function ordered_map_unstage_no_key
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -2699,8 +2701,8 @@ def padding_fifo_queue(component_types, shapes=[], capacity=-1, container="", sh
   Returns:
     A `Tensor` of type mutable `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(component_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'component_types' argument to "
@@ -2776,8 +2778,8 @@ def padding_fifo_queue_v2(component_types, shapes=[], capacity=-1, container="",
   Returns:
     A `Tensor` of type `resource`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(component_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'component_types' argument to "
@@ -2817,15 +2819,15 @@ def padding_fifo_queue_v2(component_types, shapes=[], capacity=-1, container="",
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "PaddingFIFOQueueV2", name,
-        _ctx._post_execution_callbacks, "component_types", component_types,
-        "shapes", shapes, "capacity", capacity, "container", container,
-        "shared_name", shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "PaddingFIFOQueueV2", name, _ctx._post_execution_callbacks,
+        "component_types", component_types, "shapes", shapes, "capacity",
+        capacity, "container", container, "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return padding_fifo_queue_v2_eager_fallback(
           component_types=component_types, shapes=shapes, capacity=capacity,
-          container=container, shared_name=shared_name, name=name)
+          container=container, shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2834,11 +2836,11 @@ def padding_fifo_queue_v2(component_types, shapes=[], capacity=-1, container="",
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def padding_fifo_queue_v2_eager_fallback(component_types, shapes=[], capacity=-1, container="", shared_name="", name=None):
+def padding_fifo_queue_v2_eager_fallback(component_types, shapes=[], capacity=-1, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function padding_fifo_queue_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(component_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'component_types' argument to "
@@ -2944,8 +2946,8 @@ def parallel_dynamic_stitch(indices, data, name=None):
   Returns:
     A `Tensor`. Has the same type as `data`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(indices, (list, tuple)):
       raise TypeError(
           "Expected list for 'indices' argument to "
@@ -2973,12 +2975,13 @@ def parallel_dynamic_stitch(indices, data, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ParallelDynamicStitch", name,
-        _ctx._post_execution_callbacks, indices, data)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ParallelDynamicStitch", name, _ctx._post_execution_callbacks,
+        indices, data)
       return _result
     except _core._FallbackException:
       return parallel_dynamic_stitch_eager_fallback(
-          indices, data, name=name)
+          indices, data, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2987,11 +2990,11 @@ def parallel_dynamic_stitch(indices, data, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def parallel_dynamic_stitch_eager_fallback(indices, data, name=None):
+def parallel_dynamic_stitch_eager_fallback(indices, data, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function parallel_dynamic_stitch
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(indices, (list, tuple)):
     raise TypeError(
         "Expected list for 'indices' argument to "
@@ -3049,8 +3052,8 @@ def priority_queue(shapes, component_types=[], capacity=-1, container="", shared
   Returns:
     A `Tensor` of type mutable `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(shapes, (list, tuple)):
       raise TypeError(
           "Expected list for 'shapes' argument to "
@@ -3124,8 +3127,8 @@ def priority_queue_v2(shapes, component_types=[], capacity=-1, container="", sha
   Returns:
     A `Tensor` of type `resource`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(shapes, (list, tuple)):
       raise TypeError(
           "Expected list for 'shapes' argument to "
@@ -3165,15 +3168,15 @@ def priority_queue_v2(shapes, component_types=[], capacity=-1, container="", sha
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "PriorityQueueV2", name,
-        _ctx._post_execution_callbacks, "component_types", component_types,
-        "shapes", shapes, "capacity", capacity, "container", container,
-        "shared_name", shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "PriorityQueueV2", name, _ctx._post_execution_callbacks,
+        "component_types", component_types, "shapes", shapes, "capacity",
+        capacity, "container", container, "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return priority_queue_v2_eager_fallback(
           component_types=component_types, shapes=shapes, capacity=capacity,
-          container=container, shared_name=shared_name, name=name)
+          container=container, shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3182,11 +3185,11 @@ def priority_queue_v2(shapes, component_types=[], capacity=-1, container="", sha
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def priority_queue_v2_eager_fallback(shapes, component_types=[], capacity=-1, container="", shared_name="", name=None):
+def priority_queue_v2_eager_fallback(shapes, component_types=[], capacity=-1, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function priority_queue_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(shapes, (list, tuple)):
     raise TypeError(
         "Expected list for 'shapes' argument to "
@@ -3238,8 +3241,8 @@ def queue_close(handle, cancel_pending_enqueues=False, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if cancel_pending_enqueues is None:
       cancel_pending_enqueues = False
     cancel_pending_enqueues = _execute.make_bool(cancel_pending_enqueues, "cancel_pending_enqueues")
@@ -3275,8 +3278,8 @@ def queue_close_v2(handle, cancel_pending_enqueues=False, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if cancel_pending_enqueues is None:
       cancel_pending_enqueues = False
     cancel_pending_enqueues = _execute.make_bool(cancel_pending_enqueues, "cancel_pending_enqueues")
@@ -3290,13 +3293,14 @@ def queue_close_v2(handle, cancel_pending_enqueues=False, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "QueueCloseV2", name,
-        _ctx._post_execution_callbacks, handle, "cancel_pending_enqueues",
-        cancel_pending_enqueues)
+        _ctx._context_handle, _ctx._eager_context.device_name, "QueueCloseV2",
+        name, _ctx._post_execution_callbacks, handle,
+        "cancel_pending_enqueues", cancel_pending_enqueues)
       return _result
     except _core._FallbackException:
       return queue_close_v2_eager_fallback(
-          handle, cancel_pending_enqueues=cancel_pending_enqueues, name=name)
+          handle, cancel_pending_enqueues=cancel_pending_enqueues, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3305,11 +3309,11 @@ def queue_close_v2(handle, cancel_pending_enqueues=False, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def queue_close_v2_eager_fallback(handle, cancel_pending_enqueues=False, name=None):
+def queue_close_v2_eager_fallback(handle, cancel_pending_enqueues=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function queue_close_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if cancel_pending_enqueues is None:
     cancel_pending_enqueues = False
   cancel_pending_enqueues = _execute.make_bool(cancel_pending_enqueues, "cancel_pending_enqueues")
@@ -3345,8 +3349,8 @@ def queue_dequeue(handle, component_types, timeout_ms=-1, name=None):
   Returns:
     A list of `Tensor` objects of type `component_types`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(component_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'component_types' argument to "
@@ -3403,8 +3407,8 @@ def queue_dequeue_many(handle, n, component_types, timeout_ms=-1, name=None):
   Returns:
     A list of `Tensor` objects of type `component_types`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(component_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'component_types' argument to "
@@ -3461,8 +3465,8 @@ def queue_dequeue_many_v2(handle, n, component_types, timeout_ms=-1, name=None):
   Returns:
     A list of `Tensor` objects of type `component_types`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(component_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'component_types' argument to "
@@ -3487,14 +3491,14 @@ def queue_dequeue_many_v2(handle, n, component_types, timeout_ms=-1, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "QueueDequeueManyV2", name,
-        _ctx._post_execution_callbacks, handle, n, "component_types",
-        component_types, "timeout_ms", timeout_ms)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "QueueDequeueManyV2", name, _ctx._post_execution_callbacks, handle, n,
+        "component_types", component_types, "timeout_ms", timeout_ms)
       return _result
     except _core._FallbackException:
       return queue_dequeue_many_v2_eager_fallback(
           handle, n, component_types=component_types, timeout_ms=timeout_ms,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3503,11 +3507,11 @@ def queue_dequeue_many_v2(handle, n, component_types, timeout_ms=-1, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def queue_dequeue_many_v2_eager_fallback(handle, n, component_types, timeout_ms=-1, name=None):
+def queue_dequeue_many_v2_eager_fallback(handle, n, component_types, timeout_ms=-1, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function queue_dequeue_many_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(component_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'component_types' argument to "
@@ -3563,8 +3567,8 @@ def queue_dequeue_up_to(handle, n, component_types, timeout_ms=-1, name=None):
   Returns:
     A list of `Tensor` objects of type `component_types`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(component_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'component_types' argument to "
@@ -3625,8 +3629,8 @@ def queue_dequeue_up_to_v2(handle, n, component_types, timeout_ms=-1, name=None)
   Returns:
     A list of `Tensor` objects of type `component_types`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(component_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'component_types' argument to "
@@ -3651,14 +3655,14 @@ def queue_dequeue_up_to_v2(handle, n, component_types, timeout_ms=-1, name=None)
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "QueueDequeueUpToV2", name,
-        _ctx._post_execution_callbacks, handle, n, "component_types",
-        component_types, "timeout_ms", timeout_ms)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "QueueDequeueUpToV2", name, _ctx._post_execution_callbacks, handle, n,
+        "component_types", component_types, "timeout_ms", timeout_ms)
       return _result
     except _core._FallbackException:
       return queue_dequeue_up_to_v2_eager_fallback(
           handle, n, component_types=component_types, timeout_ms=timeout_ms,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3667,11 +3671,11 @@ def queue_dequeue_up_to_v2(handle, n, component_types, timeout_ms=-1, name=None)
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def queue_dequeue_up_to_v2_eager_fallback(handle, n, component_types, timeout_ms=-1, name=None):
+def queue_dequeue_up_to_v2_eager_fallback(handle, n, component_types, timeout_ms=-1, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function queue_dequeue_up_to_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(component_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'component_types' argument to "
@@ -3715,8 +3719,8 @@ def queue_dequeue_v2(handle, component_types, timeout_ms=-1, name=None):
   Returns:
     A list of `Tensor` objects of type `component_types`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(component_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'component_types' argument to "
@@ -3741,14 +3745,14 @@ def queue_dequeue_v2(handle, component_types, timeout_ms=-1, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "QueueDequeueV2", name,
-        _ctx._post_execution_callbacks, handle, "component_types",
-        component_types, "timeout_ms", timeout_ms)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "QueueDequeueV2", name, _ctx._post_execution_callbacks, handle,
+        "component_types", component_types, "timeout_ms", timeout_ms)
       return _result
     except _core._FallbackException:
       return queue_dequeue_v2_eager_fallback(
           handle, component_types=component_types, timeout_ms=timeout_ms,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3757,11 +3761,11 @@ def queue_dequeue_v2(handle, component_types, timeout_ms=-1, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def queue_dequeue_v2_eager_fallback(handle, component_types, timeout_ms=-1, name=None):
+def queue_dequeue_v2_eager_fallback(handle, component_types, timeout_ms=-1, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function queue_dequeue_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(component_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'component_types' argument to "
@@ -3803,8 +3807,8 @@ def queue_enqueue(handle, components, timeout_ms=-1, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if timeout_ms is None:
       timeout_ms = -1
     timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
@@ -3848,8 +3852,8 @@ def queue_enqueue_many(handle, components, timeout_ms=-1, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if timeout_ms is None:
       timeout_ms = -1
     timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
@@ -3893,8 +3897,8 @@ def queue_enqueue_many_v2(handle, components, timeout_ms=-1, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if timeout_ms is None:
       timeout_ms = -1
     timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
@@ -3908,13 +3912,13 @@ def queue_enqueue_many_v2(handle, components, timeout_ms=-1, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "QueueEnqueueManyV2", name,
-        _ctx._post_execution_callbacks, handle, components, "timeout_ms",
-        timeout_ms)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "QueueEnqueueManyV2", name, _ctx._post_execution_callbacks, handle,
+        components, "timeout_ms", timeout_ms)
       return _result
     except _core._FallbackException:
       return queue_enqueue_many_v2_eager_fallback(
-          handle, components, timeout_ms=timeout_ms, name=name)
+          handle, components, timeout_ms=timeout_ms, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3923,11 +3927,11 @@ def queue_enqueue_many_v2(handle, components, timeout_ms=-1, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def queue_enqueue_many_v2_eager_fallback(handle, components, timeout_ms=-1, name=None):
+def queue_enqueue_many_v2_eager_fallback(handle, components, timeout_ms=-1, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function queue_enqueue_many_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if timeout_ms is None:
     timeout_ms = -1
   timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
@@ -3963,8 +3967,8 @@ def queue_enqueue_v2(handle, components, timeout_ms=-1, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if timeout_ms is None:
       timeout_ms = -1
     timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
@@ -3978,13 +3982,13 @@ def queue_enqueue_v2(handle, components, timeout_ms=-1, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "QueueEnqueueV2", name,
-        _ctx._post_execution_callbacks, handle, components, "timeout_ms",
-        timeout_ms)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "QueueEnqueueV2", name, _ctx._post_execution_callbacks, handle,
+        components, "timeout_ms", timeout_ms)
       return _result
     except _core._FallbackException:
       return queue_enqueue_v2_eager_fallback(
-          handle, components, timeout_ms=timeout_ms, name=name)
+          handle, components, timeout_ms=timeout_ms, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3993,11 +3997,11 @@ def queue_enqueue_v2(handle, components, timeout_ms=-1, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def queue_enqueue_v2_eager_fallback(handle, components, timeout_ms=-1, name=None):
+def queue_enqueue_v2_eager_fallback(handle, components, timeout_ms=-1, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function queue_enqueue_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if timeout_ms is None:
     timeout_ms = -1
   timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
@@ -4024,8 +4028,8 @@ def queue_is_closed(handle, name=None):
   Returns:
     A `Tensor` of type `bool`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "QueueIsClosed", handle=handle, name=name)
     _result = _op.outputs[:]
@@ -4055,8 +4059,8 @@ def queue_is_closed_v2(handle, name=None):
   Returns:
     A `Tensor` of type `bool`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "QueueIsClosedV2", handle=handle, name=name)
     _result = _op.outputs[:]
@@ -4070,12 +4074,12 @@ def queue_is_closed_v2(handle, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "QueueIsClosedV2", name,
-        _ctx._post_execution_callbacks, handle)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "QueueIsClosedV2", name, _ctx._post_execution_callbacks, handle)
       return _result
     except _core._FallbackException:
       return queue_is_closed_v2_eager_fallback(
-          handle, name=name)
+          handle, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -4084,11 +4088,11 @@ def queue_is_closed_v2(handle, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def queue_is_closed_v2_eager_fallback(handle, name=None):
+def queue_is_closed_v2_eager_fallback(handle, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function queue_is_closed_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   handle = _ops.convert_to_tensor(handle, _dtypes.resource)
   _inputs_flat = [handle]
   _attrs = None
@@ -4110,8 +4114,8 @@ def queue_size(handle, name=None):
   Returns:
     A `Tensor` of type `int32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "QueueSize", handle=handle, name=name)
     _result = _op.outputs[:]
@@ -4138,8 +4142,8 @@ def queue_size_v2(handle, name=None):
   Returns:
     A `Tensor` of type `int32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "QueueSizeV2", handle=handle, name=name)
     _result = _op.outputs[:]
@@ -4153,12 +4157,12 @@ def queue_size_v2(handle, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "QueueSizeV2", name,
-        _ctx._post_execution_callbacks, handle)
+        _ctx._context_handle, _ctx._eager_context.device_name, "QueueSizeV2",
+        name, _ctx._post_execution_callbacks, handle)
       return _result
     except _core._FallbackException:
       return queue_size_v2_eager_fallback(
-          handle, name=name)
+          handle, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -4167,11 +4171,11 @@ def queue_size_v2(handle, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def queue_size_v2_eager_fallback(handle, name=None):
+def queue_size_v2_eager_fallback(handle, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function queue_size_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   handle = _ops.convert_to_tensor(handle, _dtypes.resource)
   _inputs_flat = [handle]
   _attrs = None
@@ -4217,8 +4221,8 @@ def random_shuffle_queue(component_types, shapes=[], capacity=-1, min_after_dequ
   Returns:
     A `Tensor` of type mutable `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(component_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'component_types' argument to "
@@ -4306,8 +4310,8 @@ def random_shuffle_queue_v2(component_types, shapes=[], capacity=-1, min_after_d
   Returns:
     A `Tensor` of type `resource`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(component_types, (list, tuple)):
       raise TypeError(
           "Expected list for 'component_types' argument to "
@@ -4359,17 +4363,17 @@ def random_shuffle_queue_v2(component_types, shapes=[], capacity=-1, min_after_d
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "RandomShuffleQueueV2", name,
-        _ctx._post_execution_callbacks, "component_types", component_types,
-        "shapes", shapes, "capacity", capacity, "min_after_dequeue",
-        min_after_dequeue, "seed", seed, "seed2", seed2, "container",
-        container, "shared_name", shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "RandomShuffleQueueV2", name, _ctx._post_execution_callbacks,
+        "component_types", component_types, "shapes", shapes, "capacity",
+        capacity, "min_after_dequeue", min_after_dequeue, "seed", seed,
+        "seed2", seed2, "container", container, "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return random_shuffle_queue_v2_eager_fallback(
           component_types=component_types, shapes=shapes, capacity=capacity,
           min_after_dequeue=min_after_dequeue, seed=seed, seed2=seed2,
-          container=container, shared_name=shared_name, name=name)
+          container=container, shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -4378,11 +4382,11 @@ def random_shuffle_queue_v2(component_types, shapes=[], capacity=-1, min_after_d
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def random_shuffle_queue_v2_eager_fallback(component_types, shapes=[], capacity=-1, min_after_dequeue=0, seed=0, seed2=0, container="", shared_name="", name=None):
+def random_shuffle_queue_v2_eager_fallback(component_types, shapes=[], capacity=-1, min_after_dequeue=0, seed=0, seed2=0, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function random_shuffle_queue_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(component_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'component_types' argument to "
@@ -4448,8 +4452,8 @@ def record_input(file_pattern, file_random_seed=301, file_shuffle_shift_ratio=0,
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     file_pattern = _execute.make_str(file_pattern, "file_pattern")
     if file_random_seed is None:
       file_random_seed = 301
@@ -4493,8 +4497,8 @@ def record_input(file_pattern, file_random_seed=301, file_shuffle_shift_ratio=0,
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "RecordInput", name,
-        _ctx._post_execution_callbacks, "file_pattern", file_pattern,
+        _ctx._context_handle, _ctx._eager_context.device_name, "RecordInput",
+        name, _ctx._post_execution_callbacks, "file_pattern", file_pattern,
         "file_random_seed", file_random_seed, "file_shuffle_shift_ratio",
         file_shuffle_shift_ratio, "file_buffer_size", file_buffer_size,
         "file_parallelism", file_parallelism, "batch_size", batch_size,
@@ -4506,7 +4510,7 @@ def record_input(file_pattern, file_random_seed=301, file_shuffle_shift_ratio=0,
           file_shuffle_shift_ratio=file_shuffle_shift_ratio,
           file_buffer_size=file_buffer_size,
           file_parallelism=file_parallelism, batch_size=batch_size,
-          compression_type=compression_type, name=name)
+          compression_type=compression_type, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -4515,11 +4519,11 @@ def record_input(file_pattern, file_random_seed=301, file_shuffle_shift_ratio=0,
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def record_input_eager_fallback(file_pattern, file_random_seed=301, file_shuffle_shift_ratio=0, file_buffer_size=10000, file_parallelism=16, batch_size=32, compression_type="", name=None):
+def record_input_eager_fallback(file_pattern, file_random_seed=301, file_shuffle_shift_ratio=0, file_buffer_size=10000, file_parallelism=16, batch_size=32, compression_type="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function record_input
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   file_pattern = _execute.make_str(file_pattern, "file_pattern")
   if file_random_seed is None:
     file_random_seed = 301
@@ -4579,8 +4583,8 @@ def sparse_accumulator_apply_gradient(handle, local_step, gradient_indices, grad
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     has_known_shape = _execute.make_bool(has_known_shape, "has_known_shape")
     _, _, _op = _op_def_lib._apply_op_helper(
         "SparseAccumulatorApplyGradient", handle=handle,
@@ -4630,8 +4634,8 @@ def sparse_accumulator_take_gradient(handle, num_required, dtype, name=None):
     values: A `Tensor` of type `dtype`.
     shape: A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     _, _, _op = _op_def_lib._apply_op_helper(
         "SparseAccumulatorTakeGradient", handle=handle,
@@ -4675,8 +4679,8 @@ def sparse_conditional_accumulator(dtype, shape, container="", shared_name="", n
   Returns:
     A `Tensor` of type mutable `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     shape = _execute.make_shape(shape, "shape")
     if container is None:
@@ -4715,8 +4719,8 @@ def _stack(elem_type, stack_name="", name=None):
   Returns:
     A `Tensor` of type mutable `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     elem_type = _execute.make_type(elem_type, "elem_type")
     if stack_name is None:
       stack_name = ""
@@ -4748,8 +4752,8 @@ def stack_close(handle, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "StackClose", handle=handle, name=name)
     return _op
@@ -4772,8 +4776,8 @@ def stack_close_v2(handle, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "StackCloseV2", handle=handle, name=name)
     return _op
@@ -4783,12 +4787,12 @@ def stack_close_v2(handle, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StackCloseV2", name,
-        _ctx._post_execution_callbacks, handle)
+        _ctx._context_handle, _ctx._eager_context.device_name, "StackCloseV2",
+        name, _ctx._post_execution_callbacks, handle)
       return _result
     except _core._FallbackException:
       return stack_close_v2_eager_fallback(
-          handle, name=name)
+          handle, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -4797,11 +4801,11 @@ def stack_close_v2(handle, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stack_close_v2_eager_fallback(handle, name=None):
+def stack_close_v2_eager_fallback(handle, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stack_close_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   handle = _ops.convert_to_tensor(handle, _dtypes.resource)
   _inputs_flat = [handle]
   _attrs = None
@@ -4822,8 +4826,8 @@ def stack_pop(handle, elem_type, name=None):
   Returns:
     A `Tensor` of type `elem_type`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     elem_type = _execute.make_type(elem_type, "elem_type")
     _, _, _op = _op_def_lib._apply_op_helper(
         "StackPop", handle=handle, elem_type=elem_type, name=name)
@@ -4852,8 +4856,8 @@ def stack_pop_v2(handle, elem_type, name=None):
   Returns:
     A `Tensor` of type `elem_type`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     elem_type = _execute.make_type(elem_type, "elem_type")
     _, _, _op = _op_def_lib._apply_op_helper(
         "StackPopV2", handle=handle, elem_type=elem_type, name=name)
@@ -4868,12 +4872,12 @@ def stack_pop_v2(handle, elem_type, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StackPopV2", name,
-        _ctx._post_execution_callbacks, handle, "elem_type", elem_type)
+        _ctx._context_handle, _ctx._eager_context.device_name, "StackPopV2",
+        name, _ctx._post_execution_callbacks, handle, "elem_type", elem_type)
       return _result
     except _core._FallbackException:
       return stack_pop_v2_eager_fallback(
-          handle, elem_type=elem_type, name=name)
+          handle, elem_type=elem_type, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -4882,11 +4886,11 @@ def stack_pop_v2(handle, elem_type, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stack_pop_v2_eager_fallback(handle, elem_type, name=None):
+def stack_pop_v2_eager_fallback(handle, elem_type, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stack_pop_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   elem_type = _execute.make_type(elem_type, "elem_type")
   handle = _ops.convert_to_tensor(handle, _dtypes.resource)
   _inputs_flat = [handle]
@@ -4911,8 +4915,8 @@ def stack_push(handle, elem, swap_memory=False, name=None):
   Returns:
     A `Tensor`. Has the same type as `elem`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if swap_memory is None:
       swap_memory = False
     swap_memory = _execute.make_bool(swap_memory, "swap_memory")
@@ -4947,8 +4951,8 @@ def stack_push_v2(handle, elem, swap_memory=False, name=None):
   Returns:
     A `Tensor`. Has the same type as `elem`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if swap_memory is None:
       swap_memory = False
     swap_memory = _execute.make_bool(swap_memory, "swap_memory")
@@ -4967,13 +4971,13 @@ def stack_push_v2(handle, elem, swap_memory=False, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StackPushV2", name,
-        _ctx._post_execution_callbacks, handle, elem, "swap_memory",
+        _ctx._context_handle, _ctx._eager_context.device_name, "StackPushV2",
+        name, _ctx._post_execution_callbacks, handle, elem, "swap_memory",
         swap_memory)
       return _result
     except _core._FallbackException:
       return stack_push_v2_eager_fallback(
-          handle, elem, swap_memory=swap_memory, name=name)
+          handle, elem, swap_memory=swap_memory, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -4982,11 +4986,11 @@ def stack_push_v2(handle, elem, swap_memory=False, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stack_push_v2_eager_fallback(handle, elem, swap_memory=False, name=None):
+def stack_push_v2_eager_fallback(handle, elem, swap_memory=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stack_push_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if swap_memory is None:
     swap_memory = False
   swap_memory = _execute.make_bool(swap_memory, "swap_memory")
@@ -5018,8 +5022,8 @@ def stack_v2(max_size, elem_type, stack_name="", name=None):
   Returns:
     A `Tensor` of type `resource`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     elem_type = _execute.make_type(elem_type, "elem_type")
     if stack_name is None:
       stack_name = ""
@@ -5039,13 +5043,14 @@ def stack_v2(max_size, elem_type, stack_name="", name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StackV2", name,
-        _ctx._post_execution_callbacks, max_size, "elem_type", elem_type,
-        "stack_name", stack_name)
+        _ctx._context_handle, _ctx._eager_context.device_name, "StackV2",
+        name, _ctx._post_execution_callbacks, max_size, "elem_type",
+        elem_type, "stack_name", stack_name)
       return _result
     except _core._FallbackException:
       return stack_v2_eager_fallback(
-          max_size, elem_type=elem_type, stack_name=stack_name, name=name)
+          max_size, elem_type=elem_type, stack_name=stack_name, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -5054,11 +5059,11 @@ def stack_v2(max_size, elem_type, stack_name="", name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stack_v2_eager_fallback(max_size, elem_type, stack_name="", name=None):
+def stack_v2_eager_fallback(max_size, elem_type, stack_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stack_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   elem_type = _execute.make_type(elem_type, "elem_type")
   if stack_name is None:
     stack_name = ""
@@ -5099,8 +5104,8 @@ def stage(values, capacity=0, memory_limit=0, container="", shared_name="", name
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if capacity is None:
       capacity = 0
     capacity = _execute.make_int(capacity, "capacity")
@@ -5123,7 +5128,7 @@ def stage(values, capacity=0, memory_limit=0, container="", shared_name="", name
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Stage", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Stage", name,
         _ctx._post_execution_callbacks, values, "capacity", capacity,
         "memory_limit", memory_limit, "container", container, "shared_name",
         shared_name)
@@ -5131,7 +5136,7 @@ def stage(values, capacity=0, memory_limit=0, container="", shared_name="", name
     except _core._FallbackException:
       return stage_eager_fallback(
           values, capacity=capacity, memory_limit=memory_limit,
-          container=container, shared_name=shared_name, name=name)
+          container=container, shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -5140,11 +5145,11 @@ def stage(values, capacity=0, memory_limit=0, container="", shared_name="", name
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stage_eager_fallback(values, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+def stage_eager_fallback(values, capacity=0, memory_limit=0, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stage
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if capacity is None:
     capacity = 0
   capacity = _execute.make_int(capacity, "capacity")
@@ -5181,8 +5186,8 @@ def stage_clear(dtypes, capacity=0, memory_limit=0, container="", shared_name=""
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(dtypes, (list, tuple)):
       raise TypeError(
           "Expected list for 'dtypes' argument to "
@@ -5211,15 +5216,15 @@ def stage_clear(dtypes, capacity=0, memory_limit=0, container="", shared_name=""
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StageClear", name,
-        _ctx._post_execution_callbacks, "capacity", capacity, "memory_limit",
-        memory_limit, "dtypes", dtypes, "container", container, "shared_name",
-        shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name, "StageClear",
+        name, _ctx._post_execution_callbacks, "capacity", capacity,
+        "memory_limit", memory_limit, "dtypes", dtypes, "container",
+        container, "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return stage_clear_eager_fallback(
           capacity=capacity, memory_limit=memory_limit, dtypes=dtypes,
-          container=container, shared_name=shared_name, name=name)
+          container=container, shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -5228,11 +5233,11 @@ def stage_clear(dtypes, capacity=0, memory_limit=0, container="", shared_name=""
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stage_clear_eager_fallback(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+def stage_clear_eager_fallback(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stage_clear
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -5278,8 +5283,8 @@ def stage_peek(index, dtypes, capacity=0, memory_limit=0, container="", shared_n
   Returns:
     A list of `Tensor` objects of type `dtypes`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(dtypes, (list, tuple)):
       raise TypeError(
           "Expected list for 'dtypes' argument to "
@@ -5316,15 +5321,15 @@ def stage_peek(index, dtypes, capacity=0, memory_limit=0, container="", shared_n
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StagePeek", name,
-        _ctx._post_execution_callbacks, index, "capacity", capacity,
+        _ctx._context_handle, _ctx._eager_context.device_name, "StagePeek",
+        name, _ctx._post_execution_callbacks, index, "capacity", capacity,
         "memory_limit", memory_limit, "dtypes", dtypes, "container",
         container, "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return stage_peek_eager_fallback(
           index, capacity=capacity, memory_limit=memory_limit, dtypes=dtypes,
-          container=container, shared_name=shared_name, name=name)
+          container=container, shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -5333,11 +5338,11 @@ def stage_peek(index, dtypes, capacity=0, memory_limit=0, container="", shared_n
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stage_peek_eager_fallback(index, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+def stage_peek_eager_fallback(index, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stage_peek
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -5380,8 +5385,8 @@ def stage_size(dtypes, capacity=0, memory_limit=0, container="", shared_name="",
   Returns:
     A `Tensor` of type `int32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(dtypes, (list, tuple)):
       raise TypeError(
           "Expected list for 'dtypes' argument to "
@@ -5417,15 +5422,15 @@ def stage_size(dtypes, capacity=0, memory_limit=0, container="", shared_name="",
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StageSize", name,
-        _ctx._post_execution_callbacks, "capacity", capacity, "memory_limit",
-        memory_limit, "dtypes", dtypes, "container", container, "shared_name",
-        shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name, "StageSize",
+        name, _ctx._post_execution_callbacks, "capacity", capacity,
+        "memory_limit", memory_limit, "dtypes", dtypes, "container",
+        container, "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return stage_size_eager_fallback(
           capacity=capacity, memory_limit=memory_limit, dtypes=dtypes,
-          container=container, shared_name=shared_name, name=name)
+          container=container, shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -5434,11 +5439,11 @@ def stage_size(dtypes, capacity=0, memory_limit=0, container="", shared_name="",
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stage_size_eager_fallback(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+def stage_size_eager_fallback(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stage_size
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -5482,8 +5487,8 @@ def tensor_array(size, dtype, dynamic_size=False, clear_after_read=True, tensor_
   Returns:
     A `Tensor` of type mutable `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     if dynamic_size is None:
       dynamic_size = False
@@ -5530,8 +5535,8 @@ def tensor_array_close(handle, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayClose", handle=handle, name=name)
     return _op
@@ -5554,8 +5559,8 @@ def tensor_array_close_v2(handle, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayCloseV2", handle=handle, name=name)
     return _op
@@ -5565,12 +5570,12 @@ def tensor_array_close_v2(handle, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TensorArrayCloseV2", name,
-        _ctx._post_execution_callbacks, handle)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TensorArrayCloseV2", name, _ctx._post_execution_callbacks, handle)
       return _result
     except _core._FallbackException:
       return tensor_array_close_v2_eager_fallback(
-          handle, name=name)
+          handle, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -5579,11 +5584,11 @@ def tensor_array_close_v2(handle, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tensor_array_close_v2_eager_fallback(handle, name=None):
+def tensor_array_close_v2_eager_fallback(handle, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tensor_array_close_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   handle = _ops.convert_to_tensor(handle, _dtypes.string)
   _inputs_flat = [handle]
   _attrs = None
@@ -5607,8 +5612,8 @@ def tensor_array_close_v3(handle, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayCloseV3", handle=handle, name=name)
     return _op
@@ -5618,12 +5623,12 @@ def tensor_array_close_v3(handle, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TensorArrayCloseV3", name,
-        _ctx._post_execution_callbacks, handle)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TensorArrayCloseV3", name, _ctx._post_execution_callbacks, handle)
       return _result
     except _core._FallbackException:
       return tensor_array_close_v3_eager_fallback(
-          handle, name=name)
+          handle, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -5632,11 +5637,11 @@ def tensor_array_close_v3(handle, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tensor_array_close_v3_eager_fallback(handle, name=None):
+def tensor_array_close_v3_eager_fallback(handle, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tensor_array_close_v3
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   handle = _ops.convert_to_tensor(handle, _dtypes.resource)
   _inputs_flat = [handle]
   _attrs = None
@@ -5667,8 +5672,8 @@ def tensor_array_concat(handle, flow_in, dtype, element_shape_except0=None, name
     value: A `Tensor` of type `dtype`.
     lengths: A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     if element_shape_except0 is None:
       element_shape_except0 = None
@@ -5712,8 +5717,8 @@ def tensor_array_concat_v2(handle, flow_in, dtype, element_shape_except0=None, n
     value: A `Tensor` of type `dtype`.
     lengths: A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     if element_shape_except0 is None:
       element_shape_except0 = None
@@ -5733,15 +5738,16 @@ def tensor_array_concat_v2(handle, flow_in, dtype, element_shape_except0=None, n
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TensorArrayConcatV2", name,
-        _ctx._post_execution_callbacks, handle, flow_in, "dtype", dtype,
-        "element_shape_except0", element_shape_except0)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TensorArrayConcatV2", name, _ctx._post_execution_callbacks, handle,
+        flow_in, "dtype", dtype, "element_shape_except0",
+        element_shape_except0)
       _result = _TensorArrayConcatV2Output._make(_result)
       return _result
     except _core._FallbackException:
       return tensor_array_concat_v2_eager_fallback(
           handle, flow_in, dtype=dtype,
-          element_shape_except0=element_shape_except0, name=name)
+          element_shape_except0=element_shape_except0, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -5750,11 +5756,11 @@ def tensor_array_concat_v2(handle, flow_in, dtype, element_shape_except0=None, n
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tensor_array_concat_v2_eager_fallback(handle, flow_in, dtype, element_shape_except0=None, name=None):
+def tensor_array_concat_v2_eager_fallback(handle, flow_in, dtype, element_shape_except0=None, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tensor_array_concat_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   dtype = _execute.make_type(dtype, "dtype")
   if element_shape_except0 is None:
     element_shape_except0 = None
@@ -5809,8 +5815,8 @@ def tensor_array_concat_v3(handle, flow_in, dtype, element_shape_except0=None, n
     value: A `Tensor` of type `dtype`.
     lengths: A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     if element_shape_except0 is None:
       element_shape_except0 = None
@@ -5830,15 +5836,16 @@ def tensor_array_concat_v3(handle, flow_in, dtype, element_shape_except0=None, n
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TensorArrayConcatV3", name,
-        _ctx._post_execution_callbacks, handle, flow_in, "dtype", dtype,
-        "element_shape_except0", element_shape_except0)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TensorArrayConcatV3", name, _ctx._post_execution_callbacks, handle,
+        flow_in, "dtype", dtype, "element_shape_except0",
+        element_shape_except0)
       _result = _TensorArrayConcatV3Output._make(_result)
       return _result
     except _core._FallbackException:
       return tensor_array_concat_v3_eager_fallback(
           handle, flow_in, dtype=dtype,
-          element_shape_except0=element_shape_except0, name=name)
+          element_shape_except0=element_shape_except0, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -5847,11 +5854,11 @@ def tensor_array_concat_v3(handle, flow_in, dtype, element_shape_except0=None, n
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tensor_array_concat_v3_eager_fallback(handle, flow_in, dtype, element_shape_except0=None, name=None):
+def tensor_array_concat_v3_eager_fallback(handle, flow_in, dtype, element_shape_except0=None, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tensor_array_concat_v3
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   dtype = _execute.make_type(dtype, "dtype")
   if element_shape_except0 is None:
     element_shape_except0 = None
@@ -5882,8 +5889,8 @@ def tensor_array_gather(handle, indices, flow_in, dtype, element_shape=None, nam
   Returns:
     A `Tensor` of type `dtype`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     if element_shape is None:
       element_shape = None
@@ -5920,8 +5927,8 @@ def tensor_array_gather_v2(handle, indices, flow_in, dtype, element_shape=None, 
   Returns:
     A `Tensor` of type `dtype`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     if element_shape is None:
       element_shape = None
@@ -5941,14 +5948,14 @@ def tensor_array_gather_v2(handle, indices, flow_in, dtype, element_shape=None, 
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TensorArrayGatherV2", name,
-        _ctx._post_execution_callbacks, handle, indices, flow_in, "dtype",
-        dtype, "element_shape", element_shape)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TensorArrayGatherV2", name, _ctx._post_execution_callbacks, handle,
+        indices, flow_in, "dtype", dtype, "element_shape", element_shape)
       return _result
     except _core._FallbackException:
       return tensor_array_gather_v2_eager_fallback(
           handle, indices, flow_in, dtype=dtype, element_shape=element_shape,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -5957,11 +5964,11 @@ def tensor_array_gather_v2(handle, indices, flow_in, dtype, element_shape=None, 
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tensor_array_gather_v2_eager_fallback(handle, indices, flow_in, dtype, element_shape=None, name=None):
+def tensor_array_gather_v2_eager_fallback(handle, indices, flow_in, dtype, element_shape=None, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tensor_array_gather_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   dtype = _execute.make_type(dtype, "dtype")
   if element_shape is None:
     element_shape = None
@@ -6000,8 +6007,8 @@ def tensor_array_gather_v3(handle, indices, flow_in, dtype, element_shape=None, 
   Returns:
     A `Tensor` of type `dtype`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     if element_shape is None:
       element_shape = None
@@ -6021,14 +6028,14 @@ def tensor_array_gather_v3(handle, indices, flow_in, dtype, element_shape=None, 
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TensorArrayGatherV3", name,
-        _ctx._post_execution_callbacks, handle, indices, flow_in, "dtype",
-        dtype, "element_shape", element_shape)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TensorArrayGatherV3", name, _ctx._post_execution_callbacks, handle,
+        indices, flow_in, "dtype", dtype, "element_shape", element_shape)
       return _result
     except _core._FallbackException:
       return tensor_array_gather_v3_eager_fallback(
           handle, indices, flow_in, dtype=dtype, element_shape=element_shape,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -6037,11 +6044,11 @@ def tensor_array_gather_v3(handle, indices, flow_in, dtype, element_shape=None, 
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tensor_array_gather_v3_eager_fallback(handle, indices, flow_in, dtype, element_shape=None, name=None):
+def tensor_array_gather_v3_eager_fallback(handle, indices, flow_in, dtype, element_shape=None, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tensor_array_gather_v3
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   dtype = _execute.make_type(dtype, "dtype")
   if element_shape is None:
     element_shape = None
@@ -6071,8 +6078,8 @@ def tensor_array_grad(handle, flow_in, source, name=None):
   Returns:
     A `Tensor` of type mutable `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     source = _execute.make_str(source, "source")
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayGrad", handle=handle, flow_in=flow_in, source=source,
@@ -6103,8 +6110,8 @@ def tensor_array_grad_v2(handle, flow_in, source, name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     source = _execute.make_str(source, "source")
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayGradV2", handle=handle, flow_in=flow_in, source=source,
@@ -6120,12 +6127,13 @@ def tensor_array_grad_v2(handle, flow_in, source, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TensorArrayGradV2", name,
-        _ctx._post_execution_callbacks, handle, flow_in, "source", source)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TensorArrayGradV2", name, _ctx._post_execution_callbacks, handle,
+        flow_in, "source", source)
       return _result
     except _core._FallbackException:
       return tensor_array_grad_v2_eager_fallback(
-          handle, flow_in, source=source, name=name)
+          handle, flow_in, source=source, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -6134,11 +6142,11 @@ def tensor_array_grad_v2(handle, flow_in, source, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tensor_array_grad_v2_eager_fallback(handle, flow_in, source, name=None):
+def tensor_array_grad_v2_eager_fallback(handle, flow_in, source, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tensor_array_grad_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   source = _execute.make_str(source, "source")
   handle = _ops.convert_to_tensor(handle, _dtypes.string)
   flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
@@ -6213,8 +6221,8 @@ def tensor_array_grad_v3(handle, flow_in, source, name=None):
     grad_handle: A `Tensor` of type `resource`.
     flow_out: A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     source = _execute.make_str(source, "source")
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayGradV3", handle=handle, flow_in=flow_in, source=source,
@@ -6230,13 +6238,14 @@ def tensor_array_grad_v3(handle, flow_in, source, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TensorArrayGradV3", name,
-        _ctx._post_execution_callbacks, handle, flow_in, "source", source)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TensorArrayGradV3", name, _ctx._post_execution_callbacks, handle,
+        flow_in, "source", source)
       _result = _TensorArrayGradV3Output._make(_result)
       return _result
     except _core._FallbackException:
       return tensor_array_grad_v3_eager_fallback(
-          handle, flow_in, source=source, name=name)
+          handle, flow_in, source=source, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -6245,11 +6254,11 @@ def tensor_array_grad_v3(handle, flow_in, source, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tensor_array_grad_v3_eager_fallback(handle, flow_in, source, name=None):
+def tensor_array_grad_v3_eager_fallback(handle, flow_in, source, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tensor_array_grad_v3
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   source = _execute.make_str(source, "source")
   handle = _ops.convert_to_tensor(handle, _dtypes.resource)
   flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
@@ -6276,8 +6285,8 @@ def tensor_array_pack(handle, flow_in, dtype, element_shape=None, name=None):
   Returns:
     A `Tensor` of type `dtype`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     if element_shape is None:
       element_shape = None
@@ -6313,8 +6322,8 @@ def tensor_array_read(handle, index, flow_in, dtype, name=None):
   Returns:
     A `Tensor` of type `dtype`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayRead", handle=handle, index=index, flow_in=flow_in,
@@ -6346,8 +6355,8 @@ def tensor_array_read_v2(handle, index, flow_in, dtype, name=None):
   Returns:
     A `Tensor` of type `dtype`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayReadV2", handle=handle, index=index, flow_in=flow_in,
@@ -6363,13 +6372,13 @@ def tensor_array_read_v2(handle, index, flow_in, dtype, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TensorArrayReadV2", name,
-        _ctx._post_execution_callbacks, handle, index, flow_in, "dtype",
-        dtype)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TensorArrayReadV2", name, _ctx._post_execution_callbacks, handle,
+        index, flow_in, "dtype", dtype)
       return _result
     except _core._FallbackException:
       return tensor_array_read_v2_eager_fallback(
-          handle, index, flow_in, dtype=dtype, name=name)
+          handle, index, flow_in, dtype=dtype, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -6378,11 +6387,11 @@ def tensor_array_read_v2(handle, index, flow_in, dtype, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tensor_array_read_v2_eager_fallback(handle, index, flow_in, dtype, name=None):
+def tensor_array_read_v2_eager_fallback(handle, index, flow_in, dtype, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tensor_array_read_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   dtype = _execute.make_type(dtype, "dtype")
   handle = _ops.convert_to_tensor(handle, _dtypes.string)
   index = _ops.convert_to_tensor(index, _dtypes.int32)
@@ -6411,8 +6420,8 @@ def tensor_array_read_v3(handle, index, flow_in, dtype, name=None):
   Returns:
     A `Tensor` of type `dtype`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayReadV3", handle=handle, index=index, flow_in=flow_in,
@@ -6428,13 +6437,13 @@ def tensor_array_read_v3(handle, index, flow_in, dtype, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TensorArrayReadV3", name,
-        _ctx._post_execution_callbacks, handle, index, flow_in, "dtype",
-        dtype)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TensorArrayReadV3", name, _ctx._post_execution_callbacks, handle,
+        index, flow_in, "dtype", dtype)
       return _result
     except _core._FallbackException:
       return tensor_array_read_v3_eager_fallback(
-          handle, index, flow_in, dtype=dtype, name=name)
+          handle, index, flow_in, dtype=dtype, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -6443,11 +6452,11 @@ def tensor_array_read_v3(handle, index, flow_in, dtype, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tensor_array_read_v3_eager_fallback(handle, index, flow_in, dtype, name=None):
+def tensor_array_read_v3_eager_fallback(handle, index, flow_in, dtype, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tensor_array_read_v3
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   dtype = _execute.make_type(dtype, "dtype")
   handle = _ops.convert_to_tensor(handle, _dtypes.resource)
   index = _ops.convert_to_tensor(index, _dtypes.int32)
@@ -6475,8 +6484,8 @@ def tensor_array_scatter(handle, indices, value, flow_in, name=None):
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayScatter", handle=handle, indices=indices, value=value,
         flow_in=flow_in, name=name)
@@ -6507,8 +6516,8 @@ def tensor_array_scatter_v2(handle, indices, value, flow_in, name=None):
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayScatterV2", handle=handle, indices=indices, value=value,
         flow_in=flow_in, name=name)
@@ -6523,12 +6532,13 @@ def tensor_array_scatter_v2(handle, indices, value, flow_in, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TensorArrayScatterV2", name,
-        _ctx._post_execution_callbacks, handle, indices, value, flow_in)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TensorArrayScatterV2", name, _ctx._post_execution_callbacks, handle,
+        indices, value, flow_in)
       return _result
     except _core._FallbackException:
       return tensor_array_scatter_v2_eager_fallback(
-          handle, indices, value, flow_in, name=name)
+          handle, indices, value, flow_in, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -6537,11 +6547,11 @@ def tensor_array_scatter_v2(handle, indices, value, flow_in, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tensor_array_scatter_v2_eager_fallback(handle, indices, value, flow_in, name=None):
+def tensor_array_scatter_v2_eager_fallback(handle, indices, value, flow_in, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tensor_array_scatter_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
   handle = _ops.convert_to_tensor(handle, _dtypes.string)
   indices = _ops.convert_to_tensor(indices, _dtypes.int32)
@@ -6573,8 +6583,8 @@ def tensor_array_scatter_v3(handle, indices, value, flow_in, name=None):
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayScatterV3", handle=handle, indices=indices, value=value,
         flow_in=flow_in, name=name)
@@ -6589,12 +6599,13 @@ def tensor_array_scatter_v3(handle, indices, value, flow_in, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TensorArrayScatterV3", name,
-        _ctx._post_execution_callbacks, handle, indices, value, flow_in)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TensorArrayScatterV3", name, _ctx._post_execution_callbacks, handle,
+        indices, value, flow_in)
       return _result
     except _core._FallbackException:
       return tensor_array_scatter_v3_eager_fallback(
-          handle, indices, value, flow_in, name=name)
+          handle, indices, value, flow_in, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -6603,11 +6614,11 @@ def tensor_array_scatter_v3(handle, indices, value, flow_in, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tensor_array_scatter_v3_eager_fallback(handle, indices, value, flow_in, name=None):
+def tensor_array_scatter_v3_eager_fallback(handle, indices, value, flow_in, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tensor_array_scatter_v3
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
   handle = _ops.convert_to_tensor(handle, _dtypes.resource)
   indices = _ops.convert_to_tensor(indices, _dtypes.int32)
@@ -6633,8 +6644,8 @@ def tensor_array_size(handle, flow_in, name=None):
   Returns:
     A `Tensor` of type `int32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArraySize", handle=handle, flow_in=flow_in, name=name)
     _result = _op.outputs[:]
@@ -6662,8 +6673,8 @@ def tensor_array_size_v2(handle, flow_in, name=None):
   Returns:
     A `Tensor` of type `int32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArraySizeV2", handle=handle, flow_in=flow_in, name=name)
     _result = _op.outputs[:]
@@ -6677,12 +6688,13 @@ def tensor_array_size_v2(handle, flow_in, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TensorArraySizeV2", name,
-        _ctx._post_execution_callbacks, handle, flow_in)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TensorArraySizeV2", name, _ctx._post_execution_callbacks, handle,
+        flow_in)
       return _result
     except _core._FallbackException:
       return tensor_array_size_v2_eager_fallback(
-          handle, flow_in, name=name)
+          handle, flow_in, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -6691,11 +6703,11 @@ def tensor_array_size_v2(handle, flow_in, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tensor_array_size_v2_eager_fallback(handle, flow_in, name=None):
+def tensor_array_size_v2_eager_fallback(handle, flow_in, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tensor_array_size_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   handle = _ops.convert_to_tensor(handle, _dtypes.string)
   flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
   _inputs_flat = [handle, flow_in]
@@ -6721,8 +6733,8 @@ def tensor_array_size_v3(handle, flow_in, name=None):
   Returns:
     A `Tensor` of type `int32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArraySizeV3", handle=handle, flow_in=flow_in, name=name)
     _result = _op.outputs[:]
@@ -6736,12 +6748,13 @@ def tensor_array_size_v3(handle, flow_in, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TensorArraySizeV3", name,
-        _ctx._post_execution_callbacks, handle, flow_in)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TensorArraySizeV3", name, _ctx._post_execution_callbacks, handle,
+        flow_in)
       return _result
     except _core._FallbackException:
       return tensor_array_size_v3_eager_fallback(
-          handle, flow_in, name=name)
+          handle, flow_in, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -6750,11 +6763,11 @@ def tensor_array_size_v3(handle, flow_in, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tensor_array_size_v3_eager_fallback(handle, flow_in, name=None):
+def tensor_array_size_v3_eager_fallback(handle, flow_in, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tensor_array_size_v3
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   handle = _ops.convert_to_tensor(handle, _dtypes.resource)
   flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
   _inputs_flat = [handle, flow_in]
@@ -6780,8 +6793,8 @@ def tensor_array_split(handle, value, lengths, flow_in, name=None):
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArraySplit", handle=handle, value=value, lengths=lengths,
         flow_in=flow_in, name=name)
@@ -6812,8 +6825,8 @@ def tensor_array_split_v2(handle, value, lengths, flow_in, name=None):
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArraySplitV2", handle=handle, value=value, lengths=lengths,
         flow_in=flow_in, name=name)
@@ -6828,12 +6841,13 @@ def tensor_array_split_v2(handle, value, lengths, flow_in, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TensorArraySplitV2", name,
-        _ctx._post_execution_callbacks, handle, value, lengths, flow_in)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TensorArraySplitV2", name, _ctx._post_execution_callbacks, handle,
+        value, lengths, flow_in)
       return _result
     except _core._FallbackException:
       return tensor_array_split_v2_eager_fallback(
-          handle, value, lengths, flow_in, name=name)
+          handle, value, lengths, flow_in, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -6842,11 +6856,11 @@ def tensor_array_split_v2(handle, value, lengths, flow_in, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tensor_array_split_v2_eager_fallback(handle, value, lengths, flow_in, name=None):
+def tensor_array_split_v2_eager_fallback(handle, value, lengths, flow_in, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tensor_array_split_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
   handle = _ops.convert_to_tensor(handle, _dtypes.string)
   lengths = _ops.convert_to_tensor(lengths, _dtypes.int64)
@@ -6895,8 +6909,8 @@ def tensor_array_split_v3(handle, value, lengths, flow_in, name=None):
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArraySplitV3", handle=handle, value=value, lengths=lengths,
         flow_in=flow_in, name=name)
@@ -6911,12 +6925,13 @@ def tensor_array_split_v3(handle, value, lengths, flow_in, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TensorArraySplitV3", name,
-        _ctx._post_execution_callbacks, handle, value, lengths, flow_in)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TensorArraySplitV3", name, _ctx._post_execution_callbacks, handle,
+        value, lengths, flow_in)
       return _result
     except _core._FallbackException:
       return tensor_array_split_v3_eager_fallback(
-          handle, value, lengths, flow_in, name=name)
+          handle, value, lengths, flow_in, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -6925,11 +6940,11 @@ def tensor_array_split_v3(handle, value, lengths, flow_in, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tensor_array_split_v3_eager_fallback(handle, value, lengths, flow_in, name=None):
+def tensor_array_split_v3_eager_fallback(handle, value, lengths, flow_in, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tensor_array_split_v3
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
   handle = _ops.convert_to_tensor(handle, _dtypes.resource)
   lengths = _ops.convert_to_tensor(lengths, _dtypes.int64)
@@ -6956,8 +6971,8 @@ def tensor_array_unpack(handle, value, flow_in, name=None):
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayUnpack", handle=handle, value=value, flow_in=flow_in,
         name=name)
@@ -6990,8 +7005,8 @@ def tensor_array_v2(size, dtype, element_shape=None, dynamic_size=False, clear_a
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     if element_shape is None:
       element_shape = None
@@ -7024,16 +7039,17 @@ def tensor_array_v2(size, dtype, element_shape=None, dynamic_size=False, clear_a
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TensorArrayV2", name,
-        _ctx._post_execution_callbacks, size, "dtype", dtype, "element_shape",
-        element_shape, "dynamic_size", dynamic_size, "clear_after_read",
-        clear_after_read, "tensor_array_name", tensor_array_name)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TensorArrayV2", name, _ctx._post_execution_callbacks, size, "dtype",
+        dtype, "element_shape", element_shape, "dynamic_size", dynamic_size,
+        "clear_after_read", clear_after_read, "tensor_array_name",
+        tensor_array_name)
       return _result
     except _core._FallbackException:
       return tensor_array_v2_eager_fallback(
           size, dtype=dtype, element_shape=element_shape,
           dynamic_size=dynamic_size, clear_after_read=clear_after_read,
-          tensor_array_name=tensor_array_name, name=name)
+          tensor_array_name=tensor_array_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -7042,11 +7058,11 @@ def tensor_array_v2(size, dtype, element_shape=None, dynamic_size=False, clear_a
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tensor_array_v2_eager_fallback(size, dtype, element_shape=None, dynamic_size=False, clear_after_read=True, tensor_array_name="", name=None):
+def tensor_array_v2_eager_fallback(size, dtype, element_shape=None, dynamic_size=False, clear_after_read=True, tensor_array_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tensor_array_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   dtype = _execute.make_type(dtype, "dtype")
   if element_shape is None:
     element_shape = None
@@ -7116,8 +7132,8 @@ def tensor_array_v3(size, dtype, element_shape=None, dynamic_size=False, clear_a
     handle: A `Tensor` of type `resource`.
     flow: A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     if element_shape is None:
       element_shape = None
@@ -7155,10 +7171,10 @@ def tensor_array_v3(size, dtype, element_shape=None, dynamic_size=False, clear_a
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TensorArrayV3", name,
-        _ctx._post_execution_callbacks, size, "dtype", dtype, "element_shape",
-        element_shape, "dynamic_size", dynamic_size, "clear_after_read",
-        clear_after_read, "identical_element_shapes",
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TensorArrayV3", name, _ctx._post_execution_callbacks, size, "dtype",
+        dtype, "element_shape", element_shape, "dynamic_size", dynamic_size,
+        "clear_after_read", clear_after_read, "identical_element_shapes",
         identical_element_shapes, "tensor_array_name", tensor_array_name)
       _result = _TensorArrayV3Output._make(_result)
       return _result
@@ -7167,7 +7183,7 @@ def tensor_array_v3(size, dtype, element_shape=None, dynamic_size=False, clear_a
           size, dtype=dtype, element_shape=element_shape,
           dynamic_size=dynamic_size, clear_after_read=clear_after_read,
           identical_element_shapes=identical_element_shapes,
-          tensor_array_name=tensor_array_name, name=name)
+          tensor_array_name=tensor_array_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -7176,11 +7192,11 @@ def tensor_array_v3(size, dtype, element_shape=None, dynamic_size=False, clear_a
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tensor_array_v3_eager_fallback(size, dtype, element_shape=None, dynamic_size=False, clear_after_read=True, identical_element_shapes=False, tensor_array_name="", name=None):
+def tensor_array_v3_eager_fallback(size, dtype, element_shape=None, dynamic_size=False, clear_after_read=True, identical_element_shapes=False, tensor_array_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tensor_array_v3
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   dtype = _execute.make_type(dtype, "dtype")
   if element_shape is None:
     element_shape = None
@@ -7224,8 +7240,8 @@ def tensor_array_write(handle, index, value, flow_in, name=None):
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayWrite", handle=handle, index=index, value=value,
         flow_in=flow_in, name=name)
@@ -7256,8 +7272,8 @@ def tensor_array_write_v2(handle, index, value, flow_in, name=None):
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayWriteV2", handle=handle, index=index, value=value,
         flow_in=flow_in, name=name)
@@ -7272,12 +7288,13 @@ def tensor_array_write_v2(handle, index, value, flow_in, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TensorArrayWriteV2", name,
-        _ctx._post_execution_callbacks, handle, index, value, flow_in)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TensorArrayWriteV2", name, _ctx._post_execution_callbacks, handle,
+        index, value, flow_in)
       return _result
     except _core._FallbackException:
       return tensor_array_write_v2_eager_fallback(
-          handle, index, value, flow_in, name=name)
+          handle, index, value, flow_in, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -7286,11 +7303,11 @@ def tensor_array_write_v2(handle, index, value, flow_in, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tensor_array_write_v2_eager_fallback(handle, index, value, flow_in, name=None):
+def tensor_array_write_v2_eager_fallback(handle, index, value, flow_in, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tensor_array_write_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
   handle = _ops.convert_to_tensor(handle, _dtypes.string)
   index = _ops.convert_to_tensor(index, _dtypes.int32)
@@ -7320,8 +7337,8 @@ def tensor_array_write_v3(handle, index, value, flow_in, name=None):
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayWriteV3", handle=handle, index=index, value=value,
         flow_in=flow_in, name=name)
@@ -7336,12 +7353,13 @@ def tensor_array_write_v3(handle, index, value, flow_in, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TensorArrayWriteV3", name,
-        _ctx._post_execution_callbacks, handle, index, value, flow_in)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TensorArrayWriteV3", name, _ctx._post_execution_callbacks, handle,
+        index, value, flow_in)
       return _result
     except _core._FallbackException:
       return tensor_array_write_v3_eager_fallback(
-          handle, index, value, flow_in, name=name)
+          handle, index, value, flow_in, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -7350,11 +7368,11 @@ def tensor_array_write_v3(handle, index, value, flow_in, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def tensor_array_write_v3_eager_fallback(handle, index, value, flow_in, name=None):
+def tensor_array_write_v3_eager_fallback(handle, index, value, flow_in, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function tensor_array_write_v3
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
   handle = _ops.convert_to_tensor(handle, _dtypes.resource)
   index = _ops.convert_to_tensor(index, _dtypes.int32)
@@ -7386,8 +7404,8 @@ def unstage(dtypes, capacity=0, memory_limit=0, container="", shared_name="", na
   Returns:
     A list of `Tensor` objects of type `dtypes`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(dtypes, (list, tuple)):
       raise TypeError(
           "Expected list for 'dtypes' argument to "
@@ -7424,15 +7442,15 @@ def unstage(dtypes, capacity=0, memory_limit=0, container="", shared_name="", na
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Unstage", name,
-        _ctx._post_execution_callbacks, "capacity", capacity, "memory_limit",
-        memory_limit, "dtypes", dtypes, "container", container, "shared_name",
-        shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name, "Unstage",
+        name, _ctx._post_execution_callbacks, "capacity", capacity,
+        "memory_limit", memory_limit, "dtypes", dtypes, "container",
+        container, "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return unstage_eager_fallback(
           capacity=capacity, memory_limit=memory_limit, dtypes=dtypes,
-          container=container, shared_name=shared_name, name=name)
+          container=container, shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -7441,11 +7459,11 @@ def unstage(dtypes, capacity=0, memory_limit=0, container="", shared_name="", na
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def unstage_eager_fallback(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+def unstage_eager_fallback(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function unstage
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "

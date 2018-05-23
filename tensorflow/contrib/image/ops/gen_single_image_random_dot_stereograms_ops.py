@@ -91,8 +91,8 @@ def single_image_random_dot_stereograms(depth_values, hidden_surface_removal=Tru
   Returns:
     A tensor of size 'output_image_shape' with the encloded 'depth_values'
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if hidden_surface_removal is None:
       hidden_surface_removal = True
     hidden_surface_removal = _execute.make_bool(hidden_surface_removal, "hidden_surface_removal")
@@ -160,8 +160,9 @@ def single_image_random_dot_stereograms(depth_values, hidden_surface_removal=Tru
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SingleImageRandomDotStereograms",
-        name, _ctx._post_execution_callbacks, depth_values,
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SingleImageRandomDotStereograms", name,
+        _ctx._post_execution_callbacks, depth_values,
         "hidden_surface_removal", hidden_surface_removal,
         "convergence_dots_size", convergence_dots_size, "dots_per_inch",
         dots_per_inch, "eye_separation", eye_separation, "mu", mu,
@@ -178,7 +179,7 @@ def single_image_random_dot_stereograms(depth_values, hidden_surface_removal=Tru
           normalize=normalize, normalize_max=normalize_max,
           normalize_min=normalize_min, border_level=border_level,
           number_colors=number_colors, output_image_shape=output_image_shape,
-          output_data_window=output_data_window, name=name)
+          output_data_window=output_data_window, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -187,11 +188,11 @@ def single_image_random_dot_stereograms(depth_values, hidden_surface_removal=Tru
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def single_image_random_dot_stereograms_eager_fallback(depth_values, hidden_surface_removal=True, convergence_dots_size=8, dots_per_inch=72, eye_separation=2.5, mu=0.3333, normalize=True, normalize_max=-100, normalize_min=100, border_level=0, number_colors=256, output_image_shape=[1024, 768, 1], output_data_window=[1022, 757], name=None):
+def single_image_random_dot_stereograms_eager_fallback(depth_values, hidden_surface_removal=True, convergence_dots_size=8, dots_per_inch=72, eye_separation=2.5, mu=0.3333, normalize=True, normalize_max=-100, normalize_min=100, border_level=0, number_colors=256, output_image_shape=[1024, 768, 1], output_data_window=[1022, 757], name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function single_image_random_dot_stereograms
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if hidden_surface_removal is None:
     hidden_surface_removal = True
   hidden_surface_removal = _execute.make_bool(hidden_surface_removal, "hidden_surface_removal")

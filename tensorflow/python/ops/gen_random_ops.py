@@ -44,8 +44,8 @@ def multinomial(logits, num_samples, seed=0, seed2=0, output_dtype=_dtypes.int64
   Returns:
     A `Tensor` of type `output_dtype`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if seed is None:
       seed = 0
     seed = _execute.make_int(seed, "seed")
@@ -71,14 +71,14 @@ def multinomial(logits, num_samples, seed=0, seed2=0, output_dtype=_dtypes.int64
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Multinomial", name,
-        _ctx._post_execution_callbacks, logits, num_samples, "seed", seed,
-        "seed2", seed2, "output_dtype", output_dtype)
+        _ctx._context_handle, _ctx._eager_context.device_name, "Multinomial",
+        name, _ctx._post_execution_callbacks, logits, num_samples, "seed",
+        seed, "seed2", seed2, "output_dtype", output_dtype)
       return _result
     except _core._FallbackException:
       return multinomial_eager_fallback(
           logits, num_samples, seed=seed, seed2=seed2,
-          output_dtype=output_dtype, name=name)
+          output_dtype=output_dtype, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -87,11 +87,11 @@ def multinomial(logits, num_samples, seed=0, seed2=0, output_dtype=_dtypes.int64
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def multinomial_eager_fallback(logits, num_samples, seed=0, seed2=0, output_dtype=_dtypes.int64, name=None):
+def multinomial_eager_fallback(logits, num_samples, seed=0, seed2=0, output_dtype=_dtypes.int64, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function multinomial
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if seed is None:
     seed = 0
   seed = _execute.make_int(seed, "seed")
@@ -143,8 +143,8 @@ def parameterized_truncated_normal(shape, means, stdevs, minvals, maxvals, seed=
   Returns:
     A `Tensor`. Has the same type as `means`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if seed is None:
       seed = 0
     seed = _execute.make_int(seed, "seed")
@@ -167,14 +167,14 @@ def parameterized_truncated_normal(shape, means, stdevs, minvals, maxvals, seed=
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ParameterizedTruncatedNormal", name,
-        _ctx._post_execution_callbacks, shape, means, stdevs, minvals,
-        maxvals, "seed", seed, "seed2", seed2)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ParameterizedTruncatedNormal", name, _ctx._post_execution_callbacks,
+        shape, means, stdevs, minvals, maxvals, "seed", seed, "seed2", seed2)
       return _result
     except _core._FallbackException:
       return parameterized_truncated_normal_eager_fallback(
           shape, means, stdevs, minvals, maxvals, seed=seed, seed2=seed2,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -183,11 +183,11 @@ def parameterized_truncated_normal(shape, means, stdevs, minvals, maxvals, seed=
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def parameterized_truncated_normal_eager_fallback(shape, means, stdevs, minvals, maxvals, seed=0, seed2=0, name=None):
+def parameterized_truncated_normal_eager_fallback(shape, means, stdevs, minvals, maxvals, seed=0, seed2=0, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function parameterized_truncated_normal
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if seed is None:
     seed = 0
   seed = _execute.make_int(seed, "seed")
@@ -233,8 +233,8 @@ def random_gamma(shape, alpha, seed=0, seed2=0, name=None):
   Returns:
     A `Tensor`. Has the same type as `alpha`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if seed is None:
       seed = 0
     seed = _execute.make_int(seed, "seed")
@@ -256,13 +256,13 @@ def random_gamma(shape, alpha, seed=0, seed2=0, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "RandomGamma", name,
-        _ctx._post_execution_callbacks, shape, alpha, "seed", seed, "seed2",
-        seed2)
+        _ctx._context_handle, _ctx._eager_context.device_name, "RandomGamma",
+        name, _ctx._post_execution_callbacks, shape, alpha, "seed", seed,
+        "seed2", seed2)
       return _result
     except _core._FallbackException:
       return random_gamma_eager_fallback(
-          shape, alpha, seed=seed, seed2=seed2, name=name)
+          shape, alpha, seed=seed, seed2=seed2, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -271,11 +271,11 @@ def random_gamma(shape, alpha, seed=0, seed2=0, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def random_gamma_eager_fallback(shape, alpha, seed=0, seed2=0, name=None):
+def random_gamma_eager_fallback(shape, alpha, seed=0, seed2=0, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function random_gamma
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if seed is None:
     seed = 0
   seed = _execute.make_int(seed, "seed")
@@ -307,8 +307,8 @@ def random_poisson(shape, rate, seed=0, seed2=0, name=None):
   Returns:
     A `Tensor`. Has the same type as `rate`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if seed is None:
       seed = 0
     seed = _execute.make_int(seed, "seed")
@@ -330,13 +330,13 @@ def random_poisson(shape, rate, seed=0, seed2=0, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "RandomPoisson", name,
-        _ctx._post_execution_callbacks, shape, rate, "seed", seed, "seed2",
-        seed2)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "RandomPoisson", name, _ctx._post_execution_callbacks, shape, rate,
+        "seed", seed, "seed2", seed2)
       return _result
     except _core._FallbackException:
       return random_poisson_eager_fallback(
-          shape, rate, seed=seed, seed2=seed2, name=name)
+          shape, rate, seed=seed, seed2=seed2, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -345,11 +345,11 @@ def random_poisson(shape, rate, seed=0, seed2=0, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def random_poisson_eager_fallback(shape, rate, seed=0, seed2=0, name=None):
+def random_poisson_eager_fallback(shape, rate, seed=0, seed2=0, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function random_poisson
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if seed is None:
     seed = 0
   seed = _execute.make_int(seed, "seed")
@@ -400,8 +400,8 @@ def random_poisson_v2(shape, rate, seed=0, seed2=0, dtype=_dtypes.int64, name=No
   Returns:
     A `Tensor` of type `dtype`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if seed is None:
       seed = 0
     seed = _execute.make_int(seed, "seed")
@@ -427,13 +427,14 @@ def random_poisson_v2(shape, rate, seed=0, seed2=0, dtype=_dtypes.int64, name=No
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "RandomPoissonV2", name,
-        _ctx._post_execution_callbacks, shape, rate, "seed", seed, "seed2",
-        seed2, "dtype", dtype)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "RandomPoissonV2", name, _ctx._post_execution_callbacks, shape, rate,
+        "seed", seed, "seed2", seed2, "dtype", dtype)
       return _result
     except _core._FallbackException:
       return random_poisson_v2_eager_fallback(
-          shape, rate, seed=seed, seed2=seed2, dtype=dtype, name=name)
+          shape, rate, seed=seed, seed2=seed2, dtype=dtype, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -442,11 +443,11 @@ def random_poisson_v2(shape, rate, seed=0, seed2=0, dtype=_dtypes.int64, name=No
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def random_poisson_v2_eager_fallback(shape, rate, seed=0, seed2=0, dtype=_dtypes.int64, name=None):
+def random_poisson_v2_eager_fallback(shape, rate, seed=0, seed2=0, dtype=_dtypes.int64, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function random_poisson_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if seed is None:
     seed = 0
   seed = _execute.make_int(seed, "seed")
@@ -495,8 +496,8 @@ def random_shuffle(value, seed=0, seed2=0, name=None):
   Returns:
     A `Tensor`. Has the same type as `value`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if seed is None:
       seed = 0
     seed = _execute.make_int(seed, "seed")
@@ -517,12 +518,13 @@ def random_shuffle(value, seed=0, seed2=0, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "RandomShuffle", name,
-        _ctx._post_execution_callbacks, value, "seed", seed, "seed2", seed2)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "RandomShuffle", name, _ctx._post_execution_callbacks, value, "seed",
+        seed, "seed2", seed2)
       return _result
     except _core._FallbackException:
       return random_shuffle_eager_fallback(
-          value, seed=seed, seed2=seed2, name=name)
+          value, seed=seed, seed2=seed2, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -531,11 +533,11 @@ def random_shuffle(value, seed=0, seed2=0, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def random_shuffle_eager_fallback(value, seed=0, seed2=0, name=None):
+def random_shuffle_eager_fallback(value, seed=0, seed2=0, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function random_shuffle
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if seed is None:
     seed = 0
   seed = _execute.make_int(seed, "seed")
@@ -574,8 +576,8 @@ def random_standard_normal(shape, dtype, seed=0, seed2=0, name=None):
   Returns:
     A `Tensor` of type `dtype`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     if seed is None:
       seed = 0
@@ -598,13 +600,13 @@ def random_standard_normal(shape, dtype, seed=0, seed2=0, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "RandomStandardNormal", name,
-        _ctx._post_execution_callbacks, shape, "seed", seed, "seed2", seed2,
-        "dtype", dtype)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "RandomStandardNormal", name, _ctx._post_execution_callbacks, shape,
+        "seed", seed, "seed2", seed2, "dtype", dtype)
       return _result
     except _core._FallbackException:
       return random_standard_normal_eager_fallback(
-          shape, seed=seed, seed2=seed2, dtype=dtype, name=name)
+          shape, seed=seed, seed2=seed2, dtype=dtype, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -613,11 +615,11 @@ def random_standard_normal(shape, dtype, seed=0, seed2=0, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def random_standard_normal_eager_fallback(shape, dtype, seed=0, seed2=0, name=None):
+def random_standard_normal_eager_fallback(shape, dtype, seed=0, seed2=0, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function random_standard_normal
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   dtype = _execute.make_type(dtype, "dtype")
   if seed is None:
     seed = 0
@@ -658,8 +660,8 @@ def random_uniform(shape, dtype, seed=0, seed2=0, name=None):
   Returns:
     A `Tensor` of type `dtype`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     if seed is None:
       seed = 0
@@ -682,13 +684,13 @@ def random_uniform(shape, dtype, seed=0, seed2=0, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "RandomUniform", name,
-        _ctx._post_execution_callbacks, shape, "seed", seed, "seed2", seed2,
-        "dtype", dtype)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "RandomUniform", name, _ctx._post_execution_callbacks, shape, "seed",
+        seed, "seed2", seed2, "dtype", dtype)
       return _result
     except _core._FallbackException:
       return random_uniform_eager_fallback(
-          shape, seed=seed, seed2=seed2, dtype=dtype, name=name)
+          shape, seed=seed, seed2=seed2, dtype=dtype, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -697,11 +699,11 @@ def random_uniform(shape, dtype, seed=0, seed2=0, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def random_uniform_eager_fallback(shape, dtype, seed=0, seed2=0, name=None):
+def random_uniform_eager_fallback(shape, dtype, seed=0, seed2=0, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function random_uniform
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   dtype = _execute.make_type(dtype, "dtype")
   if seed is None:
     seed = 0
@@ -749,8 +751,8 @@ def random_uniform_int(shape, minval, maxval, seed=0, seed2=0, name=None):
   Returns:
     A `Tensor`. Has the same type as `minval`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if seed is None:
       seed = 0
     seed = _execute.make_int(seed, "seed")
@@ -772,13 +774,13 @@ def random_uniform_int(shape, minval, maxval, seed=0, seed2=0, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "RandomUniformInt", name,
-        _ctx._post_execution_callbacks, shape, minval, maxval, "seed", seed,
-        "seed2", seed2)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "RandomUniformInt", name, _ctx._post_execution_callbacks, shape,
+        minval, maxval, "seed", seed, "seed2", seed2)
       return _result
     except _core._FallbackException:
       return random_uniform_int_eager_fallback(
-          shape, minval, maxval, seed=seed, seed2=seed2, name=name)
+          shape, minval, maxval, seed=seed, seed2=seed2, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -787,11 +789,11 @@ def random_uniform_int(shape, minval, maxval, seed=0, seed2=0, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def random_uniform_int_eager_fallback(shape, minval, maxval, seed=0, seed2=0, name=None):
+def random_uniform_int_eager_fallback(shape, minval, maxval, seed=0, seed2=0, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function random_uniform_int
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if seed is None:
     seed = 0
   seed = _execute.make_int(seed, "seed")
@@ -834,8 +836,8 @@ def truncated_normal(shape, dtype, seed=0, seed2=0, name=None):
   Returns:
     A `Tensor` of type `dtype`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     if seed is None:
       seed = 0
@@ -858,13 +860,13 @@ def truncated_normal(shape, dtype, seed=0, seed2=0, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TruncatedNormal", name,
-        _ctx._post_execution_callbacks, shape, "seed", seed, "seed2", seed2,
-        "dtype", dtype)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TruncatedNormal", name, _ctx._post_execution_callbacks, shape,
+        "seed", seed, "seed2", seed2, "dtype", dtype)
       return _result
     except _core._FallbackException:
       return truncated_normal_eager_fallback(
-          shape, seed=seed, seed2=seed2, dtype=dtype, name=name)
+          shape, seed=seed, seed2=seed2, dtype=dtype, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -873,11 +875,11 @@ def truncated_normal(shape, dtype, seed=0, seed2=0, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def truncated_normal_eager_fallback(shape, dtype, seed=0, seed2=0, name=None):
+def truncated_normal_eager_fallback(shape, dtype, seed=0, seed2=0, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function truncated_normal
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   dtype = _execute.make_type(dtype, "dtype")
   if seed is None:
     seed = 0

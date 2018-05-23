@@ -69,8 +69,8 @@ def add_many_sparse_to_tensors_map(sparse_indices, sparse_values, sparse_shape, 
   Returns:
     A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if container is None:
       container = ""
     container = _execute.make_str(container, "container")
@@ -93,14 +93,15 @@ def add_many_sparse_to_tensors_map(sparse_indices, sparse_values, sparse_shape, 
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "AddManySparseToTensorsMap", name,
-        _ctx._post_execution_callbacks, sparse_indices, sparse_values,
-        sparse_shape, "container", container, "shared_name", shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "AddManySparseToTensorsMap", name, _ctx._post_execution_callbacks,
+        sparse_indices, sparse_values, sparse_shape, "container", container,
+        "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return add_many_sparse_to_tensors_map_eager_fallback(
           sparse_indices, sparse_values, sparse_shape, container=container,
-          shared_name=shared_name, name=name)
+          shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -109,11 +110,11 @@ def add_many_sparse_to_tensors_map(sparse_indices, sparse_values, sparse_shape, 
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def add_many_sparse_to_tensors_map_eager_fallback(sparse_indices, sparse_values, sparse_shape, container="", shared_name="", name=None):
+def add_many_sparse_to_tensors_map_eager_fallback(sparse_indices, sparse_values, sparse_shape, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function add_many_sparse_to_tensors_map
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if container is None:
     container = ""
   container = _execute.make_str(container, "container")
@@ -168,8 +169,8 @@ def add_sparse_to_tensors_map(sparse_indices, sparse_values, sparse_shape, conta
   Returns:
     A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if container is None:
       container = ""
     container = _execute.make_str(container, "container")
@@ -192,14 +193,15 @@ def add_sparse_to_tensors_map(sparse_indices, sparse_values, sparse_shape, conta
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "AddSparseToTensorsMap", name,
-        _ctx._post_execution_callbacks, sparse_indices, sparse_values,
-        sparse_shape, "container", container, "shared_name", shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "AddSparseToTensorsMap", name, _ctx._post_execution_callbacks,
+        sparse_indices, sparse_values, sparse_shape, "container", container,
+        "shared_name", shared_name)
       return _result
     except _core._FallbackException:
       return add_sparse_to_tensors_map_eager_fallback(
           sparse_indices, sparse_values, sparse_shape, container=container,
-          shared_name=shared_name, name=name)
+          shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -208,11 +210,11 @@ def add_sparse_to_tensors_map(sparse_indices, sparse_values, sparse_shape, conta
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def add_sparse_to_tensors_map_eager_fallback(sparse_indices, sparse_values, sparse_shape, container="", shared_name="", name=None):
+def add_sparse_to_tensors_map_eager_fallback(sparse_indices, sparse_values, sparse_shape, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function add_sparse_to_tensors_map
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if container is None:
     container = ""
   container = _execute.make_str(container, "container")
@@ -297,8 +299,8 @@ def deserialize_many_sparse(serialized_sparse, dtype, name=None):
     sparse_values: A `Tensor` of type `dtype`.
     sparse_shape: A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     _, _, _op = _op_def_lib._apply_op_helper(
         "DeserializeManySparse", serialized_sparse=serialized_sparse,
@@ -314,13 +316,14 @@ def deserialize_many_sparse(serialized_sparse, dtype, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DeserializeManySparse", name,
-        _ctx._post_execution_callbacks, serialized_sparse, "dtype", dtype)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "DeserializeManySparse", name, _ctx._post_execution_callbacks,
+        serialized_sparse, "dtype", dtype)
       _result = _DeserializeManySparseOutput._make(_result)
       return _result
     except _core._FallbackException:
       return deserialize_many_sparse_eager_fallback(
-          serialized_sparse, dtype=dtype, name=name)
+          serialized_sparse, dtype=dtype, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -329,11 +332,11 @@ def deserialize_many_sparse(serialized_sparse, dtype, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def deserialize_many_sparse_eager_fallback(serialized_sparse, dtype, name=None):
+def deserialize_many_sparse_eager_fallback(serialized_sparse, dtype, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function deserialize_many_sparse
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   dtype = _execute.make_type(dtype, "dtype")
   serialized_sparse = _ops.convert_to_tensor(serialized_sparse, _dtypes.string)
   _inputs_flat = [serialized_sparse]
@@ -411,8 +414,8 @@ def deserialize_sparse(serialized_sparse, dtype, name=None):
     sparse_values: A `Tensor` of type `dtype`.
     sparse_shape: A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     _, _, _op = _op_def_lib._apply_op_helper(
         "DeserializeSparse", serialized_sparse=serialized_sparse, dtype=dtype,
@@ -429,13 +432,14 @@ def deserialize_sparse(serialized_sparse, dtype, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DeserializeSparse", name,
-        _ctx._post_execution_callbacks, serialized_sparse, "dtype", dtype)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "DeserializeSparse", name, _ctx._post_execution_callbacks,
+        serialized_sparse, "dtype", dtype)
       _result = _DeserializeSparseOutput._make(_result)
       return _result
     except _core._FallbackException:
       return deserialize_sparse_eager_fallback(
-          serialized_sparse, dtype=dtype, name=name)
+          serialized_sparse, dtype=dtype, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -444,11 +448,11 @@ def deserialize_sparse(serialized_sparse, dtype, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def deserialize_sparse_eager_fallback(serialized_sparse, dtype, name=None):
+def deserialize_sparse_eager_fallback(serialized_sparse, dtype, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function deserialize_sparse
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   dtype = _execute.make_type(dtype, "dtype")
   _attr_Tserialized, (serialized_sparse,) = _execute.args_to_matching_eager([serialized_sparse], _ctx, _dtypes.string)
   _inputs_flat = [serialized_sparse]
@@ -487,8 +491,8 @@ def serialize_many_sparse(sparse_indices, sparse_values, sparse_shape, out_type=
   Returns:
     A `Tensor` of type `out_type`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if out_type is None:
       out_type = _dtypes.string
     out_type = _execute.make_type(out_type, "out_type")
@@ -507,14 +511,14 @@ def serialize_many_sparse(sparse_indices, sparse_values, sparse_shape, out_type=
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SerializeManySparse", name,
-        _ctx._post_execution_callbacks, sparse_indices, sparse_values,
-        sparse_shape, "out_type", out_type)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SerializeManySparse", name, _ctx._post_execution_callbacks,
+        sparse_indices, sparse_values, sparse_shape, "out_type", out_type)
       return _result
     except _core._FallbackException:
       return serialize_many_sparse_eager_fallback(
           sparse_indices, sparse_values, sparse_shape, out_type=out_type,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -523,11 +527,11 @@ def serialize_many_sparse(sparse_indices, sparse_values, sparse_shape, out_type=
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def serialize_many_sparse_eager_fallback(sparse_indices, sparse_values, sparse_shape, out_type=_dtypes.string, name=None):
+def serialize_many_sparse_eager_fallback(sparse_indices, sparse_values, sparse_shape, out_type=_dtypes.string, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function serialize_many_sparse
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if out_type is None:
     out_type = _dtypes.string
   out_type = _execute.make_type(out_type, "out_type")
@@ -561,8 +565,8 @@ def serialize_sparse(sparse_indices, sparse_values, sparse_shape, out_type=_dtyp
   Returns:
     A `Tensor` of type `out_type`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if out_type is None:
       out_type = _dtypes.string
     out_type = _execute.make_type(out_type, "out_type")
@@ -581,14 +585,14 @@ def serialize_sparse(sparse_indices, sparse_values, sparse_shape, out_type=_dtyp
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SerializeSparse", name,
-        _ctx._post_execution_callbacks, sparse_indices, sparse_values,
-        sparse_shape, "out_type", out_type)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SerializeSparse", name, _ctx._post_execution_callbacks,
+        sparse_indices, sparse_values, sparse_shape, "out_type", out_type)
       return _result
     except _core._FallbackException:
       return serialize_sparse_eager_fallback(
           sparse_indices, sparse_values, sparse_shape, out_type=out_type,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -597,11 +601,11 @@ def serialize_sparse(sparse_indices, sparse_values, sparse_shape, out_type=_dtyp
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def serialize_sparse_eager_fallback(sparse_indices, sparse_values, sparse_shape, out_type=_dtypes.string, name=None):
+def serialize_sparse_eager_fallback(sparse_indices, sparse_values, sparse_shape, out_type=_dtypes.string, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function serialize_sparse
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if out_type is None:
     out_type = _dtypes.string
   out_type = _execute.make_type(out_type, "out_type")
@@ -665,8 +669,8 @@ def sparse_add(a_indices, a_values, a_shape, b_indices, b_values, b_shape, thres
     sum_values: A `Tensor`. Has the same type as `a_values`.
     sum_shape: A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "SparseAdd", a_indices=a_indices, a_values=a_values, a_shape=a_shape,
         b_indices=b_indices, b_values=b_values, b_shape=b_shape,
@@ -682,15 +686,15 @@ def sparse_add(a_indices, a_values, a_shape, b_indices, b_values, b_shape, thres
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SparseAdd", name,
-        _ctx._post_execution_callbacks, a_indices, a_values, a_shape,
+        _ctx._context_handle, _ctx._eager_context.device_name, "SparseAdd",
+        name, _ctx._post_execution_callbacks, a_indices, a_values, a_shape,
         b_indices, b_values, b_shape, thresh)
       _result = _SparseAddOutput._make(_result)
       return _result
     except _core._FallbackException:
       return sparse_add_eager_fallback(
           a_indices, a_values, a_shape, b_indices, b_values, b_shape, thresh,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -699,11 +703,11 @@ def sparse_add(a_indices, a_values, a_shape, b_indices, b_values, b_shape, thres
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sparse_add_eager_fallback(a_indices, a_values, a_shape, b_indices, b_values, b_shape, thresh, name=None):
+def sparse_add_eager_fallback(a_indices, a_values, a_shape, b_indices, b_values, b_shape, thresh, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sparse_add
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, _inputs_T = _execute.args_to_matching_eager([a_values, b_values], _ctx)
   (a_values, b_values) = _inputs_T
   _attr_Treal, (thresh,) = _execute.args_to_matching_eager([thresh], _ctx)
@@ -753,8 +757,8 @@ def sparse_add_grad(backprop_val_grad, a_indices, b_indices, sum_indices, name=N
     a_val_grad: A `Tensor`. Has the same type as `backprop_val_grad`.
     b_val_grad: A `Tensor`. Has the same type as `backprop_val_grad`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "SparseAddGrad", backprop_val_grad=backprop_val_grad,
         a_indices=a_indices, b_indices=b_indices, sum_indices=sum_indices,
@@ -770,14 +774,15 @@ def sparse_add_grad(backprop_val_grad, a_indices, b_indices, sum_indices, name=N
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SparseAddGrad", name,
-        _ctx._post_execution_callbacks, backprop_val_grad, a_indices,
-        b_indices, sum_indices)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SparseAddGrad", name, _ctx._post_execution_callbacks,
+        backprop_val_grad, a_indices, b_indices, sum_indices)
       _result = _SparseAddGradOutput._make(_result)
       return _result
     except _core._FallbackException:
       return sparse_add_grad_eager_fallback(
-          backprop_val_grad, a_indices, b_indices, sum_indices, name=name)
+          backprop_val_grad, a_indices, b_indices, sum_indices, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -786,11 +791,11 @@ def sparse_add_grad(backprop_val_grad, a_indices, b_indices, sum_indices, name=N
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sparse_add_grad_eager_fallback(backprop_val_grad, a_indices, b_indices, sum_indices, name=None):
+def sparse_add_grad_eager_fallback(backprop_val_grad, a_indices, b_indices, sum_indices, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sparse_add_grad
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (backprop_val_grad,) = _execute.args_to_matching_eager([backprop_val_grad], _ctx)
   a_indices = _ops.convert_to_tensor(a_indices, _dtypes.int64)
   b_indices = _ops.convert_to_tensor(b_indices, _dtypes.int64)
@@ -874,8 +879,8 @@ def sparse_concat(indices, values, shapes, concat_dim, name=None):
     output_values: A `Tensor`. Has the same type as `values`.
     output_shape: A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(indices, (list, tuple)):
       raise TypeError(
           "Expected list for 'indices' argument to "
@@ -915,14 +920,14 @@ def sparse_concat(indices, values, shapes, concat_dim, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SparseConcat", name,
-        _ctx._post_execution_callbacks, indices, values, shapes, "concat_dim",
-        concat_dim)
+        _ctx._context_handle, _ctx._eager_context.device_name, "SparseConcat",
+        name, _ctx._post_execution_callbacks, indices, values, shapes,
+        "concat_dim", concat_dim)
       _result = _SparseConcatOutput._make(_result)
       return _result
     except _core._FallbackException:
       return sparse_concat_eager_fallback(
-          indices, values, shapes, concat_dim=concat_dim, name=name)
+          indices, values, shapes, concat_dim=concat_dim, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -931,11 +936,11 @@ def sparse_concat(indices, values, shapes, concat_dim, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sparse_concat_eager_fallback(indices, values, shapes, concat_dim, name=None):
+def sparse_concat_eager_fallback(indices, values, shapes, concat_dim, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sparse_concat
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(indices, (list, tuple)):
     raise TypeError(
         "Expected list for 'indices' argument to "
@@ -1046,8 +1051,8 @@ def sparse_cross(indices, values, shapes, dense_inputs, hashed_output, num_bucke
     output_values: A `Tensor` of type `out_type`.
     output_shape: A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(indices, (list, tuple)):
       raise TypeError(
           "Expected list for 'indices' argument to "
@@ -1090,18 +1095,18 @@ def sparse_cross(indices, values, shapes, dense_inputs, hashed_output, num_bucke
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SparseCross", name,
-        _ctx._post_execution_callbacks, indices, values, shapes, dense_inputs,
-        "hashed_output", hashed_output, "num_buckets", num_buckets,
-        "hash_key", hash_key, "out_type", out_type, "internal_type",
-        internal_type)
+        _ctx._context_handle, _ctx._eager_context.device_name, "SparseCross",
+        name, _ctx._post_execution_callbacks, indices, values, shapes,
+        dense_inputs, "hashed_output", hashed_output, "num_buckets",
+        num_buckets, "hash_key", hash_key, "out_type", out_type,
+        "internal_type", internal_type)
       _result = _SparseCrossOutput._make(_result)
       return _result
     except _core._FallbackException:
       return sparse_cross_eager_fallback(
           indices, values, shapes, dense_inputs, hashed_output=hashed_output,
           num_buckets=num_buckets, hash_key=hash_key, out_type=out_type,
-          internal_type=internal_type, name=name)
+          internal_type=internal_type, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1110,11 +1115,11 @@ def sparse_cross(indices, values, shapes, dense_inputs, hashed_output, num_bucke
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sparse_cross_eager_fallback(indices, values, shapes, dense_inputs, hashed_output, num_buckets, hash_key, out_type, internal_type, name=None):
+def sparse_cross_eager_fallback(indices, values, shapes, dense_inputs, hashed_output, num_buckets, hash_key, out_type, internal_type, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sparse_cross
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(indices, (list, tuple)):
     raise TypeError(
         "Expected list for 'indices' argument to "
@@ -1178,8 +1183,8 @@ def sparse_dense_cwise_add(sp_indices, sp_values, sp_shape, dense, name=None):
   Returns:
     A `Tensor`. Has the same type as `sp_values`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "SparseDenseCwiseAdd", sp_indices=sp_indices, sp_values=sp_values,
         sp_shape=sp_shape, dense=dense, name=name)
@@ -1194,13 +1199,13 @@ def sparse_dense_cwise_add(sp_indices, sp_values, sp_shape, dense, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SparseDenseCwiseAdd", name,
-        _ctx._post_execution_callbacks, sp_indices, sp_values, sp_shape,
-        dense)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SparseDenseCwiseAdd", name, _ctx._post_execution_callbacks,
+        sp_indices, sp_values, sp_shape, dense)
       return _result
     except _core._FallbackException:
       return sparse_dense_cwise_add_eager_fallback(
-          sp_indices, sp_values, sp_shape, dense, name=name)
+          sp_indices, sp_values, sp_shape, dense, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1209,11 +1214,11 @@ def sparse_dense_cwise_add(sp_indices, sp_values, sp_shape, dense, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sparse_dense_cwise_add_eager_fallback(sp_indices, sp_values, sp_shape, dense, name=None):
+def sparse_dense_cwise_add_eager_fallback(sp_indices, sp_values, sp_shape, dense, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sparse_dense_cwise_add
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, _inputs_T = _execute.args_to_matching_eager([sp_values, dense], _ctx)
   (sp_values, dense) = _inputs_T
   sp_indices = _ops.convert_to_tensor(sp_indices, _dtypes.int64)
@@ -1249,8 +1254,8 @@ def sparse_dense_cwise_div(sp_indices, sp_values, sp_shape, dense, name=None):
   Returns:
     A `Tensor`. Has the same type as `sp_values`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "SparseDenseCwiseDiv", sp_indices=sp_indices, sp_values=sp_values,
         sp_shape=sp_shape, dense=dense, name=name)
@@ -1265,13 +1270,13 @@ def sparse_dense_cwise_div(sp_indices, sp_values, sp_shape, dense, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SparseDenseCwiseDiv", name,
-        _ctx._post_execution_callbacks, sp_indices, sp_values, sp_shape,
-        dense)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SparseDenseCwiseDiv", name, _ctx._post_execution_callbacks,
+        sp_indices, sp_values, sp_shape, dense)
       return _result
     except _core._FallbackException:
       return sparse_dense_cwise_div_eager_fallback(
-          sp_indices, sp_values, sp_shape, dense, name=name)
+          sp_indices, sp_values, sp_shape, dense, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1280,11 +1285,11 @@ def sparse_dense_cwise_div(sp_indices, sp_values, sp_shape, dense, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sparse_dense_cwise_div_eager_fallback(sp_indices, sp_values, sp_shape, dense, name=None):
+def sparse_dense_cwise_div_eager_fallback(sp_indices, sp_values, sp_shape, dense, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sparse_dense_cwise_div
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, _inputs_T = _execute.args_to_matching_eager([sp_values, dense], _ctx)
   (sp_values, dense) = _inputs_T
   sp_indices = _ops.convert_to_tensor(sp_indices, _dtypes.int64)
@@ -1324,8 +1329,8 @@ def sparse_dense_cwise_mul(sp_indices, sp_values, sp_shape, dense, name=None):
   Returns:
     A `Tensor`. Has the same type as `sp_values`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "SparseDenseCwiseMul", sp_indices=sp_indices, sp_values=sp_values,
         sp_shape=sp_shape, dense=dense, name=name)
@@ -1340,13 +1345,13 @@ def sparse_dense_cwise_mul(sp_indices, sp_values, sp_shape, dense, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SparseDenseCwiseMul", name,
-        _ctx._post_execution_callbacks, sp_indices, sp_values, sp_shape,
-        dense)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SparseDenseCwiseMul", name, _ctx._post_execution_callbacks,
+        sp_indices, sp_values, sp_shape, dense)
       return _result
     except _core._FallbackException:
       return sparse_dense_cwise_mul_eager_fallback(
-          sp_indices, sp_values, sp_shape, dense, name=name)
+          sp_indices, sp_values, sp_shape, dense, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1355,11 +1360,11 @@ def sparse_dense_cwise_mul(sp_indices, sp_values, sp_shape, dense, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sparse_dense_cwise_mul_eager_fallback(sp_indices, sp_values, sp_shape, dense, name=None):
+def sparse_dense_cwise_mul_eager_fallback(sp_indices, sp_values, sp_shape, dense, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sparse_dense_cwise_mul
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, _inputs_T = _execute.args_to_matching_eager([sp_values, dense], _ctx)
   (sp_values, dense) = _inputs_T
   sp_indices = _ops.convert_to_tensor(sp_indices, _dtypes.int64)
@@ -1440,8 +1445,8 @@ def sparse_fill_empty_rows(indices, values, dense_shape, default_value, name=Non
     empty_row_indicator: A `Tensor` of type `bool`.
     reverse_index_map: A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "SparseFillEmptyRows", indices=indices, values=values,
         dense_shape=dense_shape, default_value=default_value, name=name)
@@ -1456,14 +1461,14 @@ def sparse_fill_empty_rows(indices, values, dense_shape, default_value, name=Non
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SparseFillEmptyRows", name,
-        _ctx._post_execution_callbacks, indices, values, dense_shape,
-        default_value)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SparseFillEmptyRows", name, _ctx._post_execution_callbacks, indices,
+        values, dense_shape, default_value)
       _result = _SparseFillEmptyRowsOutput._make(_result)
       return _result
     except _core._FallbackException:
       return sparse_fill_empty_rows_eager_fallback(
-          indices, values, dense_shape, default_value, name=name)
+          indices, values, dense_shape, default_value, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1472,11 +1477,11 @@ def sparse_fill_empty_rows(indices, values, dense_shape, default_value, name=Non
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sparse_fill_empty_rows_eager_fallback(indices, values, dense_shape, default_value, name=None):
+def sparse_fill_empty_rows_eager_fallback(indices, values, dense_shape, default_value, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sparse_fill_empty_rows
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, _inputs_T = _execute.args_to_matching_eager([values, default_value], _ctx)
   (values, default_value) = _inputs_T
   indices = _ops.convert_to_tensor(indices, _dtypes.int64)
@@ -1520,8 +1525,8 @@ def sparse_fill_empty_rows_grad(reverse_index_map, grad_values, name=None):
     d_values: A `Tensor`. Has the same type as `grad_values`.
     d_default_value: A `Tensor`. Has the same type as `grad_values`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "SparseFillEmptyRowsGrad", reverse_index_map=reverse_index_map,
         grad_values=grad_values, name=name)
@@ -1536,13 +1541,14 @@ def sparse_fill_empty_rows_grad(reverse_index_map, grad_values, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SparseFillEmptyRowsGrad", name,
-        _ctx._post_execution_callbacks, reverse_index_map, grad_values)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SparseFillEmptyRowsGrad", name, _ctx._post_execution_callbacks,
+        reverse_index_map, grad_values)
       _result = _SparseFillEmptyRowsGradOutput._make(_result)
       return _result
     except _core._FallbackException:
       return sparse_fill_empty_rows_grad_eager_fallback(
-          reverse_index_map, grad_values, name=name)
+          reverse_index_map, grad_values, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1551,11 +1557,11 @@ def sparse_fill_empty_rows_grad(reverse_index_map, grad_values, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sparse_fill_empty_rows_grad_eager_fallback(reverse_index_map, grad_values, name=None):
+def sparse_fill_empty_rows_grad_eager_fallback(reverse_index_map, grad_values, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sparse_fill_empty_rows_grad
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (grad_values,) = _execute.args_to_matching_eager([grad_values], _ctx)
   reverse_index_map = _ops.convert_to_tensor(reverse_index_map, _dtypes.int64)
   _inputs_flat = [reverse_index_map, grad_values]
@@ -1569,7 +1575,6 @@ def sparse_fill_empty_rows_grad_eager_fallback(reverse_index_map, grad_values, n
   return _result
 
 
-@tf_export('sparse_reduce_max')
 def sparse_reduce_max(input_indices, input_values, input_shape, reduction_axes, keep_dims=False, name=None):
   r"""Computes the max of elements across dimensions of a SparseTensor.
 
@@ -1603,8 +1608,8 @@ def sparse_reduce_max(input_indices, input_values, input_shape, reduction_axes, 
   Returns:
     A `Tensor`. Has the same type as `input_values`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if keep_dims is None:
       keep_dims = False
     keep_dims = _execute.make_bool(keep_dims, "keep_dims")
@@ -1623,14 +1628,15 @@ def sparse_reduce_max(input_indices, input_values, input_shape, reduction_axes, 
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SparseReduceMax", name,
-        _ctx._post_execution_callbacks, input_indices, input_values,
-        input_shape, reduction_axes, "keep_dims", keep_dims)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SparseReduceMax", name, _ctx._post_execution_callbacks,
+        input_indices, input_values, input_shape, reduction_axes, "keep_dims",
+        keep_dims)
       return _result
     except _core._FallbackException:
       return sparse_reduce_max_eager_fallback(
           input_indices, input_values, input_shape, reduction_axes,
-          keep_dims=keep_dims, name=name)
+          keep_dims=keep_dims, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1639,11 +1645,11 @@ def sparse_reduce_max(input_indices, input_values, input_shape, reduction_axes, 
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sparse_reduce_max_eager_fallback(input_indices, input_values, input_shape, reduction_axes, keep_dims=False, name=None):
+def sparse_reduce_max_eager_fallback(input_indices, input_values, input_shape, reduction_axes, keep_dims=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sparse_reduce_max
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if keep_dims is None:
     keep_dims = False
   keep_dims = _execute.make_bool(keep_dims, "keep_dims")
@@ -1667,7 +1673,6 @@ _SparseReduceMaxSparseOutput = _collections.namedtuple(
     "SparseReduceMaxSparse", _sparse_reduce_max_sparse_outputs)
 
 
-@tf_export('sparse_reduce_max_sparse')
 def sparse_reduce_max_sparse(input_indices, input_values, input_shape, reduction_axes, keep_dims=False, name=None):
   r"""Computes the max of elements across dimensions of a SparseTensor.
 
@@ -1705,8 +1710,8 @@ def sparse_reduce_max_sparse(input_indices, input_values, input_shape, reduction
     output_values: A `Tensor`. Has the same type as `input_values`.
     output_shape: A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if keep_dims is None:
       keep_dims = False
     keep_dims = _execute.make_bool(keep_dims, "keep_dims")
@@ -1725,15 +1730,16 @@ def sparse_reduce_max_sparse(input_indices, input_values, input_shape, reduction
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SparseReduceMaxSparse", name,
-        _ctx._post_execution_callbacks, input_indices, input_values,
-        input_shape, reduction_axes, "keep_dims", keep_dims)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SparseReduceMaxSparse", name, _ctx._post_execution_callbacks,
+        input_indices, input_values, input_shape, reduction_axes, "keep_dims",
+        keep_dims)
       _result = _SparseReduceMaxSparseOutput._make(_result)
       return _result
     except _core._FallbackException:
       return sparse_reduce_max_sparse_eager_fallback(
           input_indices, input_values, input_shape, reduction_axes,
-          keep_dims=keep_dims, name=name)
+          keep_dims=keep_dims, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1742,11 +1748,11 @@ def sparse_reduce_max_sparse(input_indices, input_values, input_shape, reduction
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sparse_reduce_max_sparse_eager_fallback(input_indices, input_values, input_shape, reduction_axes, keep_dims=False, name=None):
+def sparse_reduce_max_sparse_eager_fallback(input_indices, input_values, input_shape, reduction_axes, keep_dims=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sparse_reduce_max_sparse
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if keep_dims is None:
     keep_dims = False
   keep_dims = _execute.make_bool(keep_dims, "keep_dims")
@@ -1764,7 +1770,6 @@ def sparse_reduce_max_sparse_eager_fallback(input_indices, input_values, input_s
   return _result
 
 
-@tf_export('sparse_reduce_sum')
 def sparse_reduce_sum(input_indices, input_values, input_shape, reduction_axes, keep_dims=False, name=None):
   r"""Computes the sum of elements across dimensions of a SparseTensor.
 
@@ -1798,8 +1803,8 @@ def sparse_reduce_sum(input_indices, input_values, input_shape, reduction_axes, 
   Returns:
     A `Tensor`. Has the same type as `input_values`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if keep_dims is None:
       keep_dims = False
     keep_dims = _execute.make_bool(keep_dims, "keep_dims")
@@ -1818,14 +1823,15 @@ def sparse_reduce_sum(input_indices, input_values, input_shape, reduction_axes, 
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SparseReduceSum", name,
-        _ctx._post_execution_callbacks, input_indices, input_values,
-        input_shape, reduction_axes, "keep_dims", keep_dims)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SparseReduceSum", name, _ctx._post_execution_callbacks,
+        input_indices, input_values, input_shape, reduction_axes, "keep_dims",
+        keep_dims)
       return _result
     except _core._FallbackException:
       return sparse_reduce_sum_eager_fallback(
           input_indices, input_values, input_shape, reduction_axes,
-          keep_dims=keep_dims, name=name)
+          keep_dims=keep_dims, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1834,11 +1840,11 @@ def sparse_reduce_sum(input_indices, input_values, input_shape, reduction_axes, 
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sparse_reduce_sum_eager_fallback(input_indices, input_values, input_shape, reduction_axes, keep_dims=False, name=None):
+def sparse_reduce_sum_eager_fallback(input_indices, input_values, input_shape, reduction_axes, keep_dims=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sparse_reduce_sum
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if keep_dims is None:
     keep_dims = False
   keep_dims = _execute.make_bool(keep_dims, "keep_dims")
@@ -1862,7 +1868,6 @@ _SparseReduceSumSparseOutput = _collections.namedtuple(
     "SparseReduceSumSparse", _sparse_reduce_sum_sparse_outputs)
 
 
-@tf_export('sparse_reduce_sum_sparse')
 def sparse_reduce_sum_sparse(input_indices, input_values, input_shape, reduction_axes, keep_dims=False, name=None):
   r"""Computes the sum of elements across dimensions of a SparseTensor.
 
@@ -1900,8 +1905,8 @@ def sparse_reduce_sum_sparse(input_indices, input_values, input_shape, reduction
     output_values: A `Tensor`. Has the same type as `input_values`.
     output_shape: A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if keep_dims is None:
       keep_dims = False
     keep_dims = _execute.make_bool(keep_dims, "keep_dims")
@@ -1920,15 +1925,16 @@ def sparse_reduce_sum_sparse(input_indices, input_values, input_shape, reduction
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SparseReduceSumSparse", name,
-        _ctx._post_execution_callbacks, input_indices, input_values,
-        input_shape, reduction_axes, "keep_dims", keep_dims)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SparseReduceSumSparse", name, _ctx._post_execution_callbacks,
+        input_indices, input_values, input_shape, reduction_axes, "keep_dims",
+        keep_dims)
       _result = _SparseReduceSumSparseOutput._make(_result)
       return _result
     except _core._FallbackException:
       return sparse_reduce_sum_sparse_eager_fallback(
           input_indices, input_values, input_shape, reduction_axes,
-          keep_dims=keep_dims, name=name)
+          keep_dims=keep_dims, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1937,11 +1943,11 @@ def sparse_reduce_sum_sparse(input_indices, input_values, input_shape, reduction
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sparse_reduce_sum_sparse_eager_fallback(input_indices, input_values, input_shape, reduction_axes, keep_dims=False, name=None):
+def sparse_reduce_sum_sparse_eager_fallback(input_indices, input_values, input_shape, reduction_axes, keep_dims=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sparse_reduce_sum_sparse
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if keep_dims is None:
     keep_dims = False
   keep_dims = _execute.make_bool(keep_dims, "keep_dims")
@@ -1992,8 +1998,8 @@ def sparse_reorder(input_indices, input_values, input_shape, name=None):
     output_indices: A `Tensor` of type `int64`.
     output_values: A `Tensor`. Has the same type as `input_values`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "SparseReorder", input_indices=input_indices,
         input_values=input_values, input_shape=input_shape, name=name)
@@ -2008,14 +2014,14 @@ def sparse_reorder(input_indices, input_values, input_shape, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SparseReorder", name,
-        _ctx._post_execution_callbacks, input_indices, input_values,
-        input_shape)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SparseReorder", name, _ctx._post_execution_callbacks, input_indices,
+        input_values, input_shape)
       _result = _SparseReorderOutput._make(_result)
       return _result
     except _core._FallbackException:
       return sparse_reorder_eager_fallback(
-          input_indices, input_values, input_shape, name=name)
+          input_indices, input_values, input_shape, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2024,11 +2030,11 @@ def sparse_reorder(input_indices, input_values, input_shape, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sparse_reorder_eager_fallback(input_indices, input_values, input_shape, name=None):
+def sparse_reorder_eager_fallback(input_indices, input_values, input_shape, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sparse_reorder
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input_values,) = _execute.args_to_matching_eager([input_values], _ctx)
   input_indices = _ops.convert_to_tensor(input_indices, _dtypes.int64)
   input_shape = _ops.convert_to_tensor(input_shape, _dtypes.int64)
@@ -2082,8 +2088,8 @@ def sparse_reshape(input_indices, input_shape, new_shape, name=None):
     output_indices: A `Tensor` of type `int64`.
     output_shape: A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "SparseReshape", input_indices=input_indices, input_shape=input_shape,
         new_shape=new_shape, name=name)
@@ -2098,13 +2104,14 @@ def sparse_reshape(input_indices, input_shape, new_shape, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SparseReshape", name,
-        _ctx._post_execution_callbacks, input_indices, input_shape, new_shape)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SparseReshape", name, _ctx._post_execution_callbacks, input_indices,
+        input_shape, new_shape)
       _result = _SparseReshapeOutput._make(_result)
       return _result
     except _core._FallbackException:
       return sparse_reshape_eager_fallback(
-          input_indices, input_shape, new_shape, name=name)
+          input_indices, input_shape, new_shape, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2113,11 +2120,11 @@ def sparse_reshape(input_indices, input_shape, new_shape, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sparse_reshape_eager_fallback(input_indices, input_shape, new_shape, name=None):
+def sparse_reshape_eager_fallback(input_indices, input_shape, new_shape, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sparse_reshape
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   input_indices = _ops.convert_to_tensor(input_indices, _dtypes.int64)
   input_shape = _ops.convert_to_tensor(input_shape, _dtypes.int64)
   new_shape = _ops.convert_to_tensor(new_shape, _dtypes.int64)
@@ -2136,7 +2143,6 @@ _SparseSliceOutput = _collections.namedtuple(
     "SparseSlice", _sparse_slice_outputs)
 
 
-@tf_export('sparse_slice')
 def sparse_slice(indices, values, shape, start, size, name=None):
   r"""Slice a `SparseTensor` based on the `start` and `size`.
 
@@ -2177,8 +2183,8 @@ def sparse_slice(indices, values, shape, start, size, name=None):
     output_values: A `Tensor`. Has the same type as `values`.
     output_shape: A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "SparseSlice", indices=indices, values=values, shape=shape,
         start=start, size=size, name=name)
@@ -2193,13 +2199,14 @@ def sparse_slice(indices, values, shape, start, size, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SparseSlice", name,
-        _ctx._post_execution_callbacks, indices, values, shape, start, size)
+        _ctx._context_handle, _ctx._eager_context.device_name, "SparseSlice",
+        name, _ctx._post_execution_callbacks, indices, values, shape, start,
+        size)
       _result = _SparseSliceOutput._make(_result)
       return _result
     except _core._FallbackException:
       return sparse_slice_eager_fallback(
-          indices, values, shape, start, size, name=name)
+          indices, values, shape, start, size, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2208,11 +2215,11 @@ def sparse_slice(indices, values, shape, start, size, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sparse_slice_eager_fallback(indices, values, shape, start, size, name=None):
+def sparse_slice_eager_fallback(indices, values, shape, start, size, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sparse_slice
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (values,) = _execute.args_to_matching_eager([values], _ctx)
   indices = _ops.convert_to_tensor(indices, _dtypes.int64)
   shape = _ops.convert_to_tensor(shape, _dtypes.int64)
@@ -2228,7 +2235,6 @@ def sparse_slice_eager_fallback(indices, values, shape, start, size, name=None):
   return _result
 
 
-@tf_export('sparse_softmax')
 def sparse_softmax(sp_indices, sp_values, sp_shape, name=None):
   r"""Applies softmax to a batched N-D `SparseTensor`.
 
@@ -2261,8 +2267,8 @@ def sparse_softmax(sp_indices, sp_values, sp_shape, name=None):
   Returns:
     A `Tensor`. Has the same type as `sp_values`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "SparseSoftmax", sp_indices=sp_indices, sp_values=sp_values,
         sp_shape=sp_shape, name=name)
@@ -2277,12 +2283,13 @@ def sparse_softmax(sp_indices, sp_values, sp_shape, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SparseSoftmax", name,
-        _ctx._post_execution_callbacks, sp_indices, sp_values, sp_shape)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SparseSoftmax", name, _ctx._post_execution_callbacks, sp_indices,
+        sp_values, sp_shape)
       return _result
     except _core._FallbackException:
       return sparse_softmax_eager_fallback(
-          sp_indices, sp_values, sp_shape, name=name)
+          sp_indices, sp_values, sp_shape, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2291,11 +2298,11 @@ def sparse_softmax(sp_indices, sp_values, sp_shape, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sparse_softmax_eager_fallback(sp_indices, sp_values, sp_shape, name=None):
+def sparse_softmax_eager_fallback(sp_indices, sp_values, sp_shape, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sparse_softmax
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (sp_values,) = _execute.args_to_matching_eager([sp_values], _ctx)
   sp_indices = _ops.convert_to_tensor(sp_indices, _dtypes.int64)
   sp_shape = _ops.convert_to_tensor(sp_shape, _dtypes.int64)
@@ -2341,8 +2348,8 @@ def sparse_sparse_maximum(a_indices, a_values, a_shape, b_indices, b_values, b_s
     output_indices: A `Tensor` of type `int64`.
     output_values: A `Tensor`. Has the same type as `a_values`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "SparseSparseMaximum", a_indices=a_indices, a_values=a_values,
         a_shape=a_shape, b_indices=b_indices, b_values=b_values,
@@ -2358,15 +2365,15 @@ def sparse_sparse_maximum(a_indices, a_values, a_shape, b_indices, b_values, b_s
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SparseSparseMaximum", name,
-        _ctx._post_execution_callbacks, a_indices, a_values, a_shape,
-        b_indices, b_values, b_shape)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SparseSparseMaximum", name, _ctx._post_execution_callbacks,
+        a_indices, a_values, a_shape, b_indices, b_values, b_shape)
       _result = _SparseSparseMaximumOutput._make(_result)
       return _result
     except _core._FallbackException:
       return sparse_sparse_maximum_eager_fallback(
           a_indices, a_values, a_shape, b_indices, b_values, b_shape,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2375,11 +2382,11 @@ def sparse_sparse_maximum(a_indices, a_values, a_shape, b_indices, b_values, b_s
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sparse_sparse_maximum_eager_fallback(a_indices, a_values, a_shape, b_indices, b_values, b_shape, name=None):
+def sparse_sparse_maximum_eager_fallback(a_indices, a_values, a_shape, b_indices, b_values, b_shape, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sparse_sparse_maximum
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, _inputs_T = _execute.args_to_matching_eager([a_values, b_values], _ctx)
   (a_values, b_values) = _inputs_T
   a_indices = _ops.convert_to_tensor(a_indices, _dtypes.int64)
@@ -2428,8 +2435,8 @@ def sparse_sparse_minimum(a_indices, a_values, a_shape, b_indices, b_values, b_s
     output_indices: A `Tensor` of type `int64`.
     output_values: A `Tensor`. Has the same type as `a_values`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "SparseSparseMinimum", a_indices=a_indices, a_values=a_values,
         a_shape=a_shape, b_indices=b_indices, b_values=b_values,
@@ -2445,15 +2452,15 @@ def sparse_sparse_minimum(a_indices, a_values, a_shape, b_indices, b_values, b_s
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SparseSparseMinimum", name,
-        _ctx._post_execution_callbacks, a_indices, a_values, a_shape,
-        b_indices, b_values, b_shape)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SparseSparseMinimum", name, _ctx._post_execution_callbacks,
+        a_indices, a_values, a_shape, b_indices, b_values, b_shape)
       _result = _SparseSparseMinimumOutput._make(_result)
       return _result
     except _core._FallbackException:
       return sparse_sparse_minimum_eager_fallback(
           a_indices, a_values, a_shape, b_indices, b_values, b_shape,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2462,11 +2469,11 @@ def sparse_sparse_minimum(a_indices, a_values, a_shape, b_indices, b_values, b_s
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sparse_sparse_minimum_eager_fallback(a_indices, a_values, a_shape, b_indices, b_values, b_shape, name=None):
+def sparse_sparse_minimum_eager_fallback(a_indices, a_values, a_shape, b_indices, b_values, b_shape, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sparse_sparse_minimum
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, _inputs_T = _execute.args_to_matching_eager([a_values, b_values], _ctx)
   (a_values, b_values) = _inputs_T
   a_indices = _ops.convert_to_tensor(a_indices, _dtypes.int64)
@@ -2530,8 +2537,8 @@ def sparse_split(split_dim, indices, values, shape, num_split, name=None):
     output_values: A list of `num_split` `Tensor` objects with the same type as `values`.
     output_shape: A list of `num_split` `Tensor` objects with type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     num_split = _execute.make_int(num_split, "num_split")
     _, _, _op = _op_def_lib._apply_op_helper(
         "SparseSplit", split_dim=split_dim, indices=indices, values=values,
@@ -2550,14 +2557,15 @@ def sparse_split(split_dim, indices, values, shape, num_split, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SparseSplit", name,
-        _ctx._post_execution_callbacks, split_dim, indices, values, shape,
-        "num_split", num_split)
+        _ctx._context_handle, _ctx._eager_context.device_name, "SparseSplit",
+        name, _ctx._post_execution_callbacks, split_dim, indices, values,
+        shape, "num_split", num_split)
       _result = _SparseSplitOutput._make(_result)
       return _result
     except _core._FallbackException:
       return sparse_split_eager_fallback(
-          split_dim, indices, values, shape, num_split=num_split, name=name)
+          split_dim, indices, values, shape, num_split=num_split, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2566,11 +2574,11 @@ def sparse_split(split_dim, indices, values, shape, num_split, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sparse_split_eager_fallback(split_dim, indices, values, shape, num_split, name=None):
+def sparse_split_eager_fallback(split_dim, indices, values, shape, num_split, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sparse_split
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   num_split = _execute.make_int(num_split, "num_split")
   _attr_T, (values,) = _execute.args_to_matching_eager([values], _ctx)
   split_dim = _ops.convert_to_tensor(split_dim, _dtypes.int64)
@@ -2609,8 +2617,8 @@ def sparse_tensor_dense_add(a_indices, a_values, a_shape, b, name=None):
   Returns:
     A `Tensor`. Has the same type as `a_values`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "SparseTensorDenseAdd", a_indices=a_indices, a_values=a_values,
         a_shape=a_shape, b=b, name=name)
@@ -2625,12 +2633,13 @@ def sparse_tensor_dense_add(a_indices, a_values, a_shape, b, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SparseTensorDenseAdd", name,
-        _ctx._post_execution_callbacks, a_indices, a_values, a_shape, b)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SparseTensorDenseAdd", name, _ctx._post_execution_callbacks,
+        a_indices, a_values, a_shape, b)
       return _result
     except _core._FallbackException:
       return sparse_tensor_dense_add_eager_fallback(
-          a_indices, a_values, a_shape, b, name=name)
+          a_indices, a_values, a_shape, b, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2639,11 +2648,11 @@ def sparse_tensor_dense_add(a_indices, a_values, a_shape, b, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sparse_tensor_dense_add_eager_fallback(a_indices, a_values, a_shape, b, name=None):
+def sparse_tensor_dense_add_eager_fallback(a_indices, a_values, a_shape, b, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sparse_tensor_dense_add
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, _inputs_T = _execute.args_to_matching_eager([a_values, b], _ctx)
   (a_values, b) = _inputs_T
   _attr_Tindices, _inputs_Tindices = _execute.args_to_matching_eager([a_indices, a_shape], _ctx)
@@ -2691,8 +2700,8 @@ def sparse_tensor_dense_mat_mul(a_indices, a_values, a_shape, b, adjoint_a=False
   Returns:
     A `Tensor`. Has the same type as `a_values`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if adjoint_a is None:
       adjoint_a = False
     adjoint_a = _execute.make_bool(adjoint_a, "adjoint_a")
@@ -2716,14 +2725,15 @@ def sparse_tensor_dense_mat_mul(a_indices, a_values, a_shape, b, adjoint_a=False
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SparseTensorDenseMatMul", name,
-        _ctx._post_execution_callbacks, a_indices, a_values, a_shape, b,
-        "adjoint_a", adjoint_a, "adjoint_b", adjoint_b)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SparseTensorDenseMatMul", name, _ctx._post_execution_callbacks,
+        a_indices, a_values, a_shape, b, "adjoint_a", adjoint_a, "adjoint_b",
+        adjoint_b)
       return _result
     except _core._FallbackException:
       return sparse_tensor_dense_mat_mul_eager_fallback(
           a_indices, a_values, a_shape, b, adjoint_a=adjoint_a,
-          adjoint_b=adjoint_b, name=name)
+          adjoint_b=adjoint_b, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2732,11 +2742,11 @@ def sparse_tensor_dense_mat_mul(a_indices, a_values, a_shape, b, adjoint_a=False
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sparse_tensor_dense_mat_mul_eager_fallback(a_indices, a_values, a_shape, b, adjoint_a=False, adjoint_b=False, name=None):
+def sparse_tensor_dense_mat_mul_eager_fallback(a_indices, a_values, a_shape, b, adjoint_a=False, adjoint_b=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sparse_tensor_dense_mat_mul
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if adjoint_a is None:
     adjoint_a = False
   adjoint_a = _execute.make_bool(adjoint_a, "adjoint_a")
@@ -2802,8 +2812,8 @@ def sparse_to_dense(sparse_indices, output_shape, sparse_values, default_value, 
   Returns:
     A `Tensor`. Has the same type as `sparse_values`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if validate_indices is None:
       validate_indices = True
     validate_indices = _execute.make_bool(validate_indices, "validate_indices")
@@ -2824,14 +2834,15 @@ def sparse_to_dense(sparse_indices, output_shape, sparse_values, default_value, 
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SparseToDense", name,
-        _ctx._post_execution_callbacks, sparse_indices, output_shape,
-        sparse_values, default_value, "validate_indices", validate_indices)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SparseToDense", name, _ctx._post_execution_callbacks, sparse_indices,
+        output_shape, sparse_values, default_value, "validate_indices",
+        validate_indices)
       return _result
     except _core._FallbackException:
       return sparse_to_dense_eager_fallback(
           sparse_indices, output_shape, sparse_values, default_value,
-          validate_indices=validate_indices, name=name)
+          validate_indices=validate_indices, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2840,11 +2851,11 @@ def sparse_to_dense(sparse_indices, output_shape, sparse_values, default_value, 
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sparse_to_dense_eager_fallback(sparse_indices, output_shape, sparse_values, default_value, validate_indices=True, name=None):
+def sparse_to_dense_eager_fallback(sparse_indices, output_shape, sparse_values, default_value, validate_indices=True, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sparse_to_dense
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if validate_indices is None:
     validate_indices = True
   validate_indices = _execute.make_bool(validate_indices, "validate_indices")
@@ -2944,8 +2955,8 @@ def take_many_sparse_from_tensors_map(sparse_handles, dtype, container="", share
     sparse_values: A `Tensor` of type `dtype`.
     sparse_shape: A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     dtype = _execute.make_type(dtype, "dtype")
     if container is None:
       container = ""
@@ -2969,15 +2980,16 @@ def take_many_sparse_from_tensors_map(sparse_handles, dtype, container="", share
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "TakeManySparseFromTensorsMap", name,
-        _ctx._post_execution_callbacks, sparse_handles, "dtype", dtype,
-        "container", container, "shared_name", shared_name)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "TakeManySparseFromTensorsMap", name, _ctx._post_execution_callbacks,
+        sparse_handles, "dtype", dtype, "container", container, "shared_name",
+        shared_name)
       _result = _TakeManySparseFromTensorsMapOutput._make(_result)
       return _result
     except _core._FallbackException:
       return take_many_sparse_from_tensors_map_eager_fallback(
           sparse_handles, dtype=dtype, container=container,
-          shared_name=shared_name, name=name)
+          shared_name=shared_name, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2986,11 +2998,11 @@ def take_many_sparse_from_tensors_map(sparse_handles, dtype, container="", share
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def take_many_sparse_from_tensors_map_eager_fallback(sparse_handles, dtype, container="", shared_name="", name=None):
+def take_many_sparse_from_tensors_map_eager_fallback(sparse_handles, dtype, container="", shared_name="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function take_many_sparse_from_tensors_map
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   dtype = _execute.make_type(dtype, "dtype")
   if container is None:
     container = ""

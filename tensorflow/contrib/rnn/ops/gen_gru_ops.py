@@ -54,7 +54,7 @@ def gru_block_cell(x, h_prev, w_ru, w_c, b_ru, b_c, name=None):
   Element-wise dot product is represented by \circ
   Matrix multiplication is represented by *
 
-  Baises are initialized with :
+  Biases are initialized with :
   `b_ru` - constant_initializer(1.0)
   `b_c` - constant_initializer(0.0)
 
@@ -95,8 +95,8 @@ def gru_block_cell(x, h_prev, w_ru, w_c, b_ru, b_c, name=None):
     c: A `Tensor`. Has the same type as `x`.
     h: A `Tensor`. Has the same type as `x`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "GRUBlockCell", x=x, h_prev=h_prev, w_ru=w_ru, w_c=w_c, b_ru=b_ru,
         b_c=b_c, name=name)
@@ -111,13 +111,13 @@ def gru_block_cell(x, h_prev, w_ru, w_c, b_ru, b_c, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "GRUBlockCell", name,
-        _ctx._post_execution_callbacks, x, h_prev, w_ru, w_c, b_ru, b_c)
+        _ctx._context_handle, _ctx._eager_context.device_name, "GRUBlockCell",
+        name, _ctx._post_execution_callbacks, x, h_prev, w_ru, w_c, b_ru, b_c)
       _result = _GRUBlockCellOutput._make(_result)
       return _result
     except _core._FallbackException:
       return gru_block_cell_eager_fallback(
-          x, h_prev, w_ru, w_c, b_ru, b_c, name=name)
+          x, h_prev, w_ru, w_c, b_ru, b_c, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -126,11 +126,11 @@ def gru_block_cell(x, h_prev, w_ru, w_c, b_ru, b_c, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def gru_block_cell_eager_fallback(x, h_prev, w_ru, w_c, b_ru, b_c, name=None):
+def gru_block_cell_eager_fallback(x, h_prev, w_ru, w_c, b_ru, b_c, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function gru_block_cell
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, _inputs_T = _execute.args_to_matching_eager([x, h_prev, w_ru, w_c, b_ru, b_c], _ctx)
   (x, h_prev, w_ru, w_c, b_ru, b_c) = _inputs_T
   _inputs_flat = [x, h_prev, w_ru, w_c, b_ru, b_c]
@@ -256,8 +256,8 @@ def gru_block_cell_grad(x, h_prev, w_ru, w_c, b_ru, b_c, r, u, c, d_h, name=None
     d_c_bar: A `Tensor`. Has the same type as `x`.
     d_r_bar_u_bar: A `Tensor`. Has the same type as `x`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "GRUBlockCellGrad", x=x, h_prev=h_prev, w_ru=w_ru, w_c=w_c, b_ru=b_ru,
         b_c=b_c, r=r, u=u, c=c, d_h=d_h, name=name)
@@ -272,14 +272,14 @@ def gru_block_cell_grad(x, h_prev, w_ru, w_c, b_ru, b_c, r, u, c, d_h, name=None
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "GRUBlockCellGrad", name,
-        _ctx._post_execution_callbacks, x, h_prev, w_ru, w_c, b_ru, b_c, r, u,
-        c, d_h)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "GRUBlockCellGrad", name, _ctx._post_execution_callbacks, x, h_prev,
+        w_ru, w_c, b_ru, b_c, r, u, c, d_h)
       _result = _GRUBlockCellGradOutput._make(_result)
       return _result
     except _core._FallbackException:
       return gru_block_cell_grad_eager_fallback(
-          x, h_prev, w_ru, w_c, b_ru, b_c, r, u, c, d_h, name=name)
+          x, h_prev, w_ru, w_c, b_ru, b_c, r, u, c, d_h, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -288,11 +288,11 @@ def gru_block_cell_grad(x, h_prev, w_ru, w_c, b_ru, b_c, r, u, c, d_h, name=None
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def gru_block_cell_grad_eager_fallback(x, h_prev, w_ru, w_c, b_ru, b_c, r, u, c, d_h, name=None):
+def gru_block_cell_grad_eager_fallback(x, h_prev, w_ru, w_c, b_ru, b_c, r, u, c, d_h, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function gru_block_cell_grad
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, _inputs_T = _execute.args_to_matching_eager([x, h_prev, w_ru, w_c, b_ru, b_c, r, u, c, d_h], _ctx)
   (x, h_prev, w_ru, w_c, b_ru, b_c, r, u, c, d_h) = _inputs_T
   _inputs_flat = [x, h_prev, w_ru, w_c, b_ru, b_c, r, u, c, d_h]

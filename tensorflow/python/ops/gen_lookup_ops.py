@@ -48,8 +48,8 @@ def hash_table(key_dtype, value_dtype, container="", shared_name="", use_node_na
   Returns:
     A `Tensor` of type mutable `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     key_dtype = _execute.make_type(key_dtype, "key_dtype")
     value_dtype = _execute.make_type(value_dtype, "value_dtype")
     if container is None:
@@ -107,8 +107,8 @@ def hash_table_v2(key_dtype, value_dtype, container="", shared_name="", use_node
   Returns:
     A `Tensor` of type `resource`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     key_dtype = _execute.make_type(key_dtype, "key_dtype")
     value_dtype = _execute.make_type(value_dtype, "value_dtype")
     if container is None:
@@ -139,16 +139,17 @@ def hash_table_v2(key_dtype, value_dtype, container="", shared_name="", use_node
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "HashTableV2", name,
-        _ctx._post_execution_callbacks, "container", container, "shared_name",
-        shared_name, "use_node_name_sharing", use_node_name_sharing,
-        "key_dtype", key_dtype, "value_dtype", value_dtype)
+        _ctx._context_handle, _ctx._eager_context.device_name, "HashTableV2",
+        name, _ctx._post_execution_callbacks, "container", container,
+        "shared_name", shared_name, "use_node_name_sharing",
+        use_node_name_sharing, "key_dtype", key_dtype, "value_dtype",
+        value_dtype)
       return _result
     except _core._FallbackException:
       return hash_table_v2_eager_fallback(
           container=container, shared_name=shared_name,
           use_node_name_sharing=use_node_name_sharing, key_dtype=key_dtype,
-          value_dtype=value_dtype, name=name)
+          value_dtype=value_dtype, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -157,11 +158,11 @@ def hash_table_v2(key_dtype, value_dtype, container="", shared_name="", use_node
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def hash_table_v2_eager_fallback(key_dtype, value_dtype, container="", shared_name="", use_node_name_sharing=False, name=None):
+def hash_table_v2_eager_fallback(key_dtype, value_dtype, container="", shared_name="", use_node_name_sharing=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function hash_table_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   key_dtype = _execute.make_type(key_dtype, "key_dtype")
   value_dtype = _execute.make_type(value_dtype, "value_dtype")
   if container is None:
@@ -198,8 +199,8 @@ def initialize_table(table_handle, keys, values, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "InitializeTable", table_handle=table_handle, keys=keys,
         values=values, name=name)
@@ -245,8 +246,8 @@ def initialize_table_from_text_file(table_handle, filename, key_index, value_ind
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     key_index = _execute.make_int(key_index, "key_index")
     value_index = _execute.make_int(value_index, "value_index")
     if vocab_size is None:
@@ -301,8 +302,8 @@ def initialize_table_from_text_file_v2(table_handle, filename, key_index, value_
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     key_index = _execute.make_int(key_index, "key_index")
     value_index = _execute.make_int(value_index, "value_index")
     if vocab_size is None:
@@ -322,16 +323,16 @@ def initialize_table_from_text_file_v2(table_handle, filename, key_index, value_
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "InitializeTableFromTextFileV2", name,
-        _ctx._post_execution_callbacks, table_handle, filename, "key_index",
-        key_index, "value_index", value_index, "vocab_size", vocab_size,
-        "delimiter", delimiter)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "InitializeTableFromTextFileV2", name, _ctx._post_execution_callbacks,
+        table_handle, filename, "key_index", key_index, "value_index",
+        value_index, "vocab_size", vocab_size, "delimiter", delimiter)
       return _result
     except _core._FallbackException:
       return initialize_table_from_text_file_v2_eager_fallback(
           table_handle, filename, key_index=key_index,
           value_index=value_index, vocab_size=vocab_size, delimiter=delimiter,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -340,11 +341,11 @@ def initialize_table_from_text_file_v2(table_handle, filename, key_index, value_
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def initialize_table_from_text_file_v2_eager_fallback(table_handle, filename, key_index, value_index, vocab_size=-1, delimiter="\t", name=None):
+def initialize_table_from_text_file_v2_eager_fallback(table_handle, filename, key_index, value_index, vocab_size=-1, delimiter="\t", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function initialize_table_from_text_file_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   key_index = _execute.make_int(key_index, "key_index")
   value_index = _execute.make_int(value_index, "value_index")
   if vocab_size is None:
@@ -378,8 +379,8 @@ def initialize_table_v2(table_handle, keys, values, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "InitializeTableV2", table_handle=table_handle, keys=keys,
         values=values, name=name)
@@ -390,12 +391,13 @@ def initialize_table_v2(table_handle, keys, values, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "InitializeTableV2", name,
-        _ctx._post_execution_callbacks, table_handle, keys, values)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "InitializeTableV2", name, _ctx._post_execution_callbacks,
+        table_handle, keys, values)
       return _result
     except _core._FallbackException:
       return initialize_table_v2_eager_fallback(
-          table_handle, keys, values, name=name)
+          table_handle, keys, values, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -404,11 +406,11 @@ def initialize_table_v2(table_handle, keys, values, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def initialize_table_v2_eager_fallback(table_handle, keys, values, name=None):
+def initialize_table_v2_eager_fallback(table_handle, keys, values, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function initialize_table_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_Tkey, (keys,) = _execute.args_to_matching_eager([keys], _ctx)
   _attr_Tval, (values,) = _execute.args_to_matching_eager([values], _ctx)
   table_handle = _ops.convert_to_tensor(table_handle, _dtypes.resource)
@@ -440,8 +442,8 @@ def lookup_table_export(table_handle, Tkeys, Tvalues, name=None):
     keys: A `Tensor` of type `Tkeys`.
     values: A `Tensor` of type `Tvalues`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     Tkeys = _execute.make_type(Tkeys, "Tkeys")
     Tvalues = _execute.make_type(Tvalues, "Tvalues")
     _, _, _op = _op_def_lib._apply_op_helper(
@@ -482,8 +484,8 @@ def lookup_table_export_v2(table_handle, Tkeys, Tvalues, name=None):
     keys: A `Tensor` of type `Tkeys`.
     values: A `Tensor` of type `Tvalues`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     Tkeys = _execute.make_type(Tkeys, "Tkeys")
     Tvalues = _execute.make_type(Tvalues, "Tvalues")
     _, _, _op = _op_def_lib._apply_op_helper(
@@ -501,14 +503,14 @@ def lookup_table_export_v2(table_handle, Tkeys, Tvalues, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "LookupTableExportV2", name,
-        _ctx._post_execution_callbacks, table_handle, "Tkeys", Tkeys,
-        "Tvalues", Tvalues)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "LookupTableExportV2", name, _ctx._post_execution_callbacks,
+        table_handle, "Tkeys", Tkeys, "Tvalues", Tvalues)
       _result = _LookupTableExportV2Output._make(_result)
       return _result
     except _core._FallbackException:
       return lookup_table_export_v2_eager_fallback(
-          table_handle, Tkeys=Tkeys, Tvalues=Tvalues, name=name)
+          table_handle, Tkeys=Tkeys, Tvalues=Tvalues, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -517,11 +519,11 @@ def lookup_table_export_v2(table_handle, Tkeys, Tvalues, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def lookup_table_export_v2_eager_fallback(table_handle, Tkeys, Tvalues, name=None):
+def lookup_table_export_v2_eager_fallback(table_handle, Tkeys, Tvalues, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function lookup_table_export_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   Tkeys = _execute.make_type(Tkeys, "Tkeys")
   Tvalues = _execute.make_type(Tvalues, "Tvalues")
   table_handle = _ops.convert_to_tensor(table_handle, _dtypes.resource)
@@ -553,8 +555,8 @@ def lookup_table_find(table_handle, keys, default_value, name=None):
   Returns:
     A `Tensor`. Has the same type as `default_value`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "LookupTableFind", table_handle=table_handle, keys=keys,
         default_value=default_value, name=name)
@@ -590,8 +592,8 @@ def lookup_table_find_v2(table_handle, keys, default_value, name=None):
   Returns:
     A `Tensor`. Has the same type as `default_value`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "LookupTableFindV2", table_handle=table_handle, keys=keys,
         default_value=default_value, name=name)
@@ -606,12 +608,13 @@ def lookup_table_find_v2(table_handle, keys, default_value, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "LookupTableFindV2", name,
-        _ctx._post_execution_callbacks, table_handle, keys, default_value)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "LookupTableFindV2", name, _ctx._post_execution_callbacks,
+        table_handle, keys, default_value)
       return _result
     except _core._FallbackException:
       return lookup_table_find_v2_eager_fallback(
-          table_handle, keys, default_value, name=name)
+          table_handle, keys, default_value, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -620,11 +623,11 @@ def lookup_table_find_v2(table_handle, keys, default_value, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def lookup_table_find_v2_eager_fallback(table_handle, keys, default_value, name=None):
+def lookup_table_find_v2_eager_fallback(table_handle, keys, default_value, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function lookup_table_find_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_Tin, (keys,) = _execute.args_to_matching_eager([keys], _ctx)
   _attr_Tout, (default_value,) = _execute.args_to_matching_eager([default_value], _ctx)
   table_handle = _ops.convert_to_tensor(table_handle, _dtypes.resource)
@@ -653,8 +656,8 @@ def lookup_table_import(table_handle, keys, values, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "LookupTableImport", table_handle=table_handle, keys=keys,
         values=values, name=name)
@@ -683,8 +686,8 @@ def lookup_table_import_v2(table_handle, keys, values, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "LookupTableImportV2", table_handle=table_handle, keys=keys,
         values=values, name=name)
@@ -695,12 +698,13 @@ def lookup_table_import_v2(table_handle, keys, values, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "LookupTableImportV2", name,
-        _ctx._post_execution_callbacks, table_handle, keys, values)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "LookupTableImportV2", name, _ctx._post_execution_callbacks,
+        table_handle, keys, values)
       return _result
     except _core._FallbackException:
       return lookup_table_import_v2_eager_fallback(
-          table_handle, keys, values, name=name)
+          table_handle, keys, values, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -709,11 +713,11 @@ def lookup_table_import_v2(table_handle, keys, values, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def lookup_table_import_v2_eager_fallback(table_handle, keys, values, name=None):
+def lookup_table_import_v2_eager_fallback(table_handle, keys, values, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function lookup_table_import_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_Tin, (keys,) = _execute.args_to_matching_eager([keys], _ctx)
   _attr_Tout, (values,) = _execute.args_to_matching_eager([values], _ctx)
   table_handle = _ops.convert_to_tensor(table_handle, _dtypes.resource)
@@ -740,8 +744,8 @@ def lookup_table_insert(table_handle, keys, values, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "LookupTableInsert", table_handle=table_handle, keys=keys,
         values=values, name=name)
@@ -770,8 +774,8 @@ def lookup_table_insert_v2(table_handle, keys, values, name=None):
   Returns:
     The created Operation.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "LookupTableInsertV2", table_handle=table_handle, keys=keys,
         values=values, name=name)
@@ -782,12 +786,13 @@ def lookup_table_insert_v2(table_handle, keys, values, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "LookupTableInsertV2", name,
-        _ctx._post_execution_callbacks, table_handle, keys, values)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "LookupTableInsertV2", name, _ctx._post_execution_callbacks,
+        table_handle, keys, values)
       return _result
     except _core._FallbackException:
       return lookup_table_insert_v2_eager_fallback(
-          table_handle, keys, values, name=name)
+          table_handle, keys, values, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -796,11 +801,11 @@ def lookup_table_insert_v2(table_handle, keys, values, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def lookup_table_insert_v2_eager_fallback(table_handle, keys, values, name=None):
+def lookup_table_insert_v2_eager_fallback(table_handle, keys, values, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function lookup_table_insert_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_Tin, (keys,) = _execute.args_to_matching_eager([keys], _ctx)
   _attr_Tout, (values,) = _execute.args_to_matching_eager([values], _ctx)
   table_handle = _ops.convert_to_tensor(table_handle, _dtypes.resource)
@@ -822,8 +827,8 @@ def lookup_table_size(table_handle, name=None):
   Returns:
     A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "LookupTableSize", table_handle=table_handle, name=name)
     _result = _op.outputs[:]
@@ -850,8 +855,8 @@ def lookup_table_size_v2(table_handle, name=None):
   Returns:
     A `Tensor` of type `int64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "LookupTableSizeV2", table_handle=table_handle, name=name)
     _result = _op.outputs[:]
@@ -865,12 +870,13 @@ def lookup_table_size_v2(table_handle, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "LookupTableSizeV2", name,
-        _ctx._post_execution_callbacks, table_handle)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "LookupTableSizeV2", name, _ctx._post_execution_callbacks,
+        table_handle)
       return _result
     except _core._FallbackException:
       return lookup_table_size_v2_eager_fallback(
-          table_handle, name=name)
+          table_handle, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -879,11 +885,11 @@ def lookup_table_size_v2(table_handle, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def lookup_table_size_v2_eager_fallback(table_handle, name=None):
+def lookup_table_size_v2_eager_fallback(table_handle, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function lookup_table_size_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   table_handle = _ops.convert_to_tensor(table_handle, _dtypes.resource)
   _inputs_flat = [table_handle]
   _attrs = None
@@ -930,8 +936,8 @@ def mutable_dense_hash_table(empty_key, value_dtype, container="", shared_name="
   Returns:
     A `Tensor` of type mutable `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     value_dtype = _execute.make_type(value_dtype, "value_dtype")
     if container is None:
       container = ""
@@ -1013,8 +1019,8 @@ def mutable_dense_hash_table_v2(empty_key, value_dtype, container="", shared_nam
   Returns:
     A `Tensor` of type `resource`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     value_dtype = _execute.make_type(value_dtype, "value_dtype")
     if container is None:
       container = ""
@@ -1058,12 +1064,12 @@ def mutable_dense_hash_table_v2(empty_key, value_dtype, container="", shared_nam
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MutableDenseHashTableV2", name,
-        _ctx._post_execution_callbacks, empty_key, "container", container,
-        "shared_name", shared_name, "use_node_name_sharing",
-        use_node_name_sharing, "value_dtype", value_dtype, "value_shape",
-        value_shape, "initial_num_buckets", initial_num_buckets,
-        "max_load_factor", max_load_factor)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "MutableDenseHashTableV2", name, _ctx._post_execution_callbacks,
+        empty_key, "container", container, "shared_name", shared_name,
+        "use_node_name_sharing", use_node_name_sharing, "value_dtype",
+        value_dtype, "value_shape", value_shape, "initial_num_buckets",
+        initial_num_buckets, "max_load_factor", max_load_factor)
       return _result
     except _core._FallbackException:
       return mutable_dense_hash_table_v2_eager_fallback(
@@ -1071,7 +1077,7 @@ def mutable_dense_hash_table_v2(empty_key, value_dtype, container="", shared_nam
           use_node_name_sharing=use_node_name_sharing,
           value_dtype=value_dtype, value_shape=value_shape,
           initial_num_buckets=initial_num_buckets,
-          max_load_factor=max_load_factor, name=name)
+          max_load_factor=max_load_factor, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1080,11 +1086,11 @@ def mutable_dense_hash_table_v2(empty_key, value_dtype, container="", shared_nam
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def mutable_dense_hash_table_v2_eager_fallback(empty_key, value_dtype, container="", shared_name="", use_node_name_sharing=False, value_shape=[], initial_num_buckets=131072, max_load_factor=0.8, name=None):
+def mutable_dense_hash_table_v2_eager_fallback(empty_key, value_dtype, container="", shared_name="", use_node_name_sharing=False, value_shape=[], initial_num_buckets=131072, max_load_factor=0.8, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function mutable_dense_hash_table_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   value_dtype = _execute.make_type(value_dtype, "value_dtype")
   if container is None:
     container = ""
@@ -1144,8 +1150,8 @@ def mutable_hash_table(key_dtype, value_dtype, container="", shared_name="", use
   Returns:
     A `Tensor` of type mutable `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     key_dtype = _execute.make_type(key_dtype, "key_dtype")
     value_dtype = _execute.make_type(value_dtype, "value_dtype")
     if container is None:
@@ -1202,8 +1208,8 @@ def mutable_hash_table_of_tensors(key_dtype, value_dtype, container="", shared_n
   Returns:
     A `Tensor` of type mutable `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     key_dtype = _execute.make_type(key_dtype, "key_dtype")
     value_dtype = _execute.make_type(value_dtype, "value_dtype")
     if container is None:
@@ -1265,8 +1271,8 @@ def mutable_hash_table_of_tensors_v2(key_dtype, value_dtype, container="", share
   Returns:
     A `Tensor` of type `resource`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     key_dtype = _execute.make_type(key_dtype, "key_dtype")
     value_dtype = _execute.make_type(value_dtype, "value_dtype")
     if container is None:
@@ -1302,17 +1308,18 @@ def mutable_hash_table_of_tensors_v2(key_dtype, value_dtype, container="", share
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MutableHashTableOfTensorsV2", name,
-        _ctx._post_execution_callbacks, "container", container, "shared_name",
-        shared_name, "use_node_name_sharing", use_node_name_sharing,
-        "key_dtype", key_dtype, "value_dtype", value_dtype, "value_shape",
-        value_shape)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "MutableHashTableOfTensorsV2", name, _ctx._post_execution_callbacks,
+        "container", container, "shared_name", shared_name,
+        "use_node_name_sharing", use_node_name_sharing, "key_dtype",
+        key_dtype, "value_dtype", value_dtype, "value_shape", value_shape)
       return _result
     except _core._FallbackException:
       return mutable_hash_table_of_tensors_v2_eager_fallback(
           container=container, shared_name=shared_name,
           use_node_name_sharing=use_node_name_sharing, key_dtype=key_dtype,
-          value_dtype=value_dtype, value_shape=value_shape, name=name)
+          value_dtype=value_dtype, value_shape=value_shape, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1321,11 +1328,11 @@ def mutable_hash_table_of_tensors_v2(key_dtype, value_dtype, container="", share
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def mutable_hash_table_of_tensors_v2_eager_fallback(key_dtype, value_dtype, container="", shared_name="", use_node_name_sharing=False, value_shape=[], name=None):
+def mutable_hash_table_of_tensors_v2_eager_fallback(key_dtype, value_dtype, container="", shared_name="", use_node_name_sharing=False, value_shape=[], name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function mutable_hash_table_of_tensors_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   key_dtype = _execute.make_type(key_dtype, "key_dtype")
   value_dtype = _execute.make_type(value_dtype, "value_dtype")
   if container is None:
@@ -1377,8 +1384,8 @@ def mutable_hash_table_v2(key_dtype, value_dtype, container="", shared_name="", 
   Returns:
     A `Tensor` of type `resource`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     key_dtype = _execute.make_type(key_dtype, "key_dtype")
     value_dtype = _execute.make_type(value_dtype, "value_dtype")
     if container is None:
@@ -1409,16 +1416,17 @@ def mutable_hash_table_v2(key_dtype, value_dtype, container="", shared_name="", 
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MutableHashTableV2", name,
-        _ctx._post_execution_callbacks, "container", container, "shared_name",
-        shared_name, "use_node_name_sharing", use_node_name_sharing,
-        "key_dtype", key_dtype, "value_dtype", value_dtype)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "MutableHashTableV2", name, _ctx._post_execution_callbacks,
+        "container", container, "shared_name", shared_name,
+        "use_node_name_sharing", use_node_name_sharing, "key_dtype",
+        key_dtype, "value_dtype", value_dtype)
       return _result
     except _core._FallbackException:
       return mutable_hash_table_v2_eager_fallback(
           container=container, shared_name=shared_name,
           use_node_name_sharing=use_node_name_sharing, key_dtype=key_dtype,
-          value_dtype=value_dtype, name=name)
+          value_dtype=value_dtype, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1427,11 +1435,11 @@ def mutable_hash_table_v2(key_dtype, value_dtype, container="", shared_name="", 
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def mutable_hash_table_v2_eager_fallback(key_dtype, value_dtype, container="", shared_name="", use_node_name_sharing=False, name=None):
+def mutable_hash_table_v2_eager_fallback(key_dtype, value_dtype, container="", shared_name="", use_node_name_sharing=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function mutable_hash_table_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   key_dtype = _execute.make_type(key_dtype, "key_dtype")
   value_dtype = _execute.make_type(value_dtype, "value_dtype")
   if container is None:

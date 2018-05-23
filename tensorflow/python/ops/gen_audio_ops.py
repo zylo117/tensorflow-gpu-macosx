@@ -69,8 +69,8 @@ def audio_spectrogram(input, window_size, stride, magnitude_squared=False, name=
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     window_size = _execute.make_int(window_size, "window_size")
     stride = _execute.make_int(stride, "stride")
     if magnitude_squared is None:
@@ -92,14 +92,15 @@ def audio_spectrogram(input, window_size, stride, magnitude_squared=False, name=
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "AudioSpectrogram", name,
-        _ctx._post_execution_callbacks, input, "window_size", window_size,
-        "stride", stride, "magnitude_squared", magnitude_squared)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "AudioSpectrogram", name, _ctx._post_execution_callbacks, input,
+        "window_size", window_size, "stride", stride, "magnitude_squared",
+        magnitude_squared)
       return _result
     except _core._FallbackException:
       return audio_spectrogram_eager_fallback(
           input, window_size=window_size, stride=stride,
-          magnitude_squared=magnitude_squared, name=name)
+          magnitude_squared=magnitude_squared, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -108,11 +109,11 @@ def audio_spectrogram(input, window_size, stride, magnitude_squared=False, name=
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def audio_spectrogram_eager_fallback(input, window_size, stride, magnitude_squared=False, name=None):
+def audio_spectrogram_eager_fallback(input, window_size, stride, magnitude_squared=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function audio_spectrogram
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   window_size = _execute.make_int(window_size, "window_size")
   stride = _execute.make_int(stride, "stride")
   if magnitude_squared is None:
@@ -169,8 +170,8 @@ def decode_wav(contents, desired_channels=-1, desired_samples=-1, name=None):
     audio: A `Tensor` of type `float32`.
     sample_rate: A `Tensor` of type `int32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if desired_channels is None:
       desired_channels = -1
     desired_channels = _execute.make_int(desired_channels, "desired_channels")
@@ -192,15 +193,15 @@ def decode_wav(contents, desired_channels=-1, desired_samples=-1, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DecodeWav", name,
-        _ctx._post_execution_callbacks, contents, "desired_channels",
+        _ctx._context_handle, _ctx._eager_context.device_name, "DecodeWav",
+        name, _ctx._post_execution_callbacks, contents, "desired_channels",
         desired_channels, "desired_samples", desired_samples)
       _result = _DecodeWavOutput._make(_result)
       return _result
     except _core._FallbackException:
       return decode_wav_eager_fallback(
           contents, desired_channels=desired_channels,
-          desired_samples=desired_samples, name=name)
+          desired_samples=desired_samples, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -209,11 +210,11 @@ def decode_wav(contents, desired_channels=-1, desired_samples=-1, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def decode_wav_eager_fallback(contents, desired_channels=-1, desired_samples=-1, name=None):
+def decode_wav_eager_fallback(contents, desired_channels=-1, desired_samples=-1, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function decode_wav
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if desired_channels is None:
     desired_channels = -1
   desired_channels = _execute.make_int(desired_channels, "desired_channels")
@@ -253,8 +254,8 @@ def encode_wav(audio, sample_rate, name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "EncodeWav", audio=audio, sample_rate=sample_rate, name=name)
     _result = _op.outputs[:]
@@ -268,12 +269,12 @@ def encode_wav(audio, sample_rate, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "EncodeWav", name,
-        _ctx._post_execution_callbacks, audio, sample_rate)
+        _ctx._context_handle, _ctx._eager_context.device_name, "EncodeWav",
+        name, _ctx._post_execution_callbacks, audio, sample_rate)
       return _result
     except _core._FallbackException:
       return encode_wav_eager_fallback(
-          audio, sample_rate, name=name)
+          audio, sample_rate, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -282,11 +283,11 @@ def encode_wav(audio, sample_rate, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def encode_wav_eager_fallback(audio, sample_rate, name=None):
+def encode_wav_eager_fallback(audio, sample_rate, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function encode_wav
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   audio = _ops.convert_to_tensor(audio, _dtypes.float32)
   sample_rate = _ops.convert_to_tensor(sample_rate, _dtypes.int32)
   _inputs_flat = [audio, sample_rate]
@@ -331,8 +332,8 @@ def mfcc(spectrogram, sample_rate, upper_frequency_limit=4000, lower_frequency_l
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if upper_frequency_limit is None:
       upper_frequency_limit = 4000
     upper_frequency_limit = _execute.make_float(upper_frequency_limit, "upper_frequency_limit")
@@ -366,7 +367,7 @@ def mfcc(spectrogram, sample_rate, upper_frequency_limit=4000, lower_frequency_l
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Mfcc", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Mfcc", name,
         _ctx._post_execution_callbacks, spectrogram, sample_rate,
         "upper_frequency_limit", upper_frequency_limit,
         "lower_frequency_limit", lower_frequency_limit,
@@ -379,7 +380,7 @@ def mfcc(spectrogram, sample_rate, upper_frequency_limit=4000, lower_frequency_l
           upper_frequency_limit=upper_frequency_limit,
           lower_frequency_limit=lower_frequency_limit,
           filterbank_channel_count=filterbank_channel_count,
-          dct_coefficient_count=dct_coefficient_count, name=name)
+          dct_coefficient_count=dct_coefficient_count, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -388,11 +389,11 @@ def mfcc(spectrogram, sample_rate, upper_frequency_limit=4000, lower_frequency_l
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def mfcc_eager_fallback(spectrogram, sample_rate, upper_frequency_limit=4000, lower_frequency_limit=20, filterbank_channel_count=40, dct_coefficient_count=13, name=None):
+def mfcc_eager_fallback(spectrogram, sample_rate, upper_frequency_limit=4000, lower_frequency_limit=20, filterbank_channel_count=40, dct_coefficient_count=13, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function mfcc
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if upper_frequency_limit is None:
     upper_frequency_limit = 4000
   upper_frequency_limit = _execute.make_float(upper_frequency_limit, "upper_frequency_limit")

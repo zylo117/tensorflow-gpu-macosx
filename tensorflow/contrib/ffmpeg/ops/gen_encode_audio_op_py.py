@@ -53,8 +53,8 @@ def encode_audio(sampled_audio, file_format, samples_per_second, bits_per_second
   Returns:
     A `Tensor` of type `string`. The binary audio file contents.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     file_format = _execute.make_str(file_format, "file_format")
     samples_per_second = _execute.make_int(samples_per_second, "samples_per_second")
     if bits_per_second is None:
@@ -77,8 +77,8 @@ def encode_audio(sampled_audio, file_format, samples_per_second, bits_per_second
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "EncodeAudio", name,
-        _ctx._post_execution_callbacks, sampled_audio, "file_format",
+        _ctx._context_handle, _ctx._eager_context.device_name, "EncodeAudio",
+        name, _ctx._post_execution_callbacks, sampled_audio, "file_format",
         file_format, "samples_per_second", samples_per_second,
         "bits_per_second", bits_per_second)
       return _result
@@ -86,7 +86,7 @@ def encode_audio(sampled_audio, file_format, samples_per_second, bits_per_second
       return encode_audio_eager_fallback(
           sampled_audio, file_format=file_format,
           samples_per_second=samples_per_second,
-          bits_per_second=bits_per_second, name=name)
+          bits_per_second=bits_per_second, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -95,11 +95,11 @@ def encode_audio(sampled_audio, file_format, samples_per_second, bits_per_second
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def encode_audio_eager_fallback(sampled_audio, file_format, samples_per_second, bits_per_second=192000, name=None):
+def encode_audio_eager_fallback(sampled_audio, file_format, samples_per_second, bits_per_second=192000, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function encode_audio
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   file_format = _execute.make_str(file_format, "file_format")
   samples_per_second = _execute.make_int(samples_per_second, "samples_per_second")
   if bits_per_second is None:
@@ -151,8 +151,8 @@ def encode_audio_v2(sampled_audio, file_format, samples_per_second, bits_per_sec
     A `Tensor` of type `string`.
     The binary audio file contents, as a rank-0 string tensor.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "EncodeAudioV2", sampled_audio=sampled_audio, file_format=file_format,
         samples_per_second=samples_per_second,
@@ -168,14 +168,14 @@ def encode_audio_v2(sampled_audio, file_format, samples_per_second, bits_per_sec
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "EncodeAudioV2", name,
-        _ctx._post_execution_callbacks, sampled_audio, file_format,
-        samples_per_second, bits_per_second)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "EncodeAudioV2", name, _ctx._post_execution_callbacks, sampled_audio,
+        file_format, samples_per_second, bits_per_second)
       return _result
     except _core._FallbackException:
       return encode_audio_v2_eager_fallback(
           sampled_audio, file_format, samples_per_second, bits_per_second,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -184,11 +184,11 @@ def encode_audio_v2(sampled_audio, file_format, samples_per_second, bits_per_sec
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def encode_audio_v2_eager_fallback(sampled_audio, file_format, samples_per_second, bits_per_second, name=None):
+def encode_audio_v2_eager_fallback(sampled_audio, file_format, samples_per_second, bits_per_second, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function encode_audio_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   sampled_audio = _ops.convert_to_tensor(sampled_audio, _dtypes.float32)
   file_format = _ops.convert_to_tensor(file_format, _dtypes.string)
   samples_per_second = _ops.convert_to_tensor(samples_per_second, _dtypes.int32)

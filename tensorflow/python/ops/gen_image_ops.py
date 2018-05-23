@@ -37,8 +37,8 @@ def adjust_contrast(images, contrast_factor, min_value, max_value, name=None):
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "AdjustContrast", images=images, contrast_factor=contrast_factor,
         min_value=min_value, max_value=max_value, name=name)
@@ -53,13 +53,13 @@ def adjust_contrast(images, contrast_factor, min_value, max_value, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "AdjustContrast", name,
-        _ctx._post_execution_callbacks, images, contrast_factor, min_value,
-        max_value)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "AdjustContrast", name, _ctx._post_execution_callbacks, images,
+        contrast_factor, min_value, max_value)
       return _result
     except _core._FallbackException:
       return adjust_contrast_eager_fallback(
-          images, contrast_factor, min_value, max_value, name=name)
+          images, contrast_factor, min_value, max_value, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -68,11 +68,11 @@ def adjust_contrast(images, contrast_factor, min_value, max_value, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def adjust_contrast_eager_fallback(images, contrast_factor, min_value, max_value, name=None):
+def adjust_contrast_eager_fallback(images, contrast_factor, min_value, max_value, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function adjust_contrast
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (images,) = _execute.args_to_matching_eager([images], _ctx)
   contrast_factor = _ops.convert_to_tensor(contrast_factor, _dtypes.float32)
   min_value = _ops.convert_to_tensor(min_value, _dtypes.float32)
@@ -109,8 +109,8 @@ def adjust_contrastv2(images, contrast_factor, name=None):
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "AdjustContrastv2", images=images, contrast_factor=contrast_factor,
         name=name)
@@ -125,12 +125,13 @@ def adjust_contrastv2(images, contrast_factor, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "AdjustContrastv2", name,
-        _ctx._post_execution_callbacks, images, contrast_factor)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "AdjustContrastv2", name, _ctx._post_execution_callbacks, images,
+        contrast_factor)
       return _result
     except _core._FallbackException:
       return adjust_contrastv2_eager_fallback(
-          images, contrast_factor, name=name)
+          images, contrast_factor, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -139,11 +140,11 @@ def adjust_contrastv2(images, contrast_factor, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def adjust_contrastv2_eager_fallback(images, contrast_factor, name=None):
+def adjust_contrastv2_eager_fallback(images, contrast_factor, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function adjust_contrastv2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   images = _ops.convert_to_tensor(images, _dtypes.float32)
   contrast_factor = _ops.convert_to_tensor(contrast_factor, _dtypes.float32)
   _inputs_flat = [images, contrast_factor]
@@ -174,8 +175,8 @@ def adjust_hue(images, delta, name=None):
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "AdjustHue", images=images, delta=delta, name=name)
     _result = _op.outputs[:]
@@ -189,12 +190,12 @@ def adjust_hue(images, delta, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "AdjustHue", name,
-        _ctx._post_execution_callbacks, images, delta)
+        _ctx._context_handle, _ctx._eager_context.device_name, "AdjustHue",
+        name, _ctx._post_execution_callbacks, images, delta)
       return _result
     except _core._FallbackException:
       return adjust_hue_eager_fallback(
-          images, delta, name=name)
+          images, delta, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -203,11 +204,11 @@ def adjust_hue(images, delta, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def adjust_hue_eager_fallback(images, delta, name=None):
+def adjust_hue_eager_fallback(images, delta, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function adjust_hue
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   images = _ops.convert_to_tensor(images, _dtypes.float32)
   delta = _ops.convert_to_tensor(delta, _dtypes.float32)
   _inputs_flat = [images, delta]
@@ -239,8 +240,8 @@ def adjust_saturation(images, scale, name=None):
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "AdjustSaturation", images=images, scale=scale, name=name)
     _result = _op.outputs[:]
@@ -254,12 +255,13 @@ def adjust_saturation(images, scale, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "AdjustSaturation", name,
-        _ctx._post_execution_callbacks, images, scale)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "AdjustSaturation", name, _ctx._post_execution_callbacks, images,
+        scale)
       return _result
     except _core._FallbackException:
       return adjust_saturation_eager_fallback(
-          images, scale, name=name)
+          images, scale, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -268,11 +270,11 @@ def adjust_saturation(images, scale, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def adjust_saturation_eager_fallback(images, scale, name=None):
+def adjust_saturation_eager_fallback(images, scale, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function adjust_saturation
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   images = _ops.convert_to_tensor(images, _dtypes.float32)
   scale = _ops.convert_to_tensor(scale, _dtypes.float32)
   _inputs_flat = [images, scale]
@@ -334,8 +336,8 @@ def crop_and_resize(image, boxes, box_ind, crop_size, method="bilinear", extrapo
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if method is None:
       method = "bilinear"
     method = _execute.make_str(method, "method")
@@ -358,14 +360,15 @@ def crop_and_resize(image, boxes, box_ind, crop_size, method="bilinear", extrapo
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "CropAndResize", name,
-        _ctx._post_execution_callbacks, image, boxes, box_ind, crop_size,
-        "method", method, "extrapolation_value", extrapolation_value)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "CropAndResize", name, _ctx._post_execution_callbacks, image, boxes,
+        box_ind, crop_size, "method", method, "extrapolation_value",
+        extrapolation_value)
       return _result
     except _core._FallbackException:
       return crop_and_resize_eager_fallback(
           image, boxes, box_ind, crop_size, method=method,
-          extrapolation_value=extrapolation_value, name=name)
+          extrapolation_value=extrapolation_value, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -374,11 +377,11 @@ def crop_and_resize(image, boxes, box_ind, crop_size, method="bilinear", extrapo
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def crop_and_resize_eager_fallback(image, boxes, box_ind, crop_size, method="bilinear", extrapolation_value=0, name=None):
+def crop_and_resize_eager_fallback(image, boxes, box_ind, crop_size, method="bilinear", extrapolation_value=0, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function crop_and_resize
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if method is None:
     method = "bilinear"
   method = _execute.make_str(method, "method")
@@ -431,8 +434,8 @@ def crop_and_resize_grad_boxes(grads, image, boxes, box_ind, method="bilinear", 
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if method is None:
       method = "bilinear"
     method = _execute.make_str(method, "method")
@@ -450,13 +453,13 @@ def crop_and_resize_grad_boxes(grads, image, boxes, box_ind, method="bilinear", 
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "CropAndResizeGradBoxes", name,
-        _ctx._post_execution_callbacks, grads, image, boxes, box_ind,
-        "method", method)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "CropAndResizeGradBoxes", name, _ctx._post_execution_callbacks, grads,
+        image, boxes, box_ind, "method", method)
       return _result
     except _core._FallbackException:
       return crop_and_resize_grad_boxes_eager_fallback(
-          grads, image, boxes, box_ind, method=method, name=name)
+          grads, image, boxes, box_ind, method=method, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -465,11 +468,11 @@ def crop_and_resize_grad_boxes(grads, image, boxes, box_ind, method="bilinear", 
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def crop_and_resize_grad_boxes_eager_fallback(grads, image, boxes, box_ind, method="bilinear", name=None):
+def crop_and_resize_grad_boxes_eager_fallback(grads, image, boxes, box_ind, method="bilinear", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function crop_and_resize_grad_boxes
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if method is None:
     method = "bilinear"
   method = _execute.make_str(method, "method")
@@ -521,8 +524,8 @@ def crop_and_resize_grad_image(grads, boxes, box_ind, image_size, T, method="bil
   Returns:
     A `Tensor` of type `T`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     T = _execute.make_type(T, "T")
     if method is None:
       method = "bilinear"
@@ -541,13 +544,14 @@ def crop_and_resize_grad_image(grads, boxes, box_ind, image_size, T, method="bil
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "CropAndResizeGradImage", name,
-        _ctx._post_execution_callbacks, grads, boxes, box_ind, image_size,
-        "T", T, "method", method)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "CropAndResizeGradImage", name, _ctx._post_execution_callbacks, grads,
+        boxes, box_ind, image_size, "T", T, "method", method)
       return _result
     except _core._FallbackException:
       return crop_and_resize_grad_image_eager_fallback(
-          grads, boxes, box_ind, image_size, T=T, method=method, name=name)
+          grads, boxes, box_ind, image_size, T=T, method=method, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -556,11 +560,11 @@ def crop_and_resize_grad_image(grads, boxes, box_ind, image_size, T, method="bil
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def crop_and_resize_grad_image_eager_fallback(grads, boxes, box_ind, image_size, T, method="bilinear", name=None):
+def crop_and_resize_grad_image_eager_fallback(grads, boxes, box_ind, image_size, T, method="bilinear", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function crop_and_resize_grad_image
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   T = _execute.make_type(T, "T")
   if method is None:
     method = "bilinear"
@@ -631,8 +635,8 @@ def decode_and_crop_jpeg(contents, crop_window, channels=0, ratio=1, fancy_upsca
   Returns:
     A `Tensor` of type `uint8`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if channels is None:
       channels = 0
     channels = _execute.make_int(channels, "channels")
@@ -673,11 +677,11 @@ def decode_and_crop_jpeg(contents, crop_window, channels=0, ratio=1, fancy_upsca
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DecodeAndCropJpeg", name,
-        _ctx._post_execution_callbacks, contents, crop_window, "channels",
-        channels, "ratio", ratio, "fancy_upscaling", fancy_upscaling,
-        "try_recover_truncated", try_recover_truncated, "acceptable_fraction",
-        acceptable_fraction, "dct_method", dct_method)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "DecodeAndCropJpeg", name, _ctx._post_execution_callbacks, contents,
+        crop_window, "channels", channels, "ratio", ratio, "fancy_upscaling",
+        fancy_upscaling, "try_recover_truncated", try_recover_truncated,
+        "acceptable_fraction", acceptable_fraction, "dct_method", dct_method)
       return _result
     except _core._FallbackException:
       return decode_and_crop_jpeg_eager_fallback(
@@ -685,7 +689,7 @@ def decode_and_crop_jpeg(contents, crop_window, channels=0, ratio=1, fancy_upsca
           fancy_upscaling=fancy_upscaling,
           try_recover_truncated=try_recover_truncated,
           acceptable_fraction=acceptable_fraction, dct_method=dct_method,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -694,11 +698,11 @@ def decode_and_crop_jpeg(contents, crop_window, channels=0, ratio=1, fancy_upsca
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def decode_and_crop_jpeg_eager_fallback(contents, crop_window, channels=0, ratio=1, fancy_upscaling=True, try_recover_truncated=False, acceptable_fraction=1, dct_method="", name=None):
+def decode_and_crop_jpeg_eager_fallback(contents, crop_window, channels=0, ratio=1, fancy_upscaling=True, try_recover_truncated=False, acceptable_fraction=1, dct_method="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function decode_and_crop_jpeg
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if channels is None:
     channels = 0
   channels = _execute.make_int(channels, "channels")
@@ -752,8 +756,8 @@ def decode_bmp(contents, channels=0, name=None):
   Returns:
     A `Tensor` of type `uint8`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if channels is None:
       channels = 0
     channels = _execute.make_int(channels, "channels")
@@ -770,12 +774,12 @@ def decode_bmp(contents, channels=0, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DecodeBmp", name,
-        _ctx._post_execution_callbacks, contents, "channels", channels)
+        _ctx._context_handle, _ctx._eager_context.device_name, "DecodeBmp",
+        name, _ctx._post_execution_callbacks, contents, "channels", channels)
       return _result
     except _core._FallbackException:
       return decode_bmp_eager_fallback(
-          contents, channels=channels, name=name)
+          contents, channels=channels, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -784,11 +788,11 @@ def decode_bmp(contents, channels=0, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def decode_bmp_eager_fallback(contents, channels=0, name=None):
+def decode_bmp_eager_fallback(contents, channels=0, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function decode_bmp
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if channels is None:
     channels = 0
   channels = _execute.make_int(channels, "channels")
@@ -822,8 +826,8 @@ def decode_gif(contents, name=None):
   Returns:
     A `Tensor` of type `uint8`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "DecodeGif", contents=contents, name=name)
     _result = _op.outputs[:]
@@ -837,12 +841,12 @@ def decode_gif(contents, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DecodeGif", name,
-        _ctx._post_execution_callbacks, contents)
+        _ctx._context_handle, _ctx._eager_context.device_name, "DecodeGif",
+        name, _ctx._post_execution_callbacks, contents)
       return _result
     except _core._FallbackException:
       return decode_gif_eager_fallback(
-          contents, name=name)
+          contents, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -851,11 +855,11 @@ def decode_gif(contents, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def decode_gif_eager_fallback(contents, name=None):
+def decode_gif_eager_fallback(contents, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function decode_gif
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   contents = _ops.convert_to_tensor(contents, _dtypes.string)
   _inputs_flat = [contents]
   _attrs = None
@@ -916,8 +920,8 @@ def decode_jpeg(contents, channels=0, ratio=1, fancy_upscaling=True, try_recover
   Returns:
     A `Tensor` of type `uint8`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if channels is None:
       channels = 0
     channels = _execute.make_int(channels, "channels")
@@ -958,8 +962,8 @@ def decode_jpeg(contents, channels=0, ratio=1, fancy_upscaling=True, try_recover
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DecodeJpeg", name,
-        _ctx._post_execution_callbacks, contents, "channels", channels,
+        _ctx._context_handle, _ctx._eager_context.device_name, "DecodeJpeg",
+        name, _ctx._post_execution_callbacks, contents, "channels", channels,
         "ratio", ratio, "fancy_upscaling", fancy_upscaling,
         "try_recover_truncated", try_recover_truncated, "acceptable_fraction",
         acceptable_fraction, "dct_method", dct_method)
@@ -970,7 +974,7 @@ def decode_jpeg(contents, channels=0, ratio=1, fancy_upscaling=True, try_recover
           fancy_upscaling=fancy_upscaling,
           try_recover_truncated=try_recover_truncated,
           acceptable_fraction=acceptable_fraction, dct_method=dct_method,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -979,11 +983,11 @@ def decode_jpeg(contents, channels=0, ratio=1, fancy_upscaling=True, try_recover
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def decode_jpeg_eager_fallback(contents, channels=0, ratio=1, fancy_upscaling=True, try_recover_truncated=False, acceptable_fraction=1, dct_method="", name=None):
+def decode_jpeg_eager_fallback(contents, channels=0, ratio=1, fancy_upscaling=True, try_recover_truncated=False, acceptable_fraction=1, dct_method="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function decode_jpeg
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if channels is None:
     channels = 0
   channels = _execute.make_int(channels, "channels")
@@ -1045,8 +1049,8 @@ def decode_png(contents, channels=0, dtype=_dtypes.uint8, name=None):
   Returns:
     A `Tensor` of type `dtype`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if channels is None:
       channels = 0
     channels = _execute.make_int(channels, "channels")
@@ -1068,13 +1072,13 @@ def decode_png(contents, channels=0, dtype=_dtypes.uint8, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DecodePng", name,
-        _ctx._post_execution_callbacks, contents, "channels", channels,
+        _ctx._context_handle, _ctx._eager_context.device_name, "DecodePng",
+        name, _ctx._post_execution_callbacks, contents, "channels", channels,
         "dtype", dtype)
       return _result
     except _core._FallbackException:
       return decode_png_eager_fallback(
-          contents, channels=channels, dtype=dtype, name=name)
+          contents, channels=channels, dtype=dtype, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1083,11 +1087,11 @@ def decode_png(contents, channels=0, dtype=_dtypes.uint8, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def decode_png_eager_fallback(contents, channels=0, dtype=_dtypes.uint8, name=None):
+def decode_png_eager_fallback(contents, channels=0, dtype=_dtypes.uint8, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function decode_png
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if channels is None:
     channels = 0
   channels = _execute.make_int(channels, "channels")
@@ -1132,8 +1136,8 @@ def draw_bounding_boxes(images, boxes, name=None):
   Returns:
     A `Tensor`. Has the same type as `images`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "DrawBoundingBoxes", images=images, boxes=boxes, name=name)
     _result = _op.outputs[:]
@@ -1147,12 +1151,13 @@ def draw_bounding_boxes(images, boxes, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "DrawBoundingBoxes", name,
-        _ctx._post_execution_callbacks, images, boxes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "DrawBoundingBoxes", name, _ctx._post_execution_callbacks, images,
+        boxes)
       return _result
     except _core._FallbackException:
       return draw_bounding_boxes_eager_fallback(
-          images, boxes, name=name)
+          images, boxes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1161,11 +1166,11 @@ def draw_bounding_boxes(images, boxes, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def draw_bounding_boxes_eager_fallback(images, boxes, name=None):
+def draw_bounding_boxes_eager_fallback(images, boxes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function draw_bounding_boxes
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (images,) = _execute.args_to_matching_eager([images], _ctx, _dtypes.float32)
   boxes = _ops.convert_to_tensor(boxes, _dtypes.float32)
   _inputs_flat = [images, boxes]
@@ -1226,8 +1231,8 @@ def encode_jpeg(image, format="", quality=95, progressive=False, optimize_size=F
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if format is None:
       format = ""
     format = _execute.make_str(format, "format")
@@ -1280,12 +1285,12 @@ def encode_jpeg(image, format="", quality=95, progressive=False, optimize_size=F
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "EncodeJpeg", name,
-        _ctx._post_execution_callbacks, image, "format", format, "quality",
-        quality, "progressive", progressive, "optimize_size", optimize_size,
-        "chroma_downsampling", chroma_downsampling, "density_unit",
-        density_unit, "x_density", x_density, "y_density", y_density,
-        "xmp_metadata", xmp_metadata)
+        _ctx._context_handle, _ctx._eager_context.device_name, "EncodeJpeg",
+        name, _ctx._post_execution_callbacks, image, "format", format,
+        "quality", quality, "progressive", progressive, "optimize_size",
+        optimize_size, "chroma_downsampling", chroma_downsampling,
+        "density_unit", density_unit, "x_density", x_density, "y_density",
+        y_density, "xmp_metadata", xmp_metadata)
       return _result
     except _core._FallbackException:
       return encode_jpeg_eager_fallback(
@@ -1293,7 +1298,7 @@ def encode_jpeg(image, format="", quality=95, progressive=False, optimize_size=F
           optimize_size=optimize_size,
           chroma_downsampling=chroma_downsampling, density_unit=density_unit,
           x_density=x_density, y_density=y_density, xmp_metadata=xmp_metadata,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1302,11 +1307,11 @@ def encode_jpeg(image, format="", quality=95, progressive=False, optimize_size=F
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def encode_jpeg_eager_fallback(image, format="", quality=95, progressive=False, optimize_size=False, chroma_downsampling=True, density_unit="in", x_density=300, y_density=300, xmp_metadata="", name=None):
+def encode_jpeg_eager_fallback(image, format="", quality=95, progressive=False, optimize_size=False, chroma_downsampling=True, density_unit="in", x_density=300, y_density=300, xmp_metadata="", name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function encode_jpeg
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if format is None:
     format = ""
   format = _execute.make_str(format, "format")
@@ -1373,8 +1378,8 @@ def encode_png(image, compression=-1, name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if compression is None:
       compression = -1
     compression = _execute.make_int(compression, "compression")
@@ -1392,12 +1397,13 @@ def encode_png(image, compression=-1, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "EncodePng", name,
-        _ctx._post_execution_callbacks, image, "compression", compression)
+        _ctx._context_handle, _ctx._eager_context.device_name, "EncodePng",
+        name, _ctx._post_execution_callbacks, image, "compression",
+        compression)
       return _result
     except _core._FallbackException:
       return encode_png_eager_fallback(
-          image, compression=compression, name=name)
+          image, compression=compression, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1406,11 +1412,11 @@ def encode_png(image, compression=-1, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def encode_png_eager_fallback(image, compression=-1, name=None):
+def encode_png_eager_fallback(image, compression=-1, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function encode_png
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if compression is None:
     compression = -1
   compression = _execute.make_int(compression, "compression")
@@ -1476,8 +1482,8 @@ def extract_glimpse(input, size, offsets, centered=True, normalized=True, unifor
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if centered is None:
       centered = True
     centered = _execute.make_bool(centered, "centered")
@@ -1504,14 +1510,15 @@ def extract_glimpse(input, size, offsets, centered=True, normalized=True, unifor
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ExtractGlimpse", name,
-        _ctx._post_execution_callbacks, input, size, offsets, "centered",
-        centered, "normalized", normalized, "uniform_noise", uniform_noise)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ExtractGlimpse", name, _ctx._post_execution_callbacks, input, size,
+        offsets, "centered", centered, "normalized", normalized,
+        "uniform_noise", uniform_noise)
       return _result
     except _core._FallbackException:
       return extract_glimpse_eager_fallback(
           input, size, offsets, centered=centered, normalized=normalized,
-          uniform_noise=uniform_noise, name=name)
+          uniform_noise=uniform_noise, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1520,11 +1527,11 @@ def extract_glimpse(input, size, offsets, centered=True, normalized=True, unifor
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def extract_glimpse_eager_fallback(input, size, offsets, centered=True, normalized=True, uniform_noise=True, name=None):
+def extract_glimpse_eager_fallback(input, size, offsets, centered=True, normalized=True, uniform_noise=True, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function extract_glimpse
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if centered is None:
     centered = True
   centered = _execute.make_bool(centered, "centered")
@@ -1564,8 +1571,8 @@ def extract_jpeg_shape(contents, output_type=_dtypes.int32, name=None):
   Returns:
     A `Tensor` of type `output_type`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if output_type is None:
       output_type = _dtypes.int32
     output_type = _execute.make_type(output_type, "output_type")
@@ -1583,12 +1590,13 @@ def extract_jpeg_shape(contents, output_type=_dtypes.int32, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ExtractJpegShape", name,
-        _ctx._post_execution_callbacks, contents, "output_type", output_type)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ExtractJpegShape", name, _ctx._post_execution_callbacks, contents,
+        "output_type", output_type)
       return _result
     except _core._FallbackException:
       return extract_jpeg_shape_eager_fallback(
-          contents, output_type=output_type, name=name)
+          contents, output_type=output_type, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1597,11 +1605,11 @@ def extract_jpeg_shape(contents, output_type=_dtypes.int32, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def extract_jpeg_shape_eager_fallback(contents, output_type=_dtypes.int32, name=None):
+def extract_jpeg_shape_eager_fallback(contents, output_type=_dtypes.int32, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function extract_jpeg_shape
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if output_type is None:
     output_type = _dtypes.int32
   output_type = _execute.make_type(output_type, "output_type")
@@ -1634,8 +1642,8 @@ def hsv_to_rgb(images, name=None):
   Returns:
     A `Tensor`. Has the same type as `images`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "HSVToRGB", images=images, name=name)
     _result = _op.outputs[:]
@@ -1649,12 +1657,12 @@ def hsv_to_rgb(images, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "HSVToRGB", name,
-        _ctx._post_execution_callbacks, images)
+        _ctx._context_handle, _ctx._eager_context.device_name, "HSVToRGB",
+        name, _ctx._post_execution_callbacks, images)
       return _result
     except _core._FallbackException:
       return hsv_to_rgb_eager_fallback(
-          images, name=name)
+          images, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1663,11 +1671,11 @@ def hsv_to_rgb(images, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def hsv_to_rgb_eager_fallback(images, name=None):
+def hsv_to_rgb_eager_fallback(images, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function hsv_to_rgb
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (images,) = _execute.args_to_matching_eager([images], _ctx, _dtypes.float32)
   _inputs_flat = [images]
   _attrs = ("T", _attr_T)
@@ -1716,8 +1724,8 @@ def non_max_suppression(boxes, scores, max_output_size, iou_threshold=0.5, name=
   Returns:
     A `Tensor` of type `int32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if iou_threshold is None:
       iou_threshold = 0.5
     iou_threshold = _execute.make_float(iou_threshold, "iou_threshold")
@@ -1736,14 +1744,14 @@ def non_max_suppression(boxes, scores, max_output_size, iou_threshold=0.5, name=
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "NonMaxSuppression", name,
-        _ctx._post_execution_callbacks, boxes, scores, max_output_size,
-        "iou_threshold", iou_threshold)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "NonMaxSuppression", name, _ctx._post_execution_callbacks, boxes,
+        scores, max_output_size, "iou_threshold", iou_threshold)
       return _result
     except _core._FallbackException:
       return non_max_suppression_eager_fallback(
           boxes, scores, max_output_size, iou_threshold=iou_threshold,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1752,11 +1760,11 @@ def non_max_suppression(boxes, scores, max_output_size, iou_threshold=0.5, name=
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def non_max_suppression_eager_fallback(boxes, scores, max_output_size, iou_threshold=0.5, name=None):
+def non_max_suppression_eager_fallback(boxes, scores, max_output_size, iou_threshold=0.5, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function non_max_suppression
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if iou_threshold is None:
     iou_threshold = 0.5
   iou_threshold = _execute.make_float(iou_threshold, "iou_threshold")
@@ -1812,8 +1820,8 @@ def non_max_suppression_v2(boxes, scores, max_output_size, iou_threshold, name=N
   Returns:
     A `Tensor` of type `int32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "NonMaxSuppressionV2", boxes=boxes, scores=scores,
         max_output_size=max_output_size, iou_threshold=iou_threshold,
@@ -1829,13 +1837,13 @@ def non_max_suppression_v2(boxes, scores, max_output_size, iou_threshold, name=N
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "NonMaxSuppressionV2", name,
-        _ctx._post_execution_callbacks, boxes, scores, max_output_size,
-        iou_threshold)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "NonMaxSuppressionV2", name, _ctx._post_execution_callbacks, boxes,
+        scores, max_output_size, iou_threshold)
       return _result
     except _core._FallbackException:
       return non_max_suppression_v2_eager_fallback(
-          boxes, scores, max_output_size, iou_threshold, name=name)
+          boxes, scores, max_output_size, iou_threshold, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1844,11 +1852,11 @@ def non_max_suppression_v2(boxes, scores, max_output_size, iou_threshold, name=N
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def non_max_suppression_v2_eager_fallback(boxes, scores, max_output_size, iou_threshold, name=None):
+def non_max_suppression_v2_eager_fallback(boxes, scores, max_output_size, iou_threshold, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function non_max_suppression_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   boxes = _ops.convert_to_tensor(boxes, _dtypes.float32)
   scores = _ops.convert_to_tensor(scores, _dtypes.float32)
   max_output_size = _ops.convert_to_tensor(max_output_size, _dtypes.int32)
@@ -1892,8 +1900,8 @@ def quantized_resize_bilinear(images, size, min, max, align_corners=False, name=
     out_min: A `Tensor` of type `float32`.
     out_max: A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if align_corners is None:
       align_corners = False
     align_corners = _execute.make_bool(align_corners, "align_corners")
@@ -1912,14 +1920,15 @@ def quantized_resize_bilinear(images, size, min, max, align_corners=False, name=
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "QuantizedResizeBilinear", name,
-        _ctx._post_execution_callbacks, images, size, min, max,
-        "align_corners", align_corners)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "QuantizedResizeBilinear", name, _ctx._post_execution_callbacks,
+        images, size, min, max, "align_corners", align_corners)
       _result = _QuantizedResizeBilinearOutput._make(_result)
       return _result
     except _core._FallbackException:
       return quantized_resize_bilinear_eager_fallback(
-          images, size, min, max, align_corners=align_corners, name=name)
+          images, size, min, max, align_corners=align_corners, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1928,11 +1937,11 @@ def quantized_resize_bilinear(images, size, min, max, align_corners=False, name=
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def quantized_resize_bilinear_eager_fallback(images, size, min, max, align_corners=False, name=None):
+def quantized_resize_bilinear_eager_fallback(images, size, min, max, align_corners=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function quantized_resize_bilinear
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if align_corners is None:
     align_corners = False
   align_corners = _execute.make_bool(align_corners, "align_corners")
@@ -1971,8 +1980,8 @@ def rgb_to_hsv(images, name=None):
   Returns:
     A `Tensor`. Has the same type as `images`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "RGBToHSV", images=images, name=name)
     _result = _op.outputs[:]
@@ -1986,12 +1995,12 @@ def rgb_to_hsv(images, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "RGBToHSV", name,
-        _ctx._post_execution_callbacks, images)
+        _ctx._context_handle, _ctx._eager_context.device_name, "RGBToHSV",
+        name, _ctx._post_execution_callbacks, images)
       return _result
     except _core._FallbackException:
       return rgb_to_hsv_eager_fallback(
-          images, name=name)
+          images, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2000,11 +2009,11 @@ def rgb_to_hsv(images, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def rgb_to_hsv_eager_fallback(images, name=None):
+def rgb_to_hsv_eager_fallback(images, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function rgb_to_hsv
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (images,) = _execute.args_to_matching_eager([images], _ctx, _dtypes.float32)
   _inputs_flat = [images]
   _attrs = ("T", _attr_T)
@@ -2042,8 +2051,8 @@ def random_crop(image, size, seed=0, seed2=0, name=None):
   Returns:
     A `Tensor`. Has the same type as `image`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if seed is None:
       seed = 0
     seed = _execute.make_int(seed, "seed")
@@ -2065,13 +2074,13 @@ def random_crop(image, size, seed=0, seed2=0, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "RandomCrop", name,
-        _ctx._post_execution_callbacks, image, size, "seed", seed, "seed2",
-        seed2)
+        _ctx._context_handle, _ctx._eager_context.device_name, "RandomCrop",
+        name, _ctx._post_execution_callbacks, image, size, "seed", seed,
+        "seed2", seed2)
       return _result
     except _core._FallbackException:
       return random_crop_eager_fallback(
-          image, size, seed=seed, seed2=seed2, name=name)
+          image, size, seed=seed, seed2=seed2, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2080,11 +2089,11 @@ def random_crop(image, size, seed=0, seed2=0, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def random_crop_eager_fallback(image, size, seed=0, seed2=0, name=None):
+def random_crop_eager_fallback(image, size, seed=0, seed2=0, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function random_crop
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if seed is None:
     seed = 0
   seed = _execute.make_int(seed, "seed")
@@ -2132,8 +2141,8 @@ def resize_area(images, size, align_corners=False, name=None):
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if align_corners is None:
       align_corners = False
     align_corners = _execute.make_bool(align_corners, "align_corners")
@@ -2152,13 +2161,13 @@ def resize_area(images, size, align_corners=False, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResizeArea", name,
-        _ctx._post_execution_callbacks, images, size, "align_corners",
+        _ctx._context_handle, _ctx._eager_context.device_name, "ResizeArea",
+        name, _ctx._post_execution_callbacks, images, size, "align_corners",
         align_corners)
       return _result
     except _core._FallbackException:
       return resize_area_eager_fallback(
-          images, size, align_corners=align_corners, name=name)
+          images, size, align_corners=align_corners, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2167,11 +2176,11 @@ def resize_area(images, size, align_corners=False, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resize_area_eager_fallback(images, size, align_corners=False, name=None):
+def resize_area_eager_fallback(images, size, align_corners=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resize_area
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if align_corners is None:
     align_corners = False
   align_corners = _execute.make_bool(align_corners, "align_corners")
@@ -2206,8 +2215,8 @@ def resize_bicubic(images, size, align_corners=False, name=None):
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if align_corners is None:
       align_corners = False
     align_corners = _execute.make_bool(align_corners, "align_corners")
@@ -2226,13 +2235,13 @@ def resize_bicubic(images, size, align_corners=False, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResizeBicubic", name,
-        _ctx._post_execution_callbacks, images, size, "align_corners",
-        align_corners)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResizeBicubic", name, _ctx._post_execution_callbacks, images, size,
+        "align_corners", align_corners)
       return _result
     except _core._FallbackException:
       return resize_bicubic_eager_fallback(
-          images, size, align_corners=align_corners, name=name)
+          images, size, align_corners=align_corners, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2241,11 +2250,11 @@ def resize_bicubic(images, size, align_corners=False, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resize_bicubic_eager_fallback(images, size, align_corners=False, name=None):
+def resize_bicubic_eager_fallback(images, size, align_corners=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resize_bicubic
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if align_corners is None:
     align_corners = False
   align_corners = _execute.make_bool(align_corners, "align_corners")
@@ -2278,8 +2287,8 @@ def resize_bicubic_grad(grads, original_image, align_corners=False, name=None):
   Returns:
     A `Tensor`. Has the same type as `original_image`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if align_corners is None:
       align_corners = False
     align_corners = _execute.make_bool(align_corners, "align_corners")
@@ -2298,13 +2307,14 @@ def resize_bicubic_grad(grads, original_image, align_corners=False, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResizeBicubicGrad", name,
-        _ctx._post_execution_callbacks, grads, original_image,
-        "align_corners", align_corners)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResizeBicubicGrad", name, _ctx._post_execution_callbacks, grads,
+        original_image, "align_corners", align_corners)
       return _result
     except _core._FallbackException:
       return resize_bicubic_grad_eager_fallback(
-          grads, original_image, align_corners=align_corners, name=name)
+          grads, original_image, align_corners=align_corners, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2313,11 +2323,11 @@ def resize_bicubic_grad(grads, original_image, align_corners=False, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resize_bicubic_grad_eager_fallback(grads, original_image, align_corners=False, name=None):
+def resize_bicubic_grad_eager_fallback(grads, original_image, align_corners=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resize_bicubic_grad
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if align_corners is None:
     align_corners = False
   align_corners = _execute.make_bool(align_corners, "align_corners")
@@ -2352,8 +2362,8 @@ def resize_bilinear(images, size, align_corners=False, name=None):
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if align_corners is None:
       align_corners = False
     align_corners = _execute.make_bool(align_corners, "align_corners")
@@ -2372,13 +2382,13 @@ def resize_bilinear(images, size, align_corners=False, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResizeBilinear", name,
-        _ctx._post_execution_callbacks, images, size, "align_corners",
-        align_corners)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResizeBilinear", name, _ctx._post_execution_callbacks, images, size,
+        "align_corners", align_corners)
       return _result
     except _core._FallbackException:
       return resize_bilinear_eager_fallback(
-          images, size, align_corners=align_corners, name=name)
+          images, size, align_corners=align_corners, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2387,11 +2397,11 @@ def resize_bilinear(images, size, align_corners=False, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resize_bilinear_eager_fallback(images, size, align_corners=False, name=None):
+def resize_bilinear_eager_fallback(images, size, align_corners=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resize_bilinear
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if align_corners is None:
     align_corners = False
   align_corners = _execute.make_bool(align_corners, "align_corners")
@@ -2424,8 +2434,8 @@ def resize_bilinear_grad(grads, original_image, align_corners=False, name=None):
   Returns:
     A `Tensor`. Has the same type as `original_image`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if align_corners is None:
       align_corners = False
     align_corners = _execute.make_bool(align_corners, "align_corners")
@@ -2444,13 +2454,14 @@ def resize_bilinear_grad(grads, original_image, align_corners=False, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResizeBilinearGrad", name,
-        _ctx._post_execution_callbacks, grads, original_image,
-        "align_corners", align_corners)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResizeBilinearGrad", name, _ctx._post_execution_callbacks, grads,
+        original_image, "align_corners", align_corners)
       return _result
     except _core._FallbackException:
       return resize_bilinear_grad_eager_fallback(
-          grads, original_image, align_corners=align_corners, name=name)
+          grads, original_image, align_corners=align_corners, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2459,11 +2470,11 @@ def resize_bilinear_grad(grads, original_image, align_corners=False, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resize_bilinear_grad_eager_fallback(grads, original_image, align_corners=False, name=None):
+def resize_bilinear_grad_eager_fallback(grads, original_image, align_corners=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resize_bilinear_grad
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if align_corners is None:
     align_corners = False
   align_corners = _execute.make_bool(align_corners, "align_corners")
@@ -2496,8 +2507,8 @@ def resize_nearest_neighbor(images, size, align_corners=False, name=None):
   Returns:
     A `Tensor`. Has the same type as `images`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if align_corners is None:
       align_corners = False
     align_corners = _execute.make_bool(align_corners, "align_corners")
@@ -2516,13 +2527,13 @@ def resize_nearest_neighbor(images, size, align_corners=False, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResizeNearestNeighbor", name,
-        _ctx._post_execution_callbacks, images, size, "align_corners",
-        align_corners)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResizeNearestNeighbor", name, _ctx._post_execution_callbacks, images,
+        size, "align_corners", align_corners)
       return _result
     except _core._FallbackException:
       return resize_nearest_neighbor_eager_fallback(
-          images, size, align_corners=align_corners, name=name)
+          images, size, align_corners=align_corners, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2531,11 +2542,11 @@ def resize_nearest_neighbor(images, size, align_corners=False, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resize_nearest_neighbor_eager_fallback(images, size, align_corners=False, name=None):
+def resize_nearest_neighbor_eager_fallback(images, size, align_corners=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resize_nearest_neighbor
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if align_corners is None:
     align_corners = False
   align_corners = _execute.make_bool(align_corners, "align_corners")
@@ -2567,8 +2578,8 @@ def resize_nearest_neighbor_grad(grads, size, align_corners=False, name=None):
   Returns:
     A `Tensor`. Has the same type as `grads`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if align_corners is None:
       align_corners = False
     align_corners = _execute.make_bool(align_corners, "align_corners")
@@ -2587,13 +2598,13 @@ def resize_nearest_neighbor_grad(grads, size, align_corners=False, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ResizeNearestNeighborGrad", name,
-        _ctx._post_execution_callbacks, grads, size, "align_corners",
-        align_corners)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ResizeNearestNeighborGrad", name, _ctx._post_execution_callbacks,
+        grads, size, "align_corners", align_corners)
       return _result
     except _core._FallbackException:
       return resize_nearest_neighbor_grad_eager_fallback(
-          grads, size, align_corners=align_corners, name=name)
+          grads, size, align_corners=align_corners, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2602,11 +2613,11 @@ def resize_nearest_neighbor_grad(grads, size, align_corners=False, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def resize_nearest_neighbor_grad_eager_fallback(grads, size, align_corners=False, name=None):
+def resize_nearest_neighbor_grad_eager_fallback(grads, size, align_corners=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function resize_nearest_neighbor_grad
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if align_corners is None:
     align_corners = False
   align_corners = _execute.make_bool(align_corners, "align_corners")
@@ -2710,8 +2721,8 @@ def sample_distorted_bounding_box(image_size, bounding_boxes, seed=0, seed2=0, m
     size: A `Tensor`. Has the same type as `image_size`.
     bboxes: A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if seed is None:
       seed = 0
     seed = _execute.make_int(seed, "seed")
@@ -2766,11 +2777,12 @@ def sample_distorted_bounding_box(image_size, bounding_boxes, seed=0, seed2=0, m
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SampleDistortedBoundingBox", name,
-        _ctx._post_execution_callbacks, image_size, bounding_boxes, "seed",
-        seed, "seed2", seed2, "min_object_covered", min_object_covered,
-        "aspect_ratio_range", aspect_ratio_range, "area_range", area_range,
-        "max_attempts", max_attempts, "use_image_if_no_bounding_boxes",
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SampleDistortedBoundingBox", name, _ctx._post_execution_callbacks,
+        image_size, bounding_boxes, "seed", seed, "seed2", seed2,
+        "min_object_covered", min_object_covered, "aspect_ratio_range",
+        aspect_ratio_range, "area_range", area_range, "max_attempts",
+        max_attempts, "use_image_if_no_bounding_boxes",
         use_image_if_no_bounding_boxes)
       _result = _SampleDistortedBoundingBoxOutput._make(_result)
       return _result
@@ -2781,7 +2793,7 @@ def sample_distorted_bounding_box(image_size, bounding_boxes, seed=0, seed2=0, m
           aspect_ratio_range=aspect_ratio_range, area_range=area_range,
           max_attempts=max_attempts,
           use_image_if_no_bounding_boxes=use_image_if_no_bounding_boxes,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -2790,11 +2802,11 @@ def sample_distorted_bounding_box(image_size, bounding_boxes, seed=0, seed2=0, m
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sample_distorted_bounding_box_eager_fallback(image_size, bounding_boxes, seed=0, seed2=0, min_object_covered=0.1, aspect_ratio_range=[0.75, 1.33], area_range=[0.05, 1], max_attempts=100, use_image_if_no_bounding_boxes=False, name=None):
+def sample_distorted_bounding_box_eager_fallback(image_size, bounding_boxes, seed=0, seed2=0, min_object_covered=0.1, aspect_ratio_range=[0.75, 1.33], area_range=[0.05, 1], max_attempts=100, use_image_if_no_bounding_boxes=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sample_distorted_bounding_box
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if seed is None:
     seed = 0
   seed = _execute.make_int(seed, "seed")
@@ -2927,8 +2939,8 @@ def sample_distorted_bounding_box_v2(image_size, bounding_boxes, min_object_cove
     size: A `Tensor`. Has the same type as `image_size`.
     bboxes: A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if seed is None:
       seed = 0
     seed = _execute.make_int(seed, "seed")
@@ -2978,12 +2990,12 @@ def sample_distorted_bounding_box_v2(image_size, bounding_boxes, min_object_cove
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SampleDistortedBoundingBoxV2", name,
-        _ctx._post_execution_callbacks, image_size, bounding_boxes,
-        min_object_covered, "seed", seed, "seed2", seed2,
-        "aspect_ratio_range", aspect_ratio_range, "area_range", area_range,
-        "max_attempts", max_attempts, "use_image_if_no_bounding_boxes",
-        use_image_if_no_bounding_boxes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SampleDistortedBoundingBoxV2", name, _ctx._post_execution_callbacks,
+        image_size, bounding_boxes, min_object_covered, "seed", seed, "seed2",
+        seed2, "aspect_ratio_range", aspect_ratio_range, "area_range",
+        area_range, "max_attempts", max_attempts,
+        "use_image_if_no_bounding_boxes", use_image_if_no_bounding_boxes)
       _result = _SampleDistortedBoundingBoxV2Output._make(_result)
       return _result
     except _core._FallbackException:
@@ -2992,7 +3004,7 @@ def sample_distorted_bounding_box_v2(image_size, bounding_boxes, min_object_cove
           seed2=seed2, aspect_ratio_range=aspect_ratio_range,
           area_range=area_range, max_attempts=max_attempts,
           use_image_if_no_bounding_boxes=use_image_if_no_bounding_boxes,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -3001,11 +3013,11 @@ def sample_distorted_bounding_box_v2(image_size, bounding_boxes, min_object_cove
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sample_distorted_bounding_box_v2_eager_fallback(image_size, bounding_boxes, min_object_covered, seed=0, seed2=0, aspect_ratio_range=[0.75, 1.33], area_range=[0.05, 1], max_attempts=100, use_image_if_no_bounding_boxes=False, name=None):
+def sample_distorted_bounding_box_v2_eager_fallback(image_size, bounding_boxes, min_object_covered, seed=0, seed2=0, aspect_ratio_range=[0.75, 1.33], area_range=[0.05, 1], max_attempts=100, use_image_if_no_bounding_boxes=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sample_distorted_bounding_box_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if seed is None:
     seed = 0
   seed = _execute.make_int(seed, "seed")

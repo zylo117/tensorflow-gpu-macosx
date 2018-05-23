@@ -30,7 +30,7 @@
 
 14.MODIFY SOURCE USING(
 
-    git apply THE/PATH/TO/tensorflow-1.7.1.patch
+    git apply THE/PATH/TO/tensorflow-1.8.0-rc1.patch
 
 )
 
@@ -68,7 +68,9 @@
     export PATH=$DYLD_LIBRARY_PATH:$PATH
 
     #bazel clean --expunge
-    bazel build --config=cuda --config=opt --action_env PATH --action_env LD_LIBRARY_PATH --action_env DYLD_LIBRARY_PATH //tensorflow/tools/pip_package:build_pip_package
+
+    bazel build --config=cuda --config=opt --cxxopt="-D_GLIBCXX_USE_CXX11_ABI=0" --action_env PATH --action_env LD_LIBRARY_PATH --action_env DYLD_LIBRARY_PATH //tensorflow/tools/pip_package:build_pip_package
+
 
 )
 

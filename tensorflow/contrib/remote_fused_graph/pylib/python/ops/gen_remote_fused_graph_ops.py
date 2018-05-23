@@ -37,8 +37,8 @@ def remote_fused_graph_execute(inputs, Toutputs, serialized_remote_fused_graph_e
   Returns:
     A list of `Tensor` objects of type `Toutputs`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(Toutputs, (list, tuple)):
       raise TypeError(
           "Expected list for 'Toutputs' argument to "
@@ -62,8 +62,9 @@ def remote_fused_graph_execute(inputs, Toutputs, serialized_remote_fused_graph_e
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "RemoteFusedGraphExecute", name,
-        _ctx._post_execution_callbacks, inputs, "Toutputs", Toutputs,
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "RemoteFusedGraphExecute", name, _ctx._post_execution_callbacks,
+        inputs, "Toutputs", Toutputs,
         "serialized_remote_fused_graph_execute_info",
         serialized_remote_fused_graph_execute_info)
       return _result
@@ -71,7 +72,7 @@ def remote_fused_graph_execute(inputs, Toutputs, serialized_remote_fused_graph_e
       return remote_fused_graph_execute_eager_fallback(
           inputs, Toutputs=Toutputs,
           serialized_remote_fused_graph_execute_info=serialized_remote_fused_graph_execute_info,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -80,11 +81,11 @@ def remote_fused_graph_execute(inputs, Toutputs, serialized_remote_fused_graph_e
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def remote_fused_graph_execute_eager_fallback(inputs, Toutputs, serialized_remote_fused_graph_execute_info, name=None):
+def remote_fused_graph_execute_eager_fallback(inputs, Toutputs, serialized_remote_fused_graph_execute_info, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function remote_fused_graph_execute
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(Toutputs, (list, tuple)):
     raise TypeError(
         "Expected list for 'Toutputs' argument to "

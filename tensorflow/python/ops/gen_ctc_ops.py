@@ -60,8 +60,8 @@ def ctc_beam_search_decoder(inputs, sequence_length, beam_width, top_paths, merg
     decoded_shape: A list of `top_paths` `Tensor` objects with type `int64`.
     log_probability: A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     beam_width = _execute.make_int(beam_width, "beam_width")
     top_paths = _execute.make_int(top_paths, "top_paths")
     if merge_repeated is None:
@@ -87,15 +87,16 @@ def ctc_beam_search_decoder(inputs, sequence_length, beam_width, top_paths, merg
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "CTCBeamSearchDecoder", name,
-        _ctx._post_execution_callbacks, inputs, sequence_length, "beam_width",
-        beam_width, "top_paths", top_paths, "merge_repeated", merge_repeated)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "CTCBeamSearchDecoder", name, _ctx._post_execution_callbacks, inputs,
+        sequence_length, "beam_width", beam_width, "top_paths", top_paths,
+        "merge_repeated", merge_repeated)
       _result = _CTCBeamSearchDecoderOutput._make(_result)
       return _result
     except _core._FallbackException:
       return ctc_beam_search_decoder_eager_fallback(
           inputs, sequence_length, beam_width=beam_width, top_paths=top_paths,
-          merge_repeated=merge_repeated, name=name)
+          merge_repeated=merge_repeated, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -104,11 +105,11 @@ def ctc_beam_search_decoder(inputs, sequence_length, beam_width, top_paths, merg
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def ctc_beam_search_decoder_eager_fallback(inputs, sequence_length, beam_width, top_paths, merge_repeated=True, name=None):
+def ctc_beam_search_decoder_eager_fallback(inputs, sequence_length, beam_width, top_paths, merge_repeated=True, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function ctc_beam_search_decoder
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   beam_width = _execute.make_int(beam_width, "beam_width")
   top_paths = _execute.make_int(top_paths, "top_paths")
   if merge_repeated is None:
@@ -167,8 +168,8 @@ def ctc_greedy_decoder(inputs, sequence_length, merge_repeated=False, name=None)
     decoded_shape: A `Tensor` of type `int64`.
     log_probability: A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if merge_repeated is None:
       merge_repeated = False
     merge_repeated = _execute.make_bool(merge_repeated, "merge_repeated")
@@ -186,14 +187,15 @@ def ctc_greedy_decoder(inputs, sequence_length, merge_repeated=False, name=None)
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "CTCGreedyDecoder", name,
-        _ctx._post_execution_callbacks, inputs, sequence_length,
-        "merge_repeated", merge_repeated)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "CTCGreedyDecoder", name, _ctx._post_execution_callbacks, inputs,
+        sequence_length, "merge_repeated", merge_repeated)
       _result = _CTCGreedyDecoderOutput._make(_result)
       return _result
     except _core._FallbackException:
       return ctc_greedy_decoder_eager_fallback(
-          inputs, sequence_length, merge_repeated=merge_repeated, name=name)
+          inputs, sequence_length, merge_repeated=merge_repeated, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -202,11 +204,11 @@ def ctc_greedy_decoder(inputs, sequence_length, merge_repeated=False, name=None)
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def ctc_greedy_decoder_eager_fallback(inputs, sequence_length, merge_repeated=False, name=None):
+def ctc_greedy_decoder_eager_fallback(inputs, sequence_length, merge_repeated=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function ctc_greedy_decoder
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if merge_repeated is None:
     merge_repeated = False
   merge_repeated = _execute.make_bool(merge_repeated, "merge_repeated")
@@ -263,8 +265,8 @@ def ctc_loss(inputs, labels_indices, labels_values, sequence_length, preprocess_
     loss: A `Tensor` of type `float32`.
     gradient: A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if preprocess_collapse_repeated is None:
       preprocess_collapse_repeated = False
     preprocess_collapse_repeated = _execute.make_bool(preprocess_collapse_repeated, "preprocess_collapse_repeated")
@@ -296,9 +298,9 @@ def ctc_loss(inputs, labels_indices, labels_values, sequence_length, preprocess_
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "CTCLoss", name,
-        _ctx._post_execution_callbacks, inputs, labels_indices, labels_values,
-        sequence_length, "preprocess_collapse_repeated",
+        _ctx._context_handle, _ctx._eager_context.device_name, "CTCLoss",
+        name, _ctx._post_execution_callbacks, inputs, labels_indices,
+        labels_values, sequence_length, "preprocess_collapse_repeated",
         preprocess_collapse_repeated, "ctc_merge_repeated",
         ctc_merge_repeated, "ignore_longer_outputs_than_inputs",
         ignore_longer_outputs_than_inputs)
@@ -310,7 +312,7 @@ def ctc_loss(inputs, labels_indices, labels_values, sequence_length, preprocess_
           preprocess_collapse_repeated=preprocess_collapse_repeated,
           ctc_merge_repeated=ctc_merge_repeated,
           ignore_longer_outputs_than_inputs=ignore_longer_outputs_than_inputs,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -319,11 +321,11 @@ def ctc_loss(inputs, labels_indices, labels_values, sequence_length, preprocess_
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def ctc_loss_eager_fallback(inputs, labels_indices, labels_values, sequence_length, preprocess_collapse_repeated=False, ctc_merge_repeated=True, ignore_longer_outputs_than_inputs=False, name=None):
+def ctc_loss_eager_fallback(inputs, labels_indices, labels_values, sequence_length, preprocess_collapse_repeated=False, ctc_merge_repeated=True, ignore_longer_outputs_than_inputs=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function ctc_loss
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if preprocess_collapse_repeated is None:
     preprocess_collapse_repeated = False
   preprocess_collapse_repeated = _execute.make_bool(preprocess_collapse_repeated, "preprocess_collapse_repeated")

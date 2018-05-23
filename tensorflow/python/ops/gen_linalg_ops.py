@@ -34,8 +34,8 @@ def batch_cholesky(input, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "BatchCholesky", input=input, name=name)
     _result = _op.outputs[:]
@@ -49,12 +49,12 @@ def batch_cholesky(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BatchCholesky", name,
-        _ctx._post_execution_callbacks, input)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "BatchCholesky", name, _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return batch_cholesky_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -63,11 +63,11 @@ def batch_cholesky(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def batch_cholesky_eager_fallback(input, name=None):
+def batch_cholesky_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function batch_cholesky
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _inputs_flat = [input]
   _attrs = ("T", _attr_T)
@@ -90,8 +90,8 @@ def batch_cholesky_grad(l, grad, name=None):
   Returns:
     A `Tensor`. Has the same type as `l`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "BatchCholeskyGrad", l=l, grad=grad, name=name)
     _result = _op.outputs[:]
@@ -105,12 +105,12 @@ def batch_cholesky_grad(l, grad, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BatchCholeskyGrad", name,
-        _ctx._post_execution_callbacks, l, grad)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "BatchCholeskyGrad", name, _ctx._post_execution_callbacks, l, grad)
       return _result
     except _core._FallbackException:
       return batch_cholesky_grad_eager_fallback(
-          l, grad, name=name)
+          l, grad, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -119,11 +119,11 @@ def batch_cholesky_grad(l, grad, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def batch_cholesky_grad_eager_fallback(l, grad, name=None):
+def batch_cholesky_grad_eager_fallback(l, grad, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function batch_cholesky_grad
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, _inputs_T = _execute.args_to_matching_eager([l, grad], _ctx)
   (l, grad) = _inputs_T
   _inputs_flat = [l, grad]
@@ -146,8 +146,8 @@ def batch_matrix_determinant(input, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "BatchMatrixDeterminant", input=input, name=name)
     _result = _op.outputs[:]
@@ -161,12 +161,12 @@ def batch_matrix_determinant(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BatchMatrixDeterminant", name,
-        _ctx._post_execution_callbacks, input)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "BatchMatrixDeterminant", name, _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return batch_matrix_determinant_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -175,11 +175,11 @@ def batch_matrix_determinant(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def batch_matrix_determinant_eager_fallback(input, name=None):
+def batch_matrix_determinant_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function batch_matrix_determinant
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _inputs_flat = [input]
   _attrs = ("T", _attr_T)
@@ -203,8 +203,8 @@ def batch_matrix_inverse(input, adjoint=False, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if adjoint is None:
       adjoint = False
     adjoint = _execute.make_bool(adjoint, "adjoint")
@@ -221,12 +221,13 @@ def batch_matrix_inverse(input, adjoint=False, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BatchMatrixInverse", name,
-        _ctx._post_execution_callbacks, input, "adjoint", adjoint)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "BatchMatrixInverse", name, _ctx._post_execution_callbacks, input,
+        "adjoint", adjoint)
       return _result
     except _core._FallbackException:
       return batch_matrix_inverse_eager_fallback(
-          input, adjoint=adjoint, name=name)
+          input, adjoint=adjoint, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -235,11 +236,11 @@ def batch_matrix_inverse(input, adjoint=False, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def batch_matrix_inverse_eager_fallback(input, adjoint=False, name=None):
+def batch_matrix_inverse_eager_fallback(input, adjoint=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function batch_matrix_inverse
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if adjoint is None:
     adjoint = False
   adjoint = _execute.make_bool(adjoint, "adjoint")
@@ -266,8 +267,8 @@ def batch_matrix_solve(matrix, rhs, adjoint=False, name=None):
   Returns:
     A `Tensor`. Has the same type as `matrix`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if adjoint is None:
       adjoint = False
     adjoint = _execute.make_bool(adjoint, "adjoint")
@@ -285,12 +286,13 @@ def batch_matrix_solve(matrix, rhs, adjoint=False, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BatchMatrixSolve", name,
-        _ctx._post_execution_callbacks, matrix, rhs, "adjoint", adjoint)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "BatchMatrixSolve", name, _ctx._post_execution_callbacks, matrix, rhs,
+        "adjoint", adjoint)
       return _result
     except _core._FallbackException:
       return batch_matrix_solve_eager_fallback(
-          matrix, rhs, adjoint=adjoint, name=name)
+          matrix, rhs, adjoint=adjoint, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -299,11 +301,11 @@ def batch_matrix_solve(matrix, rhs, adjoint=False, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def batch_matrix_solve_eager_fallback(matrix, rhs, adjoint=False, name=None):
+def batch_matrix_solve_eager_fallback(matrix, rhs, adjoint=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function batch_matrix_solve
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if adjoint is None:
     adjoint = False
   adjoint = _execute.make_bool(adjoint, "adjoint")
@@ -332,8 +334,8 @@ def batch_matrix_solve_ls(matrix, rhs, l2_regularizer, fast=True, name=None):
   Returns:
     A `Tensor`. Has the same type as `matrix`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if fast is None:
       fast = True
     fast = _execute.make_bool(fast, "fast")
@@ -351,13 +353,13 @@ def batch_matrix_solve_ls(matrix, rhs, l2_regularizer, fast=True, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BatchMatrixSolveLs", name,
-        _ctx._post_execution_callbacks, matrix, rhs, l2_regularizer, "fast",
-        fast)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "BatchMatrixSolveLs", name, _ctx._post_execution_callbacks, matrix,
+        rhs, l2_regularizer, "fast", fast)
       return _result
     except _core._FallbackException:
       return batch_matrix_solve_ls_eager_fallback(
-          matrix, rhs, l2_regularizer, fast=fast, name=name)
+          matrix, rhs, l2_regularizer, fast=fast, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -366,11 +368,11 @@ def batch_matrix_solve_ls(matrix, rhs, l2_regularizer, fast=True, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def batch_matrix_solve_ls_eager_fallback(matrix, rhs, l2_regularizer, fast=True, name=None):
+def batch_matrix_solve_ls_eager_fallback(matrix, rhs, l2_regularizer, fast=True, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function batch_matrix_solve_ls
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if fast is None:
     fast = True
   fast = _execute.make_bool(fast, "fast")
@@ -400,8 +402,8 @@ def batch_matrix_triangular_solve(matrix, rhs, lower=True, adjoint=False, name=N
   Returns:
     A `Tensor`. Has the same type as `matrix`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if lower is None:
       lower = True
     lower = _execute.make_bool(lower, "lower")
@@ -423,13 +425,13 @@ def batch_matrix_triangular_solve(matrix, rhs, lower=True, adjoint=False, name=N
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BatchMatrixTriangularSolve", name,
-        _ctx._post_execution_callbacks, matrix, rhs, "lower", lower,
-        "adjoint", adjoint)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "BatchMatrixTriangularSolve", name, _ctx._post_execution_callbacks,
+        matrix, rhs, "lower", lower, "adjoint", adjoint)
       return _result
     except _core._FallbackException:
       return batch_matrix_triangular_solve_eager_fallback(
-          matrix, rhs, lower=lower, adjoint=adjoint, name=name)
+          matrix, rhs, lower=lower, adjoint=adjoint, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -438,11 +440,11 @@ def batch_matrix_triangular_solve(matrix, rhs, lower=True, adjoint=False, name=N
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def batch_matrix_triangular_solve_eager_fallback(matrix, rhs, lower=True, adjoint=False, name=None):
+def batch_matrix_triangular_solve_eager_fallback(matrix, rhs, lower=True, adjoint=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function batch_matrix_triangular_solve
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if lower is None:
     lower = True
   lower = _execute.make_bool(lower, "lower")
@@ -472,8 +474,8 @@ def batch_self_adjoint_eig(input, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "BatchSelfAdjointEig", input=input, name=name)
     _result = _op.outputs[:]
@@ -487,12 +489,12 @@ def batch_self_adjoint_eig(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BatchSelfAdjointEig", name,
-        _ctx._post_execution_callbacks, input)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "BatchSelfAdjointEig", name, _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return batch_self_adjoint_eig_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -501,11 +503,11 @@ def batch_self_adjoint_eig(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def batch_self_adjoint_eig_eager_fallback(input, name=None):
+def batch_self_adjoint_eig_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function batch_self_adjoint_eig
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _inputs_flat = [input]
   _attrs = ("T", _attr_T)
@@ -536,8 +538,8 @@ def batch_self_adjoint_eig_v2(input, compute_v=True, name=None):
     e: A `Tensor`. Has the same type as `input`.
     v: A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if compute_v is None:
       compute_v = True
     compute_v = _execute.make_bool(compute_v, "compute_v")
@@ -554,13 +556,14 @@ def batch_self_adjoint_eig_v2(input, compute_v=True, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BatchSelfAdjointEigV2", name,
-        _ctx._post_execution_callbacks, input, "compute_v", compute_v)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "BatchSelfAdjointEigV2", name, _ctx._post_execution_callbacks, input,
+        "compute_v", compute_v)
       _result = _BatchSelfAdjointEigV2Output._make(_result)
       return _result
     except _core._FallbackException:
       return batch_self_adjoint_eig_v2_eager_fallback(
-          input, compute_v=compute_v, name=name)
+          input, compute_v=compute_v, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -569,11 +572,11 @@ def batch_self_adjoint_eig_v2(input, compute_v=True, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def batch_self_adjoint_eig_v2_eager_fallback(input, compute_v=True, name=None):
+def batch_self_adjoint_eig_v2_eager_fallback(input, compute_v=True, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function batch_self_adjoint_eig_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if compute_v is None:
     compute_v = True
   compute_v = _execute.make_bool(compute_v, "compute_v")
@@ -609,8 +612,8 @@ def batch_svd(input, compute_uv=True, full_matrices=False, name=None):
     u: A `Tensor`. Has the same type as `input`.
     v: A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if compute_uv is None:
       compute_uv = True
     compute_uv = _execute.make_bool(compute_uv, "compute_uv")
@@ -632,15 +635,15 @@ def batch_svd(input, compute_uv=True, full_matrices=False, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BatchSvd", name,
-        _ctx._post_execution_callbacks, input, "compute_uv", compute_uv,
+        _ctx._context_handle, _ctx._eager_context.device_name, "BatchSvd",
+        name, _ctx._post_execution_callbacks, input, "compute_uv", compute_uv,
         "full_matrices", full_matrices)
       _result = _BatchSvdOutput._make(_result)
       return _result
     except _core._FallbackException:
       return batch_svd_eager_fallback(
           input, compute_uv=compute_uv, full_matrices=full_matrices,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -649,11 +652,11 @@ def batch_svd(input, compute_uv=True, full_matrices=False, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def batch_svd_eager_fallback(input, compute_uv=True, full_matrices=False, name=None):
+def batch_svd_eager_fallback(input, compute_uv=True, full_matrices=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function batch_svd
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if compute_uv is None:
     compute_uv = True
   compute_uv = _execute.make_bool(compute_uv, "compute_uv")
@@ -698,8 +701,8 @@ def cholesky(input, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "Cholesky", input=input, name=name)
     _result = _op.outputs[:]
@@ -713,12 +716,12 @@ def cholesky(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Cholesky", name,
-        _ctx._post_execution_callbacks, input)
+        _ctx._context_handle, _ctx._eager_context.device_name, "Cholesky",
+        name, _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return cholesky_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -727,11 +730,11 @@ def cholesky(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def cholesky_eager_fallback(input, name=None):
+def cholesky_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function cholesky
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _inputs_flat = [input]
   _attrs = ("T", _attr_T)
@@ -763,8 +766,8 @@ def cholesky_grad(l, grad, name=None):
   Returns:
     A `Tensor`. Has the same type as `l`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "CholeskyGrad", l=l, grad=grad, name=name)
     _result = _op.outputs[:]
@@ -778,12 +781,12 @@ def cholesky_grad(l, grad, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "CholeskyGrad", name,
-        _ctx._post_execution_callbacks, l, grad)
+        _ctx._context_handle, _ctx._eager_context.device_name, "CholeskyGrad",
+        name, _ctx._post_execution_callbacks, l, grad)
       return _result
     except _core._FallbackException:
       return cholesky_grad_eager_fallback(
-          l, grad, name=name)
+          l, grad, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -792,11 +795,11 @@ def cholesky_grad(l, grad, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def cholesky_grad_eager_fallback(l, grad, name=None):
+def cholesky_grad_eager_fallback(l, grad, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function cholesky_grad
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, _inputs_T = _execute.args_to_matching_eager([l, grad], _ctx)
   (l, grad) = _inputs_T
   _inputs_flat = [l, grad]
@@ -838,8 +841,8 @@ def log_matrix_determinant(input, name=None):
     sign: A `Tensor`. Has the same type as `input`.
     log_abs_determinant: A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "LogMatrixDeterminant", input=input, name=name)
     _result = _op.outputs[:]
@@ -853,13 +856,13 @@ def log_matrix_determinant(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "LogMatrixDeterminant", name,
-        _ctx._post_execution_callbacks, input)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "LogMatrixDeterminant", name, _ctx._post_execution_callbacks, input)
       _result = _LogMatrixDeterminantOutput._make(_result)
       return _result
     except _core._FallbackException:
       return log_matrix_determinant_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -868,11 +871,11 @@ def log_matrix_determinant(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def log_matrix_determinant_eager_fallback(input, name=None):
+def log_matrix_determinant_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function log_matrix_determinant
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _inputs_flat = [input]
   _attrs = ("T", _attr_T)
@@ -900,8 +903,8 @@ def matrix_determinant(input, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "MatrixDeterminant", input=input, name=name)
     _result = _op.outputs[:]
@@ -915,12 +918,12 @@ def matrix_determinant(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MatrixDeterminant", name,
-        _ctx._post_execution_callbacks, input)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "MatrixDeterminant", name, _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return matrix_determinant_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -929,11 +932,11 @@ def matrix_determinant(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def matrix_determinant_eager_fallback(input, name=None):
+def matrix_determinant_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function matrix_determinant
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _inputs_flat = [input]
   _attrs = ("T", _attr_T)
@@ -967,8 +970,8 @@ def matrix_exponential(input, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "MatrixExponential", input=input, name=name)
     _result = _op.outputs[:]
@@ -982,12 +985,12 @@ def matrix_exponential(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MatrixExponential", name,
-        _ctx._post_execution_callbacks, input)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "MatrixExponential", name, _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return matrix_exponential_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -996,11 +999,11 @@ def matrix_exponential(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def matrix_exponential_eager_fallback(input, name=None):
+def matrix_exponential_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function matrix_exponential
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _inputs_flat = [input]
   _attrs = ("T", _attr_T)
@@ -1037,8 +1040,8 @@ def matrix_inverse(input, adjoint=False, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if adjoint is None:
       adjoint = False
     adjoint = _execute.make_bool(adjoint, "adjoint")
@@ -1055,12 +1058,13 @@ def matrix_inverse(input, adjoint=False, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MatrixInverse", name,
-        _ctx._post_execution_callbacks, input, "adjoint", adjoint)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "MatrixInverse", name, _ctx._post_execution_callbacks, input,
+        "adjoint", adjoint)
       return _result
     except _core._FallbackException:
       return matrix_inverse_eager_fallback(
-          input, adjoint=adjoint, name=name)
+          input, adjoint=adjoint, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1069,11 +1073,11 @@ def matrix_inverse(input, adjoint=False, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def matrix_inverse_eager_fallback(input, adjoint=False, name=None):
+def matrix_inverse_eager_fallback(input, adjoint=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function matrix_inverse
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if adjoint is None:
     adjoint = False
   adjoint = _execute.make_bool(adjoint, "adjoint")
@@ -1115,8 +1119,8 @@ def matrix_logarithm(input, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "MatrixLogarithm", input=input, name=name)
     _result = _op.outputs[:]
@@ -1130,12 +1134,12 @@ def matrix_logarithm(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MatrixLogarithm", name,
-        _ctx._post_execution_callbacks, input)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "MatrixLogarithm", name, _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return matrix_logarithm_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1144,11 +1148,11 @@ def matrix_logarithm(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def matrix_logarithm_eager_fallback(input, name=None):
+def matrix_logarithm_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function matrix_logarithm
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _inputs_flat = [input]
   _attrs = ("T", _attr_T)
@@ -1184,8 +1188,8 @@ def matrix_solve(matrix, rhs, adjoint=False, name=None):
   Returns:
     A `Tensor`. Has the same type as `matrix`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if adjoint is None:
       adjoint = False
     adjoint = _execute.make_bool(adjoint, "adjoint")
@@ -1202,12 +1206,12 @@ def matrix_solve(matrix, rhs, adjoint=False, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MatrixSolve", name,
-        _ctx._post_execution_callbacks, matrix, rhs, "adjoint", adjoint)
+        _ctx._context_handle, _ctx._eager_context.device_name, "MatrixSolve",
+        name, _ctx._post_execution_callbacks, matrix, rhs, "adjoint", adjoint)
       return _result
     except _core._FallbackException:
       return matrix_solve_eager_fallback(
-          matrix, rhs, adjoint=adjoint, name=name)
+          matrix, rhs, adjoint=adjoint, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1216,11 +1220,11 @@ def matrix_solve(matrix, rhs, adjoint=False, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def matrix_solve_eager_fallback(matrix, rhs, adjoint=False, name=None):
+def matrix_solve_eager_fallback(matrix, rhs, adjoint=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function matrix_solve
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if adjoint is None:
     adjoint = False
   adjoint = _execute.make_bool(adjoint, "adjoint")
@@ -1258,14 +1262,14 @@ def matrix_solve_ls(matrix, rhs, l2_regularizer, fast=True, name=None):
   If `fast` is `True`, then the solution is computed by solving the normal
   equations using Cholesky decomposition. Specifically, if \\(m \ge n\\) then
   \\(X = (A^H A + \lambda I)^{-1} A^H B\\), which solves the least-squares
-  problem \\(X = \mathrm{argmin}_{Z \in \Re^{n \times k} } ||A Z - B||_F^2 +
-  \lambda ||Z||_F^2\\). If \\(m \lt n\\) then `output` is computed as
+  problem \\(X = \mathrm{argmin}_{Z \in \Re^{n \times k} } ||A Z - B||_F^2 + \lambda ||Z||_F^2\\). 
+  If \\(m \lt n\\) then `output` is computed as
   \\(X = A^H (A A^H + \lambda I)^{-1} B\\), which (for \\(\lambda = 0\\)) is the
   minimum-norm solution to the under-determined linear system, i.e.
   \\(X = \mathrm{argmin}_{Z \in \mathbb{C}^{n \times k} } ||Z||_F^2 \\),
   subject to \\(A Z = B\\). Notice that the fast path is only numerically stable
   when \\(A\\) is numerically full rank and has a condition number
-  \\(\mathrm{cond}(A) \lt \frac{1}{\sqrt{\epsilon_{mach} } }\\) or\\(\lambda\\) is
+  \\(\mathrm{cond}(A) \lt \frac{1}{\sqrt{\epsilon_{mach} } }\\) or \\(\lambda\\) is
   sufficiently large.
 
   If `fast` is `False` an algorithm based on the numerically robust complete
@@ -1290,8 +1294,8 @@ def matrix_solve_ls(matrix, rhs, l2_regularizer, fast=True, name=None):
   Returns:
     A `Tensor`. Has the same type as `matrix`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if fast is None:
       fast = True
     fast = _execute.make_bool(fast, "fast")
@@ -1309,13 +1313,13 @@ def matrix_solve_ls(matrix, rhs, l2_regularizer, fast=True, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MatrixSolveLs", name,
-        _ctx._post_execution_callbacks, matrix, rhs, l2_regularizer, "fast",
-        fast)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "MatrixSolveLs", name, _ctx._post_execution_callbacks, matrix, rhs,
+        l2_regularizer, "fast", fast)
       return _result
     except _core._FallbackException:
       return matrix_solve_ls_eager_fallback(
-          matrix, rhs, l2_regularizer, fast=fast, name=name)
+          matrix, rhs, l2_regularizer, fast=fast, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1324,11 +1328,11 @@ def matrix_solve_ls(matrix, rhs, l2_regularizer, fast=True, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def matrix_solve_ls_eager_fallback(matrix, rhs, l2_regularizer, fast=True, name=None):
+def matrix_solve_ls_eager_fallback(matrix, rhs, l2_regularizer, fast=True, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function matrix_solve_ls
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if fast is None:
     fast = True
   fast = _execute.make_bool(fast, "fast")
@@ -1385,8 +1389,8 @@ def matrix_triangular_solve(matrix, rhs, lower=True, adjoint=False, name=None):
   Returns:
     A `Tensor`. Has the same type as `matrix`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if lower is None:
       lower = True
     lower = _execute.make_bool(lower, "lower")
@@ -1408,13 +1412,13 @@ def matrix_triangular_solve(matrix, rhs, lower=True, adjoint=False, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "MatrixTriangularSolve", name,
-        _ctx._post_execution_callbacks, matrix, rhs, "lower", lower,
-        "adjoint", adjoint)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "MatrixTriangularSolve", name, _ctx._post_execution_callbacks, matrix,
+        rhs, "lower", lower, "adjoint", adjoint)
       return _result
     except _core._FallbackException:
       return matrix_triangular_solve_eager_fallback(
-          matrix, rhs, lower=lower, adjoint=adjoint, name=name)
+          matrix, rhs, lower=lower, adjoint=adjoint, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1423,11 +1427,11 @@ def matrix_triangular_solve(matrix, rhs, lower=True, adjoint=False, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def matrix_triangular_solve_eager_fallback(matrix, rhs, lower=True, adjoint=False, name=None):
+def matrix_triangular_solve_eager_fallback(matrix, rhs, lower=True, adjoint=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function matrix_triangular_solve
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if lower is None:
     lower = True
   lower = _execute.make_bool(lower, "lower")
@@ -1481,8 +1485,8 @@ def qr(input, full_matrices=False, name=None):
     q: A `Tensor`. Has the same type as `input`.
     r: A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if full_matrices is None:
       full_matrices = False
     full_matrices = _execute.make_bool(full_matrices, "full_matrices")
@@ -1500,13 +1504,13 @@ def qr(input, full_matrices=False, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Qr", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Qr", name,
         _ctx._post_execution_callbacks, input, "full_matrices", full_matrices)
       _result = _QrOutput._make(_result)
       return _result
     except _core._FallbackException:
       return qr_eager_fallback(
-          input, full_matrices=full_matrices, name=name)
+          input, full_matrices=full_matrices, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1515,11 +1519,11 @@ def qr(input, full_matrices=False, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def qr_eager_fallback(input, full_matrices=False, name=None):
+def qr_eager_fallback(input, full_matrices=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function qr
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if full_matrices is None:
     full_matrices = False
   full_matrices = _execute.make_bool(full_matrices, "full_matrices")
@@ -1542,7 +1546,8 @@ def self_adjoint_eig(input, name=None):
   SelfAdjointEig.
 
   The result is a [..., M+1, M] matrix with [..., 0,:] containing the
-  eigenvalues, and subsequent [...,1:, :] containing the eigenvectors.
+  eigenvalues, and subsequent [...,1:, :] containing the eigenvectors. The eigenvalues
+  are sorted in non-decreasing order.
 
   Args:
     input: A `Tensor`. Must be one of the following types: `float64`, `float32`.
@@ -1552,8 +1557,8 @@ def self_adjoint_eig(input, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "SelfAdjointEig", input=input, name=name)
     _result = _op.outputs[:]
@@ -1567,12 +1572,12 @@ def self_adjoint_eig(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SelfAdjointEig", name,
-        _ctx._post_execution_callbacks, input)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SelfAdjointEig", name, _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return self_adjoint_eig_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1581,11 +1586,11 @@ def self_adjoint_eig(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def self_adjoint_eig_eager_fallback(input, name=None):
+def self_adjoint_eig_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function self_adjoint_eig
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
   _inputs_flat = [input]
   _attrs = ("T", _attr_T)
@@ -1606,7 +1611,8 @@ def self_adjoint_eig_v2(input, compute_v=True, name=None):
   r"""Computes the eigen decomposition of one or more square self-adjoint matrices.
 
   Computes the eigenvalues and (optionally) eigenvectors of each inner matrix in
-  `input` such that `input[..., :, :] = v[..., :, :] * diag(e[..., :])`.
+  `input` such that `input[..., :, :] = v[..., :, :] * diag(e[..., :])`. The eigenvalues
+  are sorted in non-decreasing order.
 
   ```python
   # a is a tensor.
@@ -1630,8 +1636,8 @@ def self_adjoint_eig_v2(input, compute_v=True, name=None):
     e: A `Tensor`. Has the same type as `input`.
     v: A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if compute_v is None:
       compute_v = True
     compute_v = _execute.make_bool(compute_v, "compute_v")
@@ -1648,13 +1654,14 @@ def self_adjoint_eig_v2(input, compute_v=True, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SelfAdjointEigV2", name,
-        _ctx._post_execution_callbacks, input, "compute_v", compute_v)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SelfAdjointEigV2", name, _ctx._post_execution_callbacks, input,
+        "compute_v", compute_v)
       _result = _SelfAdjointEigV2Output._make(_result)
       return _result
     except _core._FallbackException:
       return self_adjoint_eig_v2_eager_fallback(
-          input, compute_v=compute_v, name=name)
+          input, compute_v=compute_v, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1663,11 +1670,11 @@ def self_adjoint_eig_v2(input, compute_v=True, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def self_adjoint_eig_v2_eager_fallback(input, compute_v=True, name=None):
+def self_adjoint_eig_v2_eager_fallback(input, compute_v=True, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function self_adjoint_eig_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if compute_v is None:
     compute_v = True
   compute_v = _execute.make_bool(compute_v, "compute_v")
@@ -1723,8 +1730,8 @@ def svd(input, compute_uv=True, full_matrices=False, name=None):
     u: A `Tensor`. Has the same type as `input`.
     v: A `Tensor`. Has the same type as `input`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if compute_uv is None:
       compute_uv = True
     compute_uv = _execute.make_bool(compute_uv, "compute_uv")
@@ -1746,7 +1753,7 @@ def svd(input, compute_uv=True, full_matrices=False, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "Svd", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "Svd", name,
         _ctx._post_execution_callbacks, input, "compute_uv", compute_uv,
         "full_matrices", full_matrices)
       _result = _SvdOutput._make(_result)
@@ -1754,7 +1761,7 @@ def svd(input, compute_uv=True, full_matrices=False, name=None):
     except _core._FallbackException:
       return svd_eager_fallback(
           input, compute_uv=compute_uv, full_matrices=full_matrices,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1763,11 +1770,11 @@ def svd(input, compute_uv=True, full_matrices=False, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def svd_eager_fallback(input, compute_uv=True, full_matrices=False, name=None):
+def svd_eager_fallback(input, compute_uv=True, full_matrices=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function svd
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if compute_uv is None:
     compute_uv = True
   compute_uv = _execute.make_bool(compute_uv, "compute_uv")

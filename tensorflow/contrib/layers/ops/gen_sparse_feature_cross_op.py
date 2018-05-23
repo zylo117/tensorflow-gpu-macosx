@@ -94,8 +94,8 @@ def sparse_feature_cross(indices, values, shapes, dense, hashed_output, num_buck
       `SparseTensor`.
     output_shape: A `Tensor` of type `int64`. 1-D.  Shape of the concatenated `SparseTensor`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(indices, (list, tuple)):
       raise TypeError(
           "Expected list for 'indices' argument to "
@@ -135,17 +135,17 @@ def sparse_feature_cross(indices, values, shapes, dense, hashed_output, num_buck
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SparseFeatureCross", name,
-        _ctx._post_execution_callbacks, indices, values, shapes, dense,
-        "hashed_output", hashed_output, "num_buckets", num_buckets,
-        "out_type", out_type, "internal_type", internal_type)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SparseFeatureCross", name, _ctx._post_execution_callbacks, indices,
+        values, shapes, dense, "hashed_output", hashed_output, "num_buckets",
+        num_buckets, "out_type", out_type, "internal_type", internal_type)
       _result = _SparseFeatureCrossOutput._make(_result)
       return _result
     except _core._FallbackException:
       return sparse_feature_cross_eager_fallback(
           indices, values, shapes, dense, hashed_output=hashed_output,
           num_buckets=num_buckets, out_type=out_type,
-          internal_type=internal_type, name=name)
+          internal_type=internal_type, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -154,11 +154,11 @@ def sparse_feature_cross(indices, values, shapes, dense, hashed_output, num_buck
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sparse_feature_cross_eager_fallback(indices, values, shapes, dense, hashed_output, num_buckets, out_type, internal_type, name=None):
+def sparse_feature_cross_eager_fallback(indices, values, shapes, dense, hashed_output, num_buckets, out_type, internal_type, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sparse_feature_cross
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(indices, (list, tuple)):
     raise TypeError(
         "Expected list for 'indices' argument to "
@@ -266,8 +266,8 @@ def sparse_feature_cross_v2(indices, values, shapes, dense, hashed_output, num_b
       `SparseTensor`.
     output_shape: A `Tensor` of type `int64`. 1-D.  Shape of the concatenated `SparseTensor`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if not isinstance(indices, (list, tuple)):
       raise TypeError(
           "Expected list for 'indices' argument to "
@@ -310,18 +310,18 @@ def sparse_feature_cross_v2(indices, values, shapes, dense, hashed_output, num_b
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "SparseFeatureCrossV2", name,
-        _ctx._post_execution_callbacks, indices, values, shapes, dense,
-        "hashed_output", hashed_output, "num_buckets", num_buckets,
-        "hash_key", hash_key, "out_type", out_type, "internal_type",
-        internal_type)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "SparseFeatureCrossV2", name, _ctx._post_execution_callbacks, indices,
+        values, shapes, dense, "hashed_output", hashed_output, "num_buckets",
+        num_buckets, "hash_key", hash_key, "out_type", out_type,
+        "internal_type", internal_type)
       _result = _SparseFeatureCrossV2Output._make(_result)
       return _result
     except _core._FallbackException:
       return sparse_feature_cross_v2_eager_fallback(
           indices, values, shapes, dense, hashed_output=hashed_output,
           num_buckets=num_buckets, hash_key=hash_key, out_type=out_type,
-          internal_type=internal_type, name=name)
+          internal_type=internal_type, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -330,11 +330,11 @@ def sparse_feature_cross_v2(indices, values, shapes, dense, hashed_output, num_b
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def sparse_feature_cross_v2_eager_fallback(indices, values, shapes, dense, hashed_output, num_buckets, hash_key, out_type, internal_type, name=None):
+def sparse_feature_cross_v2_eager_fallback(indices, values, shapes, dense, hashed_output, num_buckets, hash_key, out_type, internal_type, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function sparse_feature_cross_v2
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if not isinstance(indices, (list, tuple)):
     raise TypeError(
         "Expected list for 'indices' argument to "

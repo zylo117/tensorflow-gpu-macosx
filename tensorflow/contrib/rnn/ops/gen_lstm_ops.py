@@ -87,8 +87,8 @@ def block_lstm(seq_len_max, x, cs_prev, h_prev, w, wci, wcf, wco, b, forget_bias
     co: A `Tensor`. Has the same type as `x`. The cell after the tanh over the whole time sequence.
     h: A `Tensor`. Has the same type as `x`. The output h vector over the whole time sequence.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if forget_bias is None:
       forget_bias = 1
     forget_bias = _execute.make_float(forget_bias, "forget_bias")
@@ -116,17 +116,17 @@ def block_lstm(seq_len_max, x, cs_prev, h_prev, w, wci, wcf, wco, b, forget_bias
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BlockLSTM", name,
-        _ctx._post_execution_callbacks, seq_len_max, x, cs_prev, h_prev, w,
-        wci, wcf, wco, b, "forget_bias", forget_bias, "cell_clip", cell_clip,
-        "use_peephole", use_peephole)
+        _ctx._context_handle, _ctx._eager_context.device_name, "BlockLSTM",
+        name, _ctx._post_execution_callbacks, seq_len_max, x, cs_prev, h_prev,
+        w, wci, wcf, wco, b, "forget_bias", forget_bias, "cell_clip",
+        cell_clip, "use_peephole", use_peephole)
       _result = _BlockLSTMOutput._make(_result)
       return _result
     except _core._FallbackException:
       return block_lstm_eager_fallback(
           seq_len_max, x, cs_prev, h_prev, w, wci, wcf, wco, b,
           forget_bias=forget_bias, cell_clip=cell_clip,
-          use_peephole=use_peephole, name=name)
+          use_peephole=use_peephole, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -135,11 +135,11 @@ def block_lstm(seq_len_max, x, cs_prev, h_prev, w, wci, wcf, wco, b, forget_bias
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def block_lstm_eager_fallback(seq_len_max, x, cs_prev, h_prev, w, wci, wcf, wco, b, forget_bias=1, cell_clip=3, use_peephole=False, name=None):
+def block_lstm_eager_fallback(seq_len_max, x, cs_prev, h_prev, w, wci, wcf, wco, b, forget_bias=1, cell_clip=3, use_peephole=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function block_lstm
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if forget_bias is None:
     forget_bias = 1
   forget_bias = _execute.make_float(forget_bias, "forget_bias")
@@ -228,8 +228,8 @@ def block_lstm_grad(seq_len_max, x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs,
     wco_grad: A `Tensor`. Has the same type as `x`. The gradient for wco to be back-propped.
     b_grad: A `Tensor`. Has the same type as `x`. The gradient for w to be back-propped.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     use_peephole = _execute.make_bool(use_peephole, "use_peephole")
     _, _, _op = _op_def_lib._apply_op_helper(
         "BlockLSTMGrad", seq_len_max=seq_len_max, x=x, cs_prev=cs_prev,
@@ -248,16 +248,17 @@ def block_lstm_grad(seq_len_max, x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs,
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BlockLSTMGrad", name,
-        _ctx._post_execution_callbacks, seq_len_max, x, cs_prev, h_prev, w,
-        wci, wcf, wco, b, i, cs, f, o, ci, co, h, cs_grad, h_grad,
-        "use_peephole", use_peephole)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "BlockLSTMGrad", name, _ctx._post_execution_callbacks, seq_len_max, x,
+        cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co, h, cs_grad,
+        h_grad, "use_peephole", use_peephole)
       _result = _BlockLSTMGradOutput._make(_result)
       return _result
     except _core._FallbackException:
       return block_lstm_grad_eager_fallback(
           seq_len_max, x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o,
-          ci, co, h, cs_grad, h_grad, use_peephole=use_peephole, name=name)
+          ci, co, h, cs_grad, h_grad, use_peephole=use_peephole, name=name,
+          ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -266,11 +267,11 @@ def block_lstm_grad(seq_len_max, x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs,
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def block_lstm_grad_eager_fallback(seq_len_max, x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co, h, cs_grad, h_grad, use_peephole, name=None):
+def block_lstm_grad_eager_fallback(seq_len_max, x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co, h, cs_grad, h_grad, use_peephole, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function block_lstm_grad
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   use_peephole = _execute.make_bool(use_peephole, "use_peephole")
   _attr_T, _inputs_T = _execute.args_to_matching_eager([x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co, h, cs_grad, h_grad], _ctx)
   (x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co, h, cs_grad, h_grad) = _inputs_T
@@ -354,8 +355,8 @@ def lstm_block_cell(x, cs_prev, h_prev, w, wci, wcf, wco, b, forget_bias=1, cell
     co: A `Tensor`. Has the same type as `x`. The cell after the tanh.
     h: A `Tensor`. Has the same type as `x`. The output h vector.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     if forget_bias is None:
       forget_bias = 1
     forget_bias = _execute.make_float(forget_bias, "forget_bias")
@@ -382,16 +383,16 @@ def lstm_block_cell(x, cs_prev, h_prev, w, wci, wcf, wco, b, forget_bias=1, cell
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "LSTMBlockCell", name,
-        _ctx._post_execution_callbacks, x, cs_prev, h_prev, w, wci, wcf, wco,
-        b, "forget_bias", forget_bias, "cell_clip", cell_clip, "use_peephole",
-        use_peephole)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "LSTMBlockCell", name, _ctx._post_execution_callbacks, x, cs_prev,
+        h_prev, w, wci, wcf, wco, b, "forget_bias", forget_bias, "cell_clip",
+        cell_clip, "use_peephole", use_peephole)
       _result = _LSTMBlockCellOutput._make(_result)
       return _result
     except _core._FallbackException:
       return lstm_block_cell_eager_fallback(
           x, cs_prev, h_prev, w, wci, wcf, wco, b, forget_bias=forget_bias,
-          cell_clip=cell_clip, use_peephole=use_peephole, name=name)
+          cell_clip=cell_clip, use_peephole=use_peephole, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -400,11 +401,11 @@ def lstm_block_cell(x, cs_prev, h_prev, w, wci, wcf, wco, b, forget_bias=1, cell
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def lstm_block_cell_eager_fallback(x, cs_prev, h_prev, w, wci, wcf, wco, b, forget_bias=1, cell_clip=3, use_peephole=False, name=None):
+def lstm_block_cell_eager_fallback(x, cs_prev, h_prev, w, wci, wcf, wco, b, forget_bias=1, cell_clip=3, use_peephole=False, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function lstm_block_cell
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   if forget_bias is None:
     forget_bias = 1
   forget_bias = _execute.make_float(forget_bias, "forget_bias")
@@ -478,8 +479,8 @@ def lstm_block_cell_grad(x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, c
     wcf_grad: A `Tensor`. Has the same type as `x`. The gradient for wcf to be back-propped.
     wco_grad: A `Tensor`. Has the same type as `x`. The gradient for wco to be back-propped.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     use_peephole = _execute.make_bool(use_peephole, "use_peephole")
     _, _, _op = _op_def_lib._apply_op_helper(
         "LSTMBlockCellGrad", x=x, cs_prev=cs_prev, h_prev=h_prev, w=w,
@@ -497,15 +498,16 @@ def lstm_block_cell_grad(x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, c
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "LSTMBlockCellGrad", name,
-        _ctx._post_execution_callbacks, x, cs_prev, h_prev, w, wci, wcf, wco,
-        b, i, cs, f, o, ci, co, cs_grad, h_grad, "use_peephole", use_peephole)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "LSTMBlockCellGrad", name, _ctx._post_execution_callbacks, x, cs_prev,
+        h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co, cs_grad, h_grad,
+        "use_peephole", use_peephole)
       _result = _LSTMBlockCellGradOutput._make(_result)
       return _result
     except _core._FallbackException:
       return lstm_block_cell_grad_eager_fallback(
           x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co,
-          cs_grad, h_grad, use_peephole=use_peephole, name=name)
+          cs_grad, h_grad, use_peephole=use_peephole, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -514,11 +516,11 @@ def lstm_block_cell_grad(x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, c
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def lstm_block_cell_grad_eager_fallback(x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co, cs_grad, h_grad, use_peephole, name=None):
+def lstm_block_cell_grad_eager_fallback(x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co, cs_grad, h_grad, use_peephole, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function lstm_block_cell_grad
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   use_peephole = _execute.make_bool(use_peephole, "use_peephole")
   _attr_T, _inputs_T = _execute.args_to_matching_eager([x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co, cs_grad, h_grad], _ctx)
   (x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co, cs_grad, h_grad) = _inputs_T

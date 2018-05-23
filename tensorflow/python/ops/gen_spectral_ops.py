@@ -34,8 +34,8 @@ def batch_fft(input, name=None):
   Returns:
     A `Tensor` of type `complex64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "BatchFFT", input=input, name=name)
     _result = _op.outputs[:]
@@ -49,12 +49,12 @@ def batch_fft(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BatchFFT", name,
-        _ctx._post_execution_callbacks, input)
+        _ctx._context_handle, _ctx._eager_context.device_name, "BatchFFT",
+        name, _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return batch_fft_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -63,11 +63,11 @@ def batch_fft(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def batch_fft_eager_fallback(input, name=None):
+def batch_fft_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function batch_fft
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   input = _ops.convert_to_tensor(input, _dtypes.complex64)
   _inputs_flat = [input]
   _attrs = None
@@ -89,8 +89,8 @@ def batch_fft2d(input, name=None):
   Returns:
     A `Tensor` of type `complex64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "BatchFFT2D", input=input, name=name)
     _result = _op.outputs[:]
@@ -104,12 +104,12 @@ def batch_fft2d(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BatchFFT2D", name,
-        _ctx._post_execution_callbacks, input)
+        _ctx._context_handle, _ctx._eager_context.device_name, "BatchFFT2D",
+        name, _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return batch_fft2d_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -118,11 +118,11 @@ def batch_fft2d(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def batch_fft2d_eager_fallback(input, name=None):
+def batch_fft2d_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function batch_fft2d
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   input = _ops.convert_to_tensor(input, _dtypes.complex64)
   _inputs_flat = [input]
   _attrs = None
@@ -144,8 +144,8 @@ def batch_fft3d(input, name=None):
   Returns:
     A `Tensor` of type `complex64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "BatchFFT3D", input=input, name=name)
     _result = _op.outputs[:]
@@ -159,12 +159,12 @@ def batch_fft3d(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BatchFFT3D", name,
-        _ctx._post_execution_callbacks, input)
+        _ctx._context_handle, _ctx._eager_context.device_name, "BatchFFT3D",
+        name, _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return batch_fft3d_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -173,11 +173,11 @@ def batch_fft3d(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def batch_fft3d_eager_fallback(input, name=None):
+def batch_fft3d_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function batch_fft3d
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   input = _ops.convert_to_tensor(input, _dtypes.complex64)
   _inputs_flat = [input]
   _attrs = None
@@ -199,8 +199,8 @@ def batch_ifft(input, name=None):
   Returns:
     A `Tensor` of type `complex64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "BatchIFFT", input=input, name=name)
     _result = _op.outputs[:]
@@ -214,12 +214,12 @@ def batch_ifft(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BatchIFFT", name,
-        _ctx._post_execution_callbacks, input)
+        _ctx._context_handle, _ctx._eager_context.device_name, "BatchIFFT",
+        name, _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return batch_ifft_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -228,11 +228,11 @@ def batch_ifft(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def batch_ifft_eager_fallback(input, name=None):
+def batch_ifft_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function batch_ifft
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   input = _ops.convert_to_tensor(input, _dtypes.complex64)
   _inputs_flat = [input]
   _attrs = None
@@ -254,8 +254,8 @@ def batch_ifft2d(input, name=None):
   Returns:
     A `Tensor` of type `complex64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "BatchIFFT2D", input=input, name=name)
     _result = _op.outputs[:]
@@ -269,12 +269,12 @@ def batch_ifft2d(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BatchIFFT2D", name,
-        _ctx._post_execution_callbacks, input)
+        _ctx._context_handle, _ctx._eager_context.device_name, "BatchIFFT2D",
+        name, _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return batch_ifft2d_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -283,11 +283,11 @@ def batch_ifft2d(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def batch_ifft2d_eager_fallback(input, name=None):
+def batch_ifft2d_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function batch_ifft2d
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   input = _ops.convert_to_tensor(input, _dtypes.complex64)
   _inputs_flat = [input]
   _attrs = None
@@ -309,8 +309,8 @@ def batch_ifft3d(input, name=None):
   Returns:
     A `Tensor` of type `complex64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "BatchIFFT3D", input=input, name=name)
     _result = _op.outputs[:]
@@ -324,12 +324,12 @@ def batch_ifft3d(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "BatchIFFT3D", name,
-        _ctx._post_execution_callbacks, input)
+        _ctx._context_handle, _ctx._eager_context.device_name, "BatchIFFT3D",
+        name, _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return batch_ifft3d_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -338,11 +338,11 @@ def batch_ifft3d(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def batch_ifft3d_eager_fallback(input, name=None):
+def batch_ifft3d_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function batch_ifft3d
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   input = _ops.convert_to_tensor(input, _dtypes.complex64)
   _inputs_flat = [input]
   _attrs = None
@@ -368,8 +368,8 @@ def fft(input, name=None):
   Returns:
     A `Tensor` of type `complex64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "FFT", input=input, name=name)
     _result = _op.outputs[:]
@@ -383,12 +383,12 @@ def fft(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "FFT", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "FFT", name,
         _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return fft_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -397,11 +397,11 @@ def fft(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def fft_eager_fallback(input, name=None):
+def fft_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function fft
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   input = _ops.convert_to_tensor(input, _dtypes.complex64)
   _inputs_flat = [input]
   _attrs = None
@@ -427,8 +427,8 @@ def fft2d(input, name=None):
   Returns:
     A `Tensor` of type `complex64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "FFT2D", input=input, name=name)
     _result = _op.outputs[:]
@@ -442,12 +442,12 @@ def fft2d(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "FFT2D", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "FFT2D", name,
         _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return fft2d_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -456,11 +456,11 @@ def fft2d(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def fft2d_eager_fallback(input, name=None):
+def fft2d_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function fft2d
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   input = _ops.convert_to_tensor(input, _dtypes.complex64)
   _inputs_flat = [input]
   _attrs = None
@@ -486,8 +486,8 @@ def fft3d(input, name=None):
   Returns:
     A `Tensor` of type `complex64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "FFT3D", input=input, name=name)
     _result = _op.outputs[:]
@@ -501,12 +501,12 @@ def fft3d(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "FFT3D", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "FFT3D", name,
         _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return fft3d_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -515,11 +515,11 @@ def fft3d(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def fft3d_eager_fallback(input, name=None):
+def fft3d_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function fft3d
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   input = _ops.convert_to_tensor(input, _dtypes.complex64)
   _inputs_flat = [input]
   _attrs = None
@@ -545,8 +545,8 @@ def ifft(input, name=None):
   Returns:
     A `Tensor` of type `complex64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "IFFT", input=input, name=name)
     _result = _op.outputs[:]
@@ -560,12 +560,12 @@ def ifft(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "IFFT", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "IFFT", name,
         _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return ifft_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -574,11 +574,11 @@ def ifft(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def ifft_eager_fallback(input, name=None):
+def ifft_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function ifft
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   input = _ops.convert_to_tensor(input, _dtypes.complex64)
   _inputs_flat = [input]
   _attrs = None
@@ -604,8 +604,8 @@ def ifft2d(input, name=None):
   Returns:
     A `Tensor` of type `complex64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "IFFT2D", input=input, name=name)
     _result = _op.outputs[:]
@@ -619,12 +619,12 @@ def ifft2d(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "IFFT2D", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "IFFT2D", name,
         _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return ifft2d_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -633,11 +633,11 @@ def ifft2d(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def ifft2d_eager_fallback(input, name=None):
+def ifft2d_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function ifft2d
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   input = _ops.convert_to_tensor(input, _dtypes.complex64)
   _inputs_flat = [input]
   _attrs = None
@@ -663,8 +663,8 @@ def ifft3d(input, name=None):
   Returns:
     A `Tensor` of type `complex64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "IFFT3D", input=input, name=name)
     _result = _op.outputs[:]
@@ -678,12 +678,12 @@ def ifft3d(input, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "IFFT3D", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "IFFT3D", name,
         _ctx._post_execution_callbacks, input)
       return _result
     except _core._FallbackException:
       return ifft3d_eager_fallback(
-          input, name=name)
+          input, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -692,11 +692,11 @@ def ifft3d(input, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def ifft3d_eager_fallback(input, name=None):
+def ifft3d_eager_fallback(input, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function ifft3d
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   input = _ops.convert_to_tensor(input, _dtypes.complex64)
   _inputs_flat = [input]
   _attrs = None
@@ -734,8 +734,8 @@ def irfft(input, fft_length, name=None):
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "IRFFT", input=input, fft_length=fft_length, name=name)
     _result = _op.outputs[:]
@@ -749,12 +749,12 @@ def irfft(input, fft_length, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "IRFFT", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "IRFFT", name,
         _ctx._post_execution_callbacks, input, fft_length)
       return _result
     except _core._FallbackException:
       return irfft_eager_fallback(
-          input, fft_length, name=name)
+          input, fft_length, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -763,11 +763,11 @@ def irfft(input, fft_length, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def irfft_eager_fallback(input, fft_length, name=None):
+def irfft_eager_fallback(input, fft_length, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function irfft
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   input = _ops.convert_to_tensor(input, _dtypes.complex64)
   fft_length = _ops.convert_to_tensor(fft_length, _dtypes.int32)
   _inputs_flat = [input, fft_length]
@@ -807,8 +807,8 @@ def irfft2d(input, fft_length, name=None):
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "IRFFT2D", input=input, fft_length=fft_length, name=name)
     _result = _op.outputs[:]
@@ -822,12 +822,12 @@ def irfft2d(input, fft_length, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "IRFFT2D", name,
-        _ctx._post_execution_callbacks, input, fft_length)
+        _ctx._context_handle, _ctx._eager_context.device_name, "IRFFT2D",
+        name, _ctx._post_execution_callbacks, input, fft_length)
       return _result
     except _core._FallbackException:
       return irfft2d_eager_fallback(
-          input, fft_length, name=name)
+          input, fft_length, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -836,11 +836,11 @@ def irfft2d(input, fft_length, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def irfft2d_eager_fallback(input, fft_length, name=None):
+def irfft2d_eager_fallback(input, fft_length, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function irfft2d
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   input = _ops.convert_to_tensor(input, _dtypes.complex64)
   fft_length = _ops.convert_to_tensor(fft_length, _dtypes.int32)
   _inputs_flat = [input, fft_length]
@@ -880,8 +880,8 @@ def irfft3d(input, fft_length, name=None):
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "IRFFT3D", input=input, fft_length=fft_length, name=name)
     _result = _op.outputs[:]
@@ -895,12 +895,12 @@ def irfft3d(input, fft_length, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "IRFFT3D", name,
-        _ctx._post_execution_callbacks, input, fft_length)
+        _ctx._context_handle, _ctx._eager_context.device_name, "IRFFT3D",
+        name, _ctx._post_execution_callbacks, input, fft_length)
       return _result
     except _core._FallbackException:
       return irfft3d_eager_fallback(
-          input, fft_length, name=name)
+          input, fft_length, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -909,11 +909,11 @@ def irfft3d(input, fft_length, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def irfft3d_eager_fallback(input, fft_length, name=None):
+def irfft3d_eager_fallback(input, fft_length, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function irfft3d
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   input = _ops.convert_to_tensor(input, _dtypes.complex64)
   fft_length = _ops.convert_to_tensor(fft_length, _dtypes.int32)
   _inputs_flat = [input, fft_length]
@@ -949,8 +949,8 @@ def rfft(input, fft_length, name=None):
   Returns:
     A `Tensor` of type `complex64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "RFFT", input=input, fft_length=fft_length, name=name)
     _result = _op.outputs[:]
@@ -964,12 +964,12 @@ def rfft(input, fft_length, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "RFFT", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "RFFT", name,
         _ctx._post_execution_callbacks, input, fft_length)
       return _result
     except _core._FallbackException:
       return rfft_eager_fallback(
-          input, fft_length, name=name)
+          input, fft_length, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -978,11 +978,11 @@ def rfft(input, fft_length, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def rfft_eager_fallback(input, fft_length, name=None):
+def rfft_eager_fallback(input, fft_length, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function rfft
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   input = _ops.convert_to_tensor(input, _dtypes.float32)
   fft_length = _ops.convert_to_tensor(fft_length, _dtypes.int32)
   _inputs_flat = [input, fft_length]
@@ -1019,8 +1019,8 @@ def rfft2d(input, fft_length, name=None):
   Returns:
     A `Tensor` of type `complex64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "RFFT2D", input=input, fft_length=fft_length, name=name)
     _result = _op.outputs[:]
@@ -1034,12 +1034,12 @@ def rfft2d(input, fft_length, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "RFFT2D", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "RFFT2D", name,
         _ctx._post_execution_callbacks, input, fft_length)
       return _result
     except _core._FallbackException:
       return rfft2d_eager_fallback(
-          input, fft_length, name=name)
+          input, fft_length, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1048,11 +1048,11 @@ def rfft2d(input, fft_length, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def rfft2d_eager_fallback(input, fft_length, name=None):
+def rfft2d_eager_fallback(input, fft_length, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function rfft2d
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   input = _ops.convert_to_tensor(input, _dtypes.float32)
   fft_length = _ops.convert_to_tensor(fft_length, _dtypes.int32)
   _inputs_flat = [input, fft_length]
@@ -1089,8 +1089,8 @@ def rfft3d(input, fft_length, name=None):
   Returns:
     A `Tensor` of type `complex64`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "RFFT3D", input=input, fft_length=fft_length, name=name)
     _result = _op.outputs[:]
@@ -1104,12 +1104,12 @@ def rfft3d(input, fft_length, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "RFFT3D", name,
+        _ctx._context_handle, _ctx._eager_context.device_name, "RFFT3D", name,
         _ctx._post_execution_callbacks, input, fft_length)
       return _result
     except _core._FallbackException:
       return rfft3d_eager_fallback(
-          input, fft_length, name=name)
+          input, fft_length, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -1118,11 +1118,11 @@ def rfft3d(input, fft_length, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def rfft3d_eager_fallback(input, fft_length, name=None):
+def rfft3d_eager_fallback(input, fft_length, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function rfft3d
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   input = _ops.convert_to_tensor(input, _dtypes.float32)
   fft_length = _ops.convert_to_tensor(fft_length, _dtypes.int32)
   _inputs_flat = [input, fft_length]

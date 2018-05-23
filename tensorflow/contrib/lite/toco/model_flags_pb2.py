@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='tensorflow/contrib/lite/toco/model_flags.proto',
   package='toco',
   syntax='proto2',
-  serialized_pb=_b('\n.tensorflow/contrib/lite/toco/model_flags.proto\x12\x04toco\x1a(tensorflow/contrib/lite/toco/types.proto\"\x1f\n\x0fInputArrayShape\x12\x0c\n\x04\x64ims\x18\x02 \x03(\x05\"\x8f\x01\n\nInputArray\x12\x0c\n\x04name\x18\x01 \x01(\t\x12$\n\x05shape\x18\x06 \x01(\x0b\x32\x15.toco.InputArrayShape\x12\x12\n\nmean_value\x18\x03 \x01(\x02\x12\x14\n\tstd_value\x18\x04 \x01(\x02:\x01\x31\x12#\n\tdata_type\x18\x05 \x01(\x0e\x32\x10.toco.IODataType\"b\n\x08RnnState\x12\x13\n\x0bstate_array\x18\x01 \x01(\t\x12\x1e\n\x16\x62\x61\x63k_edge_source_array\x18\x02 \x01(\t\x12\x13\n\x0b\x64iscardable\x18\x05 \x01(\x08\x12\x0c\n\x04size\x18\x03 \x01(\x05\"\x95\x01\n\x0f\x41rraysExtraInfo\x12,\n\x07\x65ntries\x18\x01 \x03(\x0b\x32\x1b.toco.ArraysExtraInfo.Entry\x1aT\n\x05\x45ntry\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0b\n\x03min\x18\x02 \x01(\x02\x12\x0b\n\x03max\x18\x03 \x01(\x02\x12#\n\tdata_type\x18\x04 \x01(\x0e\x32\x10.toco.IODataType\"\x83\x03\n\nModelFlags\x12&\n\x0cinput_arrays\x18\x01 \x03(\x0b\x32\x10.toco.InputArray\x12\x15\n\routput_arrays\x18\x02 \x03(\t\x12\x16\n\x0evariable_batch\x18\n \x01(\x08\x12\"\n\nrnn_states\x18\x0c \x03(\x0b\x32\x0e.toco.RnnState\x12\x31\n\x0cmodel_checks\x18\x0e \x03(\x0b\x32\x1b.toco.ModelFlags.ModelCheck\x12 \n\x18\x61llow_nonexistent_arrays\x18\x10 \x01(\x08\x12\x1d\n\x15\x61llow_nonascii_arrays\x18\x11 \x01(\x08\x12\x30\n\x11\x61rrays_extra_info\x18\x12 \x01(\x0b\x32\x15.toco.ArraysExtraInfo\x1aT\n\nModelCheck\x12\x18\n\ncount_type\x18\x01 \x01(\t:\x04None\x12\x15\n\tcount_min\x18\x02 \x01(\x05:\x02-1\x12\x15\n\tcount_max\x18\x03 \x01(\x05:\x02-1')
+  serialized_pb=_b('\n.tensorflow/contrib/lite/toco/model_flags.proto\x12\x04toco\x1a(tensorflow/contrib/lite/toco/types.proto\"\x1f\n\x0fInputArrayShape\x12\x0c\n\x04\x64ims\x18\x02 \x03(\x05\"\x8f\x01\n\nInputArray\x12\x0c\n\x04name\x18\x01 \x01(\t\x12$\n\x05shape\x18\x06 \x01(\x0b\x32\x15.toco.InputArrayShape\x12\x12\n\nmean_value\x18\x03 \x01(\x02\x12\x14\n\tstd_value\x18\x04 \x01(\x02:\x01\x31\x12#\n\tdata_type\x18\x05 \x01(\x0e\x32\x10.toco.IODataType\"b\n\x08RnnState\x12\x13\n\x0bstate_array\x18\x01 \x01(\t\x12\x1e\n\x16\x62\x61\x63k_edge_source_array\x18\x02 \x01(\t\x12\x13\n\x0b\x64iscardable\x18\x05 \x01(\x08\x12\x0c\n\x04size\x18\x03 \x01(\x05\"\xda\x01\n\x0f\x41rraysExtraInfo\x12,\n\x07\x65ntries\x18\x01 \x03(\x0b\x32\x1b.toco.ArraysExtraInfo.Entry\x1a\x98\x01\n\x05\x45ntry\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0b\n\x03min\x18\x02 \x01(\x01\x12\x0b\n\x03max\x18\x03 \x01(\x01\x12#\n\tdata_type\x18\x04 \x01(\x0e\x32\x10.toco.IODataType\x12$\n\x05shape\x18\x05 \x01(\x0b\x32\x15.toco.InputArrayShape\x12\x1c\n\x14\x63onstant_float_value\x18\x06 \x01(\x02\"\xad\x03\n\nModelFlags\x12&\n\x0cinput_arrays\x18\x01 \x03(\x0b\x32\x10.toco.InputArray\x12\x15\n\routput_arrays\x18\x02 \x03(\t\x12\x16\n\x0evariable_batch\x18\n \x01(\x08\x12\"\n\nrnn_states\x18\x0c \x03(\x0b\x32\x0e.toco.RnnState\x12\x31\n\x0cmodel_checks\x18\x0e \x03(\x0b\x32\x1b.toco.ModelFlags.ModelCheck\x12 \n\x18\x61llow_nonexistent_arrays\x18\x10 \x01(\x08\x12\x1d\n\x15\x61llow_nonascii_arrays\x18\x11 \x01(\x08\x12\x30\n\x11\x61rrays_extra_info\x18\x12 \x01(\x0b\x32\x15.toco.ArraysExtraInfo\x12(\n\x1a\x63hange_concat_input_ranges\x18\x13 \x01(\x08:\x04true\x1aT\n\nModelCheck\x12\x18\n\ncount_type\x18\x01 \x01(\t:\x04None\x12\x15\n\tcount_min\x18\x02 \x01(\x05:\x02-1\x12\x15\n\tcount_max\x18\x03 \x01(\x05:\x02-1')
   ,
   dependencies=[tensorflow_dot_contrib_dot_lite_dot_toco_dot_types__pb2.DESCRIPTOR,])
 
@@ -185,14 +185,14 @@ _ARRAYSEXTRAINFO_ENTRY = _descriptor.Descriptor(
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='min', full_name='toco.ArraysExtraInfo.Entry.min', index=1,
-      number=2, type=2, cpp_type=6, label=1,
+      number=2, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='max', full_name='toco.ArraysExtraInfo.Entry.max', index=2,
-      number=3, type=2, cpp_type=6, label=1,
+      number=3, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -201,6 +201,20 @@ _ARRAYSEXTRAINFO_ENTRY = _descriptor.Descriptor(
       name='data_type', full_name='toco.ArraysExtraInfo.Entry.data_type', index=3,
       number=4, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='shape', full_name='toco.ArraysExtraInfo.Entry.shape', index=4,
+      number=5, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='constant_float_value', full_name='toco.ArraysExtraInfo.Entry.constant_float_value', index=5,
+      number=6, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
@@ -216,8 +230,8 @@ _ARRAYSEXTRAINFO_ENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=443,
-  serialized_end=527,
+  serialized_start=444,
+  serialized_end=596,
 )
 
 _ARRAYSEXTRAINFO = _descriptor.Descriptor(
@@ -247,7 +261,7 @@ _ARRAYSEXTRAINFO = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=378,
-  serialized_end=527,
+  serialized_end=596,
 )
 
 
@@ -291,8 +305,8 @@ _MODELFLAGS_MODELCHECK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=833,
-  serialized_end=917,
+  serialized_start=944,
+  serialized_end=1028,
 )
 
 _MODELFLAGS = _descriptor.Descriptor(
@@ -358,6 +372,13 @@ _MODELFLAGS = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='change_concat_input_ranges', full_name='toco.ModelFlags.change_concat_input_ranges', index=8,
+      number=19, type=8, cpp_type=7, label=1,
+      has_default_value=True, default_value=True,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -370,13 +391,14 @@ _MODELFLAGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=530,
-  serialized_end=917,
+  serialized_start=599,
+  serialized_end=1028,
 )
 
 _INPUTARRAY.fields_by_name['shape'].message_type = _INPUTARRAYSHAPE
 _INPUTARRAY.fields_by_name['data_type'].enum_type = tensorflow_dot_contrib_dot_lite_dot_toco_dot_types__pb2._IODATATYPE
 _ARRAYSEXTRAINFO_ENTRY.fields_by_name['data_type'].enum_type = tensorflow_dot_contrib_dot_lite_dot_toco_dot_types__pb2._IODATATYPE
+_ARRAYSEXTRAINFO_ENTRY.fields_by_name['shape'].message_type = _INPUTARRAYSHAPE
 _ARRAYSEXTRAINFO_ENTRY.containing_type = _ARRAYSEXTRAINFO
 _ARRAYSEXTRAINFO.fields_by_name['entries'].message_type = _ARRAYSEXTRAINFO_ENTRY
 _MODELFLAGS_MODELCHECK.containing_type = _MODELFLAGS

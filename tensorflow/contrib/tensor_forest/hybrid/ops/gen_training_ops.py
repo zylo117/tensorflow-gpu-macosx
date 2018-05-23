@@ -65,8 +65,8 @@ def hard_routing_function(input_data, tree_parameters, tree_biases, max_nodes, t
     path_probability: A `Tensor` of type `float32`.
     path: A `Tensor` of type `int32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     max_nodes = _execute.make_int(max_nodes, "max_nodes")
     tree_depth = _execute.make_int(tree_depth, "tree_depth")
     _, _, _op = _op_def_lib._apply_op_helper(
@@ -85,15 +85,16 @@ def hard_routing_function(input_data, tree_parameters, tree_biases, max_nodes, t
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "HardRoutingFunction", name,
-        _ctx._post_execution_callbacks, input_data, tree_parameters,
-        tree_biases, "max_nodes", max_nodes, "tree_depth", tree_depth)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "HardRoutingFunction", name, _ctx._post_execution_callbacks,
+        input_data, tree_parameters, tree_biases, "max_nodes", max_nodes,
+        "tree_depth", tree_depth)
       _result = _HardRoutingFunctionOutput._make(_result)
       return _result
     except _core._FallbackException:
       return hard_routing_function_eager_fallback(
           input_data, tree_parameters, tree_biases, max_nodes=max_nodes,
-          tree_depth=tree_depth, name=name)
+          tree_depth=tree_depth, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -102,11 +103,11 @@ def hard_routing_function(input_data, tree_parameters, tree_biases, max_nodes, t
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def hard_routing_function_eager_fallback(input_data, tree_parameters, tree_biases, max_nodes, tree_depth, name=None):
+def hard_routing_function_eager_fallback(input_data, tree_parameters, tree_biases, max_nodes, tree_depth, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function hard_routing_function
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   max_nodes = _execute.make_int(max_nodes, "max_nodes")
   tree_depth = _execute.make_int(tree_depth, "tree_depth")
   input_data = _ops.convert_to_tensor(input_data, _dtypes.float32)
@@ -185,8 +186,8 @@ def k_feature_gradient(input_data, tree_parameters, tree_biases, routes, layer_n
     data_gradient: A `Tensor` of type `float32`.
     weight_gradient: A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     layer_num = _execute.make_int(layer_num, "layer_num")
     random_seed = _execute.make_int(random_seed, "random_seed")
     _, _, _op = _op_def_lib._apply_op_helper(
@@ -206,16 +207,16 @@ def k_feature_gradient(input_data, tree_parameters, tree_biases, routes, layer_n
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "KFeatureGradient", name,
-        _ctx._post_execution_callbacks, input_data, tree_parameters,
-        tree_biases, routes, "layer_num", layer_num, "random_seed",
-        random_seed)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "KFeatureGradient", name, _ctx._post_execution_callbacks, input_data,
+        tree_parameters, tree_biases, routes, "layer_num", layer_num,
+        "random_seed", random_seed)
       _result = _KFeatureGradientOutput._make(_result)
       return _result
     except _core._FallbackException:
       return k_feature_gradient_eager_fallback(
           input_data, tree_parameters, tree_biases, routes,
-          layer_num=layer_num, random_seed=random_seed, name=name)
+          layer_num=layer_num, random_seed=random_seed, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -224,11 +225,11 @@ def k_feature_gradient(input_data, tree_parameters, tree_biases, routes, layer_n
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def k_feature_gradient_eager_fallback(input_data, tree_parameters, tree_biases, routes, layer_num, random_seed, name=None):
+def k_feature_gradient_eager_fallback(input_data, tree_parameters, tree_biases, routes, layer_num, random_seed, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function k_feature_gradient
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   layer_num = _execute.make_int(layer_num, "layer_num")
   random_seed = _execute.make_int(random_seed, "random_seed")
   input_data = _ops.convert_to_tensor(input_data, _dtypes.float32)
@@ -285,8 +286,8 @@ def k_feature_routing_function(input_data, tree_parameters, tree_biases, layer_n
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     layer_num = _execute.make_int(layer_num, "layer_num")
     max_nodes = _execute.make_int(max_nodes, "max_nodes")
     num_features_per_node = _execute.make_int(num_features_per_node, "num_features_per_node")
@@ -311,17 +312,17 @@ def k_feature_routing_function(input_data, tree_parameters, tree_biases, layer_n
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "KFeatureRoutingFunction", name,
-        _ctx._post_execution_callbacks, input_data, tree_parameters,
-        tree_biases, "layer_num", layer_num, "max_nodes", max_nodes,
-        "num_features_per_node", num_features_per_node, "random_seed",
-        random_seed)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "KFeatureRoutingFunction", name, _ctx._post_execution_callbacks,
+        input_data, tree_parameters, tree_biases, "layer_num", layer_num,
+        "max_nodes", max_nodes, "num_features_per_node",
+        num_features_per_node, "random_seed", random_seed)
       return _result
     except _core._FallbackException:
       return k_feature_routing_function_eager_fallback(
           input_data, tree_parameters, tree_biases, layer_num=layer_num,
           max_nodes=max_nodes, num_features_per_node=num_features_per_node,
-          random_seed=random_seed, name=name)
+          random_seed=random_seed, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -330,11 +331,11 @@ def k_feature_routing_function(input_data, tree_parameters, tree_biases, layer_n
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def k_feature_routing_function_eager_fallback(input_data, tree_parameters, tree_biases, layer_num, max_nodes, num_features_per_node, random_seed, name=None):
+def k_feature_routing_function_eager_fallback(input_data, tree_parameters, tree_biases, layer_num, max_nodes, num_features_per_node, random_seed, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function k_feature_routing_function
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   layer_num = _execute.make_int(layer_num, "layer_num")
   max_nodes = _execute.make_int(max_nodes, "max_nodes")
   num_features_per_node = _execute.make_int(num_features_per_node, "num_features_per_node")
@@ -384,8 +385,8 @@ def routing_function(input_data, tree_parameters, tree_biases, max_nodes, name=N
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     max_nodes = _execute.make_int(max_nodes, "max_nodes")
     _, _, _op = _op_def_lib._apply_op_helper(
         "RoutingFunction", input_data=input_data,
@@ -402,14 +403,14 @@ def routing_function(input_data, tree_parameters, tree_biases, max_nodes, name=N
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "RoutingFunction", name,
-        _ctx._post_execution_callbacks, input_data, tree_parameters,
-        tree_biases, "max_nodes", max_nodes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "RoutingFunction", name, _ctx._post_execution_callbacks, input_data,
+        tree_parameters, tree_biases, "max_nodes", max_nodes)
       return _result
     except _core._FallbackException:
       return routing_function_eager_fallback(
           input_data, tree_parameters, tree_biases, max_nodes=max_nodes,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -418,11 +419,11 @@ def routing_function(input_data, tree_parameters, tree_biases, max_nodes, name=N
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def routing_function_eager_fallback(input_data, tree_parameters, tree_biases, max_nodes, name=None):
+def routing_function_eager_fallback(input_data, tree_parameters, tree_biases, max_nodes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function routing_function
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   max_nodes = _execute.make_int(max_nodes, "max_nodes")
   input_data = _ops.convert_to_tensor(input_data, _dtypes.float32)
   tree_parameters = _ops.convert_to_tensor(tree_parameters, _dtypes.float32)
@@ -478,8 +479,8 @@ def routing_gradient(input_data, tree_parameters, tree_biases, routes, max_nodes
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     max_nodes = _execute.make_int(max_nodes, "max_nodes")
     _, _, _op = _op_def_lib._apply_op_helper(
         "RoutingGradient", input_data=input_data,
@@ -496,14 +497,14 @@ def routing_gradient(input_data, tree_parameters, tree_biases, routes, max_nodes
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "RoutingGradient", name,
-        _ctx._post_execution_callbacks, input_data, tree_parameters,
-        tree_biases, routes, "max_nodes", max_nodes)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "RoutingGradient", name, _ctx._post_execution_callbacks, input_data,
+        tree_parameters, tree_biases, routes, "max_nodes", max_nodes)
       return _result
     except _core._FallbackException:
       return routing_gradient_eager_fallback(
           input_data, tree_parameters, tree_biases, routes,
-          max_nodes=max_nodes, name=name)
+          max_nodes=max_nodes, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -512,11 +513,11 @@ def routing_gradient(input_data, tree_parameters, tree_biases, routes, max_nodes
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def routing_gradient_eager_fallback(input_data, tree_parameters, tree_biases, routes, max_nodes, name=None):
+def routing_gradient_eager_fallback(input_data, tree_parameters, tree_biases, routes, max_nodes, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function routing_gradient
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   max_nodes = _execute.make_int(max_nodes, "max_nodes")
   input_data = _ops.convert_to_tensor(input_data, _dtypes.float32)
   tree_parameters = _ops.convert_to_tensor(tree_parameters, _dtypes.float32)
@@ -577,8 +578,8 @@ def stochastic_hard_routing_function(input_data, tree_parameters, tree_biases, t
     path_probability: A `Tensor` of type `float32`.
     path: A `Tensor` of type `int32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     tree_depth = _execute.make_int(tree_depth, "tree_depth")
     random_seed = _execute.make_int(random_seed, "random_seed")
     _, _, _op = _op_def_lib._apply_op_helper(
@@ -597,15 +598,16 @@ def stochastic_hard_routing_function(input_data, tree_parameters, tree_biases, t
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StochasticHardRoutingFunction", name,
-        _ctx._post_execution_callbacks, input_data, tree_parameters,
-        tree_biases, "tree_depth", tree_depth, "random_seed", random_seed)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "StochasticHardRoutingFunction", name, _ctx._post_execution_callbacks,
+        input_data, tree_parameters, tree_biases, "tree_depth", tree_depth,
+        "random_seed", random_seed)
       _result = _StochasticHardRoutingFunctionOutput._make(_result)
       return _result
     except _core._FallbackException:
       return stochastic_hard_routing_function_eager_fallback(
           input_data, tree_parameters, tree_biases, tree_depth=tree_depth,
-          random_seed=random_seed, name=name)
+          random_seed=random_seed, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -614,11 +616,11 @@ def stochastic_hard_routing_function(input_data, tree_parameters, tree_biases, t
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stochastic_hard_routing_function_eager_fallback(input_data, tree_parameters, tree_biases, tree_depth, random_seed, name=None):
+def stochastic_hard_routing_function_eager_fallback(input_data, tree_parameters, tree_biases, tree_depth, random_seed, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stochastic_hard_routing_function
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   tree_depth = _execute.make_int(tree_depth, "tree_depth")
   random_seed = _execute.make_int(random_seed, "random_seed")
   input_data = _ops.convert_to_tensor(input_data, _dtypes.float32)
@@ -704,8 +706,8 @@ def stochastic_hard_routing_gradient(input_data, tree_parameters, tree_biases, p
     parameter_gradient: A `Tensor` of type `float32`.
     bias_gradient: A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     tree_depth = _execute.make_int(tree_depth, "tree_depth")
     _, _, _op = _op_def_lib._apply_op_helper(
         "StochasticHardRoutingGradient", input_data=input_data,
@@ -723,15 +725,16 @@ def stochastic_hard_routing_gradient(input_data, tree_parameters, tree_biases, p
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "StochasticHardRoutingGradient", name,
-        _ctx._post_execution_callbacks, input_data, tree_parameters,
-        tree_biases, path_probability, path, "tree_depth", tree_depth)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "StochasticHardRoutingGradient", name, _ctx._post_execution_callbacks,
+        input_data, tree_parameters, tree_biases, path_probability, path,
+        "tree_depth", tree_depth)
       _result = _StochasticHardRoutingGradientOutput._make(_result)
       return _result
     except _core._FallbackException:
       return stochastic_hard_routing_gradient_eager_fallback(
           input_data, tree_parameters, tree_biases, path_probability, path,
-          tree_depth=tree_depth, name=name)
+          tree_depth=tree_depth, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -740,11 +743,11 @@ def stochastic_hard_routing_gradient(input_data, tree_parameters, tree_biases, p
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def stochastic_hard_routing_gradient_eager_fallback(input_data, tree_parameters, tree_biases, path_probability, path, tree_depth, name=None):
+def stochastic_hard_routing_gradient_eager_fallback(input_data, tree_parameters, tree_biases, path_probability, path, tree_depth, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function stochastic_hard_routing_gradient
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   tree_depth = _execute.make_int(tree_depth, "tree_depth")
   input_data = _ops.convert_to_tensor(input_data, _dtypes.float32)
   tree_parameters = _ops.convert_to_tensor(tree_parameters, _dtypes.float32)
@@ -786,8 +789,8 @@ def unpack_path(path, path_values, name=None):
   Returns:
     A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     _, _, _op = _op_def_lib._apply_op_helper(
         "UnpackPath", path=path, path_values=path_values, name=name)
     _result = _op.outputs[:]
@@ -801,12 +804,12 @@ def unpack_path(path, path_values, name=None):
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "UnpackPath", name,
-        _ctx._post_execution_callbacks, path, path_values)
+        _ctx._context_handle, _ctx._eager_context.device_name, "UnpackPath",
+        name, _ctx._post_execution_callbacks, path, path_values)
       return _result
     except _core._FallbackException:
       return unpack_path_eager_fallback(
-          path, path_values, name=name)
+          path, path_values, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -815,11 +818,11 @@ def unpack_path(path, path_values, name=None):
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def unpack_path_eager_fallback(path, path_values, name=None):
+def unpack_path_eager_fallback(path, path_values, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function unpack_path
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   path = _ops.convert_to_tensor(path, _dtypes.int32)
   path_values = _ops.convert_to_tensor(path_values, _dtypes.float32)
   _inputs_flat = [path, path_values]

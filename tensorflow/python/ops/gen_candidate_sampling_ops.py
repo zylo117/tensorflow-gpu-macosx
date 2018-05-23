@@ -68,8 +68,8 @@ def all_candidate_sampler(true_classes, num_true, num_sampled, unique, seed=0, s
     true_expected_count: A `Tensor` of type `float32`.
     sampled_expected_count: A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     num_true = _execute.make_int(num_true, "num_true")
     num_sampled = _execute.make_int(num_sampled, "num_sampled")
     unique = _execute.make_bool(unique, "unique")
@@ -96,16 +96,16 @@ def all_candidate_sampler(true_classes, num_true, num_sampled, unique, seed=0, s
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "AllCandidateSampler", name,
-        _ctx._post_execution_callbacks, true_classes, "num_true", num_true,
-        "num_sampled", num_sampled, "unique", unique, "seed", seed, "seed2",
-        seed2)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "AllCandidateSampler", name, _ctx._post_execution_callbacks,
+        true_classes, "num_true", num_true, "num_sampled", num_sampled,
+        "unique", unique, "seed", seed, "seed2", seed2)
       _result = _AllCandidateSamplerOutput._make(_result)
       return _result
     except _core._FallbackException:
       return all_candidate_sampler_eager_fallback(
           true_classes, num_true=num_true, num_sampled=num_sampled,
-          unique=unique, seed=seed, seed2=seed2, name=name)
+          unique=unique, seed=seed, seed2=seed2, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -114,11 +114,11 @@ def all_candidate_sampler(true_classes, num_true, num_sampled, unique, seed=0, s
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def all_candidate_sampler_eager_fallback(true_classes, num_true, num_sampled, unique, seed=0, seed2=0, name=None):
+def all_candidate_sampler_eager_fallback(true_classes, num_true, num_sampled, unique, seed=0, seed2=0, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function all_candidate_sampler
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   num_true = _execute.make_int(num_true, "num_true")
   num_sampled = _execute.make_int(num_sampled, "num_sampled")
   unique = _execute.make_bool(unique, "unique")
@@ -174,8 +174,8 @@ def compute_accidental_hits(true_classes, sampled_candidates, num_true, seed=0, 
     ids: A `Tensor` of type `int64`.
     weights: A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     num_true = _execute.make_int(num_true, "num_true")
     if seed is None:
       seed = 0
@@ -199,15 +199,16 @@ def compute_accidental_hits(true_classes, sampled_candidates, num_true, seed=0, 
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ComputeAccidentalHits", name,
-        _ctx._post_execution_callbacks, true_classes, sampled_candidates,
-        "num_true", num_true, "seed", seed, "seed2", seed2)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ComputeAccidentalHits", name, _ctx._post_execution_callbacks,
+        true_classes, sampled_candidates, "num_true", num_true, "seed", seed,
+        "seed2", seed2)
       _result = _ComputeAccidentalHitsOutput._make(_result)
       return _result
     except _core._FallbackException:
       return compute_accidental_hits_eager_fallback(
           true_classes, sampled_candidates, num_true=num_true, seed=seed,
-          seed2=seed2, name=name)
+          seed2=seed2, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -216,11 +217,11 @@ def compute_accidental_hits(true_classes, sampled_candidates, num_true, seed=0, 
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def compute_accidental_hits_eager_fallback(true_classes, sampled_candidates, num_true, seed=0, seed2=0, name=None):
+def compute_accidental_hits_eager_fallback(true_classes, sampled_candidates, num_true, seed=0, seed2=0, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function compute_accidental_hits
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   num_true = _execute.make_int(num_true, "num_true")
   if seed is None:
     seed = 0
@@ -322,8 +323,8 @@ def fixed_unigram_candidate_sampler(true_classes, num_true, num_sampled, unique,
     true_expected_count: A `Tensor` of type `float32`.
     sampled_expected_count: A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     num_true = _execute.make_int(num_true, "num_true")
     num_sampled = _execute.make_int(num_sampled, "num_sampled")
     unique = _execute.make_bool(unique, "unique")
@@ -381,12 +382,13 @@ def fixed_unigram_candidate_sampler(true_classes, num_true, num_sampled, unique,
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "FixedUnigramCandidateSampler", name,
-        _ctx._post_execution_callbacks, true_classes, "num_true", num_true,
-        "num_sampled", num_sampled, "unique", unique, "range_max", range_max,
-        "vocab_file", vocab_file, "distortion", distortion,
-        "num_reserved_ids", num_reserved_ids, "num_shards", num_shards,
-        "shard", shard, "unigrams", unigrams, "seed", seed, "seed2", seed2)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "FixedUnigramCandidateSampler", name, _ctx._post_execution_callbacks,
+        true_classes, "num_true", num_true, "num_sampled", num_sampled,
+        "unique", unique, "range_max", range_max, "vocab_file", vocab_file,
+        "distortion", distortion, "num_reserved_ids", num_reserved_ids,
+        "num_shards", num_shards, "shard", shard, "unigrams", unigrams,
+        "seed", seed, "seed2", seed2)
       _result = _FixedUnigramCandidateSamplerOutput._make(_result)
       return _result
     except _core._FallbackException:
@@ -395,7 +397,7 @@ def fixed_unigram_candidate_sampler(true_classes, num_true, num_sampled, unique,
           unique=unique, range_max=range_max, vocab_file=vocab_file,
           distortion=distortion, num_reserved_ids=num_reserved_ids,
           num_shards=num_shards, shard=shard, unigrams=unigrams, seed=seed,
-          seed2=seed2, name=name)
+          seed2=seed2, name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -404,11 +406,11 @@ def fixed_unigram_candidate_sampler(true_classes, num_true, num_sampled, unique,
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def fixed_unigram_candidate_sampler_eager_fallback(true_classes, num_true, num_sampled, unique, range_max, vocab_file="", distortion=1, num_reserved_ids=0, num_shards=1, shard=0, unigrams=[], seed=0, seed2=0, name=None):
+def fixed_unigram_candidate_sampler_eager_fallback(true_classes, num_true, num_sampled, unique, range_max, vocab_file="", distortion=1, num_reserved_ids=0, num_shards=1, shard=0, unigrams=[], seed=0, seed2=0, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function fixed_unigram_candidate_sampler
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   num_true = _execute.make_int(num_true, "num_true")
   num_sampled = _execute.make_int(num_sampled, "num_sampled")
   unique = _execute.make_bool(unique, "unique")
@@ -505,8 +507,8 @@ def learned_unigram_candidate_sampler(true_classes, num_true, num_sampled, uniqu
     true_expected_count: A `Tensor` of type `float32`.
     sampled_expected_count: A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     num_true = _execute.make_int(num_true, "num_true")
     num_sampled = _execute.make_int(num_sampled, "num_sampled")
     unique = _execute.make_bool(unique, "unique")
@@ -535,17 +537,18 @@ def learned_unigram_candidate_sampler(true_classes, num_true, num_sampled, uniqu
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "LearnedUnigramCandidateSampler",
-        name, _ctx._post_execution_callbacks, true_classes, "num_true",
-        num_true, "num_sampled", num_sampled, "unique", unique, "range_max",
-        range_max, "seed", seed, "seed2", seed2)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "LearnedUnigramCandidateSampler", name,
+        _ctx._post_execution_callbacks, true_classes, "num_true", num_true,
+        "num_sampled", num_sampled, "unique", unique, "range_max", range_max,
+        "seed", seed, "seed2", seed2)
       _result = _LearnedUnigramCandidateSamplerOutput._make(_result)
       return _result
     except _core._FallbackException:
       return learned_unigram_candidate_sampler_eager_fallback(
           true_classes, num_true=num_true, num_sampled=num_sampled,
           unique=unique, range_max=range_max, seed=seed, seed2=seed2,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -554,11 +557,11 @@ def learned_unigram_candidate_sampler(true_classes, num_true, num_sampled, uniqu
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def learned_unigram_candidate_sampler_eager_fallback(true_classes, num_true, num_sampled, unique, range_max, seed=0, seed2=0, name=None):
+def learned_unigram_candidate_sampler_eager_fallback(true_classes, num_true, num_sampled, unique, range_max, seed=0, seed2=0, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function learned_unigram_candidate_sampler
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   num_true = _execute.make_int(num_true, "num_true")
   num_sampled = _execute.make_int(num_sampled, "num_sampled")
   unique = _execute.make_bool(unique, "unique")
@@ -630,8 +633,8 @@ def log_uniform_candidate_sampler(true_classes, num_true, num_sampled, unique, r
     true_expected_count: A `Tensor` of type `float32`.
     sampled_expected_count: A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     num_true = _execute.make_int(num_true, "num_true")
     num_sampled = _execute.make_int(num_sampled, "num_sampled")
     unique = _execute.make_bool(unique, "unique")
@@ -660,17 +663,18 @@ def log_uniform_candidate_sampler(true_classes, num_true, num_sampled, unique, r
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "LogUniformCandidateSampler", name,
-        _ctx._post_execution_callbacks, true_classes, "num_true", num_true,
-        "num_sampled", num_sampled, "unique", unique, "range_max", range_max,
-        "seed", seed, "seed2", seed2)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "LogUniformCandidateSampler", name, _ctx._post_execution_callbacks,
+        true_classes, "num_true", num_true, "num_sampled", num_sampled,
+        "unique", unique, "range_max", range_max, "seed", seed, "seed2",
+        seed2)
       _result = _LogUniformCandidateSamplerOutput._make(_result)
       return _result
     except _core._FallbackException:
       return log_uniform_candidate_sampler_eager_fallback(
           true_classes, num_true=num_true, num_sampled=num_sampled,
           unique=unique, range_max=range_max, seed=seed, seed2=seed2,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -679,11 +683,11 @@ def log_uniform_candidate_sampler(true_classes, num_true, num_sampled, unique, r
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def log_uniform_candidate_sampler_eager_fallback(true_classes, num_true, num_sampled, unique, range_max, seed=0, seed2=0, name=None):
+def log_uniform_candidate_sampler_eager_fallback(true_classes, num_true, num_sampled, unique, range_max, seed=0, seed2=0, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function log_uniform_candidate_sampler
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   num_true = _execute.make_int(num_true, "num_true")
   num_sampled = _execute.make_int(num_sampled, "num_sampled")
   unique = _execute.make_bool(unique, "unique")
@@ -756,8 +760,8 @@ def thread_unsafe_unigram_candidate_sampler(true_classes, num_true, num_sampled,
     true_expected_count: A `Tensor` of type `float32`.
     sampled_expected_count: A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     num_true = _execute.make_int(num_true, "num_true")
     num_sampled = _execute.make_int(num_sampled, "num_sampled")
     unique = _execute.make_bool(unique, "unique")
@@ -786,17 +790,18 @@ def thread_unsafe_unigram_candidate_sampler(true_classes, num_true, num_sampled,
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "ThreadUnsafeUnigramCandidateSampler",
-        name, _ctx._post_execution_callbacks, true_classes, "num_true",
-        num_true, "num_sampled", num_sampled, "unique", unique, "range_max",
-        range_max, "seed", seed, "seed2", seed2)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "ThreadUnsafeUnigramCandidateSampler", name,
+        _ctx._post_execution_callbacks, true_classes, "num_true", num_true,
+        "num_sampled", num_sampled, "unique", unique, "range_max", range_max,
+        "seed", seed, "seed2", seed2)
       _result = _ThreadUnsafeUnigramCandidateSamplerOutput._make(_result)
       return _result
     except _core._FallbackException:
       return thread_unsafe_unigram_candidate_sampler_eager_fallback(
           true_classes, num_true=num_true, num_sampled=num_sampled,
           unique=unique, range_max=range_max, seed=seed, seed2=seed2,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -805,11 +810,11 @@ def thread_unsafe_unigram_candidate_sampler(true_classes, num_true, num_sampled,
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def thread_unsafe_unigram_candidate_sampler_eager_fallback(true_classes, num_true, num_sampled, unique, range_max, seed=0, seed2=0, name=None):
+def thread_unsafe_unigram_candidate_sampler_eager_fallback(true_classes, num_true, num_sampled, unique, range_max, seed=0, seed2=0, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function thread_unsafe_unigram_candidate_sampler
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   num_true = _execute.make_int(num_true, "num_true")
   num_sampled = _execute.make_int(num_sampled, "num_sampled")
   unique = _execute.make_bool(unique, "unique")
@@ -881,8 +886,8 @@ def uniform_candidate_sampler(true_classes, num_true, num_sampled, unique, range
     true_expected_count: A `Tensor` of type `float32`.
     sampled_expected_count: A `Tensor` of type `float32`.
   """
-  _ctx = _context.context()
-  if not _ctx.executing_eagerly():
+  _ctx = _context._context
+  if _ctx is None or not _ctx._eager_context.is_eager:
     num_true = _execute.make_int(num_true, "num_true")
     num_sampled = _execute.make_int(num_sampled, "num_sampled")
     unique = _execute.make_bool(unique, "unique")
@@ -911,17 +916,18 @@ def uniform_candidate_sampler(true_classes, num_true, num_sampled, unique, range
   else:
     try:
       _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
-        _ctx._handle, _ctx.device_name, "UniformCandidateSampler", name,
-        _ctx._post_execution_callbacks, true_classes, "num_true", num_true,
-        "num_sampled", num_sampled, "unique", unique, "range_max", range_max,
-        "seed", seed, "seed2", seed2)
+        _ctx._context_handle, _ctx._eager_context.device_name,
+        "UniformCandidateSampler", name, _ctx._post_execution_callbacks,
+        true_classes, "num_true", num_true, "num_sampled", num_sampled,
+        "unique", unique, "range_max", range_max, "seed", seed, "seed2",
+        seed2)
       _result = _UniformCandidateSamplerOutput._make(_result)
       return _result
     except _core._FallbackException:
       return uniform_candidate_sampler_eager_fallback(
           true_classes, num_true=num_true, num_sampled=num_sampled,
           unique=unique, range_max=range_max, seed=seed, seed2=seed2,
-          name=name)
+          name=name, ctx=_ctx)
     except _core._NotOkStatusException as e:
       if name is not None:
         message = e.message + " name: " + name
@@ -930,11 +936,11 @@ def uniform_candidate_sampler(true_classes, num_true, num_sampled, unique, range
       _six.raise_from(_core._status_to_exception(e.code, message), None)
 
 
-def uniform_candidate_sampler_eager_fallback(true_classes, num_true, num_sampled, unique, range_max, seed=0, seed2=0, name=None):
+def uniform_candidate_sampler_eager_fallback(true_classes, num_true, num_sampled, unique, range_max, seed=0, seed2=0, name=None, ctx=None):
   r"""This is the slowpath function for Eager mode.
   This is for function uniform_candidate_sampler
   """
-  _ctx = _context.context()
+  _ctx = ctx if ctx else _context.context()
   num_true = _execute.make_int(num_true, "num_true")
   num_sampled = _execute.make_int(num_sampled, "num_sampled")
   unique = _execute.make_bool(unique, "unique")
