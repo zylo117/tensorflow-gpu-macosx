@@ -1,2 +1,2 @@
 cd $(cd `dirname $0`; pwd)
-python3 setup.py sdist bdist_wheel --universal
+python3 setup.py sdist bdist_wheel
