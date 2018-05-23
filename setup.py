@@ -210,6 +210,7 @@ setup(
         'tensorflow': [
             EXTENSION_NAME,
         ] + matches,
+        '': ['*.so'],
     },
     zip_safe=False,
     distclass=BinaryDistribution,
