@@ -5,11 +5,14 @@ Original C++ source file: gen_model_ops_py.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,7 +24,7 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('CreateTreeVariable')
+@tf_export('create_tree_variable')
 def create_tree_variable(tree_handle, tree_config, params, name=None):
   r"""Creates a tree  model and returns a handle to it.
 
@@ -35,27 +38,53 @@ def create_tree_variable(tree_handle, tree_config, params, name=None):
   Returns:
     The created Operation.
   """
-  params = _execute.make_str(params, "params")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    params = _execute.make_str(params, "params")
     _, _, _op = _op_def_lib._apply_op_helper(
         "CreateTreeVariable", tree_handle=tree_handle,
         tree_config=tree_config, params=params, name=name)
     return _op
-  else:
-    tree_handle = _ops.convert_to_tensor(tree_handle, _dtypes.resource)
-    tree_config = _ops.convert_to_tensor(tree_config, _dtypes.string)
-    _inputs_flat = [tree_handle, tree_config]
-    _attrs = ("params", params)
-    _result = _execute.execute(b"CreateTreeVariable", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "CreateTreeVariable", name,
+        _ctx._post_execution_callbacks, tree_handle, tree_config, "params",
+        params)
+      return _result
+    except _core._FallbackException:
+      return create_tree_variable_eager_fallback(
+          tree_handle, tree_config, params=params, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def create_tree_variable_eager_fallback(tree_handle, tree_config, params, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function create_tree_variable
+  """
+  _ctx = _context.context()
+  params = _execute.make_str(params, "params")
+  tree_handle = _ops.convert_to_tensor(tree_handle, _dtypes.resource)
+  tree_config = _ops.convert_to_tensor(tree_config, _dtypes.string)
+  _inputs_flat = [tree_handle, tree_config]
+  _attrs = ("params", params)
+  _result = _execute.execute(b"CreateTreeVariable", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("CreateTreeVariable")(None)
 
 
-@tf_export('DecisionTreeResourceHandleOp')
+@tf_export('decision_tree_resource_handle_op')
 def decision_tree_resource_handle_op(container="", shared_name="", name=None):
   r"""Creates a handle to a DecisionTreeResource
 
@@ -67,14 +96,14 @@ def decision_tree_resource_handle_op(container="", shared_name="", name=None):
   Returns:
     A `Tensor` of type `resource`.
   """
-  if container is None:
-    container = ""
-  container = _execute.make_str(container, "container")
-  if shared_name is None:
-    shared_name = ""
-  shared_name = _execute.make_str(shared_name, "shared_name")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
     _, _, _op = _op_def_lib._apply_op_helper(
         "DecisionTreeResourceHandleOp", container=container,
         shared_name=shared_name, name=name)
@@ -82,12 +111,45 @@ def decision_tree_resource_handle_op(container="", shared_name="", name=None):
     _inputs_flat = _op.inputs
     _attrs = ("container", _op.get_attr("container"), "shared_name",
               _op.get_attr("shared_name"))
+    _execute.record_gradient(
+      "DecisionTreeResourceHandleOp", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _inputs_flat = []
-    _attrs = ("container", container, "shared_name", shared_name)
-    _result = _execute.execute(b"DecisionTreeResourceHandleOp", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "DecisionTreeResourceHandleOp", name,
+        _ctx._post_execution_callbacks, "container", container, "shared_name",
+        shared_name)
+      return _result
+    except _core._FallbackException:
+      return decision_tree_resource_handle_op_eager_fallback(
+          container=container, shared_name=shared_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def decision_tree_resource_handle_op_eager_fallback(container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function decision_tree_resource_handle_op
+  """
+  _ctx = _context.context()
+  if container is None:
+    container = ""
+  container = _execute.make_str(container, "container")
+  if shared_name is None:
+    shared_name = ""
+  shared_name = _execute.make_str(shared_name, "shared_name")
+  _inputs_flat = []
+  _attrs = ("container", container, "shared_name", shared_name)
+  _result = _execute.execute(b"DecisionTreeResourceHandleOp", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "DecisionTreeResourceHandleOp", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -96,7 +158,7 @@ def decision_tree_resource_handle_op(container="", shared_name="", name=None):
 _ops.RegisterShape("DecisionTreeResourceHandleOp")(None)
 
 
-@tf_export('FeatureUsageCounts')
+@tf_export('feature_usage_counts')
 def feature_usage_counts(tree_handle, params, name=None):
   r"""Outputs the number of times each feature was used in a split.
 
@@ -110,21 +172,48 @@ def feature_usage_counts(tree_handle, params, name=None):
     `feature_counts[i]` is the number of times feature i was used
     in a split.
   """
-  params = _execute.make_str(params, "params")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    params = _execute.make_str(params, "params")
     _, _, _op = _op_def_lib._apply_op_helper(
         "FeatureUsageCounts", tree_handle=tree_handle, params=params,
         name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("params", _op.get_attr("params"))
+    _execute.record_gradient(
+      "FeatureUsageCounts", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    tree_handle = _ops.convert_to_tensor(tree_handle, _dtypes.resource)
-    _inputs_flat = [tree_handle]
-    _attrs = ("params", params)
-    _result = _execute.execute(b"FeatureUsageCounts", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "FeatureUsageCounts", name,
+        _ctx._post_execution_callbacks, tree_handle, "params", params)
+      return _result
+    except _core._FallbackException:
+      return feature_usage_counts_eager_fallback(
+          tree_handle, params=params, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def feature_usage_counts_eager_fallback(tree_handle, params, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function feature_usage_counts
+  """
+  _ctx = _context.context()
+  params = _execute.make_str(params, "params")
+  tree_handle = _ops.convert_to_tensor(tree_handle, _dtypes.resource)
+  _inputs_flat = [tree_handle]
+  _attrs = ("params", params)
+  _result = _execute.execute(b"FeatureUsageCounts", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "FeatureUsageCounts", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -133,7 +222,7 @@ def feature_usage_counts(tree_handle, params, name=None):
 _ops.RegisterShape("FeatureUsageCounts")(None)
 
 
-@tf_export('TraverseTreeV4')
+@tf_export('traverse_tree_v4')
 def traverse_tree_v4(tree_handle, input_data, sparse_input_indices, sparse_input_values, sparse_input_shape, input_spec, params, name=None):
   r"""Outputs the leaf ids for the given input data.
 
@@ -155,10 +244,10 @@ def traverse_tree_v4(tree_handle, input_data, sparse_input_indices, sparse_input
   Returns:
     A `Tensor` of type `int32`. `leaf_ids[i]` is the leaf id for input i.
   """
-  input_spec = _execute.make_str(input_spec, "input_spec")
-  params = _execute.make_str(params, "params")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    input_spec = _execute.make_str(input_spec, "input_spec")
+    params = _execute.make_str(params, "params")
     _, _, _op = _op_def_lib._apply_op_helper(
         "TraverseTreeV4", tree_handle=tree_handle, input_data=input_data,
         sparse_input_indices=sparse_input_indices,
@@ -169,16 +258,47 @@ def traverse_tree_v4(tree_handle, input_data, sparse_input_indices, sparse_input
     _inputs_flat = _op.inputs
     _attrs = ("input_spec", _op.get_attr("input_spec"), "params",
               _op.get_attr("params"))
+    _execute.record_gradient(
+      "TraverseTreeV4", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    tree_handle = _ops.convert_to_tensor(tree_handle, _dtypes.resource)
-    input_data = _ops.convert_to_tensor(input_data, _dtypes.float32)
-    sparse_input_indices = _ops.convert_to_tensor(sparse_input_indices, _dtypes.int64)
-    sparse_input_values = _ops.convert_to_tensor(sparse_input_values, _dtypes.float32)
-    sparse_input_shape = _ops.convert_to_tensor(sparse_input_shape, _dtypes.int64)
-    _inputs_flat = [tree_handle, input_data, sparse_input_indices, sparse_input_values, sparse_input_shape]
-    _attrs = ("input_spec", input_spec, "params", params)
-    _result = _execute.execute(b"TraverseTreeV4", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TraverseTreeV4", name,
+        _ctx._post_execution_callbacks, tree_handle, input_data,
+        sparse_input_indices, sparse_input_values, sparse_input_shape,
+        "input_spec", input_spec, "params", params)
+      return _result
+    except _core._FallbackException:
+      return traverse_tree_v4_eager_fallback(
+          tree_handle, input_data, sparse_input_indices, sparse_input_values,
+          sparse_input_shape, input_spec=input_spec, params=params, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def traverse_tree_v4_eager_fallback(tree_handle, input_data, sparse_input_indices, sparse_input_values, sparse_input_shape, input_spec, params, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function traverse_tree_v4
+  """
+  _ctx = _context.context()
+  input_spec = _execute.make_str(input_spec, "input_spec")
+  params = _execute.make_str(params, "params")
+  tree_handle = _ops.convert_to_tensor(tree_handle, _dtypes.resource)
+  input_data = _ops.convert_to_tensor(input_data, _dtypes.float32)
+  sparse_input_indices = _ops.convert_to_tensor(sparse_input_indices, _dtypes.int64)
+  sparse_input_values = _ops.convert_to_tensor(sparse_input_values, _dtypes.float32)
+  sparse_input_shape = _ops.convert_to_tensor(sparse_input_shape, _dtypes.int64)
+  _inputs_flat = [tree_handle, input_data, sparse_input_indices, sparse_input_values, sparse_input_shape]
+  _attrs = ("input_spec", input_spec, "params", params)
+  _result = _execute.execute(b"TraverseTreeV4", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TraverseTreeV4", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -187,7 +307,7 @@ def traverse_tree_v4(tree_handle, input_data, sparse_input_indices, sparse_input
 _ops.RegisterShape("TraverseTreeV4")(None)
 
 
-@tf_export('TreeDeserialize')
+@tf_export('tree_deserialize')
 def tree_deserialize(tree_handle, tree_config, params, name=None):
   r"""Deserializes a serialized tree config and replaces current tree.
 
@@ -200,27 +320,53 @@ def tree_deserialize(tree_handle, tree_config, params, name=None):
   Returns:
     The created Operation.
   """
-  params = _execute.make_str(params, "params")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    params = _execute.make_str(params, "params")
     _, _, _op = _op_def_lib._apply_op_helper(
         "TreeDeserialize", tree_handle=tree_handle, tree_config=tree_config,
         params=params, name=name)
     return _op
-  else:
-    tree_handle = _ops.convert_to_tensor(tree_handle, _dtypes.resource)
-    tree_config = _ops.convert_to_tensor(tree_config, _dtypes.string)
-    _inputs_flat = [tree_handle, tree_config]
-    _attrs = ("params", params)
-    _result = _execute.execute(b"TreeDeserialize", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TreeDeserialize", name,
+        _ctx._post_execution_callbacks, tree_handle, tree_config, "params",
+        params)
+      return _result
+    except _core._FallbackException:
+      return tree_deserialize_eager_fallback(
+          tree_handle, tree_config, params=params, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tree_deserialize_eager_fallback(tree_handle, tree_config, params, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tree_deserialize
+  """
+  _ctx = _context.context()
+  params = _execute.make_str(params, "params")
+  tree_handle = _ops.convert_to_tensor(tree_handle, _dtypes.resource)
+  tree_config = _ops.convert_to_tensor(tree_config, _dtypes.string)
+  _inputs_flat = [tree_handle, tree_config]
+  _attrs = ("params", params)
+  _result = _execute.execute(b"TreeDeserialize", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("TreeDeserialize")(None)
 
 
-@tf_export('TreeIsInitializedOp')
+@tf_export('tree_is_initialized_op')
 def tree_is_initialized_op(tree_handle, name=None):
   r"""Checks whether a tree has been initialized.
 
@@ -232,18 +378,44 @@ def tree_is_initialized_op(tree_handle, name=None):
     A `Tensor` of type `bool`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "TreeIsInitializedOp", tree_handle=tree_handle, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "TreeIsInitializedOp", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    tree_handle = _ops.convert_to_tensor(tree_handle, _dtypes.resource)
-    _inputs_flat = [tree_handle]
-    _attrs = None
-    _result = _execute.execute(b"TreeIsInitializedOp", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TreeIsInitializedOp", name,
+        _ctx._post_execution_callbacks, tree_handle)
+      return _result
+    except _core._FallbackException:
+      return tree_is_initialized_op_eager_fallback(
+          tree_handle, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tree_is_initialized_op_eager_fallback(tree_handle, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tree_is_initialized_op
+  """
+  _ctx = _context.context()
+  tree_handle = _ops.convert_to_tensor(tree_handle, _dtypes.resource)
+  _inputs_flat = [tree_handle]
+  _attrs = None
+  _result = _execute.execute(b"TreeIsInitializedOp", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TreeIsInitializedOp", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -257,7 +429,7 @@ _TreePredictionsV4Output = _collections.namedtuple(
     "TreePredictionsV4", _tree_predictions_v4_outputs)
 
 
-@tf_export('TreePredictionsV4')
+@tf_export('tree_predictions_v4')
 def tree_predictions_v4(tree_handle, input_data, sparse_input_indices, sparse_input_values, sparse_input_shape, input_spec, params, name=None):
   r"""Outputs the predictions for the given input data.
 
@@ -282,10 +454,10 @@ def tree_predictions_v4(tree_handle, input_data, sparse_input_indices, sparse_in
     predictions: A `Tensor` of type `float32`. `predictions[i][j]` is the probability that input i is class j.
     tree_paths: A `Tensor` of type `string`. `tree_paths[i]` is a serialized TreePath proto for example i.
   """
-  input_spec = _execute.make_str(input_spec, "input_spec")
-  params = _execute.make_str(params, "params")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    input_spec = _execute.make_str(input_spec, "input_spec")
+    params = _execute.make_str(params, "params")
     _, _, _op = _op_def_lib._apply_op_helper(
         "TreePredictionsV4", tree_handle=tree_handle, input_data=input_data,
         sparse_input_indices=sparse_input_indices,
@@ -296,16 +468,48 @@ def tree_predictions_v4(tree_handle, input_data, sparse_input_indices, sparse_in
     _inputs_flat = _op.inputs
     _attrs = ("input_spec", _op.get_attr("input_spec"), "params",
               _op.get_attr("params"))
+    _execute.record_gradient(
+      "TreePredictionsV4", _inputs_flat, _attrs, _result, name)
+    _result = _TreePredictionsV4Output._make(_result)
+    return _result
+
   else:
-    tree_handle = _ops.convert_to_tensor(tree_handle, _dtypes.resource)
-    input_data = _ops.convert_to_tensor(input_data, _dtypes.float32)
-    sparse_input_indices = _ops.convert_to_tensor(sparse_input_indices, _dtypes.int64)
-    sparse_input_values = _ops.convert_to_tensor(sparse_input_values, _dtypes.float32)
-    sparse_input_shape = _ops.convert_to_tensor(sparse_input_shape, _dtypes.int64)
-    _inputs_flat = [tree_handle, input_data, sparse_input_indices, sparse_input_values, sparse_input_shape]
-    _attrs = ("input_spec", input_spec, "params", params)
-    _result = _execute.execute(b"TreePredictionsV4", 2, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TreePredictionsV4", name,
+        _ctx._post_execution_callbacks, tree_handle, input_data,
+        sparse_input_indices, sparse_input_values, sparse_input_shape,
+        "input_spec", input_spec, "params", params)
+      _result = _TreePredictionsV4Output._make(_result)
+      return _result
+    except _core._FallbackException:
+      return tree_predictions_v4_eager_fallback(
+          tree_handle, input_data, sparse_input_indices, sparse_input_values,
+          sparse_input_shape, input_spec=input_spec, params=params, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tree_predictions_v4_eager_fallback(tree_handle, input_data, sparse_input_indices, sparse_input_values, sparse_input_shape, input_spec, params, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tree_predictions_v4
+  """
+  _ctx = _context.context()
+  input_spec = _execute.make_str(input_spec, "input_spec")
+  params = _execute.make_str(params, "params")
+  tree_handle = _ops.convert_to_tensor(tree_handle, _dtypes.resource)
+  input_data = _ops.convert_to_tensor(input_data, _dtypes.float32)
+  sparse_input_indices = _ops.convert_to_tensor(sparse_input_indices, _dtypes.int64)
+  sparse_input_values = _ops.convert_to_tensor(sparse_input_values, _dtypes.float32)
+  sparse_input_shape = _ops.convert_to_tensor(sparse_input_shape, _dtypes.int64)
+  _inputs_flat = [tree_handle, input_data, sparse_input_indices, sparse_input_values, sparse_input_shape]
+  _attrs = ("input_spec", input_spec, "params", params)
+  _result = _execute.execute(b"TreePredictionsV4", 2, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TreePredictionsV4", _inputs_flat, _attrs, _result, name)
   _result = _TreePredictionsV4Output._make(_result)
@@ -314,7 +518,7 @@ def tree_predictions_v4(tree_handle, input_data, sparse_input_indices, sparse_in
 _ops.RegisterShape("TreePredictionsV4")(None)
 
 
-@tf_export('TreeSerialize')
+@tf_export('tree_serialize')
 def tree_serialize(tree_handle, name=None):
   r"""Serializes the tree  to a proto.
 
@@ -326,18 +530,44 @@ def tree_serialize(tree_handle, name=None):
     A `Tensor` of type `string`. Serialized proto of the tree.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "TreeSerialize", tree_handle=tree_handle, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "TreeSerialize", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    tree_handle = _ops.convert_to_tensor(tree_handle, _dtypes.resource)
-    _inputs_flat = [tree_handle]
-    _attrs = None
-    _result = _execute.execute(b"TreeSerialize", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TreeSerialize", name,
+        _ctx._post_execution_callbacks, tree_handle)
+      return _result
+    except _core._FallbackException:
+      return tree_serialize_eager_fallback(
+          tree_handle, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tree_serialize_eager_fallback(tree_handle, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tree_serialize
+  """
+  _ctx = _context.context()
+  tree_handle = _ops.convert_to_tensor(tree_handle, _dtypes.resource)
+  _inputs_flat = [tree_handle]
+  _attrs = None
+  _result = _execute.execute(b"TreeSerialize", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TreeSerialize", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -346,7 +576,7 @@ def tree_serialize(tree_handle, name=None):
 _ops.RegisterShape("TreeSerialize")(None)
 
 
-@tf_export('TreeSize')
+@tf_export('tree_size')
 def tree_size(tree_handle, name=None):
   r"""Outputs the size of the tree, including leaves.
 
@@ -358,18 +588,44 @@ def tree_size(tree_handle, name=None):
     A `Tensor` of type `int32`. Size scalar.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "TreeSize", tree_handle=tree_handle, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "TreeSize", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    tree_handle = _ops.convert_to_tensor(tree_handle, _dtypes.resource)
-    _inputs_flat = [tree_handle]
-    _attrs = None
-    _result = _execute.execute(b"TreeSize", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TreeSize", name,
+        _ctx._post_execution_callbacks, tree_handle)
+      return _result
+    except _core._FallbackException:
+      return tree_size_eager_fallback(
+          tree_handle, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tree_size_eager_fallback(tree_handle, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tree_size
+  """
+  _ctx = _context.context()
+  tree_handle = _ops.convert_to_tensor(tree_handle, _dtypes.resource)
+  _inputs_flat = [tree_handle]
+  _attrs = None
+  _result = _execute.execute(b"TreeSize", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TreeSize", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -378,7 +634,7 @@ def tree_size(tree_handle, name=None):
 _ops.RegisterShape("TreeSize")(None)
 
 
-@tf_export('UpdateModelV4')
+@tf_export('update_model_v4')
 def update_model_v4(tree_handle, leaf_ids, input_labels, input_weights, params, name=None):
   r"""Updates the given leaves for each example with the new labels.
 
@@ -398,24 +654,51 @@ def update_model_v4(tree_handle, leaf_ids, input_labels, input_weights, params, 
   Returns:
     The created Operation.
   """
-  params = _execute.make_str(params, "params")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    params = _execute.make_str(params, "params")
     _, _, _op = _op_def_lib._apply_op_helper(
         "UpdateModelV4", tree_handle=tree_handle, leaf_ids=leaf_ids,
         input_labels=input_labels, input_weights=input_weights, params=params,
         name=name)
     return _op
-  else:
-    tree_handle = _ops.convert_to_tensor(tree_handle, _dtypes.resource)
-    leaf_ids = _ops.convert_to_tensor(leaf_ids, _dtypes.int32)
-    input_labels = _ops.convert_to_tensor(input_labels, _dtypes.float32)
-    input_weights = _ops.convert_to_tensor(input_weights, _dtypes.float32)
-    _inputs_flat = [tree_handle, leaf_ids, input_labels, input_weights]
-    _attrs = ("params", params)
-    _result = _execute.execute(b"UpdateModelV4", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "UpdateModelV4", name,
+        _ctx._post_execution_callbacks, tree_handle, leaf_ids, input_labels,
+        input_weights, "params", params)
+      return _result
+    except _core._FallbackException:
+      return update_model_v4_eager_fallback(
+          tree_handle, leaf_ids, input_labels, input_weights, params=params,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def update_model_v4_eager_fallback(tree_handle, leaf_ids, input_labels, input_weights, params, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function update_model_v4
+  """
+  _ctx = _context.context()
+  params = _execute.make_str(params, "params")
+  tree_handle = _ops.convert_to_tensor(tree_handle, _dtypes.resource)
+  leaf_ids = _ops.convert_to_tensor(leaf_ids, _dtypes.int32)
+  input_labels = _ops.convert_to_tensor(input_labels, _dtypes.float32)
+  input_weights = _ops.convert_to_tensor(input_weights, _dtypes.float32)
+  _inputs_flat = [tree_handle, leaf_ids, input_labels, input_weights]
+  _attrs = ("params", params)
+  _result = _execute.execute(b"UpdateModelV4", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("UpdateModelV4")(None)

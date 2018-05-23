@@ -5,11 +5,14 @@ Original C++ source file: functional_ops.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,7 +24,6 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('RemoteCall')
 def remote_call(target, args, Tout, f, name=None):
   r"""Runs function `f` on a remote device indicated by `target`.
 
@@ -35,34 +37,66 @@ def remote_call(target, args, Tout, f, name=None):
     name: A name for the operation (optional).
 
   Returns:
-    A list of `Tensor` objects of type `Tout`. A list of return values.
+    A list of `Tensor` objects of type `Tout`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(Tout, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'Tout' argument to "
+          "'remote_call' Op, not %r." % Tout)
+    Tout = [_execute.make_type(_t, "Tout") for _t in Tout]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "RemoteCall", target=target, args=args, Tout=Tout, f=f, name=name)
+    _result = _op.outputs[:]
+    if not _result:
+      return _op
+    _inputs_flat = _op.inputs
+    _attrs = ("Tin", _op.get_attr("Tin"), "Tout", _op.get_attr("Tout"), "f",
+              _op.get_attr("f"))
+    _execute.record_gradient(
+      "RemoteCall", _inputs_flat, _attrs, _result, name)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "RemoteCall", name,
+        _ctx._post_execution_callbacks, target, args, "Tout", Tout, "f", f)
+      return _result
+    except _core._FallbackException:
+      return remote_call_eager_fallback(
+          target, args, Tout=Tout, f=f, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def remote_call_eager_fallback(target, args, Tout, f, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function remote_call
+  """
+  _ctx = _context.context()
   if not isinstance(Tout, (list, tuple)):
     raise TypeError(
         "Expected list for 'Tout' argument to "
         "'remote_call' Op, not %r." % Tout)
   Tout = [_execute.make_type(_t, "Tout") for _t in Tout]
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "RemoteCall", target=target, args=args, Tout=Tout, f=f, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("Tin", _op.get_attr("Tin"), "Tout", _op.get_attr("Tout"), "f",
-              _op.get_attr("f"))
-  else:
-    _attr_Tin, args = _execute.convert_to_mixed_eager_tensors(args, _ctx)
-    target = _ops.convert_to_tensor(target, _dtypes.string)
-    _inputs_flat = [target] + list(args)
-    _attrs = ("Tin", _attr_Tin, "Tout", Tout, "f", f)
-    _result = _execute.execute(b"RemoteCall", len(Tout), inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  _attr_Tin, args = _execute.convert_to_mixed_eager_tensors(args, _ctx)
+  target = _ops.convert_to_tensor(target, _dtypes.string)
+  _inputs_flat = [target] + list(args)
+  _attrs = ("Tin", _attr_Tin, "Tout", Tout, "f", f)
+  _result = _execute.execute(b"RemoteCall", len(Tout), inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "RemoteCall", _inputs_flat, _attrs, _result, name)
   return _result
 
 
-def _symbolic_gradient(input, Tout, f, name=None):
+def symbolic_gradient(input, Tout, f, name=None):
   r"""Computes the gradient function for function f via backpropagation.
 
   Args:
@@ -92,28 +126,57 @@ def _symbolic_gradient(input, Tout, f, name=None):
 
   Returns:
     A list of `Tensor` objects of type `Tout`.
-    a list of output tensors of size N;
   """
-  if not isinstance(Tout, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'Tout' argument to "
-        "'symbolic_gradient' Op, not %r." % Tout)
-  Tout = [_execute.make_type(_t, "Tout") for _t in Tout]
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(Tout, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'Tout' argument to "
+          "'symbolic_gradient' Op, not %r." % Tout)
+    Tout = [_execute.make_type(_t, "Tout") for _t in Tout]
     _, _, _op = _op_def_lib._apply_op_helper(
         "SymbolicGradient", input=input, Tout=Tout, f=f, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("Tin", _op.get_attr("Tin"), "Tout", _op.get_attr("Tout"), "f",
               _op.get_attr("f"))
+    _execute.record_gradient(
+      "SymbolicGradient", _inputs_flat, _attrs, _result, name)
+    return _result
+
   else:
-    _attr_Tin, input = _execute.convert_to_mixed_eager_tensors(input, _ctx)
-    _inputs_flat = list(input)
-    _attrs = ("Tin", _attr_Tin, "Tout", Tout, "f", f)
-    _result = _execute.execute(b"SymbolicGradient", len(Tout),
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "SymbolicGradient", name,
+        _ctx._post_execution_callbacks, input, "Tout", Tout, "f", f)
+      return _result
+    except _core._FallbackException:
+      return symbolic_gradient_eager_fallback(
+          input, Tout=Tout, f=f, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def symbolic_gradient_eager_fallback(input, Tout, f, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function symbolic_gradient
+  """
+  _ctx = _context.context()
+  if not isinstance(Tout, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'Tout' argument to "
+        "'symbolic_gradient' Op, not %r." % Tout)
+  Tout = [_execute.make_type(_t, "Tout") for _t in Tout]
+  _attr_Tin, input = _execute.convert_to_mixed_eager_tensors(input, _ctx)
+  _inputs_flat = list(input)
+  _attrs = ("Tin", _attr_Tin, "Tout", Tout, "f", f)
+  _result = _execute.execute(b"SymbolicGradient", len(Tout),
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "SymbolicGradient", _inputs_flat, _attrs, _result, name)
   return _result
@@ -155,6 +218,7 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     name: "f"
 #     type: "func"
 #   }
+#   is_stateful: true
 # }
 # op {
 #   name: "SymbolicGradient"
@@ -183,4 +247,4 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     type: "func"
 #   }
 # }
-_op_def_lib = _InitOpDefLibrary(b"\no\n\nRemoteCall\022\n\n\006target\030\007\022\013\n\004args2\003Tin\032\016\n\006output2\004Tout\"\025\n\003Tin\022\nlist(type)(\0010\001\"\026\n\004Tout\022\nlist(type)(\0010\001\"\t\n\001f\022\004func\nj\n\020SymbolicGradient\022\014\n\005input2\003Tin\032\016\n\006output2\004Tout\"\025\n\003Tin\022\nlist(type)(\0010\001\"\026\n\004Tout\022\nlist(type)(\0010\001\"\t\n\001f\022\004func")
+_op_def_lib = _InitOpDefLibrary(b"\nr\n\nRemoteCall\022\n\n\006target\030\007\022\013\n\004args2\003Tin\032\016\n\006output2\004Tout\"\025\n\003Tin\022\nlist(type)(\0010\001\"\026\n\004Tout\022\nlist(type)(\0010\001\"\t\n\001f\022\004func\210\001\001\nj\n\020SymbolicGradient\022\014\n\005input2\003Tin\032\016\n\006output2\004Tout\"\025\n\003Tin\022\nlist(type)(\0010\001\"\026\n\004Tout\022\nlist(type)(\0010\001\"\t\n\001f\022\004func")

@@ -5,11 +5,14 @@ Original C++ source file: lstm_ops.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -26,7 +29,7 @@ _BlockLSTMOutput = _collections.namedtuple(
     "BlockLSTM", _block_lstm_outputs)
 
 
-@tf_export('BlockLSTM')
+@tf_export('block_lstm')
 def block_lstm(seq_len_max, x, cs_prev, h_prev, w, wci, wcf, wco, b, forget_bias=1, cell_clip=3, use_peephole=False, name=None):
   r"""Computes the LSTM cell forward propagation for all the time steps.
 
@@ -84,17 +87,17 @@ def block_lstm(seq_len_max, x, cs_prev, h_prev, w, wci, wcf, wco, b, forget_bias
     co: A `Tensor`. Has the same type as `x`. The cell after the tanh over the whole time sequence.
     h: A `Tensor`. Has the same type as `x`. The output h vector over the whole time sequence.
   """
-  if forget_bias is None:
-    forget_bias = 1
-  forget_bias = _execute.make_float(forget_bias, "forget_bias")
-  if cell_clip is None:
-    cell_clip = 3
-  cell_clip = _execute.make_float(cell_clip, "cell_clip")
-  if use_peephole is None:
-    use_peephole = False
-  use_peephole = _execute.make_bool(use_peephole, "use_peephole")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if forget_bias is None:
+      forget_bias = 1
+    forget_bias = _execute.make_float(forget_bias, "forget_bias")
+    if cell_clip is None:
+      cell_clip = 3
+    cell_clip = _execute.make_float(cell_clip, "cell_clip")
+    if use_peephole is None:
+      use_peephole = False
+    use_peephole = _execute.make_bool(use_peephole, "use_peephole")
     _, _, _op = _op_def_lib._apply_op_helper(
         "BlockLSTM", seq_len_max=seq_len_max, x=x, cs_prev=cs_prev,
         h_prev=h_prev, w=w, wci=wci, wcf=wcf, wco=wco, b=b,
@@ -105,15 +108,55 @@ def block_lstm(seq_len_max, x, cs_prev, h_prev, w, wci, wcf, wco, b, forget_bias
     _attrs = ("forget_bias", _op.get_attr("forget_bias"), "cell_clip",
               _op.get_attr("cell_clip"), "use_peephole",
               _op.get_attr("use_peephole"), "T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "BlockLSTM", _inputs_flat, _attrs, _result, name)
+    _result = _BlockLSTMOutput._make(_result)
+    return _result
+
   else:
-    _attr_T, _inputs_T = _execute.args_to_matching_eager([x, cs_prev, h_prev, w, wci, wcf, wco, b], _ctx)
-    (x, cs_prev, h_prev, w, wci, wcf, wco, b) = _inputs_T
-    seq_len_max = _ops.convert_to_tensor(seq_len_max, _dtypes.int64)
-    _inputs_flat = [seq_len_max, x, cs_prev, h_prev, w, wci, wcf, wco, b]
-    _attrs = ("forget_bias", forget_bias, "cell_clip", cell_clip,
-              "use_peephole", use_peephole, "T", _attr_T)
-    _result = _execute.execute(b"BlockLSTM", 7, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "BlockLSTM", name,
+        _ctx._post_execution_callbacks, seq_len_max, x, cs_prev, h_prev, w,
+        wci, wcf, wco, b, "forget_bias", forget_bias, "cell_clip", cell_clip,
+        "use_peephole", use_peephole)
+      _result = _BlockLSTMOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return block_lstm_eager_fallback(
+          seq_len_max, x, cs_prev, h_prev, w, wci, wcf, wco, b,
+          forget_bias=forget_bias, cell_clip=cell_clip,
+          use_peephole=use_peephole, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def block_lstm_eager_fallback(seq_len_max, x, cs_prev, h_prev, w, wci, wcf, wco, b, forget_bias=1, cell_clip=3, use_peephole=False, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function block_lstm
+  """
+  _ctx = _context.context()
+  if forget_bias is None:
+    forget_bias = 1
+  forget_bias = _execute.make_float(forget_bias, "forget_bias")
+  if cell_clip is None:
+    cell_clip = 3
+  cell_clip = _execute.make_float(cell_clip, "cell_clip")
+  if use_peephole is None:
+    use_peephole = False
+  use_peephole = _execute.make_bool(use_peephole, "use_peephole")
+  _attr_T, _inputs_T = _execute.args_to_matching_eager([x, cs_prev, h_prev, w, wci, wcf, wco, b], _ctx)
+  (x, cs_prev, h_prev, w, wci, wcf, wco, b) = _inputs_T
+  seq_len_max = _ops.convert_to_tensor(seq_len_max, _dtypes.int64)
+  _inputs_flat = [seq_len_max, x, cs_prev, h_prev, w, wci, wcf, wco, b]
+  _attrs = ("forget_bias", forget_bias, "cell_clip", cell_clip,
+  "use_peephole", use_peephole, "T", _attr_T)
+  _result = _execute.execute(b"BlockLSTM", 7, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "BlockLSTM", _inputs_flat, _attrs, _result, name)
   _result = _BlockLSTMOutput._make(_result)
@@ -128,7 +171,7 @@ _BlockLSTMGradOutput = _collections.namedtuple(
     "BlockLSTMGrad", _block_lstm_grad_outputs)
 
 
-@tf_export('BlockLSTMGrad')
+@tf_export('block_lstm_grad')
 def block_lstm_grad(seq_len_max, x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co, h, cs_grad, h_grad, use_peephole, name=None):
   r"""Computes the LSTM cell backward propagation for the entire time sequence.
 
@@ -185,9 +228,9 @@ def block_lstm_grad(seq_len_max, x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs,
     wco_grad: A `Tensor`. Has the same type as `x`. The gradient for wco to be back-propped.
     b_grad: A `Tensor`. Has the same type as `x`. The gradient for w to be back-propped.
   """
-  use_peephole = _execute.make_bool(use_peephole, "use_peephole")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    use_peephole = _execute.make_bool(use_peephole, "use_peephole")
     _, _, _op = _op_def_lib._apply_op_helper(
         "BlockLSTMGrad", seq_len_max=seq_len_max, x=x, cs_prev=cs_prev,
         h_prev=h_prev, w=w, wci=wci, wcf=wcf, wco=wco, b=b, i=i, cs=cs, f=f,
@@ -197,14 +240,45 @@ def block_lstm_grad(seq_len_max, x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs,
     _inputs_flat = _op.inputs
     _attrs = ("use_peephole", _op.get_attr("use_peephole"), "T",
               _op.get_attr("T"))
+    _execute.record_gradient(
+      "BlockLSTMGrad", _inputs_flat, _attrs, _result, name)
+    _result = _BlockLSTMGradOutput._make(_result)
+    return _result
+
   else:
-    _attr_T, _inputs_T = _execute.args_to_matching_eager([x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co, h, cs_grad, h_grad], _ctx)
-    (x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co, h, cs_grad, h_grad) = _inputs_T
-    seq_len_max = _ops.convert_to_tensor(seq_len_max, _dtypes.int64)
-    _inputs_flat = [seq_len_max, x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co, h, cs_grad, h_grad]
-    _attrs = ("use_peephole", use_peephole, "T", _attr_T)
-    _result = _execute.execute(b"BlockLSTMGrad", 8, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "BlockLSTMGrad", name,
+        _ctx._post_execution_callbacks, seq_len_max, x, cs_prev, h_prev, w,
+        wci, wcf, wco, b, i, cs, f, o, ci, co, h, cs_grad, h_grad,
+        "use_peephole", use_peephole)
+      _result = _BlockLSTMGradOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return block_lstm_grad_eager_fallback(
+          seq_len_max, x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o,
+          ci, co, h, cs_grad, h_grad, use_peephole=use_peephole, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def block_lstm_grad_eager_fallback(seq_len_max, x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co, h, cs_grad, h_grad, use_peephole, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function block_lstm_grad
+  """
+  _ctx = _context.context()
+  use_peephole = _execute.make_bool(use_peephole, "use_peephole")
+  _attr_T, _inputs_T = _execute.args_to_matching_eager([x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co, h, cs_grad, h_grad], _ctx)
+  (x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co, h, cs_grad, h_grad) = _inputs_T
+  seq_len_max = _ops.convert_to_tensor(seq_len_max, _dtypes.int64)
+  _inputs_flat = [seq_len_max, x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co, h, cs_grad, h_grad]
+  _attrs = ("use_peephole", use_peephole, "T", _attr_T)
+  _result = _execute.execute(b"BlockLSTMGrad", 8, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "BlockLSTMGrad", _inputs_flat, _attrs, _result, name)
   _result = _BlockLSTMGradOutput._make(_result)
@@ -218,7 +292,7 @@ _LSTMBlockCellOutput = _collections.namedtuple(
     "LSTMBlockCell", _lstm_block_cell_outputs)
 
 
-@tf_export('LSTMBlockCell')
+@tf_export('lstm_block_cell')
 def lstm_block_cell(x, cs_prev, h_prev, w, wci, wcf, wco, b, forget_bias=1, cell_clip=3, use_peephole=False, name=None):
   r"""Computes the LSTM cell forward propagation for 1 time step.
 
@@ -280,17 +354,17 @@ def lstm_block_cell(x, cs_prev, h_prev, w, wci, wcf, wco, b, forget_bias=1, cell
     co: A `Tensor`. Has the same type as `x`. The cell after the tanh.
     h: A `Tensor`. Has the same type as `x`. The output h vector.
   """
-  if forget_bias is None:
-    forget_bias = 1
-  forget_bias = _execute.make_float(forget_bias, "forget_bias")
-  if cell_clip is None:
-    cell_clip = 3
-  cell_clip = _execute.make_float(cell_clip, "cell_clip")
-  if use_peephole is None:
-    use_peephole = False
-  use_peephole = _execute.make_bool(use_peephole, "use_peephole")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if forget_bias is None:
+      forget_bias = 1
+    forget_bias = _execute.make_float(forget_bias, "forget_bias")
+    if cell_clip is None:
+      cell_clip = 3
+    cell_clip = _execute.make_float(cell_clip, "cell_clip")
+    if use_peephole is None:
+      use_peephole = False
+    use_peephole = _execute.make_bool(use_peephole, "use_peephole")
     _, _, _op = _op_def_lib._apply_op_helper(
         "LSTMBlockCell", x=x, cs_prev=cs_prev, h_prev=h_prev, w=w, wci=wci,
         wcf=wcf, wco=wco, b=b, forget_bias=forget_bias, cell_clip=cell_clip,
@@ -300,14 +374,53 @@ def lstm_block_cell(x, cs_prev, h_prev, w, wci, wcf, wco, b, forget_bias=1, cell
     _attrs = ("forget_bias", _op.get_attr("forget_bias"), "cell_clip",
               _op.get_attr("cell_clip"), "use_peephole",
               _op.get_attr("use_peephole"), "T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "LSTMBlockCell", _inputs_flat, _attrs, _result, name)
+    _result = _LSTMBlockCellOutput._make(_result)
+    return _result
+
   else:
-    _attr_T, _inputs_T = _execute.args_to_matching_eager([x, cs_prev, h_prev, w, wci, wcf, wco, b], _ctx)
-    (x, cs_prev, h_prev, w, wci, wcf, wco, b) = _inputs_T
-    _inputs_flat = [x, cs_prev, h_prev, w, wci, wcf, wco, b]
-    _attrs = ("forget_bias", forget_bias, "cell_clip", cell_clip,
-              "use_peephole", use_peephole, "T", _attr_T)
-    _result = _execute.execute(b"LSTMBlockCell", 7, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "LSTMBlockCell", name,
+        _ctx._post_execution_callbacks, x, cs_prev, h_prev, w, wci, wcf, wco,
+        b, "forget_bias", forget_bias, "cell_clip", cell_clip, "use_peephole",
+        use_peephole)
+      _result = _LSTMBlockCellOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return lstm_block_cell_eager_fallback(
+          x, cs_prev, h_prev, w, wci, wcf, wco, b, forget_bias=forget_bias,
+          cell_clip=cell_clip, use_peephole=use_peephole, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def lstm_block_cell_eager_fallback(x, cs_prev, h_prev, w, wci, wcf, wco, b, forget_bias=1, cell_clip=3, use_peephole=False, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function lstm_block_cell
+  """
+  _ctx = _context.context()
+  if forget_bias is None:
+    forget_bias = 1
+  forget_bias = _execute.make_float(forget_bias, "forget_bias")
+  if cell_clip is None:
+    cell_clip = 3
+  cell_clip = _execute.make_float(cell_clip, "cell_clip")
+  if use_peephole is None:
+    use_peephole = False
+  use_peephole = _execute.make_bool(use_peephole, "use_peephole")
+  _attr_T, _inputs_T = _execute.args_to_matching_eager([x, cs_prev, h_prev, w, wci, wcf, wco, b], _ctx)
+  (x, cs_prev, h_prev, w, wci, wcf, wco, b) = _inputs_T
+  _inputs_flat = [x, cs_prev, h_prev, w, wci, wcf, wco, b]
+  _attrs = ("forget_bias", forget_bias, "cell_clip", cell_clip,
+  "use_peephole", use_peephole, "T", _attr_T)
+  _result = _execute.execute(b"LSTMBlockCell", 7, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "LSTMBlockCell", _inputs_flat, _attrs, _result, name)
   _result = _LSTMBlockCellOutput._make(_result)
@@ -322,7 +435,7 @@ _LSTMBlockCellGradOutput = _collections.namedtuple(
     "LSTMBlockCellGrad", _lstm_block_cell_grad_outputs)
 
 
-@tf_export('LSTMBlockCellGrad')
+@tf_export('lstm_block_cell_grad')
 def lstm_block_cell_grad(x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co, cs_grad, h_grad, use_peephole, name=None):
   r"""Computes the LSTM cell backward propagation for 1 timestep.
 
@@ -365,9 +478,9 @@ def lstm_block_cell_grad(x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, c
     wcf_grad: A `Tensor`. Has the same type as `x`. The gradient for wcf to be back-propped.
     wco_grad: A `Tensor`. Has the same type as `x`. The gradient for wco to be back-propped.
   """
-  use_peephole = _execute.make_bool(use_peephole, "use_peephole")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    use_peephole = _execute.make_bool(use_peephole, "use_peephole")
     _, _, _op = _op_def_lib._apply_op_helper(
         "LSTMBlockCellGrad", x=x, cs_prev=cs_prev, h_prev=h_prev, w=w,
         wci=wci, wcf=wcf, wco=wco, b=b, i=i, cs=cs, f=f, o=o, ci=ci, co=co,
@@ -376,13 +489,43 @@ def lstm_block_cell_grad(x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, c
     _inputs_flat = _op.inputs
     _attrs = ("use_peephole", _op.get_attr("use_peephole"), "T",
               _op.get_attr("T"))
+    _execute.record_gradient(
+      "LSTMBlockCellGrad", _inputs_flat, _attrs, _result, name)
+    _result = _LSTMBlockCellGradOutput._make(_result)
+    return _result
+
   else:
-    _attr_T, _inputs_T = _execute.args_to_matching_eager([x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co, cs_grad, h_grad], _ctx)
-    (x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co, cs_grad, h_grad) = _inputs_T
-    _inputs_flat = [x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co, cs_grad, h_grad]
-    _attrs = ("use_peephole", use_peephole, "T", _attr_T)
-    _result = _execute.execute(b"LSTMBlockCellGrad", 5, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "LSTMBlockCellGrad", name,
+        _ctx._post_execution_callbacks, x, cs_prev, h_prev, w, wci, wcf, wco,
+        b, i, cs, f, o, ci, co, cs_grad, h_grad, "use_peephole", use_peephole)
+      _result = _LSTMBlockCellGradOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return lstm_block_cell_grad_eager_fallback(
+          x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co,
+          cs_grad, h_grad, use_peephole=use_peephole, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def lstm_block_cell_grad_eager_fallback(x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co, cs_grad, h_grad, use_peephole, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function lstm_block_cell_grad
+  """
+  _ctx = _context.context()
+  use_peephole = _execute.make_bool(use_peephole, "use_peephole")
+  _attr_T, _inputs_T = _execute.args_to_matching_eager([x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co, cs_grad, h_grad], _ctx)
+  (x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co, cs_grad, h_grad) = _inputs_T
+  _inputs_flat = [x, cs_prev, h_prev, w, wci, wcf, wco, b, i, cs, f, o, ci, co, cs_grad, h_grad]
+  _attrs = ("use_peephole", use_peephole, "T", _attr_T)
+  _result = _execute.execute(b"LSTMBlockCellGrad", 5, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "LSTMBlockCellGrad", _inputs_flat, _attrs, _result, name)
   _result = _LSTMBlockCellGradOutput._make(_result)

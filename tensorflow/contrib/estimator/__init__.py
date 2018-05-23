@@ -39,6 +39,7 @@ _allowed_symbols = [
     'multi_class_head',
     'multi_head',
     'multi_label_head',
+    'poisson_regression_head',
     'regression_head',
     'DNNEstimator',
     'DNNLinearCombinedEstimator',
@@ -47,6 +48,7 @@ _allowed_symbols = [
     'dnn_logit_fn_builder',
     'linear_logit_fn_builder',
     'replicate_model_fn',
+    'TowerOptimizer',
 ]
 
 remove_undocumented(__name__, allowed_exception_list=_allowed_symbols)

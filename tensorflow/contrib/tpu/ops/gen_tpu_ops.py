@@ -5,11 +5,14 @@ Original C++ source file: tpu_ops.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,14 +24,20 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('ConfigureDistributedTPU')
-def configure_distributed_tpu(embedding_config="", name=None):
+@tf_export('configure_distributed_tpu')
+def configure_distributed_tpu(embedding_config="", tpu_embedding_config="", is_global_init=False, name=None):
   r"""An op that sets up the centralized structures for a distributed TPU
 
   system.
 
   Args:
     embedding_config: An optional `string`. Defaults to `""`.
+      Reserved. Do not use.
+    tpu_embedding_config: An optional `string`. Defaults to `""`.
+      Serialized tensorflow.tpu.TPUEmbeddingConfiguration that
+      describes the embedding lookups of the program.
+    is_global_init: An optional `bool`. Defaults to `False`.
+      Reserved. Do not use.
     name: A name for the operation (optional).
 
   Returns:
@@ -36,23 +45,72 @@ def configure_distributed_tpu(embedding_config="", name=None):
     A serialized tensorflow.tpu.TopologyProto that describes the TPU
     topology.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if embedding_config is None:
+      embedding_config = ""
+    embedding_config = _execute.make_str(embedding_config, "embedding_config")
+    if tpu_embedding_config is None:
+      tpu_embedding_config = ""
+    tpu_embedding_config = _execute.make_str(tpu_embedding_config, "tpu_embedding_config")
+    if is_global_init is None:
+      is_global_init = False
+    is_global_init = _execute.make_bool(is_global_init, "is_global_init")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "ConfigureDistributedTPU", embedding_config=embedding_config,
+        tpu_embedding_config=tpu_embedding_config,
+        is_global_init=is_global_init, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("embedding_config", _op.get_attr("embedding_config"),
+              "tpu_embedding_config", _op.get_attr("tpu_embedding_config"),
+              "is_global_init", _op.get_attr("is_global_init"))
+    _execute.record_gradient(
+      "ConfigureDistributedTPU", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "ConfigureDistributedTPU", name,
+        _ctx._post_execution_callbacks, "embedding_config", embedding_config,
+        "tpu_embedding_config", tpu_embedding_config, "is_global_init",
+        is_global_init)
+      return _result
+    except _core._FallbackException:
+      return configure_distributed_tpu_eager_fallback(
+          embedding_config=embedding_config,
+          tpu_embedding_config=tpu_embedding_config,
+          is_global_init=is_global_init, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def configure_distributed_tpu_eager_fallback(embedding_config="", tpu_embedding_config="", is_global_init=False, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function configure_distributed_tpu
+  """
+  _ctx = _context.context()
   if embedding_config is None:
     embedding_config = ""
   embedding_config = _execute.make_str(embedding_config, "embedding_config")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "ConfigureDistributedTPU", embedding_config=embedding_config,
-        name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("embedding_config", _op.get_attr("embedding_config"))
-  else:
-    _inputs_flat = []
-    _attrs = ("embedding_config", embedding_config)
-    _result = _execute.execute(b"ConfigureDistributedTPU", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+  if tpu_embedding_config is None:
+    tpu_embedding_config = ""
+  tpu_embedding_config = _execute.make_str(tpu_embedding_config, "tpu_embedding_config")
+  if is_global_init is None:
+    is_global_init = False
+  is_global_init = _execute.make_bool(is_global_init, "is_global_init")
+  _inputs_flat = []
+  _attrs = ("embedding_config", embedding_config, "tpu_embedding_config",
+  tpu_embedding_config, "is_global_init", is_global_init)
+  _result = _execute.execute(b"ConfigureDistributedTPU", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "ConfigureDistributedTPU", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -61,7 +119,7 @@ def configure_distributed_tpu(embedding_config="", name=None):
 _ops.RegisterShape("ConfigureDistributedTPU")(None)
 
 
-@tf_export('CrossReplicaSum')
+@tf_export('cross_replica_sum')
 def cross_replica_sum(input, name=None):
   r"""An Op to sum inputs across replicated TPU instances. Each
 
@@ -78,18 +136,44 @@ def cross_replica_sum(input, name=None):
     The sum of all the distributed inputs.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "CrossReplicaSum", input=input, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "CrossReplicaSum", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
-    _inputs_flat = [input]
-    _attrs = ("T", _attr_T)
-    _result = _execute.execute(b"CrossReplicaSum", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "CrossReplicaSum", name,
+        _ctx._post_execution_callbacks, input)
+      return _result
+    except _core._FallbackException:
+      return cross_replica_sum_eager_fallback(
+          input, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def cross_replica_sum_eager_fallback(input, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function cross_replica_sum
+  """
+  _ctx = _context.context()
+  _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
+  _inputs_flat = [input]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"CrossReplicaSum", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "CrossReplicaSum", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -98,7 +182,7 @@ def cross_replica_sum(input, name=None):
 _ops.RegisterShape("CrossReplicaSum")(None)
 
 
-@tf_export('InfeedDequeue')
+@tf_export('infeed_dequeue')
 def infeed_dequeue(dtype, shape, name=None):
   r"""A placeholder op for a value that will be fed into the computation.
 
@@ -111,20 +195,48 @@ def infeed_dequeue(dtype, shape, name=None):
     A `Tensor` of type `dtype`.
     A tensor that will be provided using the infeed mechanism.
   """
-  dtype = _execute.make_type(dtype, "dtype")
-  shape = _execute.make_shape(shape, "shape")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    dtype = _execute.make_type(dtype, "dtype")
+    shape = _execute.make_shape(shape, "shape")
     _, _, _op = _op_def_lib._apply_op_helper(
         "InfeedDequeue", dtype=dtype, shape=shape, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("dtype", _op.get_attr("dtype"), "shape", _op.get_attr("shape"))
+    _execute.record_gradient(
+      "InfeedDequeue", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _inputs_flat = []
-    _attrs = ("dtype", dtype, "shape", shape)
-    _result = _execute.execute(b"InfeedDequeue", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "InfeedDequeue", name,
+        _ctx._post_execution_callbacks, "dtype", dtype, "shape", shape)
+      return _result
+    except _core._FallbackException:
+      return infeed_dequeue_eager_fallback(
+          dtype=dtype, shape=shape, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def infeed_dequeue_eager_fallback(dtype, shape, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function infeed_dequeue
+  """
+  _ctx = _context.context()
+  dtype = _execute.make_type(dtype, "dtype")
+  shape = _execute.make_shape(shape, "shape")
+  _inputs_flat = []
+  _attrs = ("dtype", dtype, "shape", shape)
+  _result = _execute.execute(b"InfeedDequeue", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "InfeedDequeue", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -133,7 +245,7 @@ def infeed_dequeue(dtype, shape, name=None):
 _ops.RegisterShape("InfeedDequeue")(None)
 
 
-@tf_export('InfeedDequeueTuple')
+@tf_export('infeed_dequeue_tuple')
 def infeed_dequeue_tuple(dtypes, shapes, name=None):
   r"""A placeholder op for multiple values that will be fed into the computation
 
@@ -150,6 +262,52 @@ def infeed_dequeue_tuple(dtypes, shapes, name=None):
     A list of `Tensor` objects of type `dtypes`.
     A list of tensors that will be provided using the infeed mechanism.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(dtypes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dtypes' argument to "
+          "'infeed_dequeue_tuple' Op, not %r." % dtypes)
+    dtypes = [_execute.make_type(_t, "dtypes") for _t in dtypes]
+    if not isinstance(shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'shapes' argument to "
+          "'infeed_dequeue_tuple' Op, not %r." % shapes)
+    shapes = [_execute.make_shape(_s, "shapes") for _s in shapes]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "InfeedDequeueTuple", dtypes=dtypes, shapes=shapes, name=name)
+    _result = _op.outputs[:]
+    if not _result:
+      return _op
+    _inputs_flat = _op.inputs
+    _attrs = ("dtypes", _op.get_attr("dtypes"), "shapes",
+              _op.get_attr("shapes"))
+    _execute.record_gradient(
+      "InfeedDequeueTuple", _inputs_flat, _attrs, _result, name)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "InfeedDequeueTuple", name,
+        _ctx._post_execution_callbacks, "dtypes", dtypes, "shapes", shapes)
+      return _result
+    except _core._FallbackException:
+      return infeed_dequeue_tuple_eager_fallback(
+          dtypes=dtypes, shapes=shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def infeed_dequeue_tuple_eager_fallback(dtypes, shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function infeed_dequeue_tuple
+  """
+  _ctx = _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -160,22 +318,11 @@ def infeed_dequeue_tuple(dtypes, shapes, name=None):
         "Expected list for 'shapes' argument to "
         "'infeed_dequeue_tuple' Op, not %r." % shapes)
   shapes = [_execute.make_shape(_s, "shapes") for _s in shapes]
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "InfeedDequeueTuple", dtypes=dtypes, shapes=shapes, name=name)
-    _result = _op.outputs[:]
-    if not _result:
-      return _op
-    _inputs_flat = _op.inputs
-    _attrs = ("dtypes", _op.get_attr("dtypes"), "shapes",
-              _op.get_attr("shapes"))
-  else:
-    _inputs_flat = []
-    _attrs = ("dtypes", dtypes, "shapes", shapes)
-    _result = _execute.execute(b"InfeedDequeueTuple", len(dtypes),
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+  _inputs_flat = []
+  _attrs = ("dtypes", dtypes, "shapes", shapes)
+  _result = _execute.execute(b"InfeedDequeueTuple", len(dtypes),
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "InfeedDequeueTuple", _inputs_flat, _attrs, _result, name)
   return _result
@@ -183,7 +330,7 @@ def infeed_dequeue_tuple(dtypes, shapes, name=None):
 _ops.RegisterShape("InfeedDequeueTuple")(None)
 
 
-@tf_export('InfeedEnqueue')
+@tf_export('infeed_enqueue')
 def infeed_enqueue(input, shape=[], device_ordinal=-1, name=None):
   r"""An op which feeds a single Tensor value into the computation.
 
@@ -201,32 +348,63 @@ def infeed_enqueue(input, shape=[], device_ordinal=-1, name=None):
   Returns:
     The created Operation.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if shape is None:
+      shape = []
+    shape = _execute.make_shape(shape, "shape")
+    if device_ordinal is None:
+      device_ordinal = -1
+    device_ordinal = _execute.make_int(device_ordinal, "device_ordinal")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "InfeedEnqueue", input=input, shape=shape,
+        device_ordinal=device_ordinal, name=name)
+    return _op
+    _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "InfeedEnqueue", name,
+        _ctx._post_execution_callbacks, input, "shape", shape,
+        "device_ordinal", device_ordinal)
+      return _result
+    except _core._FallbackException:
+      return infeed_enqueue_eager_fallback(
+          input, shape=shape, device_ordinal=device_ordinal, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def infeed_enqueue_eager_fallback(input, shape=[], device_ordinal=-1, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function infeed_enqueue
+  """
+  _ctx = _context.context()
   if shape is None:
     shape = []
   shape = _execute.make_shape(shape, "shape")
   if device_ordinal is None:
     device_ordinal = -1
   device_ordinal = _execute.make_int(device_ordinal, "device_ordinal")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "InfeedEnqueue", input=input, shape=shape,
-        device_ordinal=device_ordinal, name=name)
-    return _op
-  else:
-    _attr_dtype, (input,) = _execute.args_to_matching_eager([input], _ctx)
-    _inputs_flat = [input]
-    _attrs = ("dtype", _attr_dtype, "shape", shape, "device_ordinal",
-              device_ordinal)
-    _result = _execute.execute(b"InfeedEnqueue", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
-    _result = None
+  _attr_dtype, (input,) = _execute.args_to_matching_eager([input], _ctx)
+  _inputs_flat = [input]
+  _attrs = ("dtype", _attr_dtype, "shape", shape, "device_ordinal",
+  device_ordinal)
+  _result = _execute.execute(b"InfeedEnqueue", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("InfeedEnqueue")(None)
 
 
-@tf_export('InfeedEnqueueTuple')
+@tf_export('infeed_enqueue_tuple')
 def infeed_enqueue_tuple(inputs, shapes, device_ordinal=-1, name=None):
   r"""An op which feeds multiple Tensor values into the computation as an XLA tuple.
 
@@ -244,6 +422,46 @@ def infeed_enqueue_tuple(inputs, shapes, device_ordinal=-1, name=None):
   Returns:
     The created Operation.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'shapes' argument to "
+          "'infeed_enqueue_tuple' Op, not %r." % shapes)
+    shapes = [_execute.make_shape(_s, "shapes") for _s in shapes]
+    if device_ordinal is None:
+      device_ordinal = -1
+    device_ordinal = _execute.make_int(device_ordinal, "device_ordinal")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "InfeedEnqueueTuple", inputs=inputs, shapes=shapes,
+        device_ordinal=device_ordinal, name=name)
+    return _op
+    _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "InfeedEnqueueTuple", name,
+        _ctx._post_execution_callbacks, inputs, "shapes", shapes,
+        "device_ordinal", device_ordinal)
+      return _result
+    except _core._FallbackException:
+      return infeed_enqueue_tuple_eager_fallback(
+          inputs, shapes=shapes, device_ordinal=device_ordinal, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def infeed_enqueue_tuple_eager_fallback(inputs, shapes, device_ordinal=-1, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function infeed_enqueue_tuple
+  """
+  _ctx = _context.context()
   if not isinstance(shapes, (list, tuple)):
     raise TypeError(
         "Expected list for 'shapes' argument to "
@@ -252,26 +470,19 @@ def infeed_enqueue_tuple(inputs, shapes, device_ordinal=-1, name=None):
   if device_ordinal is None:
     device_ordinal = -1
   device_ordinal = _execute.make_int(device_ordinal, "device_ordinal")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "InfeedEnqueueTuple", inputs=inputs, shapes=shapes,
-        device_ordinal=device_ordinal, name=name)
-    return _op
-  else:
-    _attr_dtypes, inputs = _execute.convert_to_mixed_eager_tensors(inputs, _ctx)
-    _inputs_flat = list(inputs)
-    _attrs = ("dtypes", _attr_dtypes, "shapes", shapes, "device_ordinal",
-              device_ordinal)
-    _result = _execute.execute(b"InfeedEnqueueTuple", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
-    _result = None
+  _attr_dtypes, inputs = _execute.convert_to_mixed_eager_tensors(inputs, _ctx)
+  _inputs_flat = list(inputs)
+  _attrs = ("dtypes", _attr_dtypes, "shapes", shapes, "device_ordinal",
+  device_ordinal)
+  _result = _execute.execute(b"InfeedEnqueueTuple", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("InfeedEnqueueTuple")(None)
 
 
-@tf_export('OutfeedDequeue')
+@tf_export('outfeed_dequeue')
 def outfeed_dequeue(dtype, shape, device_ordinal=-1, name=None):
   r"""Retrieves a single tensor from the computation outfeed.  This operation will
 
@@ -290,13 +501,13 @@ def outfeed_dequeue(dtype, shape, device_ordinal=-1, name=None):
     A `Tensor` of type `dtype`.
     A tensor that will be read from the device outfeed.
   """
-  dtype = _execute.make_type(dtype, "dtype")
-  shape = _execute.make_shape(shape, "shape")
-  if device_ordinal is None:
-    device_ordinal = -1
-  device_ordinal = _execute.make_int(device_ordinal, "device_ordinal")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    dtype = _execute.make_type(dtype, "dtype")
+    shape = _execute.make_shape(shape, "shape")
+    if device_ordinal is None:
+      device_ordinal = -1
+    device_ordinal = _execute.make_int(device_ordinal, "device_ordinal")
     _, _, _op = _op_def_lib._apply_op_helper(
         "OutfeedDequeue", dtype=dtype, shape=shape,
         device_ordinal=device_ordinal, name=name)
@@ -304,12 +515,43 @@ def outfeed_dequeue(dtype, shape, device_ordinal=-1, name=None):
     _inputs_flat = _op.inputs
     _attrs = ("dtype", _op.get_attr("dtype"), "shape", _op.get_attr("shape"),
               "device_ordinal", _op.get_attr("device_ordinal"))
+    _execute.record_gradient(
+      "OutfeedDequeue", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _inputs_flat = []
-    _attrs = ("dtype", dtype, "shape", shape, "device_ordinal",
-              device_ordinal)
-    _result = _execute.execute(b"OutfeedDequeue", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "OutfeedDequeue", name,
+        _ctx._post_execution_callbacks, "dtype", dtype, "shape", shape,
+        "device_ordinal", device_ordinal)
+      return _result
+    except _core._FallbackException:
+      return outfeed_dequeue_eager_fallback(
+          dtype=dtype, shape=shape, device_ordinal=device_ordinal, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def outfeed_dequeue_eager_fallback(dtype, shape, device_ordinal=-1, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function outfeed_dequeue
+  """
+  _ctx = _context.context()
+  dtype = _execute.make_type(dtype, "dtype")
+  shape = _execute.make_shape(shape, "shape")
+  if device_ordinal is None:
+    device_ordinal = -1
+  device_ordinal = _execute.make_int(device_ordinal, "device_ordinal")
+  _inputs_flat = []
+  _attrs = ("dtype", dtype, "shape", shape, "device_ordinal", device_ordinal)
+  _result = _execute.execute(b"OutfeedDequeue", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "OutfeedDequeue", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -318,7 +560,7 @@ def outfeed_dequeue(dtype, shape, device_ordinal=-1, name=None):
 _ops.RegisterShape("OutfeedDequeue")(None)
 
 
-@tf_export('OutfeedDequeueTuple')
+@tf_export('outfeed_dequeue_tuple')
 def outfeed_dequeue_tuple(dtypes, shapes, device_ordinal=-1, name=None):
   r"""Retrieve multiple values that will be emitted by the computation as an XLA
 
@@ -340,6 +582,59 @@ def outfeed_dequeue_tuple(dtypes, shapes, device_ordinal=-1, name=None):
     A list of `Tensor` objects of type `dtypes`.
     A list of tensors that will be read from the outfeed.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(dtypes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dtypes' argument to "
+          "'outfeed_dequeue_tuple' Op, not %r." % dtypes)
+    dtypes = [_execute.make_type(_t, "dtypes") for _t in dtypes]
+    if not isinstance(shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'shapes' argument to "
+          "'outfeed_dequeue_tuple' Op, not %r." % shapes)
+    shapes = [_execute.make_shape(_s, "shapes") for _s in shapes]
+    if device_ordinal is None:
+      device_ordinal = -1
+    device_ordinal = _execute.make_int(device_ordinal, "device_ordinal")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "OutfeedDequeueTuple", dtypes=dtypes, shapes=shapes,
+        device_ordinal=device_ordinal, name=name)
+    _result = _op.outputs[:]
+    if not _result:
+      return _op
+    _inputs_flat = _op.inputs
+    _attrs = ("dtypes", _op.get_attr("dtypes"), "shapes",
+              _op.get_attr("shapes"), "device_ordinal",
+              _op.get_attr("device_ordinal"))
+    _execute.record_gradient(
+      "OutfeedDequeueTuple", _inputs_flat, _attrs, _result, name)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "OutfeedDequeueTuple", name,
+        _ctx._post_execution_callbacks, "dtypes", dtypes, "shapes", shapes,
+        "device_ordinal", device_ordinal)
+      return _result
+    except _core._FallbackException:
+      return outfeed_dequeue_tuple_eager_fallback(
+          dtypes=dtypes, shapes=shapes, device_ordinal=device_ordinal,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def outfeed_dequeue_tuple_eager_fallback(dtypes, shapes, device_ordinal=-1, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function outfeed_dequeue_tuple
+  """
+  _ctx = _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -353,25 +648,12 @@ def outfeed_dequeue_tuple(dtypes, shapes, device_ordinal=-1, name=None):
   if device_ordinal is None:
     device_ordinal = -1
   device_ordinal = _execute.make_int(device_ordinal, "device_ordinal")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "OutfeedDequeueTuple", dtypes=dtypes, shapes=shapes,
-        device_ordinal=device_ordinal, name=name)
-    _result = _op.outputs[:]
-    if not _result:
-      return _op
-    _inputs_flat = _op.inputs
-    _attrs = ("dtypes", _op.get_attr("dtypes"), "shapes",
-              _op.get_attr("shapes"), "device_ordinal",
-              _op.get_attr("device_ordinal"))
-  else:
-    _inputs_flat = []
-    _attrs = ("dtypes", dtypes, "shapes", shapes, "device_ordinal",
-              device_ordinal)
-    _result = _execute.execute(b"OutfeedDequeueTuple", len(dtypes),
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+  _inputs_flat = []
+  _attrs = ("dtypes", dtypes, "shapes", shapes, "device_ordinal",
+  device_ordinal)
+  _result = _execute.execute(b"OutfeedDequeueTuple", len(dtypes),
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "OutfeedDequeueTuple", _inputs_flat, _attrs, _result, name)
   return _result
@@ -379,7 +661,7 @@ def outfeed_dequeue_tuple(dtypes, shapes, device_ordinal=-1, name=None):
 _ops.RegisterShape("OutfeedDequeueTuple")(None)
 
 
-@tf_export('OutfeedEnqueue')
+@tf_export('outfeed_enqueue')
 def outfeed_enqueue(input, name=None):
   r"""An op which emits a single Tensor value from an XLA computation.
 
@@ -391,23 +673,47 @@ def outfeed_enqueue(input, name=None):
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "OutfeedEnqueue", input=input, name=name)
     return _op
-  else:
-    _attr_dtype, (input,) = _execute.args_to_matching_eager([input], _ctx)
-    _inputs_flat = [input]
-    _attrs = ("dtype", _attr_dtype)
-    _result = _execute.execute(b"OutfeedEnqueue", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "OutfeedEnqueue", name,
+        _ctx._post_execution_callbacks, input)
+      return _result
+    except _core._FallbackException:
+      return outfeed_enqueue_eager_fallback(
+          input, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def outfeed_enqueue_eager_fallback(input, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function outfeed_enqueue
+  """
+  _ctx = _context.context()
+  _attr_dtype, (input,) = _execute.args_to_matching_eager([input], _ctx)
+  _inputs_flat = [input]
+  _attrs = ("dtype", _attr_dtype)
+  _result = _execute.execute(b"OutfeedEnqueue", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("OutfeedEnqueue")(None)
 
 
-@tf_export('OutfeedEnqueueTuple')
+@tf_export('outfeed_enqueue_tuple')
 def outfeed_enqueue_tuple(inputs, name=None):
   r"""An op which emits multiple Tensor values from an XLA computation.
 
@@ -421,23 +727,113 @@ def outfeed_enqueue_tuple(inputs, name=None):
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "OutfeedEnqueueTuple", inputs=inputs, name=name)
     return _op
-  else:
-    _attr_dtypes, inputs = _execute.convert_to_mixed_eager_tensors(inputs, _ctx)
-    _inputs_flat = list(inputs)
-    _attrs = ("dtypes", _attr_dtypes)
-    _result = _execute.execute(b"OutfeedEnqueueTuple", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "OutfeedEnqueueTuple", name,
+        _ctx._post_execution_callbacks, inputs)
+      return _result
+    except _core._FallbackException:
+      return outfeed_enqueue_tuple_eager_fallback(
+          inputs, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def outfeed_enqueue_tuple_eager_fallback(inputs, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function outfeed_enqueue_tuple
+  """
+  _ctx = _context.context()
+  _attr_dtypes, inputs = _execute.convert_to_mixed_eager_tensors(inputs, _ctx)
+  _inputs_flat = list(inputs)
+  _attrs = ("dtypes", _attr_dtypes)
+  _result = _execute.execute(b"OutfeedEnqueueTuple", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("OutfeedEnqueueTuple")(None)
 
 
-@tf_export('ShutdownDistributedTPU')
+@tf_export('session_status')
+def session_status(fetch_start_timestamp, name=None):
+  r"""Not for public usage.
+
+  Returns messages from the current session as a serialized SessionStatusProto.
+
+  This includes the current state of the compiler, along with any critical
+  logging or warning messages.
+
+  Args:
+    fetch_start_timestamp: A `Tensor` of type `float64`.
+      any messages earlier than this will be excluded from the
+      returned proto.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `string`.
+  """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "SessionStatus", fetch_start_timestamp=fetch_start_timestamp,
+        name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = None
+    _execute.record_gradient(
+      "SessionStatus", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "SessionStatus", name,
+        _ctx._post_execution_callbacks, fetch_start_timestamp)
+      return _result
+    except _core._FallbackException:
+      return session_status_eager_fallback(
+          fetch_start_timestamp, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def session_status_eager_fallback(fetch_start_timestamp, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function session_status
+  """
+  _ctx = _context.context()
+  fetch_start_timestamp = _ops.convert_to_tensor(fetch_start_timestamp, _dtypes.float64)
+  _inputs_flat = [fetch_start_timestamp]
+  _attrs = None
+  _result = _execute.execute(b"SessionStatus", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _execute.record_gradient(
+      "SessionStatus", _inputs_flat, _attrs, _result, name)
+  _result, = _result
+  return _result
+
+_ops.RegisterShape("SessionStatus")(None)
+
+
+@tf_export('shutdown_distributed_tpu')
 def shutdown_distributed_tpu(name=None):
   r"""An op that shuts down a running distributed TPU system. The Op returns
 
@@ -450,23 +846,778 @@ def shutdown_distributed_tpu(name=None):
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "ShutdownDistributedTPU", name=name)
     return _op
-  else:
-    _inputs_flat = []
-    _attrs = None
-    _result = _execute.execute(b"ShutdownDistributedTPU", 0,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "ShutdownDistributedTPU", name,
+        _ctx._post_execution_callbacks)
+      return _result
+    except _core._FallbackException:
+      return shutdown_distributed_tpu_eager_fallback(
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def shutdown_distributed_tpu_eager_fallback(name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function shutdown_distributed_tpu
+  """
+  _ctx = _context.context()
+  _inputs_flat = []
+  _attrs = None
+  _result = _execute.execute(b"ShutdownDistributedTPU", 0,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("ShutdownDistributedTPU")(None)
 
 
-@tf_export('TPUReplicate')
+@tf_export('tpu_embedding_activations')
+def tpu_embedding_activations(embedding_variable, sliced_activations, table_id, lookup_id, name=None):
+  r"""An op enabling differentiation of TPU Embeddings.
+
+  This op simply returns its first input, which is assumed to have been sliced
+  from the Tensors returnd by TPUEmbeddingDequeueActivations. The presence of this
+  op, and its first argument being a trainable Variable, enables automatic
+  differentiation of graphs containing embeddings via the TPU Embedding Python
+  libraries.
+
+  Args:
+    embedding_variable: A `Tensor` of type `float32`.
+      A trainable variable, enabling optimizers to find this op.
+    sliced_activations: A `Tensor` of type `float32`.
+      The embedding activations Tensor to return.
+    table_id: An `int` that is `>= 0`.
+      The id of the table in the embedding layer configuration from which
+      these activations were computed.
+    lookup_id: An `int` that is `>= 0`.
+      Identifier of the set of embedding indices which produced these
+      activations.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `float32`.
+  """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    table_id = _execute.make_int(table_id, "table_id")
+    lookup_id = _execute.make_int(lookup_id, "lookup_id")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "TPUEmbeddingActivations", embedding_variable=embedding_variable,
+        sliced_activations=sliced_activations, table_id=table_id,
+        lookup_id=lookup_id, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("table_id", _op.get_attr("table_id"), "lookup_id",
+              _op.get_attr("lookup_id"))
+    _execute.record_gradient(
+      "TPUEmbeddingActivations", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TPUEmbeddingActivations", name,
+        _ctx._post_execution_callbacks, embedding_variable,
+        sliced_activations, "table_id", table_id, "lookup_id", lookup_id)
+      return _result
+    except _core._FallbackException:
+      return tpu_embedding_activations_eager_fallback(
+          embedding_variable, sliced_activations, table_id=table_id,
+          lookup_id=lookup_id, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tpu_embedding_activations_eager_fallback(embedding_variable, sliced_activations, table_id, lookup_id, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tpu_embedding_activations
+  """
+  _ctx = _context.context()
+  table_id = _execute.make_int(table_id, "table_id")
+  lookup_id = _execute.make_int(lookup_id, "lookup_id")
+  embedding_variable = _ops.convert_to_tensor(embedding_variable, _dtypes.float32)
+  sliced_activations = _ops.convert_to_tensor(sliced_activations, _dtypes.float32)
+  _inputs_flat = [embedding_variable, sliced_activations]
+  _attrs = ("table_id", table_id, "lookup_id", lookup_id)
+  _result = _execute.execute(b"TPUEmbeddingActivations", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
+  _execute.record_gradient(
+      "TPUEmbeddingActivations", _inputs_flat, _attrs, _result, name)
+  _result, = _result
+  return _result
+
+_ops.RegisterShape("TPUEmbeddingActivations")(None)
+
+
+@tf_export('tpu_embedding_enqueue_sparse_batch')
+def tpu_embedding_enqueue_sparse_batch(sample_indices, embedding_indices, aggregation_weights, device_ordinal=-1, name=None):
+  r"""An op that feeds a batch of embedding indices and weights to the TPU.
+
+  Embedding lookups are equivalent to sparse-dense matrix multiplications: the
+  sparse matrix contains nonzeros in column j in order to retrieve row j from the
+  embedding table.
+
+  The three Tensor list arguments (sample_indices, embedding_indices, and
+  aggregation_weights) represent these sparse matrices in COO format. The Tensor
+  lists each have one entry for each embedding table specified in the model.
+  For the kth embedding table, the three Tensors at position k in the list
+  specify a COO-format sparse matrix. For the kth table, the row indices,
+  column indices, and nonzero values of the COO sparse matrix are specified by
+  sample_indices[k], embedding_indices[k], and aggregation_weights[k],
+  respectively. Entries must be sorted by row index, then by column index.
+
+  There should be at most one TPUEmbeddingEnqueueSparseBatch op in a signle
+  training step per TPU shard.
+
+  Args:
+    sample_indices: A list of at least 1 `Tensor` objects with type `int32`.
+      A list of rank 1 Tensors specifying row indices of the COO
+      sparse matrix representing the embedding lookups for each table.
+    embedding_indices: A list with the same length as `sample_indices` of `Tensor` objects with type `int32`.
+      A list of rank 1 Tensors  specifying column indices of the
+      COO sparse matrix representing the embedding lookups for each table.
+    aggregation_weights: A list with the same length as `sample_indices` of `Tensor` objects with type `float32`.
+      A list of rank 1 Tensors specifying the nonzero values
+      of the COO sparse matrix representing the embedding lookups for each table.
+    device_ordinal: An optional `int`. Defaults to `-1`.
+      The TPU device to use. This should be -1 when the Op
+      is running on a TPU device, and >= 0 when the Op is running on the CPU
+      device.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+  """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(sample_indices, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'sample_indices' argument to "
+          "'tpu_embedding_enqueue_sparse_batch' Op, not %r." % sample_indices)
+    _attr_num_tables = len(sample_indices)
+    if not isinstance(embedding_indices, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'embedding_indices' argument to "
+          "'tpu_embedding_enqueue_sparse_batch' Op, not %r." % embedding_indices)
+    if len(embedding_indices) != _attr_num_tables:
+      raise ValueError(
+          "List argument 'embedding_indices' to 'tpu_embedding_enqueue_sparse_batch' Op with length %d "
+          "must match length %d of argument 'sample_indices'." %
+          (len(embedding_indices), _attr_num_tables))
+    if not isinstance(aggregation_weights, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'aggregation_weights' argument to "
+          "'tpu_embedding_enqueue_sparse_batch' Op, not %r." % aggregation_weights)
+    if len(aggregation_weights) != _attr_num_tables:
+      raise ValueError(
+          "List argument 'aggregation_weights' to 'tpu_embedding_enqueue_sparse_batch' Op with length %d "
+          "must match length %d of argument 'sample_indices'." %
+          (len(aggregation_weights), _attr_num_tables))
+    if device_ordinal is None:
+      device_ordinal = -1
+    device_ordinal = _execute.make_int(device_ordinal, "device_ordinal")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "TPUEmbeddingEnqueueSparseBatch", sample_indices=sample_indices,
+        embedding_indices=embedding_indices,
+        aggregation_weights=aggregation_weights,
+        device_ordinal=device_ordinal, name=name)
+    return _op
+    _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TPUEmbeddingEnqueueSparseBatch",
+        name, _ctx._post_execution_callbacks, sample_indices,
+        embedding_indices, aggregation_weights, "device_ordinal",
+        device_ordinal)
+      return _result
+    except _core._FallbackException:
+      return tpu_embedding_enqueue_sparse_batch_eager_fallback(
+          sample_indices, embedding_indices, aggregation_weights,
+          device_ordinal=device_ordinal, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tpu_embedding_enqueue_sparse_batch_eager_fallback(sample_indices, embedding_indices, aggregation_weights, device_ordinal=-1, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tpu_embedding_enqueue_sparse_batch
+  """
+  _ctx = _context.context()
+  if not isinstance(sample_indices, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'sample_indices' argument to "
+        "'tpu_embedding_enqueue_sparse_batch' Op, not %r." % sample_indices)
+  _attr_num_tables = len(sample_indices)
+  if not isinstance(embedding_indices, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'embedding_indices' argument to "
+        "'tpu_embedding_enqueue_sparse_batch' Op, not %r." % embedding_indices)
+  if len(embedding_indices) != _attr_num_tables:
+    raise ValueError(
+        "List argument 'embedding_indices' to 'tpu_embedding_enqueue_sparse_batch' Op with length %d "
+        "must match length %d of argument 'sample_indices'." %
+        (len(embedding_indices), _attr_num_tables))
+  if not isinstance(aggregation_weights, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'aggregation_weights' argument to "
+        "'tpu_embedding_enqueue_sparse_batch' Op, not %r." % aggregation_weights)
+  if len(aggregation_weights) != _attr_num_tables:
+    raise ValueError(
+        "List argument 'aggregation_weights' to 'tpu_embedding_enqueue_sparse_batch' Op with length %d "
+        "must match length %d of argument 'sample_indices'." %
+        (len(aggregation_weights), _attr_num_tables))
+  if device_ordinal is None:
+    device_ordinal = -1
+  device_ordinal = _execute.make_int(device_ordinal, "device_ordinal")
+  sample_indices = _ops.convert_n_to_tensor(sample_indices, _dtypes.int32)
+  embedding_indices = _ops.convert_n_to_tensor(embedding_indices, _dtypes.int32)
+  aggregation_weights = _ops.convert_n_to_tensor(aggregation_weights, _dtypes.float32)
+  _inputs_flat = list(sample_indices) + list(embedding_indices) + list(aggregation_weights)
+  _attrs = ("num_tables", _attr_num_tables, "device_ordinal", device_ordinal)
+  _result = _execute.execute(b"TPUEmbeddingEnqueueSparseBatch", 0,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
+  _result = None
+  return _result
+
+_ops.RegisterShape("TPUEmbeddingEnqueueSparseBatch")(None)
+
+
+@tf_export('tpu_embedding_load_adagrad_parameters')
+def tpu_embedding_load_adagrad_parameters(parameters, accumulators, tpu_embedding_config, table_id, num_hosts, host_id, name=None):
+  r"""Load an embedding table shard into TensorNode memories for use with Adagrad.
+
+  TPU embeddings use dedicated per-optimizer Ops for loading and retrieving
+  trainable variables and optimizer state from TPU memory. This op enables
+  functionality equivalent to AdagradOptimizer.
+
+  Args:
+    parameters: A `Tensor` of type `float32`.
+      The shard of the embedding table resident on the host executing this
+      op. For single-TPU models, this is the entire embedding table.
+    accumulators: A `Tensor` of type `float32`.
+      Shard of the Adagrad accumulators resident on the host executing
+      this op.
+    tpu_embedding_config: A `string`.
+      Serialized TPUEmbeddingConfiguration proto.
+    table_id: An `int` that is `>= 0`.
+      The id of the table specified in the embedding_config.
+    num_hosts: An `int` that is `>= 1`.
+      The number of CPU hosts in the distributed training job.
+    host_id: An `int` that is `>= 0`.
+      Which CPU host in the distributed training job will execute this op.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+  """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    tpu_embedding_config = _execute.make_str(tpu_embedding_config, "tpu_embedding_config")
+    table_id = _execute.make_int(table_id, "table_id")
+    num_hosts = _execute.make_int(num_hosts, "num_hosts")
+    host_id = _execute.make_int(host_id, "host_id")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "TPUEmbeddingLoadAdagradParameters", parameters=parameters,
+        accumulators=accumulators, tpu_embedding_config=tpu_embedding_config,
+        table_id=table_id, num_hosts=num_hosts, host_id=host_id, name=name)
+    return _op
+    _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TPUEmbeddingLoadAdagradParameters",
+        name, _ctx._post_execution_callbacks, parameters, accumulators,
+        "tpu_embedding_config", tpu_embedding_config, "table_id", table_id,
+        "num_hosts", num_hosts, "host_id", host_id)
+      return _result
+    except _core._FallbackException:
+      return tpu_embedding_load_adagrad_parameters_eager_fallback(
+          parameters, accumulators, tpu_embedding_config=tpu_embedding_config,
+          table_id=table_id, num_hosts=num_hosts, host_id=host_id, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tpu_embedding_load_adagrad_parameters_eager_fallback(parameters, accumulators, tpu_embedding_config, table_id, num_hosts, host_id, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tpu_embedding_load_adagrad_parameters
+  """
+  _ctx = _context.context()
+  tpu_embedding_config = _execute.make_str(tpu_embedding_config, "tpu_embedding_config")
+  table_id = _execute.make_int(table_id, "table_id")
+  num_hosts = _execute.make_int(num_hosts, "num_hosts")
+  host_id = _execute.make_int(host_id, "host_id")
+  parameters = _ops.convert_to_tensor(parameters, _dtypes.float32)
+  accumulators = _ops.convert_to_tensor(accumulators, _dtypes.float32)
+  _inputs_flat = [parameters, accumulators]
+  _attrs = ("tpu_embedding_config", tpu_embedding_config, "table_id",
+  table_id, "num_hosts", num_hosts, "host_id", host_id)
+  _result = _execute.execute(b"TPUEmbeddingLoadAdagradParameters", 0,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
+  _result = None
+  return _result
+
+_ops.RegisterShape("TPUEmbeddingLoadAdagradParameters")(None)
+
+
+@tf_export('tpu_embedding_load_gradient_descent_parameters')
+def tpu_embedding_load_gradient_descent_parameters(parameters, tpu_embedding_config, table_id, num_hosts, host_id, name=None):
+  r"""Load an embedding table shard into TPU memory for use with GradientDescent.
+
+  TPU embeddings use dedicated per-optimizer Ops for loading and retrieving
+  trainable variables and optimizer state from TPU memory. This op enables
+  functionality equivalent to GradientDescentOptimizer.
+
+  Args:
+    parameters: A `Tensor` of type `float32`.
+      The shard of the embedding table resident on the host executing this
+      op. For single-TPU models, this is the entire embedding table.
+    tpu_embedding_config: A `string`.
+      Serialized TPUEmbeddingConfiguration proto.
+    table_id: An `int` that is `>= 0`.
+      The id of the table specified in the tpu_embedding_config.
+    num_hosts: An `int` that is `>= 1`.
+      The number of CPU hosts in the distributed training job.
+    host_id: An `int` that is `>= 0`.
+      Which CPU host in the distributed training job will execute this op.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+  """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    tpu_embedding_config = _execute.make_str(tpu_embedding_config, "tpu_embedding_config")
+    table_id = _execute.make_int(table_id, "table_id")
+    num_hosts = _execute.make_int(num_hosts, "num_hosts")
+    host_id = _execute.make_int(host_id, "host_id")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "TPUEmbeddingLoadGradientDescentParameters", parameters=parameters,
+        tpu_embedding_config=tpu_embedding_config, table_id=table_id,
+        num_hosts=num_hosts, host_id=host_id, name=name)
+    return _op
+    _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name,
+        "TPUEmbeddingLoadGradientDescentParameters", name,
+        _ctx._post_execution_callbacks, parameters, "tpu_embedding_config",
+        tpu_embedding_config, "table_id", table_id, "num_hosts", num_hosts,
+        "host_id", host_id)
+      return _result
+    except _core._FallbackException:
+      return tpu_embedding_load_gradient_descent_parameters_eager_fallback(
+          parameters, tpu_embedding_config=tpu_embedding_config,
+          table_id=table_id, num_hosts=num_hosts, host_id=host_id, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tpu_embedding_load_gradient_descent_parameters_eager_fallback(parameters, tpu_embedding_config, table_id, num_hosts, host_id, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tpu_embedding_load_gradient_descent_parameters
+  """
+  _ctx = _context.context()
+  tpu_embedding_config = _execute.make_str(tpu_embedding_config, "tpu_embedding_config")
+  table_id = _execute.make_int(table_id, "table_id")
+  num_hosts = _execute.make_int(num_hosts, "num_hosts")
+  host_id = _execute.make_int(host_id, "host_id")
+  parameters = _ops.convert_to_tensor(parameters, _dtypes.float32)
+  _inputs_flat = [parameters]
+  _attrs = ("tpu_embedding_config", tpu_embedding_config, "table_id",
+  table_id, "num_hosts", num_hosts, "host_id", host_id)
+  _result = _execute.execute(b"TPUEmbeddingLoadGradientDescentParameters", 0,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
+  _result = None
+  return _result
+
+_ops.RegisterShape("TPUEmbeddingLoadGradientDescentParameters")(None)
+
+
+@tf_export('tpu_embedding_receive_activations')
+def tpu_embedding_receive_activations(num_tables, tpu_embedding_config, name=None):
+  r"""An op that receives embeddng activations on the TPU.
+
+  The TPU system performs the embedding lookups and aggregations specified by
+  the arguments to TPUEmbeddingEnqueueSparseBatch. The results of these
+  aggregations are visible to the Tensorflow Graph as the outputs of a
+  TPUEmbeddingDequeueActivations Op. This op returns a list containing one
+  Tensor of activations per table specified in the model. There can be at most
+  one ReceieveActivations op in the TPU graph.
+
+  Args:
+    num_tables: An `int` that is `>= 1`.
+      The number of output activation tensors, equal to the number of
+      embedding tables in the model.
+    tpu_embedding_config: A `string`.
+      Serialized TPUEmbeddingConfiguration proto.
+    name: A name for the operation (optional).
+
+  Returns:
+    A list of `num_tables` `Tensor` objects with type `float32`.
+    A TensorList of embedding activations containing one Tensor per
+    embedding table in the model.
+  """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    num_tables = _execute.make_int(num_tables, "num_tables")
+    tpu_embedding_config = _execute.make_str(tpu_embedding_config, "tpu_embedding_config")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "TPUEmbeddingReceiveActivations", num_tables=num_tables,
+        tpu_embedding_config=tpu_embedding_config, name=name)
+    _result = _op.outputs[:]
+    if not _result:
+      return _op
+    _inputs_flat = _op.inputs
+    _attrs = ("num_tables", _op.get_attr("num_tables"),
+              "tpu_embedding_config", _op.get_attr("tpu_embedding_config"))
+    _execute.record_gradient(
+      "TPUEmbeddingReceiveActivations", _inputs_flat, _attrs, _result, name)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TPUEmbeddingReceiveActivations",
+        name, _ctx._post_execution_callbacks, "num_tables", num_tables,
+        "tpu_embedding_config", tpu_embedding_config)
+      return _result
+    except _core._FallbackException:
+      return tpu_embedding_receive_activations_eager_fallback(
+          num_tables=num_tables, tpu_embedding_config=tpu_embedding_config,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tpu_embedding_receive_activations_eager_fallback(num_tables, tpu_embedding_config, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tpu_embedding_receive_activations
+  """
+  _ctx = _context.context()
+  num_tables = _execute.make_int(num_tables, "num_tables")
+  tpu_embedding_config = _execute.make_str(tpu_embedding_config, "tpu_embedding_config")
+  _inputs_flat = []
+  _attrs = ("num_tables", num_tables, "tpu_embedding_config",
+  tpu_embedding_config)
+  _result = _execute.execute(b"TPUEmbeddingReceiveActivations", num_tables,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
+  _execute.record_gradient(
+      "TPUEmbeddingReceiveActivations", _inputs_flat, _attrs, _result, name)
+  return _result
+
+_ops.RegisterShape("TPUEmbeddingReceiveActivations")(None)
+
+
+_tpu_embedding_retrieve_adagrad_parameters_outputs = ["parameters",
+                                                     "accumulators"]
+_TPUEmbeddingRetrieveAdagradParametersOutput = _collections.namedtuple(
+    "TPUEmbeddingRetrieveAdagradParameters",
+    _tpu_embedding_retrieve_adagrad_parameters_outputs)
+
+
+@tf_export('tpu_embedding_retrieve_adagrad_parameters')
+def tpu_embedding_retrieve_adagrad_parameters(tpu_embedding_config, table_id, num_hosts, host_id, name=None):
+  r"""Retrieve an embedding table shard from TPU memory.
+
+  TPU embeddings use dedicated per-optimizer Ops for loading and retrieving
+  trainable variables and optimizer state from TPU memory. This op enables
+  functionality equivalent to AdagradOptimizer.
+
+  Args:
+    tpu_embedding_config: A `string`.
+      Serialized TPUEmbeddingConfiguration proto.
+    table_id: An `int` that is `>= 0`.
+      The id of the table specified in the embedding_config_json.
+    num_hosts: An `int` that is `>= 1`.
+      The number of CPU hosts in the distributed training job.
+    host_id: An `int` that is `>= 0`.
+      Which CPU host in the distributed training job will execute this op.
+    name: A name for the operation (optional).
+
+  Returns:
+    A tuple of `Tensor` objects (parameters, accumulators).
+
+    parameters: A `Tensor` of type `float32`.
+    accumulators: A `Tensor` of type `float32`.
+  """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    tpu_embedding_config = _execute.make_str(tpu_embedding_config, "tpu_embedding_config")
+    table_id = _execute.make_int(table_id, "table_id")
+    num_hosts = _execute.make_int(num_hosts, "num_hosts")
+    host_id = _execute.make_int(host_id, "host_id")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "TPUEmbeddingRetrieveAdagradParameters",
+        tpu_embedding_config=tpu_embedding_config, table_id=table_id,
+        num_hosts=num_hosts, host_id=host_id, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("tpu_embedding_config", _op.get_attr("tpu_embedding_config"),
+              "table_id", _op.get_attr("table_id"), "num_hosts",
+              _op.get_attr("num_hosts"), "host_id", _op.get_attr("host_id"))
+    _execute.record_gradient(
+      "TPUEmbeddingRetrieveAdagradParameters", _inputs_flat, _attrs, _result, name)
+    _result = _TPUEmbeddingRetrieveAdagradParametersOutput._make(_result)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name,
+        "TPUEmbeddingRetrieveAdagradParameters", name,
+        _ctx._post_execution_callbacks, "tpu_embedding_config",
+        tpu_embedding_config, "table_id", table_id, "num_hosts", num_hosts,
+        "host_id", host_id)
+      _result = _TPUEmbeddingRetrieveAdagradParametersOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return tpu_embedding_retrieve_adagrad_parameters_eager_fallback(
+          tpu_embedding_config=tpu_embedding_config, table_id=table_id,
+          num_hosts=num_hosts, host_id=host_id, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tpu_embedding_retrieve_adagrad_parameters_eager_fallback(tpu_embedding_config, table_id, num_hosts, host_id, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tpu_embedding_retrieve_adagrad_parameters
+  """
+  _ctx = _context.context()
+  tpu_embedding_config = _execute.make_str(tpu_embedding_config, "tpu_embedding_config")
+  table_id = _execute.make_int(table_id, "table_id")
+  num_hosts = _execute.make_int(num_hosts, "num_hosts")
+  host_id = _execute.make_int(host_id, "host_id")
+  _inputs_flat = []
+  _attrs = ("tpu_embedding_config", tpu_embedding_config, "table_id",
+  table_id, "num_hosts", num_hosts, "host_id", host_id)
+  _result = _execute.execute(b"TPUEmbeddingRetrieveAdagradParameters", 2,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
+  _execute.record_gradient(
+      "TPUEmbeddingRetrieveAdagradParameters", _inputs_flat, _attrs, _result, name)
+  _result = _TPUEmbeddingRetrieveAdagradParametersOutput._make(_result)
+  return _result
+
+_ops.RegisterShape("TPUEmbeddingRetrieveAdagradParameters")(None)
+
+
+@tf_export('tpu_embedding_retrieve_gradient_descent_parameters')
+def tpu_embedding_retrieve_gradient_descent_parameters(tpu_embedding_config, table_id, num_hosts, host_id, name=None):
+  r"""Retrieve an embedding table shard from TPU memory.
+
+  TPU embeddings use dedicated per-optimizer Ops for loading and retrieving
+  trainable variables and optimizer state from TPU memory. This op enables
+  functionality equivalent to GradientDescentOptimizer.
+
+  Args:
+    tpu_embedding_config: A `string`.
+      Serialized TPUEmbeddingConfiguration proto.
+    table_id: An `int`. The id of the table specified in tpu_embedding_config.
+    num_hosts: An `int`.
+      The number of CPU hosts in the distributed training job.
+    host_id: An `int`.
+      Which CPU host in the distributed training job will execute this op.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `float32`.
+  """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    tpu_embedding_config = _execute.make_str(tpu_embedding_config, "tpu_embedding_config")
+    table_id = _execute.make_int(table_id, "table_id")
+    num_hosts = _execute.make_int(num_hosts, "num_hosts")
+    host_id = _execute.make_int(host_id, "host_id")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "TPUEmbeddingRetrieveGradientDescentParameters",
+        tpu_embedding_config=tpu_embedding_config, table_id=table_id,
+        num_hosts=num_hosts, host_id=host_id, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("tpu_embedding_config", _op.get_attr("tpu_embedding_config"),
+              "table_id", _op.get_attr("table_id"), "num_hosts",
+              _op.get_attr("num_hosts"), "host_id", _op.get_attr("host_id"))
+    _execute.record_gradient(
+      "TPUEmbeddingRetrieveGradientDescentParameters", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name,
+        "TPUEmbeddingRetrieveGradientDescentParameters", name,
+        _ctx._post_execution_callbacks, "tpu_embedding_config",
+        tpu_embedding_config, "table_id", table_id, "num_hosts", num_hosts,
+        "host_id", host_id)
+      return _result
+    except _core._FallbackException:
+      return tpu_embedding_retrieve_gradient_descent_parameters_eager_fallback(
+          tpu_embedding_config=tpu_embedding_config, table_id=table_id,
+          num_hosts=num_hosts, host_id=host_id, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tpu_embedding_retrieve_gradient_descent_parameters_eager_fallback(tpu_embedding_config, table_id, num_hosts, host_id, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tpu_embedding_retrieve_gradient_descent_parameters
+  """
+  _ctx = _context.context()
+  tpu_embedding_config = _execute.make_str(tpu_embedding_config, "tpu_embedding_config")
+  table_id = _execute.make_int(table_id, "table_id")
+  num_hosts = _execute.make_int(num_hosts, "num_hosts")
+  host_id = _execute.make_int(host_id, "host_id")
+  _inputs_flat = []
+  _attrs = ("tpu_embedding_config", tpu_embedding_config, "table_id",
+  table_id, "num_hosts", num_hosts, "host_id", host_id)
+  _result = _execute.execute(b"TPUEmbeddingRetrieveGradientDescentParameters",
+                             1, inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
+  _execute.record_gradient(
+      "TPUEmbeddingRetrieveGradientDescentParameters", _inputs_flat, _attrs, _result, name)
+  _result, = _result
+  return _result
+
+_ops.RegisterShape("TPUEmbeddingRetrieveGradientDescentParameters")(None)
+
+
+@tf_export('tpu_embedding_send_gradients')
+def tpu_embedding_send_gradients(gradients, tpu_embedding_config, name=None):
+  r"""An op that performs gradient updates of embedding tables.
+
+  The TensorList argument has the same length and shapes as the return value of
+  TPUEmbeddingReceiveActivations, but contains gradients of the model's loss
+  with respect to the embedding activations. The embedding tables are updated
+  from these gradients via the optimizer specified in the configuration given
+  to tpu.initialize_system.
+
+  Args:
+    gradients: A list of at least 1 `Tensor` objects with type `float32`.
+      A TensorList of gradients with which to update embedding tables.
+    tpu_embedding_config: A `string`.
+      Serialized TPUEmbeddingConfiguration proto.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+  """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(gradients, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'gradients' argument to "
+          "'tpu_embedding_send_gradients' Op, not %r." % gradients)
+    _attr_num_tables = len(gradients)
+    tpu_embedding_config = _execute.make_str(tpu_embedding_config, "tpu_embedding_config")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "TPUEmbeddingSendGradients", gradients=gradients,
+        tpu_embedding_config=tpu_embedding_config, name=name)
+    return _op
+    _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TPUEmbeddingSendGradients", name,
+        _ctx._post_execution_callbacks, gradients, "tpu_embedding_config",
+        tpu_embedding_config)
+      return _result
+    except _core._FallbackException:
+      return tpu_embedding_send_gradients_eager_fallback(
+          gradients, tpu_embedding_config=tpu_embedding_config, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tpu_embedding_send_gradients_eager_fallback(gradients, tpu_embedding_config, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tpu_embedding_send_gradients
+  """
+  _ctx = _context.context()
+  if not isinstance(gradients, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'gradients' argument to "
+        "'tpu_embedding_send_gradients' Op, not %r." % gradients)
+  _attr_num_tables = len(gradients)
+  tpu_embedding_config = _execute.make_str(tpu_embedding_config, "tpu_embedding_config")
+  gradients = _ops.convert_n_to_tensor(gradients, _dtypes.float32)
+  _inputs_flat = list(gradients)
+  _attrs = ("num_tables", _attr_num_tables, "tpu_embedding_config",
+  tpu_embedding_config)
+  _result = _execute.execute(b"TPUEmbeddingSendGradients", 0,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
+  _result = None
+  return _result
+
+_ops.RegisterShape("TPUEmbeddingSendGradients")(None)
+
+
+@tf_export('tpu_replicate')
 def tpu_replicate(inputs, broadcast_inputs, variables, guaranteed_constants, computation, num_replicas, output_types, topology="", device_assignment=[], computation_shape=[], name=None):
   r"""Runs replicated computations on a distributed TPU system.
 
@@ -505,6 +1656,91 @@ def tpu_replicate(inputs, broadcast_inputs, variables, guaranteed_constants, com
     A list of `Tensor` objects of type `output_types`.
     the outputs of 'computation'.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(variables, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'variables' argument to "
+          "'tpu_replicate' Op, not %r." % variables)
+    _attr_NumVariables = len(variables)
+    num_replicas = _execute.make_int(num_replicas, "num_replicas")
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'tpu_replicate' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if topology is None:
+      topology = ""
+    topology = _execute.make_str(topology, "topology")
+    if device_assignment is None:
+      device_assignment = []
+    if not isinstance(device_assignment, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'device_assignment' argument to "
+          "'tpu_replicate' Op, not %r." % device_assignment)
+    device_assignment = [_execute.make_int(_i, "device_assignment") for _i in device_assignment]
+    if computation_shape is None:
+      computation_shape = []
+    if not isinstance(computation_shape, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'computation_shape' argument to "
+          "'tpu_replicate' Op, not %r." % computation_shape)
+    computation_shape = [_execute.make_int(_i, "computation_shape") for _i in computation_shape]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "TPUReplicate", inputs=inputs, broadcast_inputs=broadcast_inputs,
+        variables=variables, guaranteed_constants=guaranteed_constants,
+        computation=computation, num_replicas=num_replicas,
+        output_types=output_types, topology=topology,
+        device_assignment=device_assignment,
+        computation_shape=computation_shape, name=name)
+    _result = _op.outputs[:]
+    if not _result:
+      return _op
+    _inputs_flat = _op.inputs
+    _attrs = ("computation", _op.get_attr("computation"), "num_replicas",
+              _op.get_attr("num_replicas"), "topology",
+              _op.get_attr("topology"), "device_assignment",
+              _op.get_attr("device_assignment"), "computation_shape",
+              _op.get_attr("computation_shape"), "Tinputs",
+              _op.get_attr("Tinputs"), "Tbroadcast_inputs",
+              _op.get_attr("Tbroadcast_inputs"), "NumVariables",
+              _op.get_attr("NumVariables"), "Tguaranteed_constants",
+              _op.get_attr("Tguaranteed_constants"), "output_types",
+              _op.get_attr("output_types"))
+    _execute.record_gradient(
+      "TPUReplicate", _inputs_flat, _attrs, _result, name)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TPUReplicate", name,
+        _ctx._post_execution_callbacks, inputs, broadcast_inputs, variables,
+        guaranteed_constants, "computation", computation, "num_replicas",
+        num_replicas, "topology", topology, "device_assignment",
+        device_assignment, "computation_shape", computation_shape,
+        "output_types", output_types)
+      return _result
+    except _core._FallbackException:
+      return tpu_replicate_eager_fallback(
+          inputs, broadcast_inputs, variables, guaranteed_constants,
+          computation=computation, num_replicas=num_replicas,
+          topology=topology, device_assignment=device_assignment,
+          computation_shape=computation_shape, output_types=output_types,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tpu_replicate_eager_fallback(inputs, broadcast_inputs, variables, guaranteed_constants, computation, num_replicas, output_types, topology="", device_assignment=[], computation_shape=[], name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tpu_replicate
+  """
+  _ctx = _context.context()
   if not isinstance(variables, (list, tuple)):
     raise TypeError(
         "Expected list for 'variables' argument to "
@@ -533,44 +1769,20 @@ def tpu_replicate(inputs, broadcast_inputs, variables, guaranteed_constants, com
         "Expected list for 'computation_shape' argument to "
         "'tpu_replicate' Op, not %r." % computation_shape)
   computation_shape = [_execute.make_int(_i, "computation_shape") for _i in computation_shape]
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "TPUReplicate", inputs=inputs, broadcast_inputs=broadcast_inputs,
-        variables=variables, guaranteed_constants=guaranteed_constants,
-        computation=computation, num_replicas=num_replicas,
-        output_types=output_types, topology=topology,
-        device_assignment=device_assignment,
-        computation_shape=computation_shape, name=name)
-    _result = _op.outputs[:]
-    if not _result:
-      return _op
-    _inputs_flat = _op.inputs
-    _attrs = ("computation", _op.get_attr("computation"), "num_replicas",
-              _op.get_attr("num_replicas"), "topology",
-              _op.get_attr("topology"), "device_assignment",
-              _op.get_attr("device_assignment"), "computation_shape",
-              _op.get_attr("computation_shape"), "Tinputs",
-              _op.get_attr("Tinputs"), "Tbroadcast_inputs",
-              _op.get_attr("Tbroadcast_inputs"), "NumVariables",
-              _op.get_attr("NumVariables"), "Tguaranteed_constants",
-              _op.get_attr("Tguaranteed_constants"), "output_types",
-              _op.get_attr("output_types"))
-  else:
-    _attr_Tinputs, inputs = _execute.convert_to_mixed_eager_tensors(inputs, _ctx)
-    _attr_Tbroadcast_inputs, broadcast_inputs = _execute.convert_to_mixed_eager_tensors(broadcast_inputs, _ctx)
-    _attr_Tguaranteed_constants, guaranteed_constants = _execute.convert_to_mixed_eager_tensors(guaranteed_constants, _ctx)
-    variables = _ops.convert_n_to_tensor(variables, _dtypes.resource)
-    _inputs_flat = list(inputs) + list(broadcast_inputs) + list(variables) + list(guaranteed_constants)
-    _attrs = ("computation", computation, "num_replicas", num_replicas,
-              "topology", topology, "device_assignment", device_assignment,
-              "computation_shape", computation_shape, "Tinputs",
-              _attr_Tinputs, "Tbroadcast_inputs", _attr_Tbroadcast_inputs,
-              "NumVariables", _attr_NumVariables, "Tguaranteed_constants",
-              _attr_Tguaranteed_constants, "output_types", output_types)
-    _result = _execute.execute(b"TPUReplicate", len(output_types),
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+  _attr_Tinputs, inputs = _execute.convert_to_mixed_eager_tensors(inputs, _ctx)
+  _attr_Tbroadcast_inputs, broadcast_inputs = _execute.convert_to_mixed_eager_tensors(broadcast_inputs, _ctx)
+  _attr_Tguaranteed_constants, guaranteed_constants = _execute.convert_to_mixed_eager_tensors(guaranteed_constants, _ctx)
+  variables = _ops.convert_n_to_tensor(variables, _dtypes.resource)
+  _inputs_flat = list(inputs) + list(broadcast_inputs) + list(variables) + list(guaranteed_constants)
+  _attrs = ("computation", computation, "num_replicas", num_replicas,
+  "topology", topology, "device_assignment", device_assignment,
+  "computation_shape", computation_shape, "Tinputs", _attr_Tinputs,
+  "Tbroadcast_inputs", _attr_Tbroadcast_inputs, "NumVariables",
+  _attr_NumVariables, "Tguaranteed_constants", _attr_Tguaranteed_constants,
+  "output_types", output_types)
+  _result = _execute.execute(b"TPUReplicate", len(output_types),
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "TPUReplicate", _inputs_flat, _attrs, _result, name)
   return _result
@@ -578,7 +1790,7 @@ def tpu_replicate(inputs, broadcast_inputs, variables, guaranteed_constants, com
 _ops.RegisterShape("TPUReplicate")(None)
 
 
-@tf_export('TPUReplicateMetadata')
+@tf_export('tpu_replicate_metadata')
 def tpu_replicate_metadata(num_replicas, topology="", device_assignment=[], computation_shape=[], name=None):
   r"""TODO: add doc.
 
@@ -592,6 +1804,60 @@ def tpu_replicate_metadata(num_replicas, topology="", device_assignment=[], comp
   Returns:
     The created Operation.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    num_replicas = _execute.make_int(num_replicas, "num_replicas")
+    if topology is None:
+      topology = ""
+    topology = _execute.make_str(topology, "topology")
+    if device_assignment is None:
+      device_assignment = []
+    if not isinstance(device_assignment, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'device_assignment' argument to "
+          "'tpu_replicate_metadata' Op, not %r." % device_assignment)
+    device_assignment = [_execute.make_int(_i, "device_assignment") for _i in device_assignment]
+    if computation_shape is None:
+      computation_shape = []
+    if not isinstance(computation_shape, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'computation_shape' argument to "
+          "'tpu_replicate_metadata' Op, not %r." % computation_shape)
+    computation_shape = [_execute.make_int(_i, "computation_shape") for _i in computation_shape]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "TPUReplicateMetadata", num_replicas=num_replicas, topology=topology,
+        device_assignment=device_assignment,
+        computation_shape=computation_shape, name=name)
+    return _op
+    _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TPUReplicateMetadata", name,
+        _ctx._post_execution_callbacks, "num_replicas", num_replicas,
+        "topology", topology, "device_assignment", device_assignment,
+        "computation_shape", computation_shape)
+      return _result
+    except _core._FallbackException:
+      return tpu_replicate_metadata_eager_fallback(
+          num_replicas=num_replicas, topology=topology,
+          device_assignment=device_assignment,
+          computation_shape=computation_shape, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tpu_replicate_metadata_eager_fallback(num_replicas, topology="", device_assignment=[], computation_shape=[], name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tpu_replicate_metadata
+  """
+  _ctx = _context.context()
   num_replicas = _execute.make_int(num_replicas, "num_replicas")
   if topology is None:
     topology = ""
@@ -610,28 +1876,19 @@ def tpu_replicate_metadata(num_replicas, topology="", device_assignment=[], comp
         "Expected list for 'computation_shape' argument to "
         "'tpu_replicate_metadata' Op, not %r." % computation_shape)
   computation_shape = [_execute.make_int(_i, "computation_shape") for _i in computation_shape]
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "TPUReplicateMetadata", num_replicas=num_replicas, topology=topology,
-        device_assignment=device_assignment,
-        computation_shape=computation_shape, name=name)
-    return _op
-  else:
-    _inputs_flat = []
-    _attrs = ("num_replicas", num_replicas, "topology", topology,
-              "device_assignment", device_assignment, "computation_shape",
-              computation_shape)
-    _result = _execute.execute(b"TPUReplicateMetadata", 0,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
-    _result = None
+  _inputs_flat = []
+  _attrs = ("num_replicas", num_replicas, "topology", topology,
+  "device_assignment", device_assignment, "computation_shape",
+  computation_shape)
+  _result = _execute.execute(b"TPUReplicateMetadata", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("TPUReplicateMetadata")(None)
 
 
-@tf_export('TPUReplicatedInput')
+@tf_export('tpu_replicated_input')
 def tpu_replicated_input(inputs, name=None):
   r"""Operator that connects N unreplicated inputs to an N-way replicated TPU computation.
 
@@ -642,24 +1899,55 @@ def tpu_replicated_input(inputs, name=None):
   Returns:
     A `Tensor`. Has the same type as `inputs`.
   """
-  if not isinstance(inputs, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'inputs' argument to "
-        "'tpu_replicated_input' Op, not %r." % inputs)
-  _attr_N = len(inputs)
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(inputs, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'inputs' argument to "
+          "'tpu_replicated_input' Op, not %r." % inputs)
+    _attr_N = len(inputs)
     _, _, _op = _op_def_lib._apply_op_helper(
         "TPUReplicatedInput", inputs=inputs, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("N", _op.get_attr("N"), "T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "TPUReplicatedInput", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, inputs = _execute.args_to_matching_eager(list(inputs), _ctx)
-    _inputs_flat = list(inputs)
-    _attrs = ("N", _attr_N, "T", _attr_T)
-    _result = _execute.execute(b"TPUReplicatedInput", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TPUReplicatedInput", name,
+        _ctx._post_execution_callbacks, inputs)
+      return _result
+    except _core._FallbackException:
+      return tpu_replicated_input_eager_fallback(
+          inputs, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tpu_replicated_input_eager_fallback(inputs, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tpu_replicated_input
+  """
+  _ctx = _context.context()
+  if not isinstance(inputs, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'inputs' argument to "
+        "'tpu_replicated_input' Op, not %r." % inputs)
+  _attr_N = len(inputs)
+  _attr_T, inputs = _execute.args_to_matching_eager(list(inputs), _ctx)
+  _inputs_flat = list(inputs)
+  _attrs = ("N", _attr_N, "T", _attr_T)
+  _result = _execute.execute(b"TPUReplicatedInput", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TPUReplicatedInput", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -668,7 +1956,7 @@ def tpu_replicated_input(inputs, name=None):
 _ops.RegisterShape("TPUReplicatedInput")(None)
 
 
-@tf_export('TPUReplicatedOutput')
+@tf_export('tpu_replicated_output')
 def tpu_replicated_output(input, num_replicas, name=None):
   r"""Operator that connects the output of an N-way replicated TPU computation to N separate outputs.
 
@@ -680,9 +1968,9 @@ def tpu_replicated_output(input, num_replicas, name=None):
   Returns:
     A list of `num_replicas` `Tensor` objects with the same type as `input`.
   """
-  num_replicas = _execute.make_int(num_replicas, "num_replicas")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    num_replicas = _execute.make_int(num_replicas, "num_replicas")
     _, _, _op = _op_def_lib._apply_op_helper(
         "TPUReplicatedOutput", input=input, num_replicas=num_replicas,
         name=name)
@@ -690,13 +1978,39 @@ def tpu_replicated_output(input, num_replicas, name=None):
     _inputs_flat = _op.inputs
     _attrs = ("num_replicas", _op.get_attr("num_replicas"), "T",
               _op.get_attr("T"))
+    _execute.record_gradient(
+      "TPUReplicatedOutput", _inputs_flat, _attrs, _result, name)
+    return _result
+
   else:
-    _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
-    _inputs_flat = [input]
-    _attrs = ("num_replicas", num_replicas, "T", _attr_T)
-    _result = _execute.execute(b"TPUReplicatedOutput", num_replicas,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TPUReplicatedOutput", name,
+        _ctx._post_execution_callbacks, input, "num_replicas", num_replicas)
+      return _result
+    except _core._FallbackException:
+      return tpu_replicated_output_eager_fallback(
+          input, num_replicas=num_replicas, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tpu_replicated_output_eager_fallback(input, num_replicas, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tpu_replicated_output
+  """
+  _ctx = _context.context()
+  num_replicas = _execute.make_int(num_replicas, "num_replicas")
+  _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
+  _inputs_flat = [input]
+  _attrs = ("num_replicas", num_replicas, "T", _attr_T)
+  _result = _execute.execute(b"TPUReplicatedOutput", num_replicas,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "TPUReplicatedOutput", _inputs_flat, _attrs, _result, name)
   return _result
@@ -721,6 +2035,20 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     type: "string"
 #     default_value {
 #       s: ""
+#     }
+#   }
+#   attr {
+#     name: "tpu_embedding_config"
+#     type: "string"
+#     default_value {
+#       s: ""
+#     }
+#   }
+#   attr {
+#     name: "is_global_init"
+#     type: "bool"
+#     default_value {
+#       b: false
 #     }
 #   }
 #   is_stateful: true
@@ -907,7 +2235,229 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #   is_stateful: true
 # }
 # op {
+#   name: "SessionStatus"
+#   input_arg {
+#     name: "fetch_start_timestamp"
+#     type: DT_DOUBLE
+#   }
+#   output_arg {
+#     name: "status"
+#     type: DT_STRING
+#   }
+# }
+# op {
 #   name: "ShutdownDistributedTPU"
+#   is_stateful: true
+# }
+# op {
+#   name: "TPUEmbeddingActivations"
+#   input_arg {
+#     name: "embedding_variable"
+#     type: DT_FLOAT
+#   }
+#   input_arg {
+#     name: "sliced_activations"
+#     type: DT_FLOAT
+#   }
+#   output_arg {
+#     name: "output"
+#     type: DT_FLOAT
+#   }
+#   attr {
+#     name: "table_id"
+#     type: "int"
+#     has_minimum: true
+#   }
+#   attr {
+#     name: "lookup_id"
+#     type: "int"
+#     has_minimum: true
+#   }
+# }
+# op {
+#   name: "TPUEmbeddingEnqueueSparseBatch"
+#   input_arg {
+#     name: "sample_indices"
+#     type: DT_INT32
+#     number_attr: "num_tables"
+#   }
+#   input_arg {
+#     name: "embedding_indices"
+#     type: DT_INT32
+#     number_attr: "num_tables"
+#   }
+#   input_arg {
+#     name: "aggregation_weights"
+#     type: DT_FLOAT
+#     number_attr: "num_tables"
+#   }
+#   attr {
+#     name: "num_tables"
+#     type: "int"
+#     has_minimum: true
+#     minimum: 1
+#   }
+#   attr {
+#     name: "device_ordinal"
+#     type: "int"
+#     default_value {
+#       i: -1
+#     }
+#   }
+#   is_stateful: true
+# }
+# op {
+#   name: "TPUEmbeddingLoadAdagradParameters"
+#   input_arg {
+#     name: "parameters"
+#     type: DT_FLOAT
+#   }
+#   input_arg {
+#     name: "accumulators"
+#     type: DT_FLOAT
+#   }
+#   attr {
+#     name: "tpu_embedding_config"
+#     type: "string"
+#   }
+#   attr {
+#     name: "table_id"
+#     type: "int"
+#     has_minimum: true
+#   }
+#   attr {
+#     name: "num_hosts"
+#     type: "int"
+#     has_minimum: true
+#     minimum: 1
+#   }
+#   attr {
+#     name: "host_id"
+#     type: "int"
+#     has_minimum: true
+#   }
+#   is_stateful: true
+# }
+# op {
+#   name: "TPUEmbeddingLoadGradientDescentParameters"
+#   input_arg {
+#     name: "parameters"
+#     type: DT_FLOAT
+#   }
+#   attr {
+#     name: "tpu_embedding_config"
+#     type: "string"
+#   }
+#   attr {
+#     name: "table_id"
+#     type: "int"
+#     has_minimum: true
+#   }
+#   attr {
+#     name: "num_hosts"
+#     type: "int"
+#     has_minimum: true
+#     minimum: 1
+#   }
+#   attr {
+#     name: "host_id"
+#     type: "int"
+#     has_minimum: true
+#   }
+#   is_stateful: true
+# }
+# op {
+#   name: "TPUEmbeddingReceiveActivations"
+#   output_arg {
+#     name: "outputs"
+#     type: DT_FLOAT
+#     number_attr: "num_tables"
+#   }
+#   attr {
+#     name: "num_tables"
+#     type: "int"
+#     has_minimum: true
+#     minimum: 1
+#   }
+#   attr {
+#     name: "tpu_embedding_config"
+#     type: "string"
+#   }
+#   is_stateful: true
+# }
+# op {
+#   name: "TPUEmbeddingRetrieveAdagradParameters"
+#   output_arg {
+#     name: "parameters"
+#     type: DT_FLOAT
+#   }
+#   output_arg {
+#     name: "accumulators"
+#     type: DT_FLOAT
+#   }
+#   attr {
+#     name: "tpu_embedding_config"
+#     type: "string"
+#   }
+#   attr {
+#     name: "table_id"
+#     type: "int"
+#     has_minimum: true
+#   }
+#   attr {
+#     name: "num_hosts"
+#     type: "int"
+#     has_minimum: true
+#     minimum: 1
+#   }
+#   attr {
+#     name: "host_id"
+#     type: "int"
+#     has_minimum: true
+#   }
+#   is_stateful: true
+# }
+# op {
+#   name: "TPUEmbeddingRetrieveGradientDescentParameters"
+#   output_arg {
+#     name: "parameters"
+#     type: DT_FLOAT
+#   }
+#   attr {
+#     name: "tpu_embedding_config"
+#     type: "string"
+#   }
+#   attr {
+#     name: "table_id"
+#     type: "int"
+#   }
+#   attr {
+#     name: "num_hosts"
+#     type: "int"
+#   }
+#   attr {
+#     name: "host_id"
+#     type: "int"
+#   }
+#   is_stateful: true
+# }
+# op {
+#   name: "TPUEmbeddingSendGradients"
+#   input_arg {
+#     name: "gradients"
+#     type: DT_FLOAT
+#     number_attr: "num_tables"
+#   }
+#   attr {
+#     name: "num_tables"
+#     type: "int"
+#     has_minimum: true
+#     minimum: 1
+#   }
+#   attr {
+#     name: "tpu_embedding_config"
+#     type: "string"
+#   }
 #   is_stateful: true
 # }
 # op {
@@ -1068,4 +2618,4 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     type: "type"
 #   }
 # }
-_op_def_lib = _InitOpDefLibrary(b"\nJ\n\027ConfigureDistributedTPU\032\014\n\010topology\030\007\"\036\n\020embedding_config\022\006string\032\002\022\000\210\001\001\n=\n\017CrossReplicaSum\022\n\n\005input\"\001T\032\013\n\006output\"\001T\"\021\n\001T\022\004type:\006\n\0042\002\016\001\nB\n\rInfeedDequeue\032\017\n\006output\"\005dtype\"\r\n\005dtype\022\004type\"\016\n\005shape\022\005shape\210\001\001\n[\n\022InfeedDequeueTuple\032\021\n\007outputs2\006dtypes\"\030\n\006dtypes\022\nlist(type)(\0010\001\"\025\n\006shapes\022\013list(shape)\210\001\001\ni\n\rInfeedEnqueue\022\016\n\005input\"\005dtype\"\r\n\005dtype\022\004type\"\022\n\005shape\022\005shape\032\002:\000\"\"\n\016device_ordinal\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\210\001\001\n~\n\022InfeedEnqueueTuple\022\020\n\006inputs2\006dtypes\"\030\n\006dtypes\022\nlist(type)(\0010\001\"\025\n\006shapes\022\013list(shape)\"\"\n\016device_ordinal\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\210\001\001\ng\n\016OutfeedDequeue\032\017\n\006output\"\005dtype\"\r\n\005dtype\022\004type\"\016\n\005shape\022\005shape\"\"\n\016device_ordinal\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\210\001\001\n\200\001\n\023OutfeedDequeueTuple\032\021\n\007outputs2\006dtypes\"\030\n\006dtypes\022\nlist(type)(\0010\001\"\025\n\006shapes\022\013list(shape)\"\"\n\016device_ordinal\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\210\001\001\n2\n\016OutfeedEnqueue\022\016\n\005input\"\005dtype\"\r\n\005dtype\022\004type\210\001\001\nD\n\023OutfeedEnqueueTuple\022\020\n\006inputs2\006dtypes\"\030\n\006dtypes\022\nlist(type)(\0010\001\210\001\001\n\033\n\026ShutdownDistributedTPU\210\001\001\n\326\003\n\014TPUReplicate\022\021\n\006inputs2\007Tinputs\022%\n\020broadcast_inputs2\021Tbroadcast_inputs\022\033\n\tvariables\030\024*\014NumVariables\022-\n\024guaranteed_constants2\025Tguaranteed_constants\032\027\n\007outputs2\014output_types\"\023\n\013computation\022\004func\"\027\n\014num_replicas\022\003int(\0010\001\"\026\n\010topology\022\006string\032\002\022\000\"\"\n\021device_assignment\022\tlist(int)\032\002\n\000\"\"\n\021computation_shape\022\tlist(int)\032\002\n\000\"\027\n\007Tinputs\022\nlist(type)(\001\"!\n\021Tbroadcast_inputs\022\nlist(type)(\001\"\025\n\014NumVariables\022\003int(\001\"%\n\025Tguaranteed_constants\022\nlist(type)(\001\"\034\n\014output_types\022\nlist(type)(\001\210\001\001\n\215\001\n\024TPUReplicateMetadata\"\025\n\014num_replicas\022\003int(\001\"\026\n\010topology\022\006string\032\002\022\000\"\"\n\021device_assignment\022\tlist(int)\032\002\n\000\"\"\n\021computation_shape\022\tlist(int)\032\002\n\000\nJ\n\022TPUReplicatedInput\022\016\n\006inputs\"\001T*\001N\032\013\n\006output\"\001T\"\014\n\001N\022\003int(\0010\001\"\t\n\001T\022\004type\na\n\023TPUReplicatedOutput\022\n\n\005input\"\001T\032\032\n\007outputs\"\001T*\014num_replicas\"\027\n\014num_replicas\022\003int(\0010\001\"\t\n\001T\022\004type")
+_op_def_lib = _InitOpDefLibrary(b"\n\212\001\n\027ConfigureDistributedTPU\032\014\n\010topology\030\007\"\036\n\020embedding_config\022\006string\032\002\022\000\"\"\n\024tpu_embedding_config\022\006string\032\002\022\000\"\032\n\016is_global_init\022\004bool\032\002(\000\210\001\001\n=\n\017CrossReplicaSum\022\n\n\005input\"\001T\032\013\n\006output\"\001T\"\021\n\001T\022\004type:\006\n\0042\002\016\001\nB\n\rInfeedDequeue\032\017\n\006output\"\005dtype\"\r\n\005dtype\022\004type\"\016\n\005shape\022\005shape\210\001\001\n[\n\022InfeedDequeueTuple\032\021\n\007outputs2\006dtypes\"\030\n\006dtypes\022\nlist(type)(\0010\001\"\025\n\006shapes\022\013list(shape)\210\001\001\ni\n\rInfeedEnqueue\022\016\n\005input\"\005dtype\"\r\n\005dtype\022\004type\"\022\n\005shape\022\005shape\032\002:\000\"\"\n\016device_ordinal\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\210\001\001\n~\n\022InfeedEnqueueTuple\022\020\n\006inputs2\006dtypes\"\030\n\006dtypes\022\nlist(type)(\0010\001\"\025\n\006shapes\022\013list(shape)\"\"\n\016device_ordinal\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\210\001\001\ng\n\016OutfeedDequeue\032\017\n\006output\"\005dtype\"\r\n\005dtype\022\004type\"\016\n\005shape\022\005shape\"\"\n\016device_ordinal\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\210\001\001\n\200\001\n\023OutfeedDequeueTuple\032\021\n\007outputs2\006dtypes\"\030\n\006dtypes\022\nlist(type)(\0010\001\"\025\n\006shapes\022\013list(shape)\"\"\n\016device_ordinal\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\210\001\001\n2\n\016OutfeedEnqueue\022\016\n\005input\"\005dtype\"\r\n\005dtype\022\004type\210\001\001\nD\n\023OutfeedEnqueueTuple\022\020\n\006inputs2\006dtypes\"\030\n\006dtypes\022\nlist(type)(\0010\001\210\001\001\n6\n\rSessionStatus\022\031\n\025fetch_start_timestamp\030\002\032\n\n\006status\030\007\n\033\n\026ShutdownDistributedTPU\210\001\001\n|\n\027TPUEmbeddingActivations\022\026\n\022embedding_variable\030\001\022\026\n\022sliced_activations\030\001\032\n\n\006output\030\001\"\021\n\010table_id\022\003int(\001\"\022\n\tlookup_id\022\003int(\001\n\306\001\n\036TPUEmbeddingEnqueueSparseBatch\022\036\n\016sample_indices\030\003*\nnum_tables\022!\n\021embedding_indices\030\003*\nnum_tables\022#\n\023aggregation_weights\030\001*\nnum_tables\"\025\n\nnum_tables\022\003int(\0010\001\"\"\n\016device_ordinal\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\210\001\001\n\243\001\n!TPUEmbeddingLoadAdagradParameters\022\016\n\nparameters\030\001\022\020\n\014accumulators\030\001\"\036\n\024tpu_embedding_config\022\006string\"\021\n\010table_id\022\003int(\001\"\024\n\tnum_hosts\022\003int(\0010\001\"\020\n\007host_id\022\003int(\001\210\001\001\n\231\001\n)TPUEmbeddingLoadGradientDescentParameters\022\016\n\nparameters\030\001\"\036\n\024tpu_embedding_config\022\006string\"\021\n\010table_id\022\003int(\001\"\024\n\tnum_hosts\022\003int(\0010\001\"\020\n\007host_id\022\003int(\001\210\001\001\ns\n\036TPUEmbeddingReceiveActivations\032\027\n\007outputs\030\001*\nnum_tables\"\025\n\nnum_tables\022\003int(\0010\001\"\036\n\024tpu_embedding_config\022\006string\210\001\001\n\247\001\n%TPUEmbeddingRetrieveAdagradParameters\032\016\n\nparameters\030\001\032\020\n\014accumulators\030\001\"\036\n\024tpu_embedding_config\022\006string\"\021\n\010table_id\022\003int(\001\"\024\n\tnum_hosts\022\003int(\0010\001\"\020\n\007host_id\022\003int(\001\210\001\001\n\225\001\n-TPUEmbeddingRetrieveGradientDescentParameters\032\016\n\nparameters\030\001\"\036\n\024tpu_embedding_config\022\006string\"\017\n\010table_id\022\003int\"\020\n\tnum_hosts\022\003int\"\016\n\007host_id\022\003int\210\001\001\np\n\031TPUEmbeddingSendGradients\022\031\n\tgradients\030\001*\nnum_tables\"\025\n\nnum_tables\022\003int(\0010\001\"\036\n\024tpu_embedding_config\022\006string\210\001\001\n\326\003\n\014TPUReplicate\022\021\n\006inputs2\007Tinputs\022%\n\020broadcast_inputs2\021Tbroadcast_inputs\022\033\n\tvariables\030\024*\014NumVariables\022-\n\024guaranteed_constants2\025Tguaranteed_constants\032\027\n\007outputs2\014output_types\"\023\n\013computation\022\004func\"\027\n\014num_replicas\022\003int(\0010\001\"\026\n\010topology\022\006string\032\002\022\000\"\"\n\021device_assignment\022\tlist(int)\032\002\n\000\"\"\n\021computation_shape\022\tlist(int)\032\002\n\000\"\027\n\007Tinputs\022\nlist(type)(\001\"!\n\021Tbroadcast_inputs\022\nlist(type)(\001\"\025\n\014NumVariables\022\003int(\001\"%\n\025Tguaranteed_constants\022\nlist(type)(\001\"\034\n\014output_types\022\nlist(type)(\001\210\001\001\n\215\001\n\024TPUReplicateMetadata\"\025\n\014num_replicas\022\003int(\001\"\026\n\010topology\022\006string\032\002\022\000\"\"\n\021device_assignment\022\tlist(int)\032\002\n\000\"\"\n\021computation_shape\022\tlist(int)\032\002\n\000\nJ\n\022TPUReplicatedInput\022\016\n\006inputs\"\001T*\001N\032\013\n\006output\"\001T\"\014\n\001N\022\003int(\0010\001\"\t\n\001T\022\004type\na\n\023TPUReplicatedOutput\022\n\n\005input\"\001T\032\032\n\007outputs\"\001T*\014num_replicas\"\027\n\014num_replicas\022\003int(\0010\001\"\t\n\001T\022\004type")

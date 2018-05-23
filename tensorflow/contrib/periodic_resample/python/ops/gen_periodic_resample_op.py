@@ -5,11 +5,14 @@ Original C++ source file: gen_periodic_resample_op_py.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,7 +24,7 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('PeriodicResample')
+@tf_export('periodic_resample')
 def periodic_resample(values, shape, name=None):
   r"""Periodically resample elements of a tensor to conform to `shape`.
 
@@ -29,26 +32,40 @@ def periodic_resample(values, shape, name=None):
   convolutions found in this [paper](https://arxiv.org/abs/1609.05158).
 
   The formula for computing the elements in the `output` tensor is as follows:
-    `T` = `values` tensor of rank `R`
-    `S` = desired `shape` of output tensor (vector of length `R`)
-    `P` = `output` tensor of rank `R`
-    \((T_1,\ldots,T_R)\) = shape(`T`)
-    \([S_1,\ldots,S_q,\ldots,S_R]\) = elements of vector `S`
 
-    A single element in `S` is left unspecified (denoted \(S_q=-1\)).
-    Let \(f_i\) denote the (possibly non-integer) factor that relates the original
-    dimension to the desired dimensions, \(S_i=f_i T_i\), for \(i\neq q\) where
-    \(f_i>0\).
+    `T` = `values` tensor of rank `R`
+
+    `S` = desired `shape` of output tensor (vector of length `R`)
+
+    `P` = `output` tensor of rank `R`
+
+    \\((T_1,\\ldots,T_R)\\) = shape(`T`)
+
+    \\([S_1,\\ldots,S_q,\\ldots,S_R]\\) = elements of vector `S`
+
+    A single element in `S` is left unspecified (denoted \\(S_q=-1\\)).
+
+    Let \\(f_i\\) denote the (possibly non-integer) factor that relates the original
+    dimension to the desired dimensions, \\(S_i=f_i T_i\\), for \\(i\\neq q\\) where
+    \\(f_i>0\\).
+
     Define the following:
-      \(g_i=\lceil f_i\rceil\)
-      \(t=\prod_i T_i\)
-      \(s=\prod_{i\neq q} S_i\)
-    \(S_q\) can then be defined as by \(S_q=\lfloor t/s\rfloor\).
+
+    \\(g_i=\\lceil f_i\\rceil\\)
+
+    \\(t=\\prod_i T_i\\)
+
+    \\(s=\\prod_{i\\neq q} S_i\\)
+
+    \\(S_q\\) can then be defined by \\(S_q=\\lfloor t/s\\rfloor\\).
     The elements of the resulting tensor are defined as
-    \(P_{s_1,\ldots,s_R}=T_{h_1,\ldots,h_q,\ldots,h_R}\).
-    The \(h_i\) (\(i\neq q\)) are defined by \(h_i=\lfloor s_i/g_i\rfloor\).
-    \(h_q=S_q\sum_{j\neq q}^{q-1}G_j \mathrm{mod}(s_j,g_j) + s_q\), where
-    \(G_j=\prod_{i}^{j-1}g_i\) (\(G_0=1\)).
+
+    \\(P_{s_1,\\ldots,s_R}=T_{h_1,\\ldots,h_q,\\ldots,h_R}\\).
+
+    The \\(h_i\\) (\\(i\\neq q\\)) are defined by \\(h_i=\\lfloor s_i/g_i\\rfloor\\).
+
+    \\(h_q=S_q\\sum_{j\\neq q}^{q-1}G_j \\mathrm{mod}(s_j,g_j) + s_q\\), where
+    \\(G_j=\\prod_{i}^{j-1}g_i\\) (\\(G_0=1\\)).
 
   One drawback of this method is that whenever the output dimensions are slightly
   less than integer multiples of the input dimensions, many of the tensor elements
@@ -71,7 +88,7 @@ def periodic_resample(values, shape, name=None):
   ```
 
   Args:
-    values: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int64`, `int32`, `uint8`, `uint16`, `int16`, `int8`, `complex64`, `complex128`, `qint8`, `quint8`, `qint32`, `half`, `uint32`, `uint64`, `bfloat16`.
+    values: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `complex64`, `int64`, `qint8`, `quint8`, `qint32`, `bfloat16`, `uint16`, `complex128`, `half`, `uint32`, `uint64`.
       The tensor of rank `R` to periodic_resample
     shape: A `tf.TensorShape` or list of `ints`.
       A 1-D tensor representing the desired shape of the output tensor.
@@ -87,20 +104,47 @@ def periodic_resample(values, shape, name=None):
     `shape` except that the dimension specified as `None` will be minimally
     decreased as necessary.
   """
-  shape = _execute.make_shape(shape, "shape")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    shape = _execute.make_shape(shape, "shape")
     _, _, _op = _op_def_lib._apply_op_helper(
         "PeriodicResample", values=values, shape=shape, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"), "shape", _op.get_attr("shape"))
+    _execute.record_gradient(
+      "PeriodicResample", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (values,) = _execute.args_to_matching_eager([values], _ctx)
-    _inputs_flat = [values]
-    _attrs = ("T", _attr_T, "shape", shape)
-    _result = _execute.execute(b"PeriodicResample", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "PeriodicResample", name,
+        _ctx._post_execution_callbacks, values, "shape", shape)
+      return _result
+    except _core._FallbackException:
+      return periodic_resample_eager_fallback(
+          values, shape=shape, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def periodic_resample_eager_fallback(values, shape, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function periodic_resample
+  """
+  _ctx = _context.context()
+  shape = _execute.make_shape(shape, "shape")
+  _attr_T, (values,) = _execute.args_to_matching_eager([values], _ctx)
+  _inputs_flat = [values]
+  _attrs = ("T", _attr_T, "shape", shape)
+  _result = _execute.execute(b"PeriodicResample", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "PeriodicResample", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -132,21 +176,21 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #       list {
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
-#         type: DT_INT64
 #         type: DT_INT32
 #         type: DT_UINT8
-#         type: DT_UINT16
 #         type: DT_INT16
 #         type: DT_INT8
 #         type: DT_COMPLEX64
-#         type: DT_COMPLEX128
+#         type: DT_INT64
 #         type: DT_QINT8
 #         type: DT_QUINT8
 #         type: DT_QINT32
+#         type: DT_BFLOAT16
+#         type: DT_UINT16
+#         type: DT_COMPLEX128
 #         type: DT_HALF
 #         type: DT_UINT32
 #         type: DT_UINT64
-#         type: DT_BFLOAT16
 #       }
 #     }
 #   }
@@ -155,4 +199,4 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     type: "shape"
 #   }
 # }
-_op_def_lib = _InitOpDefLibrary(b"\n^\n\020PeriodicResample\022\013\n\006values\"\001T\032\013\n\006output\"\001T\" \n\001T\022\004type:\025\n\0232\021\001\002\t\003\004\021\005\006\010\022\013\014\r\023\026\027\016\"\016\n\005shape\022\005shape")
+_op_def_lib = _InitOpDefLibrary(b"\n^\n\020PeriodicResample\022\013\n\006values\"\001T\032\013\n\006output\"\001T\" \n\001T\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\016\n\005shape\022\005shape")

@@ -5,11 +5,14 @@ Original C++ source file: data_flow_ops.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,7 +24,6 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('AccumulatorApplyGradient')
 def accumulator_apply_gradient(handle, local_step, gradient, name=None):
   r"""Applies a gradient to a given accumulator.
 
@@ -31,7 +33,7 @@ def accumulator_apply_gradient(handle, local_step, gradient, name=None):
     handle: A `Tensor` of type mutable `string`. The handle to a accumulator.
     local_step: A `Tensor` of type `int64`.
       The local_step value at which the gradient was computed.
-    gradient: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int64`, `int32`, `uint8`, `uint16`, `int16`, `int8`, `complex64`, `complex128`, `qint8`, `quint8`, `qint32`, `half`, `uint32`, `uint64`, `bfloat16`.
+    gradient: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `complex64`, `int64`, `qint8`, `quint8`, `qint32`, `bfloat16`, `uint16`, `complex128`, `half`, `uint32`, `uint64`.
       A tensor of the gradient to be accumulated.
     name: A name for the operation (optional).
 
@@ -39,19 +41,20 @@ def accumulator_apply_gradient(handle, local_step, gradient, name=None):
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "AccumulatorApplyGradient", handle=handle, local_step=local_step,
         gradient=gradient, name=name)
     return _op
-  else:
-    raise RuntimeError(
-        "accumulator_apply_gradient op does not support eager execution. Arg 'handle'' is a ref.")
     _result = None
-  return _result
+    return _result
+
+  else:
+    raise RuntimeError("accumulator_apply_gradient op does not support eager execution. Arg 'handle' is a ref.")
 
 
-@tf_export('AccumulatorNumAccumulated')
+  raise RuntimeError("accumulator_apply_gradient op does not support eager execution. Arg 'handle' is a ref.")
+
 def accumulator_num_accumulated(handle, name=None):
   r"""Returns the number of gradients aggregated in the given accumulators.
 
@@ -61,25 +64,25 @@ def accumulator_num_accumulated(handle, name=None):
 
   Returns:
     A `Tensor` of type `int32`.
-    The number of gradients aggregated in the given accumulator.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "AccumulatorNumAccumulated", handle=handle, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
-  else:
-    raise RuntimeError(
-        "accumulator_num_accumulated op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "AccumulatorNumAccumulated", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("accumulator_num_accumulated op does not support eager execution. Arg 'handle' is a ref.")
 
 
-@tf_export('AccumulatorSetGlobalStep')
+  raise RuntimeError("accumulator_num_accumulated op does not support eager execution. Arg 'handle' is a ref.")
+
 def accumulator_set_global_step(handle, new_global_step, name=None):
   r"""Updates the accumulator with a new value for global_step.
 
@@ -96,19 +99,20 @@ def accumulator_set_global_step(handle, new_global_step, name=None):
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "AccumulatorSetGlobalStep", handle=handle,
         new_global_step=new_global_step, name=name)
     return _op
-  else:
-    raise RuntimeError(
-        "accumulator_set_global_step op does not support eager execution. Arg 'handle'' is a ref.")
     _result = None
-  return _result
+    return _result
+
+  else:
+    raise RuntimeError("accumulator_set_global_step op does not support eager execution. Arg 'handle' is a ref.")
 
 
-@tf_export('AccumulatorTakeGradient')
+  raise RuntimeError("accumulator_set_global_step op does not support eager execution. Arg 'handle' is a ref.")
+
 def accumulator_take_gradient(handle, num_required, dtype, name=None):
   r"""Extracts the average gradient in the given ConditionalAccumulator.
 
@@ -122,33 +126,35 @@ def accumulator_take_gradient(handle, num_required, dtype, name=None):
     handle: A `Tensor` of type mutable `string`. The handle to an accumulator.
     num_required: A `Tensor` of type `int32`.
       Number of gradients required before we return an aggregate.
-    dtype: A `tf.DType` from: `tf.float32, tf.float64, tf.int64, tf.int32, tf.uint8, tf.uint16, tf.int16, tf.int8, tf.complex64, tf.complex128, tf.qint8, tf.quint8, tf.qint32, tf.half, tf.uint32, tf.uint64, tf.bfloat16`.
+    dtype: A `tf.DType` from: `tf.float32, tf.float64, tf.int32, tf.uint8, tf.int16, tf.int8, tf.complex64, tf.int64, tf.qint8, tf.quint8, tf.qint32, tf.bfloat16, tf.uint16, tf.complex128, tf.half, tf.uint32, tf.uint64`.
       The data type of accumulated gradients. Needs to correspond to the type
       of the accumulator.
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type `dtype`. The average of the accumulated gradients.
+    A `Tensor` of type `dtype`.
   """
-  dtype = _execute.make_type(dtype, "dtype")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    dtype = _execute.make_type(dtype, "dtype")
     _, _, _op = _op_def_lib._apply_op_helper(
         "AccumulatorTakeGradient", handle=handle, num_required=num_required,
         dtype=dtype, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("dtype", _op.get_attr("dtype"))
-  else:
-    raise RuntimeError(
-        "accumulator_take_gradient op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "AccumulatorTakeGradient", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("accumulator_take_gradient op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _barrier(component_types, shapes=[], capacity=-1, container="", shared_name="", name=None):
+  raise RuntimeError("accumulator_take_gradient op does not support eager execution. Arg 'handle' is a ref.")
+
+def barrier(component_types, shapes=[], capacity=-1, container="", shared_name="", name=None):
   r"""Defines a barrier that persists across different graph executions.
 
   A barrier represents a key-value map, where each key is a string, and
@@ -179,31 +185,31 @@ def _barrier(component_types, shapes=[], capacity=-1, container="", shared_name=
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type mutable `string`. The handle to the barrier.
+    A `Tensor` of type mutable `string`.
   """
-  if not isinstance(component_types, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'component_types' argument to "
-        "'barrier' Op, not %r." % component_types)
-  component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
-  if shapes is None:
-    shapes = []
-  if not isinstance(shapes, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'shapes' argument to "
-        "'barrier' Op, not %r." % shapes)
-  shapes = [_execute.make_shape(_s, "shapes") for _s in shapes]
-  if capacity is None:
-    capacity = -1
-  capacity = _execute.make_int(capacity, "capacity")
-  if container is None:
-    container = ""
-  container = _execute.make_str(container, "container")
-  if shared_name is None:
-    shared_name = ""
-  shared_name = _execute.make_str(shared_name, "shared_name")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(component_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'component_types' argument to "
+          "'barrier' Op, not %r." % component_types)
+    component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
+    if shapes is None:
+      shapes = []
+    if not isinstance(shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'shapes' argument to "
+          "'barrier' Op, not %r." % shapes)
+    shapes = [_execute.make_shape(_s, "shapes") for _s in shapes]
+    if capacity is None:
+      capacity = -1
+    capacity = _execute.make_int(capacity, "capacity")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
     _, _, _op = _op_def_lib._apply_op_helper(
         "Barrier", component_types=component_types, shapes=shapes,
         capacity=capacity, container=container, shared_name=shared_name,
@@ -214,16 +220,18 @@ def _barrier(component_types, shapes=[], capacity=-1, container="", shared_name=
               _op.get_attr("shapes"), "capacity", _op.get_attr("capacity"),
               "container", _op.get_attr("container"), "shared_name",
               _op.get_attr("shared_name"))
-  else:
-    raise RuntimeError(
-        "barrier op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "Barrier", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("barrier op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _barrier_close(handle, cancel_pending_enqueues=False, name=None):
+  raise RuntimeError("barrier op does not support eager execution. Arg 'handle' is a ref.")
+
+def barrier_close(handle, cancel_pending_enqueues=False, name=None):
   r"""Closes the given barrier.
 
   This operation signals that no more new elements will be inserted in the
@@ -244,23 +252,25 @@ def _barrier_close(handle, cancel_pending_enqueues=False, name=None):
   Returns:
     The created Operation.
   """
-  if cancel_pending_enqueues is None:
-    cancel_pending_enqueues = False
-  cancel_pending_enqueues = _execute.make_bool(cancel_pending_enqueues, "cancel_pending_enqueues")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if cancel_pending_enqueues is None:
+      cancel_pending_enqueues = False
+    cancel_pending_enqueues = _execute.make_bool(cancel_pending_enqueues, "cancel_pending_enqueues")
     _, _, _op = _op_def_lib._apply_op_helper(
         "BarrierClose", handle=handle,
         cancel_pending_enqueues=cancel_pending_enqueues, name=name)
     return _op
-  else:
-    raise RuntimeError(
-        "barrier_close op does not support eager execution. Arg 'handle'' is a ref.")
     _result = None
-  return _result
+    return _result
+
+  else:
+    raise RuntimeError("barrier_close op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _barrier_incomplete_size(handle, name=None):
+  raise RuntimeError("barrier_close op does not support eager execution. Arg 'handle' is a ref.")
+
+def barrier_incomplete_size(handle, name=None):
   r"""Computes the number of incomplete elements in the given barrier.
 
   Args:
@@ -269,26 +279,26 @@ def _barrier_incomplete_size(handle, name=None):
 
   Returns:
     A `Tensor` of type `int32`.
-    The number of incomplete elements (i.e. those with some of their value
-    components not set) in the barrier.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "BarrierIncompleteSize", handle=handle, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
-  else:
-    raise RuntimeError(
-        "barrier_incomplete_size op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "BarrierIncompleteSize", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("barrier_incomplete_size op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _barrier_insert_many(handle, keys, values, component_index, name=None):
+  raise RuntimeError("barrier_incomplete_size op does not support eager execution. Arg 'handle' is a ref.")
+
+def barrier_insert_many(handle, keys, values, component_index, name=None):
   r"""For each key, assigns the respective value to the specified component.
 
   If a key is not found in the barrier, this operation will create a new
@@ -310,21 +320,23 @@ def _barrier_insert_many(handle, keys, values, component_index, name=None):
   Returns:
     The created Operation.
   """
-  component_index = _execute.make_int(component_index, "component_index")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    component_index = _execute.make_int(component_index, "component_index")
     _, _, _op = _op_def_lib._apply_op_helper(
         "BarrierInsertMany", handle=handle, keys=keys, values=values,
         component_index=component_index, name=name)
     return _op
-  else:
-    raise RuntimeError(
-        "barrier_insert_many op does not support eager execution. Arg 'handle'' is a ref.")
     _result = None
-  return _result
+    return _result
+
+  else:
+    raise RuntimeError("barrier_insert_many op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _barrier_ready_size(handle, name=None):
+  raise RuntimeError("barrier_insert_many op does not support eager execution. Arg 'handle' is a ref.")
+
+def barrier_ready_size(handle, name=None):
   r"""Computes the number of complete elements in the given barrier.
 
   Args:
@@ -333,31 +345,31 @@ def _barrier_ready_size(handle, name=None):
 
   Returns:
     A `Tensor` of type `int32`.
-    The number of complete elements (i.e. those with all of their value
-    components set) in the barrier.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "BarrierReadySize", handle=handle, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
-  else:
-    raise RuntimeError(
-        "barrier_ready_size op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "BarrierReadySize", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("barrier_ready_size op does not support eager execution. Arg 'handle' is a ref.")
 
 
-__barrier_take_many_outputs = ["indices", "keys", "values"]
+  raise RuntimeError("barrier_ready_size op does not support eager execution. Arg 'handle' is a ref.")
+
+_barrier_take_many_outputs = ["indices", "keys", "values"]
 _BarrierTakeManyOutput = _collections.namedtuple(
-    "BarrierTakeMany", __barrier_take_many_outputs)
+    "BarrierTakeMany", _barrier_take_many_outputs)
 
 
-def _barrier_take_many(handle, num_elements, component_types, allow_small_batch=False, wait_for_incomplete=False, timeout_ms=-1, name=None):
+def barrier_take_many(handle, num_elements, component_types, allow_small_batch=False, wait_for_incomplete=False, timeout_ms=-1, name=None):
   r"""Takes the given number of completed elements from a barrier.
 
   This operation concatenates completed-element component tensors along
@@ -388,29 +400,26 @@ def _barrier_take_many(handle, num_elements, component_types, allow_small_batch=
   Returns:
     A tuple of `Tensor` objects (indices, keys, values).
 
-    indices: A `Tensor` of type `int64`. A one-dimensional tensor of indices, with length num_elems.
-      These indices refer to the batch in which the values were placed into the
-      barrier (starting with MIN_LONG and increasing with each BarrierInsertMany).
-    keys: A `Tensor` of type `string`. A one-dimensional tensor of keys, with length num_elements.
-    values: A list of `Tensor` objects of type `component_types`. One any-dimensional tensor per component in a barrier element. All
-      values have length num_elements in the 0th dimension.
+    indices: A `Tensor` of type `int64`.
+    keys: A `Tensor` of type `string`.
+    values: A list of `Tensor` objects of type `component_types`.
   """
-  if not isinstance(component_types, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'component_types' argument to "
-        "'barrier_take_many' Op, not %r." % component_types)
-  component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
-  if allow_small_batch is None:
-    allow_small_batch = False
-  allow_small_batch = _execute.make_bool(allow_small_batch, "allow_small_batch")
-  if wait_for_incomplete is None:
-    wait_for_incomplete = False
-  wait_for_incomplete = _execute.make_bool(wait_for_incomplete, "wait_for_incomplete")
-  if timeout_ms is None:
-    timeout_ms = -1
-  timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(component_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'component_types' argument to "
+          "'barrier_take_many' Op, not %r." % component_types)
+    component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
+    if allow_small_batch is None:
+      allow_small_batch = False
+    allow_small_batch = _execute.make_bool(allow_small_batch, "allow_small_batch")
+    if wait_for_incomplete is None:
+      wait_for_incomplete = False
+    wait_for_incomplete = _execute.make_bool(wait_for_incomplete, "wait_for_incomplete")
+    if timeout_ms is None:
+      timeout_ms = -1
+    timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
     _, _, _op = _op_def_lib._apply_op_helper(
         "BarrierTakeMany", handle=handle, num_elements=num_elements,
         component_types=component_types, allow_small_batch=allow_small_batch,
@@ -422,17 +431,18 @@ def _barrier_take_many(handle, num_elements, component_types, allow_small_batch=
               "allow_small_batch", _op.get_attr("allow_small_batch"),
               "wait_for_incomplete", _op.get_attr("wait_for_incomplete"),
               "timeout_ms", _op.get_attr("timeout_ms"))
-  else:
-    raise RuntimeError(
-        "barrier_take_many op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "BarrierTakeMany", _inputs_flat, _attrs, _result, name)
-  _result = _result[:2] + [_result[2:]]
-  _result = _BarrierTakeManyOutput._make(_result)
-  return _result
+    _result = _result[:2] + [_result[2:]]
+    _result = _BarrierTakeManyOutput._make(_result)
+    return _result
+
+  else:
+    raise RuntimeError("barrier_take_many op does not support eager execution. Arg 'handle' is a ref.")
 
 
-@tf_export('ConditionalAccumulator')
+  raise RuntimeError("barrier_take_many op does not support eager execution. Arg 'handle' is a ref.")
+
 def conditional_accumulator(dtype, shape, container="", shared_name="", name=None):
   r"""A conditional accumulator for aggregating gradients.
 
@@ -444,7 +454,7 @@ def conditional_accumulator(dtype, shape, container="", shared_name="", name=Non
   the accumulator.
 
   Args:
-    dtype: A `tf.DType` from: `tf.float32, tf.float64, tf.int64, tf.int32, tf.uint8, tf.uint16, tf.int16, tf.int8, tf.complex64, tf.complex128, tf.qint8, tf.quint8, tf.qint32, tf.half, tf.uint32, tf.uint64, tf.bfloat16`.
+    dtype: A `tf.DType` from: `tf.float32, tf.float64, tf.int32, tf.uint8, tf.int16, tf.int8, tf.complex64, tf.int64, tf.qint8, tf.quint8, tf.qint32, tf.bfloat16, tf.uint16, tf.complex128, tf.half, tf.uint32, tf.uint64`.
       The type of the value being accumulated.
     shape: A `tf.TensorShape` or list of `ints`.
       The shape of the values, can be [], in which case shape is unknown.
@@ -457,18 +467,18 @@ def conditional_accumulator(dtype, shape, container="", shared_name="", name=Non
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type mutable `string`. The handle to the accumulator.
+    A `Tensor` of type mutable `string`.
   """
-  dtype = _execute.make_type(dtype, "dtype")
-  shape = _execute.make_shape(shape, "shape")
-  if container is None:
-    container = ""
-  container = _execute.make_str(container, "container")
-  if shared_name is None:
-    shared_name = ""
-  shared_name = _execute.make_str(shared_name, "shared_name")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    dtype = _execute.make_type(dtype, "dtype")
+    shape = _execute.make_shape(shape, "shape")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
     _, _, _op = _op_def_lib._apply_op_helper(
         "ConditionalAccumulator", dtype=dtype, shape=shape,
         container=container, shared_name=shared_name, name=name)
@@ -477,16 +487,18 @@ def conditional_accumulator(dtype, shape, container="", shared_name="", name=Non
     _attrs = ("dtype", _op.get_attr("dtype"), "shape", _op.get_attr("shape"),
               "container", _op.get_attr("container"), "shared_name",
               _op.get_attr("shared_name"))
-  else:
-    raise RuntimeError(
-        "conditional_accumulator op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "ConditionalAccumulator", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("conditional_accumulator op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _delete_session_tensor(handle, name=None):
+  raise RuntimeError("conditional_accumulator op does not support eager execution. Arg 'handle' is a ref.")
+
+def delete_session_tensor(handle, name=None):
   r"""Delete the tensor specified by its handle in the session.
 
   Args:
@@ -498,21 +510,45 @@ def _delete_session_tensor(handle, name=None):
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "DeleteSessionTensor", handle=handle, name=name)
     return _op
-  else:
-    handle = _ops.convert_to_tensor(handle, _dtypes.string)
-    _inputs_flat = [handle]
-    _attrs = None
-    _result = _execute.execute(b"DeleteSessionTensor", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "DeleteSessionTensor", name,
+        _ctx._post_execution_callbacks, handle)
+      return _result
+    except _core._FallbackException:
+      return delete_session_tensor_eager_fallback(
+          handle, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def delete_session_tensor_eager_fallback(handle, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function delete_session_tensor
+  """
+  _ctx = _context.context()
+  handle = _ops.convert_to_tensor(handle, _dtypes.string)
+  _inputs_flat = [handle]
+  _attrs = None
+  _result = _execute.execute(b"DeleteSessionTensor", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 
-@tf_export('DynamicPartition')
+@tf_export('dynamic_partition')
 def dynamic_partition(data, partitions, num_partitions, name=None):
   r"""Partitions `data` into `num_partitions` tensors using indices from `partitions`.
 
@@ -565,9 +601,9 @@ def dynamic_partition(data, partitions, num_partitions, name=None):
   Returns:
     A list of `num_partitions` `Tensor` objects with the same type as `data`.
   """
-  num_partitions = _execute.make_int(num_partitions, "num_partitions")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    num_partitions = _execute.make_int(num_partitions, "num_partitions")
     _, _, _op = _op_def_lib._apply_op_helper(
         "DynamicPartition", data=data, partitions=partitions,
         num_partitions=num_partitions, name=name)
@@ -575,20 +611,47 @@ def dynamic_partition(data, partitions, num_partitions, name=None):
     _inputs_flat = _op.inputs
     _attrs = ("num_partitions", _op.get_attr("num_partitions"), "T",
               _op.get_attr("T"))
+    _execute.record_gradient(
+      "DynamicPartition", _inputs_flat, _attrs, _result, name)
+    return _result
+
   else:
-    _attr_T, (data,) = _execute.args_to_matching_eager([data], _ctx)
-    partitions = _ops.convert_to_tensor(partitions, _dtypes.int32)
-    _inputs_flat = [data, partitions]
-    _attrs = ("num_partitions", num_partitions, "T", _attr_T)
-    _result = _execute.execute(b"DynamicPartition", num_partitions,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "DynamicPartition", name,
+        _ctx._post_execution_callbacks, data, partitions, "num_partitions",
+        num_partitions)
+      return _result
+    except _core._FallbackException:
+      return dynamic_partition_eager_fallback(
+          data, partitions, num_partitions=num_partitions, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def dynamic_partition_eager_fallback(data, partitions, num_partitions, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function dynamic_partition
+  """
+  _ctx = _context.context()
+  num_partitions = _execute.make_int(num_partitions, "num_partitions")
+  _attr_T, (data,) = _execute.args_to_matching_eager([data], _ctx)
+  partitions = _ops.convert_to_tensor(partitions, _dtypes.int32)
+  _inputs_flat = [data, partitions]
+  _attrs = ("num_partitions", num_partitions, "T", _attr_T)
+  _result = _execute.execute(b"DynamicPartition", num_partitions,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "DynamicPartition", _inputs_flat, _attrs, _result, name)
   return _result
 
 
-@tf_export('DynamicStitch')
+@tf_export('dynamic_stitch')
 def dynamic_stitch(indices, data, name=None):
   r"""Interleave the values from the `data` tensors into a single tensor.
 
@@ -663,6 +726,54 @@ def dynamic_stitch(indices, data, name=None):
   Returns:
     A `Tensor`. Has the same type as `data`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(indices, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'indices' argument to "
+          "'dynamic_stitch' Op, not %r." % indices)
+    _attr_N = len(indices)
+    if not isinstance(data, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'data' argument to "
+          "'dynamic_stitch' Op, not %r." % data)
+    if len(data) != _attr_N:
+      raise ValueError(
+          "List argument 'data' to 'dynamic_stitch' Op with length %d "
+          "must match length %d of argument 'indices'." %
+          (len(data), _attr_N))
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "DynamicStitch", indices=indices, data=data, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("N", _op.get_attr("N"), "T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "DynamicStitch", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "DynamicStitch", name,
+        _ctx._post_execution_callbacks, indices, data)
+      return _result
+    except _core._FallbackException:
+      return dynamic_stitch_eager_fallback(
+          indices, data, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def dynamic_stitch_eager_fallback(indices, data, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function dynamic_stitch
+  """
+  _ctx = _context.context()
   if not isinstance(indices, (list, tuple)):
     raise TypeError(
         "Expected list for 'indices' argument to "
@@ -677,27 +788,19 @@ def dynamic_stitch(indices, data, name=None):
         "List argument 'data' to 'dynamic_stitch' Op with length %d "
         "must match length %d of argument 'indices'." %
         (len(data), _attr_N))
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "DynamicStitch", indices=indices, data=data, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("N", _op.get_attr("N"), "T", _op.get_attr("T"))
-  else:
-    _attr_T, data = _execute.args_to_matching_eager(list(data), _ctx)
-    indices = _ops.convert_n_to_tensor(indices, _dtypes.int32)
-    _inputs_flat = list(indices) + list(data)
-    _attrs = ("N", _attr_N, "T", _attr_T)
-    _result = _execute.execute(b"DynamicStitch", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  _attr_T, data = _execute.args_to_matching_eager(list(data), _ctx)
+  indices = _ops.convert_n_to_tensor(indices, _dtypes.int32)
+  _inputs_flat = list(indices) + list(data)
+  _attrs = ("N", _attr_N, "T", _attr_T)
+  _result = _execute.execute(b"DynamicStitch", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "DynamicStitch", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-def _fifo_queue(component_types, shapes=[], capacity=-1, container="", shared_name="", name=None):
+def fifo_queue(component_types, shapes=[], capacity=-1, container="", shared_name="", name=None):
   r"""A queue that produces elements in first-in first-out order.
 
   Args:
@@ -720,31 +823,31 @@ def _fifo_queue(component_types, shapes=[], capacity=-1, container="", shared_na
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type mutable `string`. The handle to the queue.
+    A `Tensor` of type mutable `string`.
   """
-  if not isinstance(component_types, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'component_types' argument to "
-        "'fifo_queue' Op, not %r." % component_types)
-  component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
-  if shapes is None:
-    shapes = []
-  if not isinstance(shapes, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'shapes' argument to "
-        "'fifo_queue' Op, not %r." % shapes)
-  shapes = [_execute.make_shape(_s, "shapes") for _s in shapes]
-  if capacity is None:
-    capacity = -1
-  capacity = _execute.make_int(capacity, "capacity")
-  if container is None:
-    container = ""
-  container = _execute.make_str(container, "container")
-  if shared_name is None:
-    shared_name = ""
-  shared_name = _execute.make_str(shared_name, "shared_name")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(component_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'component_types' argument to "
+          "'fifo_queue' Op, not %r." % component_types)
+    component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
+    if shapes is None:
+      shapes = []
+    if not isinstance(shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'shapes' argument to "
+          "'fifo_queue' Op, not %r." % shapes)
+    shapes = [_execute.make_shape(_s, "shapes") for _s in shapes]
+    if capacity is None:
+      capacity = -1
+    capacity = _execute.make_int(capacity, "capacity")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
     _, _, _op = _op_def_lib._apply_op_helper(
         "FIFOQueue", component_types=component_types, shapes=shapes,
         capacity=capacity, container=container, shared_name=shared_name,
@@ -755,16 +858,18 @@ def _fifo_queue(component_types, shapes=[], capacity=-1, container="", shared_na
               _op.get_attr("shapes"), "capacity", _op.get_attr("capacity"),
               "container", _op.get_attr("container"), "shared_name",
               _op.get_attr("shared_name"))
-  else:
-    raise RuntimeError(
-        "fifo_queue op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "FIFOQueue", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("fifo_queue op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _fifo_queue_v2(component_types, shapes=[], capacity=-1, container="", shared_name="", name=None):
+  raise RuntimeError("fifo_queue op does not support eager execution. Arg 'handle' is a ref.")
+
+def fifo_queue_v2(component_types, shapes=[], capacity=-1, container="", shared_name="", name=None):
   r"""A queue that produces elements in first-in first-out order.
 
   Args:
@@ -787,8 +892,71 @@ def _fifo_queue_v2(component_types, shapes=[], capacity=-1, container="", shared
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type `resource`. The handle to the queue.
+    A `Tensor` of type `resource`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(component_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'component_types' argument to "
+          "'fifo_queue_v2' Op, not %r." % component_types)
+    component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
+    if shapes is None:
+      shapes = []
+    if not isinstance(shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'shapes' argument to "
+          "'fifo_queue_v2' Op, not %r." % shapes)
+    shapes = [_execute.make_shape(_s, "shapes") for _s in shapes]
+    if capacity is None:
+      capacity = -1
+    capacity = _execute.make_int(capacity, "capacity")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "FIFOQueueV2", component_types=component_types, shapes=shapes,
+        capacity=capacity, container=container, shared_name=shared_name,
+        name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("component_types", _op.get_attr("component_types"), "shapes",
+              _op.get_attr("shapes"), "capacity", _op.get_attr("capacity"),
+              "container", _op.get_attr("container"), "shared_name",
+              _op.get_attr("shared_name"))
+    _execute.record_gradient(
+      "FIFOQueueV2", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "FIFOQueueV2", name,
+        _ctx._post_execution_callbacks, "component_types", component_types,
+        "shapes", shapes, "capacity", capacity, "container", container,
+        "shared_name", shared_name)
+      return _result
+    except _core._FallbackException:
+      return fifo_queue_v2_eager_fallback(
+          component_types=component_types, shapes=shapes, capacity=capacity,
+          container=container, shared_name=shared_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def fifo_queue_v2_eager_fallback(component_types, shapes=[], capacity=-1, container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function fifo_queue_v2
+  """
+  _ctx = _context.context()
   if not isinstance(component_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'component_types' argument to "
@@ -810,32 +978,18 @@ def _fifo_queue_v2(component_types, shapes=[], capacity=-1, container="", shared
   if shared_name is None:
     shared_name = ""
   shared_name = _execute.make_str(shared_name, "shared_name")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "FIFOQueueV2", component_types=component_types, shapes=shapes,
-        capacity=capacity, container=container, shared_name=shared_name,
-        name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("component_types", _op.get_attr("component_types"), "shapes",
-              _op.get_attr("shapes"), "capacity", _op.get_attr("capacity"),
-              "container", _op.get_attr("container"), "shared_name",
-              _op.get_attr("shared_name"))
-  else:
-    _inputs_flat = []
-    _attrs = ("component_types", component_types, "shapes", shapes,
-              "capacity", capacity, "container", container, "shared_name",
-              shared_name)
-    _result = _execute.execute(b"FIFOQueueV2", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  _inputs_flat = []
+  _attrs = ("component_types", component_types, "shapes", shapes, "capacity",
+  capacity, "container", container, "shared_name", shared_name)
+  _result = _execute.execute(b"FIFOQueueV2", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "FIFOQueueV2", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-def _fake_queue(resource, name=None):
+def fake_queue(resource, name=None):
   r"""Deprecated. Do not use.
 
   Args:
@@ -846,22 +1000,24 @@ def _fake_queue(resource, name=None):
     A `Tensor` of type mutable `string`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "FakeQueue", resource=resource, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
-  else:
-    raise RuntimeError(
-        "fake_queue op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "FakeQueue", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("fake_queue op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _get_session_handle(value, name=None):
+  raise RuntimeError("fake_queue op does not support eager execution. Arg 'handle' is a ref.")
+
+def get_session_handle(value, name=None):
   r"""Store the input tensor in the state of the current session.
 
   Args:
@@ -870,29 +1026,53 @@ def _get_session_handle(value, name=None):
 
   Returns:
     A `Tensor` of type `string`.
-    The handle for the tensor stored in the session state, represented
-    as a string.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "GetSessionHandle", value=value, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "GetSessionHandle", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
-    _inputs_flat = [value]
-    _attrs = ("T", _attr_T)
-    _result = _execute.execute(b"GetSessionHandle", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "GetSessionHandle", name,
+        _ctx._post_execution_callbacks, value)
+      return _result
+    except _core._FallbackException:
+      return get_session_handle_eager_fallback(
+          value, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def get_session_handle_eager_fallback(value, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function get_session_handle
+  """
+  _ctx = _context.context()
+  _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
+  _inputs_flat = [value]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"GetSessionHandle", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "GetSessionHandle", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-def _get_session_handle_v2(value, name=None):
+def get_session_handle_v2(value, name=None):
   r"""Store the input tensor in the state of the current session.
 
   Args:
@@ -901,29 +1081,53 @@ def _get_session_handle_v2(value, name=None):
 
   Returns:
     A `Tensor` of type `resource`.
-    The handle for the tensor stored in the session state, represented
-    as a ResourceHandle object.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "GetSessionHandleV2", value=value, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "GetSessionHandleV2", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
-    _inputs_flat = [value]
-    _attrs = ("T", _attr_T)
-    _result = _execute.execute(b"GetSessionHandleV2", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "GetSessionHandleV2", name,
+        _ctx._post_execution_callbacks, value)
+      return _result
+    except _core._FallbackException:
+      return get_session_handle_v2_eager_fallback(
+          value, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def get_session_handle_v2_eager_fallback(value, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function get_session_handle_v2
+  """
+  _ctx = _context.context()
+  _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
+  _inputs_flat = [value]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"GetSessionHandleV2", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "GetSessionHandleV2", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-def _get_session_tensor(handle, dtype, name=None):
+def get_session_tensor(handle, dtype, name=None):
   r"""Get the value of the tensor specified by its handle.
 
   Args:
@@ -933,29 +1137,55 @@ def _get_session_tensor(handle, dtype, name=None):
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type `dtype`. The tensor for the given handle.
+    A `Tensor` of type `dtype`.
   """
-  dtype = _execute.make_type(dtype, "dtype")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    dtype = _execute.make_type(dtype, "dtype")
     _, _, _op = _op_def_lib._apply_op_helper(
         "GetSessionTensor", handle=handle, dtype=dtype, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("dtype", _op.get_attr("dtype"))
+    _execute.record_gradient(
+      "GetSessionTensor", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    handle = _ops.convert_to_tensor(handle, _dtypes.string)
-    _inputs_flat = [handle]
-    _attrs = ("dtype", dtype)
-    _result = _execute.execute(b"GetSessionTensor", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "GetSessionTensor", name,
+        _ctx._post_execution_callbacks, handle, "dtype", dtype)
+      return _result
+    except _core._FallbackException:
+      return get_session_tensor_eager_fallback(
+          handle, dtype=dtype, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def get_session_tensor_eager_fallback(handle, dtype, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function get_session_tensor
+  """
+  _ctx = _context.context()
+  dtype = _execute.make_type(dtype, "dtype")
+  handle = _ops.convert_to_tensor(handle, _dtypes.string)
+  _inputs_flat = [handle]
+  _attrs = ("dtype", dtype)
+  _result = _execute.execute(b"GetSessionTensor", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "GetSessionTensor", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('MapClear')
 def map_clear(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
   r"""Op removes all elements in the underlying container.
 
@@ -970,6 +1200,58 @@ def map_clear(dtypes, capacity=0, memory_limit=0, container="", shared_name="", 
   Returns:
     The created Operation.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(dtypes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dtypes' argument to "
+          "'map_clear' Op, not %r." % dtypes)
+    dtypes = [_execute.make_type(_t, "dtypes") for _t in dtypes]
+    if capacity is None:
+      capacity = 0
+    capacity = _execute.make_int(capacity, "capacity")
+    if memory_limit is None:
+      memory_limit = 0
+    memory_limit = _execute.make_int(memory_limit, "memory_limit")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "MapClear", dtypes=dtypes, capacity=capacity,
+        memory_limit=memory_limit, container=container,
+        shared_name=shared_name, name=name)
+    return _op
+    _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "MapClear", name,
+        _ctx._post_execution_callbacks, "capacity", capacity, "memory_limit",
+        memory_limit, "dtypes", dtypes, "container", container, "shared_name",
+        shared_name)
+      return _result
+    except _core._FallbackException:
+      return map_clear_eager_fallback(
+          capacity=capacity, memory_limit=memory_limit, dtypes=dtypes,
+          container=container, shared_name=shared_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def map_clear_eager_fallback(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function map_clear
+  """
+  _ctx = _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -987,24 +1269,15 @@ def map_clear(dtypes, capacity=0, memory_limit=0, container="", shared_name="", 
   if shared_name is None:
     shared_name = ""
   shared_name = _execute.make_str(shared_name, "shared_name")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "MapClear", dtypes=dtypes, capacity=capacity,
-        memory_limit=memory_limit, container=container,
-        shared_name=shared_name, name=name)
-    return _op
-  else:
-    _inputs_flat = []
-    _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
-              dtypes, "container", container, "shared_name", shared_name)
-    _result = _execute.execute(b"MapClear", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
-    _result = None
+  _inputs_flat = []
+  _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
+  dtypes, "container", container, "shared_name", shared_name)
+  _result = _execute.execute(b"MapClear", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 
-@tf_export('MapIncompleteSize')
 def map_incomplete_size(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
   r"""Op returns the number of incomplete elements in the underlying container.
 
@@ -1019,6 +1292,65 @@ def map_incomplete_size(dtypes, capacity=0, memory_limit=0, container="", shared
   Returns:
     A `Tensor` of type `int32`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(dtypes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dtypes' argument to "
+          "'map_incomplete_size' Op, not %r." % dtypes)
+    dtypes = [_execute.make_type(_t, "dtypes") for _t in dtypes]
+    if capacity is None:
+      capacity = 0
+    capacity = _execute.make_int(capacity, "capacity")
+    if memory_limit is None:
+      memory_limit = 0
+    memory_limit = _execute.make_int(memory_limit, "memory_limit")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "MapIncompleteSize", dtypes=dtypes, capacity=capacity,
+        memory_limit=memory_limit, container=container,
+        shared_name=shared_name, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("capacity", _op.get_attr("capacity"), "memory_limit",
+              _op.get_attr("memory_limit"), "dtypes", _op.get_attr("dtypes"),
+              "container", _op.get_attr("container"), "shared_name",
+              _op.get_attr("shared_name"))
+    _execute.record_gradient(
+      "MapIncompleteSize", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "MapIncompleteSize", name,
+        _ctx._post_execution_callbacks, "capacity", capacity, "memory_limit",
+        memory_limit, "dtypes", dtypes, "container", container, "shared_name",
+        shared_name)
+      return _result
+    except _core._FallbackException:
+      return map_incomplete_size_eager_fallback(
+          capacity=capacity, memory_limit=memory_limit, dtypes=dtypes,
+          container=container, shared_name=shared_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def map_incomplete_size_eager_fallback(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function map_incomplete_size
+  """
+  _ctx = _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -1036,31 +1368,17 @@ def map_incomplete_size(dtypes, capacity=0, memory_limit=0, container="", shared
   if shared_name is None:
     shared_name = ""
   shared_name = _execute.make_str(shared_name, "shared_name")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "MapIncompleteSize", dtypes=dtypes, capacity=capacity,
-        memory_limit=memory_limit, container=container,
-        shared_name=shared_name, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("capacity", _op.get_attr("capacity"), "memory_limit",
-              _op.get_attr("memory_limit"), "dtypes", _op.get_attr("dtypes"),
-              "container", _op.get_attr("container"), "shared_name",
-              _op.get_attr("shared_name"))
-  else:
-    _inputs_flat = []
-    _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
-              dtypes, "container", container, "shared_name", shared_name)
-    _result = _execute.execute(b"MapIncompleteSize", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  _inputs_flat = []
+  _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
+  dtypes, "container", container, "shared_name", shared_name)
+  _result = _execute.execute(b"MapIncompleteSize", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "MapIncompleteSize", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('MapPeek')
 def map_peek(key, indices, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
   r"""Op peeks at the values at the specified key.  If the
 
@@ -1080,6 +1398,67 @@ def map_peek(key, indices, dtypes, capacity=0, memory_limit=0, container="", sha
   Returns:
     A list of `Tensor` objects of type `dtypes`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(dtypes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dtypes' argument to "
+          "'map_peek' Op, not %r." % dtypes)
+    dtypes = [_execute.make_type(_t, "dtypes") for _t in dtypes]
+    if capacity is None:
+      capacity = 0
+    capacity = _execute.make_int(capacity, "capacity")
+    if memory_limit is None:
+      memory_limit = 0
+    memory_limit = _execute.make_int(memory_limit, "memory_limit")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "MapPeek", key=key, indices=indices, dtypes=dtypes, capacity=capacity,
+        memory_limit=memory_limit, container=container,
+        shared_name=shared_name, name=name)
+    _result = _op.outputs[:]
+    if not _result:
+      return _op
+    _inputs_flat = _op.inputs
+    _attrs = ("capacity", _op.get_attr("capacity"), "memory_limit",
+              _op.get_attr("memory_limit"), "dtypes", _op.get_attr("dtypes"),
+              "container", _op.get_attr("container"), "shared_name",
+              _op.get_attr("shared_name"))
+    _execute.record_gradient(
+      "MapPeek", _inputs_flat, _attrs, _result, name)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "MapPeek", name,
+        _ctx._post_execution_callbacks, key, indices, "capacity", capacity,
+        "memory_limit", memory_limit, "dtypes", dtypes, "container",
+        container, "shared_name", shared_name)
+      return _result
+    except _core._FallbackException:
+      return map_peek_eager_fallback(
+          key, indices, capacity=capacity, memory_limit=memory_limit,
+          dtypes=dtypes, container=container, shared_name=shared_name,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def map_peek_eager_fallback(key, indices, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function map_peek
+  """
+  _ctx = _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -1097,34 +1476,18 @@ def map_peek(key, indices, dtypes, capacity=0, memory_limit=0, container="", sha
   if shared_name is None:
     shared_name = ""
   shared_name = _execute.make_str(shared_name, "shared_name")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "MapPeek", key=key, indices=indices, dtypes=dtypes, capacity=capacity,
-        memory_limit=memory_limit, container=container,
-        shared_name=shared_name, name=name)
-    _result = _op.outputs[:]
-    if not _result:
-      return _op
-    _inputs_flat = _op.inputs
-    _attrs = ("capacity", _op.get_attr("capacity"), "memory_limit",
-              _op.get_attr("memory_limit"), "dtypes", _op.get_attr("dtypes"),
-              "container", _op.get_attr("container"), "shared_name",
-              _op.get_attr("shared_name"))
-  else:
-    key = _ops.convert_to_tensor(key, _dtypes.int64)
-    indices = _ops.convert_to_tensor(indices, _dtypes.int32)
-    _inputs_flat = [key, indices]
-    _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
-              dtypes, "container", container, "shared_name", shared_name)
-    _result = _execute.execute(b"MapPeek", len(dtypes), inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  key = _ops.convert_to_tensor(key, _dtypes.int64)
+  indices = _ops.convert_to_tensor(indices, _dtypes.int32)
+  _inputs_flat = [key, indices]
+  _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
+  dtypes, "container", container, "shared_name", shared_name)
+  _result = _execute.execute(b"MapPeek", len(dtypes), inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "MapPeek", _inputs_flat, _attrs, _result, name)
   return _result
 
 
-@tf_export('MapSize')
 def map_size(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
   r"""Op returns the number of elements in the underlying container.
 
@@ -1139,6 +1502,65 @@ def map_size(dtypes, capacity=0, memory_limit=0, container="", shared_name="", n
   Returns:
     A `Tensor` of type `int32`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(dtypes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dtypes' argument to "
+          "'map_size' Op, not %r." % dtypes)
+    dtypes = [_execute.make_type(_t, "dtypes") for _t in dtypes]
+    if capacity is None:
+      capacity = 0
+    capacity = _execute.make_int(capacity, "capacity")
+    if memory_limit is None:
+      memory_limit = 0
+    memory_limit = _execute.make_int(memory_limit, "memory_limit")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "MapSize", dtypes=dtypes, capacity=capacity,
+        memory_limit=memory_limit, container=container,
+        shared_name=shared_name, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("capacity", _op.get_attr("capacity"), "memory_limit",
+              _op.get_attr("memory_limit"), "dtypes", _op.get_attr("dtypes"),
+              "container", _op.get_attr("container"), "shared_name",
+              _op.get_attr("shared_name"))
+    _execute.record_gradient(
+      "MapSize", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "MapSize", name,
+        _ctx._post_execution_callbacks, "capacity", capacity, "memory_limit",
+        memory_limit, "dtypes", dtypes, "container", container, "shared_name",
+        shared_name)
+      return _result
+    except _core._FallbackException:
+      return map_size_eager_fallback(
+          capacity=capacity, memory_limit=memory_limit, dtypes=dtypes,
+          container=container, shared_name=shared_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def map_size_eager_fallback(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function map_size
+  """
+  _ctx = _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -1156,31 +1578,17 @@ def map_size(dtypes, capacity=0, memory_limit=0, container="", shared_name="", n
   if shared_name is None:
     shared_name = ""
   shared_name = _execute.make_str(shared_name, "shared_name")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "MapSize", dtypes=dtypes, capacity=capacity,
-        memory_limit=memory_limit, container=container,
-        shared_name=shared_name, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("capacity", _op.get_attr("capacity"), "memory_limit",
-              _op.get_attr("memory_limit"), "dtypes", _op.get_attr("dtypes"),
-              "container", _op.get_attr("container"), "shared_name",
-              _op.get_attr("shared_name"))
-  else:
-    _inputs_flat = []
-    _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
-              dtypes, "container", container, "shared_name", shared_name)
-    _result = _execute.execute(b"MapSize", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  _inputs_flat = []
+  _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
+  dtypes, "container", container, "shared_name", shared_name)
+  _result = _execute.execute(b"MapSize", 1, inputs=_inputs_flat, attrs=_attrs,
+                             ctx=_ctx, name=name)
   _execute.record_gradient(
       "MapSize", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('MapStage')
 def map_stage(key, indices, values, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
   r"""Stage (key, values) in the underlying container which behaves like a hashtable.
 
@@ -1204,6 +1612,59 @@ def map_stage(key, indices, values, dtypes, capacity=0, memory_limit=0, containe
   Returns:
     The created Operation.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(dtypes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dtypes' argument to "
+          "'map_stage' Op, not %r." % dtypes)
+    dtypes = [_execute.make_type(_t, "dtypes") for _t in dtypes]
+    if capacity is None:
+      capacity = 0
+    capacity = _execute.make_int(capacity, "capacity")
+    if memory_limit is None:
+      memory_limit = 0
+    memory_limit = _execute.make_int(memory_limit, "memory_limit")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "MapStage", key=key, indices=indices, values=values, dtypes=dtypes,
+        capacity=capacity, memory_limit=memory_limit, container=container,
+        shared_name=shared_name, name=name)
+    return _op
+    _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "MapStage", name,
+        _ctx._post_execution_callbacks, key, indices, values, "capacity",
+        capacity, "memory_limit", memory_limit, "dtypes", dtypes, "container",
+        container, "shared_name", shared_name)
+      return _result
+    except _core._FallbackException:
+      return map_stage_eager_fallback(
+          key, indices, values, capacity=capacity, memory_limit=memory_limit,
+          dtypes=dtypes, container=container, shared_name=shared_name,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def map_stage_eager_fallback(key, indices, values, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function map_stage
+  """
+  _ctx = _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -1221,28 +1682,19 @@ def map_stage(key, indices, values, dtypes, capacity=0, memory_limit=0, containe
   if shared_name is None:
     shared_name = ""
   shared_name = _execute.make_str(shared_name, "shared_name")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "MapStage", key=key, indices=indices, values=values, dtypes=dtypes,
-        capacity=capacity, memory_limit=memory_limit, container=container,
-        shared_name=shared_name, name=name)
-    return _op
-  else:
-    _attr_fake_dtypes, values = _execute.convert_to_mixed_eager_tensors(values, _ctx)
-    key = _ops.convert_to_tensor(key, _dtypes.int64)
-    indices = _ops.convert_to_tensor(indices, _dtypes.int32)
-    _inputs_flat = [key, indices] + list(values)
-    _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
-              dtypes, "fake_dtypes", _attr_fake_dtypes, "container",
-              container, "shared_name", shared_name)
-    _result = _execute.execute(b"MapStage", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
-    _result = None
+  _attr_fake_dtypes, values = _execute.convert_to_mixed_eager_tensors(values, _ctx)
+  key = _ops.convert_to_tensor(key, _dtypes.int64)
+  indices = _ops.convert_to_tensor(indices, _dtypes.int32)
+  _inputs_flat = [key, indices] + list(values)
+  _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
+  dtypes, "fake_dtypes", _attr_fake_dtypes, "container", container,
+  "shared_name", shared_name)
+  _result = _execute.execute(b"MapStage", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 
-@tf_export('MapUnstage')
 def map_unstage(key, indices, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
   r"""Op removes and returns the values associated with the key
 
@@ -1262,6 +1714,67 @@ def map_unstage(key, indices, dtypes, capacity=0, memory_limit=0, container="", 
   Returns:
     A list of `Tensor` objects of type `dtypes`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(dtypes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dtypes' argument to "
+          "'map_unstage' Op, not %r." % dtypes)
+    dtypes = [_execute.make_type(_t, "dtypes") for _t in dtypes]
+    if capacity is None:
+      capacity = 0
+    capacity = _execute.make_int(capacity, "capacity")
+    if memory_limit is None:
+      memory_limit = 0
+    memory_limit = _execute.make_int(memory_limit, "memory_limit")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "MapUnstage", key=key, indices=indices, dtypes=dtypes,
+        capacity=capacity, memory_limit=memory_limit, container=container,
+        shared_name=shared_name, name=name)
+    _result = _op.outputs[:]
+    if not _result:
+      return _op
+    _inputs_flat = _op.inputs
+    _attrs = ("capacity", _op.get_attr("capacity"), "memory_limit",
+              _op.get_attr("memory_limit"), "dtypes", _op.get_attr("dtypes"),
+              "container", _op.get_attr("container"), "shared_name",
+              _op.get_attr("shared_name"))
+    _execute.record_gradient(
+      "MapUnstage", _inputs_flat, _attrs, _result, name)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "MapUnstage", name,
+        _ctx._post_execution_callbacks, key, indices, "capacity", capacity,
+        "memory_limit", memory_limit, "dtypes", dtypes, "container",
+        container, "shared_name", shared_name)
+      return _result
+    except _core._FallbackException:
+      return map_unstage_eager_fallback(
+          key, indices, capacity=capacity, memory_limit=memory_limit,
+          dtypes=dtypes, container=container, shared_name=shared_name,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def map_unstage_eager_fallback(key, indices, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function map_unstage
+  """
+  _ctx = _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -1279,29 +1792,13 @@ def map_unstage(key, indices, dtypes, capacity=0, memory_limit=0, container="", 
   if shared_name is None:
     shared_name = ""
   shared_name = _execute.make_str(shared_name, "shared_name")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "MapUnstage", key=key, indices=indices, dtypes=dtypes,
-        capacity=capacity, memory_limit=memory_limit, container=container,
-        shared_name=shared_name, name=name)
-    _result = _op.outputs[:]
-    if not _result:
-      return _op
-    _inputs_flat = _op.inputs
-    _attrs = ("capacity", _op.get_attr("capacity"), "memory_limit",
-              _op.get_attr("memory_limit"), "dtypes", _op.get_attr("dtypes"),
-              "container", _op.get_attr("container"), "shared_name",
-              _op.get_attr("shared_name"))
-  else:
-    key = _ops.convert_to_tensor(key, _dtypes.int64)
-    indices = _ops.convert_to_tensor(indices, _dtypes.int32)
-    _inputs_flat = [key, indices]
-    _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
-              dtypes, "container", container, "shared_name", shared_name)
-    _result = _execute.execute(b"MapUnstage", len(dtypes),
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+  key = _ops.convert_to_tensor(key, _dtypes.int64)
+  indices = _ops.convert_to_tensor(indices, _dtypes.int32)
+  _inputs_flat = [key, indices]
+  _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
+  dtypes, "container", container, "shared_name", shared_name)
+  _result = _execute.execute(b"MapUnstage", len(dtypes), inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "MapUnstage", _inputs_flat, _attrs, _result, name)
   return _result
@@ -1312,7 +1809,6 @@ _MapUnstageNoKeyOutput = _collections.namedtuple(
     "MapUnstageNoKey", _map_unstage_no_key_outputs)
 
 
-@tf_export('MapUnstageNoKey')
 def map_unstage_no_key(indices, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
   r"""Op removes and returns a random (key, value)
 
@@ -1334,6 +1830,68 @@ def map_unstage_no_key(indices, dtypes, capacity=0, memory_limit=0, container=""
     key: A `Tensor` of type `int64`.
     values: A list of `Tensor` objects of type `dtypes`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(dtypes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dtypes' argument to "
+          "'map_unstage_no_key' Op, not %r." % dtypes)
+    dtypes = [_execute.make_type(_t, "dtypes") for _t in dtypes]
+    if capacity is None:
+      capacity = 0
+    capacity = _execute.make_int(capacity, "capacity")
+    if memory_limit is None:
+      memory_limit = 0
+    memory_limit = _execute.make_int(memory_limit, "memory_limit")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "MapUnstageNoKey", indices=indices, dtypes=dtypes, capacity=capacity,
+        memory_limit=memory_limit, container=container,
+        shared_name=shared_name, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("capacity", _op.get_attr("capacity"), "memory_limit",
+              _op.get_attr("memory_limit"), "dtypes", _op.get_attr("dtypes"),
+              "container", _op.get_attr("container"), "shared_name",
+              _op.get_attr("shared_name"))
+    _execute.record_gradient(
+      "MapUnstageNoKey", _inputs_flat, _attrs, _result, name)
+    _result = _result[:1] + [_result[1:]]
+    _result = _MapUnstageNoKeyOutput._make(_result)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "MapUnstageNoKey", name,
+        _ctx._post_execution_callbacks, indices, "capacity", capacity,
+        "memory_limit", memory_limit, "dtypes", dtypes, "container",
+        container, "shared_name", shared_name)
+      _result = _MapUnstageNoKeyOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return map_unstage_no_key_eager_fallback(
+          indices, capacity=capacity, memory_limit=memory_limit,
+          dtypes=dtypes, container=container, shared_name=shared_name,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def map_unstage_no_key_eager_fallback(indices, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function map_unstage_no_key
+  """
+  _ctx = _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -1351,26 +1909,13 @@ def map_unstage_no_key(indices, dtypes, capacity=0, memory_limit=0, container=""
   if shared_name is None:
     shared_name = ""
   shared_name = _execute.make_str(shared_name, "shared_name")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "MapUnstageNoKey", indices=indices, dtypes=dtypes, capacity=capacity,
-        memory_limit=memory_limit, container=container,
-        shared_name=shared_name, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("capacity", _op.get_attr("capacity"), "memory_limit",
-              _op.get_attr("memory_limit"), "dtypes", _op.get_attr("dtypes"),
-              "container", _op.get_attr("container"), "shared_name",
-              _op.get_attr("shared_name"))
-  else:
-    indices = _ops.convert_to_tensor(indices, _dtypes.int32)
-    _inputs_flat = [indices]
-    _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
-              dtypes, "container", container, "shared_name", shared_name)
-    _result = _execute.execute(b"MapUnstageNoKey", len(dtypes) + 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+  indices = _ops.convert_to_tensor(indices, _dtypes.int32)
+  _inputs_flat = [indices]
+  _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
+  dtypes, "container", container, "shared_name", shared_name)
+  _result = _execute.execute(b"MapUnstageNoKey", len(dtypes) + 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "MapUnstageNoKey", _inputs_flat, _attrs, _result, name)
   _result = _result[:1] + [_result[1:]]
@@ -1378,7 +1923,6 @@ def map_unstage_no_key(indices, dtypes, capacity=0, memory_limit=0, container=""
   return _result
 
 
-@tf_export('OrderedMapClear')
 def ordered_map_clear(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
   r"""Op removes all elements in the underlying container.
 
@@ -1393,6 +1937,58 @@ def ordered_map_clear(dtypes, capacity=0, memory_limit=0, container="", shared_n
   Returns:
     The created Operation.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(dtypes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dtypes' argument to "
+          "'ordered_map_clear' Op, not %r." % dtypes)
+    dtypes = [_execute.make_type(_t, "dtypes") for _t in dtypes]
+    if capacity is None:
+      capacity = 0
+    capacity = _execute.make_int(capacity, "capacity")
+    if memory_limit is None:
+      memory_limit = 0
+    memory_limit = _execute.make_int(memory_limit, "memory_limit")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "OrderedMapClear", dtypes=dtypes, capacity=capacity,
+        memory_limit=memory_limit, container=container,
+        shared_name=shared_name, name=name)
+    return _op
+    _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "OrderedMapClear", name,
+        _ctx._post_execution_callbacks, "capacity", capacity, "memory_limit",
+        memory_limit, "dtypes", dtypes, "container", container, "shared_name",
+        shared_name)
+      return _result
+    except _core._FallbackException:
+      return ordered_map_clear_eager_fallback(
+          capacity=capacity, memory_limit=memory_limit, dtypes=dtypes,
+          container=container, shared_name=shared_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def ordered_map_clear_eager_fallback(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function ordered_map_clear
+  """
+  _ctx = _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -1410,24 +2006,15 @@ def ordered_map_clear(dtypes, capacity=0, memory_limit=0, container="", shared_n
   if shared_name is None:
     shared_name = ""
   shared_name = _execute.make_str(shared_name, "shared_name")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "OrderedMapClear", dtypes=dtypes, capacity=capacity,
-        memory_limit=memory_limit, container=container,
-        shared_name=shared_name, name=name)
-    return _op
-  else:
-    _inputs_flat = []
-    _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
-              dtypes, "container", container, "shared_name", shared_name)
-    _result = _execute.execute(b"OrderedMapClear", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
-    _result = None
+  _inputs_flat = []
+  _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
+  dtypes, "container", container, "shared_name", shared_name)
+  _result = _execute.execute(b"OrderedMapClear", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 
-@tf_export('OrderedMapIncompleteSize')
 def ordered_map_incomplete_size(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
   r"""Op returns the number of incomplete elements in the underlying container.
 
@@ -1442,6 +2029,65 @@ def ordered_map_incomplete_size(dtypes, capacity=0, memory_limit=0, container=""
   Returns:
     A `Tensor` of type `int32`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(dtypes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dtypes' argument to "
+          "'ordered_map_incomplete_size' Op, not %r." % dtypes)
+    dtypes = [_execute.make_type(_t, "dtypes") for _t in dtypes]
+    if capacity is None:
+      capacity = 0
+    capacity = _execute.make_int(capacity, "capacity")
+    if memory_limit is None:
+      memory_limit = 0
+    memory_limit = _execute.make_int(memory_limit, "memory_limit")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "OrderedMapIncompleteSize", dtypes=dtypes, capacity=capacity,
+        memory_limit=memory_limit, container=container,
+        shared_name=shared_name, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("capacity", _op.get_attr("capacity"), "memory_limit",
+              _op.get_attr("memory_limit"), "dtypes", _op.get_attr("dtypes"),
+              "container", _op.get_attr("container"), "shared_name",
+              _op.get_attr("shared_name"))
+    _execute.record_gradient(
+      "OrderedMapIncompleteSize", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "OrderedMapIncompleteSize", name,
+        _ctx._post_execution_callbacks, "capacity", capacity, "memory_limit",
+        memory_limit, "dtypes", dtypes, "container", container, "shared_name",
+        shared_name)
+      return _result
+    except _core._FallbackException:
+      return ordered_map_incomplete_size_eager_fallback(
+          capacity=capacity, memory_limit=memory_limit, dtypes=dtypes,
+          container=container, shared_name=shared_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def ordered_map_incomplete_size_eager_fallback(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function ordered_map_incomplete_size
+  """
+  _ctx = _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -1459,32 +2105,18 @@ def ordered_map_incomplete_size(dtypes, capacity=0, memory_limit=0, container=""
   if shared_name is None:
     shared_name = ""
   shared_name = _execute.make_str(shared_name, "shared_name")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "OrderedMapIncompleteSize", dtypes=dtypes, capacity=capacity,
-        memory_limit=memory_limit, container=container,
-        shared_name=shared_name, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("capacity", _op.get_attr("capacity"), "memory_limit",
-              _op.get_attr("memory_limit"), "dtypes", _op.get_attr("dtypes"),
-              "container", _op.get_attr("container"), "shared_name",
-              _op.get_attr("shared_name"))
-  else:
-    _inputs_flat = []
-    _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
-              dtypes, "container", container, "shared_name", shared_name)
-    _result = _execute.execute(b"OrderedMapIncompleteSize", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+  _inputs_flat = []
+  _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
+  dtypes, "container", container, "shared_name", shared_name)
+  _result = _execute.execute(b"OrderedMapIncompleteSize", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "OrderedMapIncompleteSize", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('OrderedMapPeek')
 def ordered_map_peek(key, indices, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
   r"""Op peeks at the values at the specified key.  If the
 
@@ -1505,6 +2137,67 @@ def ordered_map_peek(key, indices, dtypes, capacity=0, memory_limit=0, container
   Returns:
     A list of `Tensor` objects of type `dtypes`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(dtypes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dtypes' argument to "
+          "'ordered_map_peek' Op, not %r." % dtypes)
+    dtypes = [_execute.make_type(_t, "dtypes") for _t in dtypes]
+    if capacity is None:
+      capacity = 0
+    capacity = _execute.make_int(capacity, "capacity")
+    if memory_limit is None:
+      memory_limit = 0
+    memory_limit = _execute.make_int(memory_limit, "memory_limit")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "OrderedMapPeek", key=key, indices=indices, dtypes=dtypes,
+        capacity=capacity, memory_limit=memory_limit, container=container,
+        shared_name=shared_name, name=name)
+    _result = _op.outputs[:]
+    if not _result:
+      return _op
+    _inputs_flat = _op.inputs
+    _attrs = ("capacity", _op.get_attr("capacity"), "memory_limit",
+              _op.get_attr("memory_limit"), "dtypes", _op.get_attr("dtypes"),
+              "container", _op.get_attr("container"), "shared_name",
+              _op.get_attr("shared_name"))
+    _execute.record_gradient(
+      "OrderedMapPeek", _inputs_flat, _attrs, _result, name)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "OrderedMapPeek", name,
+        _ctx._post_execution_callbacks, key, indices, "capacity", capacity,
+        "memory_limit", memory_limit, "dtypes", dtypes, "container",
+        container, "shared_name", shared_name)
+      return _result
+    except _core._FallbackException:
+      return ordered_map_peek_eager_fallback(
+          key, indices, capacity=capacity, memory_limit=memory_limit,
+          dtypes=dtypes, container=container, shared_name=shared_name,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def ordered_map_peek_eager_fallback(key, indices, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function ordered_map_peek
+  """
+  _ctx = _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -1522,35 +2215,19 @@ def ordered_map_peek(key, indices, dtypes, capacity=0, memory_limit=0, container
   if shared_name is None:
     shared_name = ""
   shared_name = _execute.make_str(shared_name, "shared_name")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "OrderedMapPeek", key=key, indices=indices, dtypes=dtypes,
-        capacity=capacity, memory_limit=memory_limit, container=container,
-        shared_name=shared_name, name=name)
-    _result = _op.outputs[:]
-    if not _result:
-      return _op
-    _inputs_flat = _op.inputs
-    _attrs = ("capacity", _op.get_attr("capacity"), "memory_limit",
-              _op.get_attr("memory_limit"), "dtypes", _op.get_attr("dtypes"),
-              "container", _op.get_attr("container"), "shared_name",
-              _op.get_attr("shared_name"))
-  else:
-    key = _ops.convert_to_tensor(key, _dtypes.int64)
-    indices = _ops.convert_to_tensor(indices, _dtypes.int32)
-    _inputs_flat = [key, indices]
-    _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
-              dtypes, "container", container, "shared_name", shared_name)
-    _result = _execute.execute(b"OrderedMapPeek", len(dtypes),
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+  key = _ops.convert_to_tensor(key, _dtypes.int64)
+  indices = _ops.convert_to_tensor(indices, _dtypes.int32)
+  _inputs_flat = [key, indices]
+  _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
+  dtypes, "container", container, "shared_name", shared_name)
+  _result = _execute.execute(b"OrderedMapPeek", len(dtypes),
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "OrderedMapPeek", _inputs_flat, _attrs, _result, name)
   return _result
 
 
-@tf_export('OrderedMapSize')
 def ordered_map_size(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
   r"""Op returns the number of elements in the underlying container.
 
@@ -1565,6 +2242,65 @@ def ordered_map_size(dtypes, capacity=0, memory_limit=0, container="", shared_na
   Returns:
     A `Tensor` of type `int32`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(dtypes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dtypes' argument to "
+          "'ordered_map_size' Op, not %r." % dtypes)
+    dtypes = [_execute.make_type(_t, "dtypes") for _t in dtypes]
+    if capacity is None:
+      capacity = 0
+    capacity = _execute.make_int(capacity, "capacity")
+    if memory_limit is None:
+      memory_limit = 0
+    memory_limit = _execute.make_int(memory_limit, "memory_limit")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "OrderedMapSize", dtypes=dtypes, capacity=capacity,
+        memory_limit=memory_limit, container=container,
+        shared_name=shared_name, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("capacity", _op.get_attr("capacity"), "memory_limit",
+              _op.get_attr("memory_limit"), "dtypes", _op.get_attr("dtypes"),
+              "container", _op.get_attr("container"), "shared_name",
+              _op.get_attr("shared_name"))
+    _execute.record_gradient(
+      "OrderedMapSize", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "OrderedMapSize", name,
+        _ctx._post_execution_callbacks, "capacity", capacity, "memory_limit",
+        memory_limit, "dtypes", dtypes, "container", container, "shared_name",
+        shared_name)
+      return _result
+    except _core._FallbackException:
+      return ordered_map_size_eager_fallback(
+          capacity=capacity, memory_limit=memory_limit, dtypes=dtypes,
+          container=container, shared_name=shared_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def ordered_map_size_eager_fallback(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function ordered_map_size
+  """
+  _ctx = _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -1582,31 +2318,17 @@ def ordered_map_size(dtypes, capacity=0, memory_limit=0, container="", shared_na
   if shared_name is None:
     shared_name = ""
   shared_name = _execute.make_str(shared_name, "shared_name")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "OrderedMapSize", dtypes=dtypes, capacity=capacity,
-        memory_limit=memory_limit, container=container,
-        shared_name=shared_name, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("capacity", _op.get_attr("capacity"), "memory_limit",
-              _op.get_attr("memory_limit"), "dtypes", _op.get_attr("dtypes"),
-              "container", _op.get_attr("container"), "shared_name",
-              _op.get_attr("shared_name"))
-  else:
-    _inputs_flat = []
-    _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
-              dtypes, "container", container, "shared_name", shared_name)
-    _result = _execute.execute(b"OrderedMapSize", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  _inputs_flat = []
+  _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
+  dtypes, "container", container, "shared_name", shared_name)
+  _result = _execute.execute(b"OrderedMapSize", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "OrderedMapSize", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('OrderedMapStage')
 def ordered_map_stage(key, indices, values, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
   r"""Stage (key, values) in the underlying container which behaves like a ordered
 
@@ -1632,6 +2354,59 @@ def ordered_map_stage(key, indices, values, dtypes, capacity=0, memory_limit=0, 
   Returns:
     The created Operation.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(dtypes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dtypes' argument to "
+          "'ordered_map_stage' Op, not %r." % dtypes)
+    dtypes = [_execute.make_type(_t, "dtypes") for _t in dtypes]
+    if capacity is None:
+      capacity = 0
+    capacity = _execute.make_int(capacity, "capacity")
+    if memory_limit is None:
+      memory_limit = 0
+    memory_limit = _execute.make_int(memory_limit, "memory_limit")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "OrderedMapStage", key=key, indices=indices, values=values,
+        dtypes=dtypes, capacity=capacity, memory_limit=memory_limit,
+        container=container, shared_name=shared_name, name=name)
+    return _op
+    _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "OrderedMapStage", name,
+        _ctx._post_execution_callbacks, key, indices, values, "capacity",
+        capacity, "memory_limit", memory_limit, "dtypes", dtypes, "container",
+        container, "shared_name", shared_name)
+      return _result
+    except _core._FallbackException:
+      return ordered_map_stage_eager_fallback(
+          key, indices, values, capacity=capacity, memory_limit=memory_limit,
+          dtypes=dtypes, container=container, shared_name=shared_name,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def ordered_map_stage_eager_fallback(key, indices, values, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function ordered_map_stage
+  """
+  _ctx = _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -1649,28 +2424,19 @@ def ordered_map_stage(key, indices, values, dtypes, capacity=0, memory_limit=0, 
   if shared_name is None:
     shared_name = ""
   shared_name = _execute.make_str(shared_name, "shared_name")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "OrderedMapStage", key=key, indices=indices, values=values,
-        dtypes=dtypes, capacity=capacity, memory_limit=memory_limit,
-        container=container, shared_name=shared_name, name=name)
-    return _op
-  else:
-    _attr_fake_dtypes, values = _execute.convert_to_mixed_eager_tensors(values, _ctx)
-    key = _ops.convert_to_tensor(key, _dtypes.int64)
-    indices = _ops.convert_to_tensor(indices, _dtypes.int32)
-    _inputs_flat = [key, indices] + list(values)
-    _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
-              dtypes, "fake_dtypes", _attr_fake_dtypes, "container",
-              container, "shared_name", shared_name)
-    _result = _execute.execute(b"OrderedMapStage", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
-    _result = None
+  _attr_fake_dtypes, values = _execute.convert_to_mixed_eager_tensors(values, _ctx)
+  key = _ops.convert_to_tensor(key, _dtypes.int64)
+  indices = _ops.convert_to_tensor(indices, _dtypes.int32)
+  _inputs_flat = [key, indices] + list(values)
+  _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
+  dtypes, "fake_dtypes", _attr_fake_dtypes, "container", container,
+  "shared_name", shared_name)
+  _result = _execute.execute(b"OrderedMapStage", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 
-@tf_export('OrderedMapUnstage')
 def ordered_map_unstage(key, indices, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
   r"""Op removes and returns the values associated with the key
 
@@ -1690,6 +2456,67 @@ def ordered_map_unstage(key, indices, dtypes, capacity=0, memory_limit=0, contai
   Returns:
     A list of `Tensor` objects of type `dtypes`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(dtypes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dtypes' argument to "
+          "'ordered_map_unstage' Op, not %r." % dtypes)
+    dtypes = [_execute.make_type(_t, "dtypes") for _t in dtypes]
+    if capacity is None:
+      capacity = 0
+    capacity = _execute.make_int(capacity, "capacity")
+    if memory_limit is None:
+      memory_limit = 0
+    memory_limit = _execute.make_int(memory_limit, "memory_limit")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "OrderedMapUnstage", key=key, indices=indices, dtypes=dtypes,
+        capacity=capacity, memory_limit=memory_limit, container=container,
+        shared_name=shared_name, name=name)
+    _result = _op.outputs[:]
+    if not _result:
+      return _op
+    _inputs_flat = _op.inputs
+    _attrs = ("capacity", _op.get_attr("capacity"), "memory_limit",
+              _op.get_attr("memory_limit"), "dtypes", _op.get_attr("dtypes"),
+              "container", _op.get_attr("container"), "shared_name",
+              _op.get_attr("shared_name"))
+    _execute.record_gradient(
+      "OrderedMapUnstage", _inputs_flat, _attrs, _result, name)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "OrderedMapUnstage", name,
+        _ctx._post_execution_callbacks, key, indices, "capacity", capacity,
+        "memory_limit", memory_limit, "dtypes", dtypes, "container",
+        container, "shared_name", shared_name)
+      return _result
+    except _core._FallbackException:
+      return ordered_map_unstage_eager_fallback(
+          key, indices, capacity=capacity, memory_limit=memory_limit,
+          dtypes=dtypes, container=container, shared_name=shared_name,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def ordered_map_unstage_eager_fallback(key, indices, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function ordered_map_unstage
+  """
+  _ctx = _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -1707,29 +2534,14 @@ def ordered_map_unstage(key, indices, dtypes, capacity=0, memory_limit=0, contai
   if shared_name is None:
     shared_name = ""
   shared_name = _execute.make_str(shared_name, "shared_name")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "OrderedMapUnstage", key=key, indices=indices, dtypes=dtypes,
-        capacity=capacity, memory_limit=memory_limit, container=container,
-        shared_name=shared_name, name=name)
-    _result = _op.outputs[:]
-    if not _result:
-      return _op
-    _inputs_flat = _op.inputs
-    _attrs = ("capacity", _op.get_attr("capacity"), "memory_limit",
-              _op.get_attr("memory_limit"), "dtypes", _op.get_attr("dtypes"),
-              "container", _op.get_attr("container"), "shared_name",
-              _op.get_attr("shared_name"))
-  else:
-    key = _ops.convert_to_tensor(key, _dtypes.int64)
-    indices = _ops.convert_to_tensor(indices, _dtypes.int32)
-    _inputs_flat = [key, indices]
-    _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
-              dtypes, "container", container, "shared_name", shared_name)
-    _result = _execute.execute(b"OrderedMapUnstage", len(dtypes),
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+  key = _ops.convert_to_tensor(key, _dtypes.int64)
+  indices = _ops.convert_to_tensor(indices, _dtypes.int32)
+  _inputs_flat = [key, indices]
+  _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
+  dtypes, "container", container, "shared_name", shared_name)
+  _result = _execute.execute(b"OrderedMapUnstage", len(dtypes),
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "OrderedMapUnstage", _inputs_flat, _attrs, _result, name)
   return _result
@@ -1740,7 +2552,6 @@ _OrderedMapUnstageNoKeyOutput = _collections.namedtuple(
     "OrderedMapUnstageNoKey", _ordered_map_unstage_no_key_outputs)
 
 
-@tf_export('OrderedMapUnstageNoKey')
 def ordered_map_unstage_no_key(indices, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
   r"""Op removes and returns the (key, value) element with the smallest
 
@@ -1762,6 +2573,68 @@ def ordered_map_unstage_no_key(indices, dtypes, capacity=0, memory_limit=0, cont
     key: A `Tensor` of type `int64`.
     values: A list of `Tensor` objects of type `dtypes`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(dtypes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dtypes' argument to "
+          "'ordered_map_unstage_no_key' Op, not %r." % dtypes)
+    dtypes = [_execute.make_type(_t, "dtypes") for _t in dtypes]
+    if capacity is None:
+      capacity = 0
+    capacity = _execute.make_int(capacity, "capacity")
+    if memory_limit is None:
+      memory_limit = 0
+    memory_limit = _execute.make_int(memory_limit, "memory_limit")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "OrderedMapUnstageNoKey", indices=indices, dtypes=dtypes,
+        capacity=capacity, memory_limit=memory_limit, container=container,
+        shared_name=shared_name, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("capacity", _op.get_attr("capacity"), "memory_limit",
+              _op.get_attr("memory_limit"), "dtypes", _op.get_attr("dtypes"),
+              "container", _op.get_attr("container"), "shared_name",
+              _op.get_attr("shared_name"))
+    _execute.record_gradient(
+      "OrderedMapUnstageNoKey", _inputs_flat, _attrs, _result, name)
+    _result = _result[:1] + [_result[1:]]
+    _result = _OrderedMapUnstageNoKeyOutput._make(_result)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "OrderedMapUnstageNoKey", name,
+        _ctx._post_execution_callbacks, indices, "capacity", capacity,
+        "memory_limit", memory_limit, "dtypes", dtypes, "container",
+        container, "shared_name", shared_name)
+      _result = _OrderedMapUnstageNoKeyOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return ordered_map_unstage_no_key_eager_fallback(
+          indices, capacity=capacity, memory_limit=memory_limit,
+          dtypes=dtypes, container=container, shared_name=shared_name,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def ordered_map_unstage_no_key_eager_fallback(indices, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function ordered_map_unstage_no_key
+  """
+  _ctx = _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -1779,26 +2652,13 @@ def ordered_map_unstage_no_key(indices, dtypes, capacity=0, memory_limit=0, cont
   if shared_name is None:
     shared_name = ""
   shared_name = _execute.make_str(shared_name, "shared_name")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "OrderedMapUnstageNoKey", indices=indices, dtypes=dtypes,
-        capacity=capacity, memory_limit=memory_limit, container=container,
-        shared_name=shared_name, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("capacity", _op.get_attr("capacity"), "memory_limit",
-              _op.get_attr("memory_limit"), "dtypes", _op.get_attr("dtypes"),
-              "container", _op.get_attr("container"), "shared_name",
-              _op.get_attr("shared_name"))
-  else:
-    indices = _ops.convert_to_tensor(indices, _dtypes.int32)
-    _inputs_flat = [indices]
-    _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
-              dtypes, "container", container, "shared_name", shared_name)
-    _result = _execute.execute(b"OrderedMapUnstageNoKey", len(dtypes) + 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+  indices = _ops.convert_to_tensor(indices, _dtypes.int32)
+  _inputs_flat = [indices]
+  _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
+  dtypes, "container", container, "shared_name", shared_name)
+  _result = _execute.execute(b"OrderedMapUnstageNoKey", len(dtypes) + 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "OrderedMapUnstageNoKey", _inputs_flat, _attrs, _result, name)
   _result = _result[:1] + [_result[1:]]
@@ -1806,7 +2666,7 @@ def ordered_map_unstage_no_key(indices, dtypes, capacity=0, memory_limit=0, cont
   return _result
 
 
-def _padding_fifo_queue(component_types, shapes=[], capacity=-1, container="", shared_name="", name=None):
+def padding_fifo_queue(component_types, shapes=[], capacity=-1, container="", shared_name="", name=None):
   r"""A queue that produces elements in first-in first-out order.
 
   Variable-size shapes are allowed by setting the corresponding shape dimensions
@@ -1837,31 +2697,31 @@ def _padding_fifo_queue(component_types, shapes=[], capacity=-1, container="", s
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type mutable `string`. The handle to the queue.
+    A `Tensor` of type mutable `string`.
   """
-  if not isinstance(component_types, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'component_types' argument to "
-        "'padding_fifo_queue' Op, not %r." % component_types)
-  component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
-  if shapes is None:
-    shapes = []
-  if not isinstance(shapes, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'shapes' argument to "
-        "'padding_fifo_queue' Op, not %r." % shapes)
-  shapes = [_execute.make_shape(_s, "shapes") for _s in shapes]
-  if capacity is None:
-    capacity = -1
-  capacity = _execute.make_int(capacity, "capacity")
-  if container is None:
-    container = ""
-  container = _execute.make_str(container, "container")
-  if shared_name is None:
-    shared_name = ""
-  shared_name = _execute.make_str(shared_name, "shared_name")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(component_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'component_types' argument to "
+          "'padding_fifo_queue' Op, not %r." % component_types)
+    component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
+    if shapes is None:
+      shapes = []
+    if not isinstance(shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'shapes' argument to "
+          "'padding_fifo_queue' Op, not %r." % shapes)
+    shapes = [_execute.make_shape(_s, "shapes") for _s in shapes]
+    if capacity is None:
+      capacity = -1
+    capacity = _execute.make_int(capacity, "capacity")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
     _, _, _op = _op_def_lib._apply_op_helper(
         "PaddingFIFOQueue", component_types=component_types, shapes=shapes,
         capacity=capacity, container=container, shared_name=shared_name,
@@ -1872,16 +2732,18 @@ def _padding_fifo_queue(component_types, shapes=[], capacity=-1, container="", s
               _op.get_attr("shapes"), "capacity", _op.get_attr("capacity"),
               "container", _op.get_attr("container"), "shared_name",
               _op.get_attr("shared_name"))
-  else:
-    raise RuntimeError(
-        "padding_fifo_queue op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "PaddingFIFOQueue", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("padding_fifo_queue op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _padding_fifo_queue_v2(component_types, shapes=[], capacity=-1, container="", shared_name="", name=None):
+  raise RuntimeError("padding_fifo_queue op does not support eager execution. Arg 'handle' is a ref.")
+
+def padding_fifo_queue_v2(component_types, shapes=[], capacity=-1, container="", shared_name="", name=None):
   r"""A queue that produces elements in first-in first-out order.
 
   Variable-size shapes are allowed by setting the corresponding shape dimensions
@@ -1912,8 +2774,71 @@ def _padding_fifo_queue_v2(component_types, shapes=[], capacity=-1, container=""
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type `resource`. The handle to the queue.
+    A `Tensor` of type `resource`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(component_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'component_types' argument to "
+          "'padding_fifo_queue_v2' Op, not %r." % component_types)
+    component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
+    if shapes is None:
+      shapes = []
+    if not isinstance(shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'shapes' argument to "
+          "'padding_fifo_queue_v2' Op, not %r." % shapes)
+    shapes = [_execute.make_shape(_s, "shapes") for _s in shapes]
+    if capacity is None:
+      capacity = -1
+    capacity = _execute.make_int(capacity, "capacity")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "PaddingFIFOQueueV2", component_types=component_types, shapes=shapes,
+        capacity=capacity, container=container, shared_name=shared_name,
+        name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("component_types", _op.get_attr("component_types"), "shapes",
+              _op.get_attr("shapes"), "capacity", _op.get_attr("capacity"),
+              "container", _op.get_attr("container"), "shared_name",
+              _op.get_attr("shared_name"))
+    _execute.record_gradient(
+      "PaddingFIFOQueueV2", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "PaddingFIFOQueueV2", name,
+        _ctx._post_execution_callbacks, "component_types", component_types,
+        "shapes", shapes, "capacity", capacity, "container", container,
+        "shared_name", shared_name)
+      return _result
+    except _core._FallbackException:
+      return padding_fifo_queue_v2_eager_fallback(
+          component_types=component_types, shapes=shapes, capacity=capacity,
+          container=container, shared_name=shared_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def padding_fifo_queue_v2_eager_fallback(component_types, shapes=[], capacity=-1, container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function padding_fifo_queue_v2
+  """
+  _ctx = _context.context()
   if not isinstance(component_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'component_types' argument to "
@@ -1935,32 +2860,17 @@ def _padding_fifo_queue_v2(component_types, shapes=[], capacity=-1, container=""
   if shared_name is None:
     shared_name = ""
   shared_name = _execute.make_str(shared_name, "shared_name")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "PaddingFIFOQueueV2", component_types=component_types, shapes=shapes,
-        capacity=capacity, container=container, shared_name=shared_name,
-        name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("component_types", _op.get_attr("component_types"), "shapes",
-              _op.get_attr("shapes"), "capacity", _op.get_attr("capacity"),
-              "container", _op.get_attr("container"), "shared_name",
-              _op.get_attr("shared_name"))
-  else:
-    _inputs_flat = []
-    _attrs = ("component_types", component_types, "shapes", shapes,
-              "capacity", capacity, "container", container, "shared_name",
-              shared_name)
-    _result = _execute.execute(b"PaddingFIFOQueueV2", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  _inputs_flat = []
+  _attrs = ("component_types", component_types, "shapes", shapes, "capacity",
+  capacity, "container", container, "shared_name", shared_name)
+  _result = _execute.execute(b"PaddingFIFOQueueV2", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "PaddingFIFOQueueV2", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('ParallelDynamicStitch')
 def parallel_dynamic_stitch(indices, data, name=None):
   r"""Interleave the values from the `data` tensors into a single tensor.
 
@@ -2034,6 +2944,54 @@ def parallel_dynamic_stitch(indices, data, name=None):
   Returns:
     A `Tensor`. Has the same type as `data`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(indices, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'indices' argument to "
+          "'parallel_dynamic_stitch' Op, not %r." % indices)
+    _attr_N = len(indices)
+    if not isinstance(data, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'data' argument to "
+          "'parallel_dynamic_stitch' Op, not %r." % data)
+    if len(data) != _attr_N:
+      raise ValueError(
+          "List argument 'data' to 'parallel_dynamic_stitch' Op with length %d "
+          "must match length %d of argument 'indices'." %
+          (len(data), _attr_N))
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "ParallelDynamicStitch", indices=indices, data=data, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("N", _op.get_attr("N"), "T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "ParallelDynamicStitch", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "ParallelDynamicStitch", name,
+        _ctx._post_execution_callbacks, indices, data)
+      return _result
+    except _core._FallbackException:
+      return parallel_dynamic_stitch_eager_fallback(
+          indices, data, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def parallel_dynamic_stitch_eager_fallback(indices, data, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function parallel_dynamic_stitch
+  """
+  _ctx = _context.context()
   if not isinstance(indices, (list, tuple)):
     raise TypeError(
         "Expected list for 'indices' argument to "
@@ -2048,28 +3006,19 @@ def parallel_dynamic_stitch(indices, data, name=None):
         "List argument 'data' to 'parallel_dynamic_stitch' Op with length %d "
         "must match length %d of argument 'indices'." %
         (len(data), _attr_N))
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "ParallelDynamicStitch", indices=indices, data=data, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("N", _op.get_attr("N"), "T", _op.get_attr("T"))
-  else:
-    _attr_T, data = _execute.args_to_matching_eager(list(data), _ctx)
-    indices = _ops.convert_n_to_tensor(indices, _dtypes.int32)
-    _inputs_flat = list(indices) + list(data)
-    _attrs = ("N", _attr_N, "T", _attr_T)
-    _result = _execute.execute(b"ParallelDynamicStitch", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+  _attr_T, data = _execute.args_to_matching_eager(list(data), _ctx)
+  indices = _ops.convert_n_to_tensor(indices, _dtypes.int32)
+  _inputs_flat = list(indices) + list(data)
+  _attrs = ("N", _attr_N, "T", _attr_T)
+  _result = _execute.execute(b"ParallelDynamicStitch", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "ParallelDynamicStitch", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-def _priority_queue(shapes, component_types=[], capacity=-1, container="", shared_name="", name=None):
+def priority_queue(shapes, component_types=[], capacity=-1, container="", shared_name="", name=None):
   r"""A queue that produces elements sorted by the first component value.
 
   Note that the PriorityQueue requires the first component of any element
@@ -2098,31 +3047,31 @@ def _priority_queue(shapes, component_types=[], capacity=-1, container="", share
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type mutable `string`. The handle to the queue.
+    A `Tensor` of type mutable `string`.
   """
-  if not isinstance(shapes, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'shapes' argument to "
-        "'priority_queue' Op, not %r." % shapes)
-  shapes = [_execute.make_shape(_s, "shapes") for _s in shapes]
-  if component_types is None:
-    component_types = []
-  if not isinstance(component_types, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'component_types' argument to "
-        "'priority_queue' Op, not %r." % component_types)
-  component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
-  if capacity is None:
-    capacity = -1
-  capacity = _execute.make_int(capacity, "capacity")
-  if container is None:
-    container = ""
-  container = _execute.make_str(container, "container")
-  if shared_name is None:
-    shared_name = ""
-  shared_name = _execute.make_str(shared_name, "shared_name")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'shapes' argument to "
+          "'priority_queue' Op, not %r." % shapes)
+    shapes = [_execute.make_shape(_s, "shapes") for _s in shapes]
+    if component_types is None:
+      component_types = []
+    if not isinstance(component_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'component_types' argument to "
+          "'priority_queue' Op, not %r." % component_types)
+    component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
+    if capacity is None:
+      capacity = -1
+    capacity = _execute.make_int(capacity, "capacity")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
     _, _, _op = _op_def_lib._apply_op_helper(
         "PriorityQueue", shapes=shapes, component_types=component_types,
         capacity=capacity, container=container, shared_name=shared_name,
@@ -2133,16 +3082,18 @@ def _priority_queue(shapes, component_types=[], capacity=-1, container="", share
               _op.get_attr("shapes"), "capacity", _op.get_attr("capacity"),
               "container", _op.get_attr("container"), "shared_name",
               _op.get_attr("shared_name"))
-  else:
-    raise RuntimeError(
-        "priority_queue op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "PriorityQueue", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("priority_queue op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _priority_queue_v2(shapes, component_types=[], capacity=-1, container="", shared_name="", name=None):
+  raise RuntimeError("priority_queue op does not support eager execution. Arg 'handle' is a ref.")
+
+def priority_queue_v2(shapes, component_types=[], capacity=-1, container="", shared_name="", name=None):
   r"""A queue that produces elements sorted by the first component value.
 
   Note that the PriorityQueue requires the first component of any element
@@ -2171,8 +3122,71 @@ def _priority_queue_v2(shapes, component_types=[], capacity=-1, container="", sh
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type `resource`. The handle to the queue.
+    A `Tensor` of type `resource`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'shapes' argument to "
+          "'priority_queue_v2' Op, not %r." % shapes)
+    shapes = [_execute.make_shape(_s, "shapes") for _s in shapes]
+    if component_types is None:
+      component_types = []
+    if not isinstance(component_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'component_types' argument to "
+          "'priority_queue_v2' Op, not %r." % component_types)
+    component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
+    if capacity is None:
+      capacity = -1
+    capacity = _execute.make_int(capacity, "capacity")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "PriorityQueueV2", shapes=shapes, component_types=component_types,
+        capacity=capacity, container=container, shared_name=shared_name,
+        name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("component_types", _op.get_attr("component_types"), "shapes",
+              _op.get_attr("shapes"), "capacity", _op.get_attr("capacity"),
+              "container", _op.get_attr("container"), "shared_name",
+              _op.get_attr("shared_name"))
+    _execute.record_gradient(
+      "PriorityQueueV2", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "PriorityQueueV2", name,
+        _ctx._post_execution_callbacks, "component_types", component_types,
+        "shapes", shapes, "capacity", capacity, "container", container,
+        "shared_name", shared_name)
+      return _result
+    except _core._FallbackException:
+      return priority_queue_v2_eager_fallback(
+          component_types=component_types, shapes=shapes, capacity=capacity,
+          container=container, shared_name=shared_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def priority_queue_v2_eager_fallback(shapes, component_types=[], capacity=-1, container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function priority_queue_v2
+  """
+  _ctx = _context.context()
   if not isinstance(shapes, (list, tuple)):
     raise TypeError(
         "Expected list for 'shapes' argument to "
@@ -2194,32 +3208,18 @@ def _priority_queue_v2(shapes, component_types=[], capacity=-1, container="", sh
   if shared_name is None:
     shared_name = ""
   shared_name = _execute.make_str(shared_name, "shared_name")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "PriorityQueueV2", shapes=shapes, component_types=component_types,
-        capacity=capacity, container=container, shared_name=shared_name,
-        name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("component_types", _op.get_attr("component_types"), "shapes",
-              _op.get_attr("shapes"), "capacity", _op.get_attr("capacity"),
-              "container", _op.get_attr("container"), "shared_name",
-              _op.get_attr("shared_name"))
-  else:
-    _inputs_flat = []
-    _attrs = ("component_types", component_types, "shapes", shapes,
-              "capacity", capacity, "container", container, "shared_name",
-              shared_name)
-    _result = _execute.execute(b"PriorityQueueV2", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  _inputs_flat = []
+  _attrs = ("component_types", component_types, "shapes", shapes, "capacity",
+  capacity, "container", container, "shared_name", shared_name)
+  _result = _execute.execute(b"PriorityQueueV2", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "PriorityQueueV2", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-def _queue_close(handle, cancel_pending_enqueues=False, name=None):
+def queue_close(handle, cancel_pending_enqueues=False, name=None):
   r"""Closes the given queue.
 
   This operation signals that no more elements will be enqueued in the
@@ -2238,23 +3238,25 @@ def _queue_close(handle, cancel_pending_enqueues=False, name=None):
   Returns:
     The created Operation.
   """
-  if cancel_pending_enqueues is None:
-    cancel_pending_enqueues = False
-  cancel_pending_enqueues = _execute.make_bool(cancel_pending_enqueues, "cancel_pending_enqueues")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if cancel_pending_enqueues is None:
+      cancel_pending_enqueues = False
+    cancel_pending_enqueues = _execute.make_bool(cancel_pending_enqueues, "cancel_pending_enqueues")
     _, _, _op = _op_def_lib._apply_op_helper(
         "QueueClose", handle=handle,
         cancel_pending_enqueues=cancel_pending_enqueues, name=name)
     return _op
-  else:
-    raise RuntimeError(
-        "queue_close op does not support eager execution. Arg 'handle'' is a ref.")
     _result = None
-  return _result
+    return _result
+
+  else:
+    raise RuntimeError("queue_close op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _queue_close_v2(handle, cancel_pending_enqueues=False, name=None):
+  raise RuntimeError("queue_close op does not support eager execution. Arg 'handle' is a ref.")
+
+def queue_close_v2(handle, cancel_pending_enqueues=False, name=None):
   r"""Closes the given queue.
 
   This operation signals that no more elements will be enqueued in the
@@ -2273,26 +3275,54 @@ def _queue_close_v2(handle, cancel_pending_enqueues=False, name=None):
   Returns:
     The created Operation.
   """
-  if cancel_pending_enqueues is None:
-    cancel_pending_enqueues = False
-  cancel_pending_enqueues = _execute.make_bool(cancel_pending_enqueues, "cancel_pending_enqueues")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if cancel_pending_enqueues is None:
+      cancel_pending_enqueues = False
+    cancel_pending_enqueues = _execute.make_bool(cancel_pending_enqueues, "cancel_pending_enqueues")
     _, _, _op = _op_def_lib._apply_op_helper(
         "QueueCloseV2", handle=handle,
         cancel_pending_enqueues=cancel_pending_enqueues, name=name)
     return _op
-  else:
-    handle = _ops.convert_to_tensor(handle, _dtypes.resource)
-    _inputs_flat = [handle]
-    _attrs = ("cancel_pending_enqueues", cancel_pending_enqueues)
-    _result = _execute.execute(b"QueueCloseV2", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "QueueCloseV2", name,
+        _ctx._post_execution_callbacks, handle, "cancel_pending_enqueues",
+        cancel_pending_enqueues)
+      return _result
+    except _core._FallbackException:
+      return queue_close_v2_eager_fallback(
+          handle, cancel_pending_enqueues=cancel_pending_enqueues, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def queue_close_v2_eager_fallback(handle, cancel_pending_enqueues=False, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function queue_close_v2
+  """
+  _ctx = _context.context()
+  if cancel_pending_enqueues is None:
+    cancel_pending_enqueues = False
+  cancel_pending_enqueues = _execute.make_bool(cancel_pending_enqueues, "cancel_pending_enqueues")
+  handle = _ops.convert_to_tensor(handle, _dtypes.resource)
+  _inputs_flat = [handle]
+  _attrs = ("cancel_pending_enqueues", cancel_pending_enqueues)
+  _result = _execute.execute(b"QueueCloseV2", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 
-def _queue_dequeue(handle, component_types, timeout_ms=-1, name=None):
+def queue_dequeue(handle, component_types, timeout_ms=-1, name=None):
   r"""Dequeues a tuple of one or more tensors from the given queue.
 
   This operation has k outputs, where k is the number of components
@@ -2314,18 +3344,17 @@ def _queue_dequeue(handle, component_types, timeout_ms=-1, name=None):
 
   Returns:
     A list of `Tensor` objects of type `component_types`.
-    One or more tensors that were dequeued as a tuple.
   """
-  if not isinstance(component_types, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'component_types' argument to "
-        "'queue_dequeue' Op, not %r." % component_types)
-  component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
-  if timeout_ms is None:
-    timeout_ms = -1
-  timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(component_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'component_types' argument to "
+          "'queue_dequeue' Op, not %r." % component_types)
+    component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
+    if timeout_ms is None:
+      timeout_ms = -1
+    timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
     _, _, _op = _op_def_lib._apply_op_helper(
         "QueueDequeue", handle=handle, component_types=component_types,
         timeout_ms=timeout_ms, name=name)
@@ -2333,15 +3362,17 @@ def _queue_dequeue(handle, component_types, timeout_ms=-1, name=None):
     _inputs_flat = _op.inputs
     _attrs = ("component_types", _op.get_attr("component_types"),
               "timeout_ms", _op.get_attr("timeout_ms"))
-  else:
-    raise RuntimeError(
-        "queue_dequeue op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "QueueDequeue", _inputs_flat, _attrs, _result, name)
-  return _result
+    return _result
+
+  else:
+    raise RuntimeError("queue_dequeue op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _queue_dequeue_many(handle, n, component_types, timeout_ms=-1, name=None):
+  raise RuntimeError("queue_dequeue op does not support eager execution. Arg 'handle' is a ref.")
+
+def queue_dequeue_many(handle, n, component_types, timeout_ms=-1, name=None):
   r"""Dequeues `n` tuples of one or more tensors from the given queue.
 
   If the queue is closed and there are fewer than `n` elements, then an
@@ -2371,18 +3402,17 @@ def _queue_dequeue_many(handle, n, component_types, timeout_ms=-1, name=None):
 
   Returns:
     A list of `Tensor` objects of type `component_types`.
-    One or more tensors that were dequeued as a tuple.
   """
-  if not isinstance(component_types, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'component_types' argument to "
-        "'queue_dequeue_many' Op, not %r." % component_types)
-  component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
-  if timeout_ms is None:
-    timeout_ms = -1
-  timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(component_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'component_types' argument to "
+          "'queue_dequeue_many' Op, not %r." % component_types)
+    component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
+    if timeout_ms is None:
+      timeout_ms = -1
+    timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
     _, _, _op = _op_def_lib._apply_op_helper(
         "QueueDequeueMany", handle=handle, n=n,
         component_types=component_types, timeout_ms=timeout_ms, name=name)
@@ -2390,15 +3420,17 @@ def _queue_dequeue_many(handle, n, component_types, timeout_ms=-1, name=None):
     _inputs_flat = _op.inputs
     _attrs = ("component_types", _op.get_attr("component_types"),
               "timeout_ms", _op.get_attr("timeout_ms"))
-  else:
-    raise RuntimeError(
-        "queue_dequeue_many op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "QueueDequeueMany", _inputs_flat, _attrs, _result, name)
-  return _result
+    return _result
+
+  else:
+    raise RuntimeError("queue_dequeue_many op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _queue_dequeue_many_v2(handle, n, component_types, timeout_ms=-1, name=None):
+  raise RuntimeError("queue_dequeue_many op does not support eager execution. Arg 'handle' is a ref.")
+
+def queue_dequeue_many_v2(handle, n, component_types, timeout_ms=-1, name=None):
   r"""Dequeues `n` tuples of one or more tensors from the given queue.
 
   If the queue is closed and there are fewer than `n` elements, then an
@@ -2428,18 +3460,17 @@ def _queue_dequeue_many_v2(handle, n, component_types, timeout_ms=-1, name=None)
 
   Returns:
     A list of `Tensor` objects of type `component_types`.
-    One or more tensors that were dequeued as a tuple.
   """
-  if not isinstance(component_types, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'component_types' argument to "
-        "'queue_dequeue_many_v2' Op, not %r." % component_types)
-  component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
-  if timeout_ms is None:
-    timeout_ms = -1
-  timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(component_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'component_types' argument to "
+          "'queue_dequeue_many_v2' Op, not %r." % component_types)
+    component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
+    if timeout_ms is None:
+      timeout_ms = -1
+    timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
     _, _, _op = _op_def_lib._apply_op_helper(
         "QueueDequeueManyV2", handle=handle, n=n,
         component_types=component_types, timeout_ms=timeout_ms, name=name)
@@ -2449,20 +3480,55 @@ def _queue_dequeue_many_v2(handle, n, component_types, timeout_ms=-1, name=None)
     _inputs_flat = _op.inputs
     _attrs = ("component_types", _op.get_attr("component_types"),
               "timeout_ms", _op.get_attr("timeout_ms"))
+    _execute.record_gradient(
+      "QueueDequeueManyV2", _inputs_flat, _attrs, _result, name)
+    return _result
+
   else:
-    handle = _ops.convert_to_tensor(handle, _dtypes.resource)
-    n = _ops.convert_to_tensor(n, _dtypes.int32)
-    _inputs_flat = [handle, n]
-    _attrs = ("component_types", component_types, "timeout_ms", timeout_ms)
-    _result = _execute.execute(b"QueueDequeueManyV2", len(component_types),
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "QueueDequeueManyV2", name,
+        _ctx._post_execution_callbacks, handle, n, "component_types",
+        component_types, "timeout_ms", timeout_ms)
+      return _result
+    except _core._FallbackException:
+      return queue_dequeue_many_v2_eager_fallback(
+          handle, n, component_types=component_types, timeout_ms=timeout_ms,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def queue_dequeue_many_v2_eager_fallback(handle, n, component_types, timeout_ms=-1, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function queue_dequeue_many_v2
+  """
+  _ctx = _context.context()
+  if not isinstance(component_types, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'component_types' argument to "
+        "'queue_dequeue_many_v2' Op, not %r." % component_types)
+  component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
+  if timeout_ms is None:
+    timeout_ms = -1
+  timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
+  handle = _ops.convert_to_tensor(handle, _dtypes.resource)
+  n = _ops.convert_to_tensor(n, _dtypes.int32)
+  _inputs_flat = [handle, n]
+  _attrs = ("component_types", component_types, "timeout_ms", timeout_ms)
+  _result = _execute.execute(b"QueueDequeueManyV2", len(component_types),
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "QueueDequeueManyV2", _inputs_flat, _attrs, _result, name)
   return _result
 
 
-def _queue_dequeue_up_to(handle, n, component_types, timeout_ms=-1, name=None):
+def queue_dequeue_up_to(handle, n, component_types, timeout_ms=-1, name=None):
   r"""Dequeues `n` tuples of one or more tensors from the given queue.
 
   This operation is not supported by all queues.  If a queue does not support
@@ -2496,18 +3562,17 @@ def _queue_dequeue_up_to(handle, n, component_types, timeout_ms=-1, name=None):
 
   Returns:
     A list of `Tensor` objects of type `component_types`.
-    One or more tensors that were dequeued as a tuple.
   """
-  if not isinstance(component_types, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'component_types' argument to "
-        "'queue_dequeue_up_to' Op, not %r." % component_types)
-  component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
-  if timeout_ms is None:
-    timeout_ms = -1
-  timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(component_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'component_types' argument to "
+          "'queue_dequeue_up_to' Op, not %r." % component_types)
+    component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
+    if timeout_ms is None:
+      timeout_ms = -1
+    timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
     _, _, _op = _op_def_lib._apply_op_helper(
         "QueueDequeueUpTo", handle=handle, n=n,
         component_types=component_types, timeout_ms=timeout_ms, name=name)
@@ -2515,15 +3580,17 @@ def _queue_dequeue_up_to(handle, n, component_types, timeout_ms=-1, name=None):
     _inputs_flat = _op.inputs
     _attrs = ("component_types", _op.get_attr("component_types"),
               "timeout_ms", _op.get_attr("timeout_ms"))
-  else:
-    raise RuntimeError(
-        "queue_dequeue_up_to op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "QueueDequeueUpTo", _inputs_flat, _attrs, _result, name)
-  return _result
+    return _result
+
+  else:
+    raise RuntimeError("queue_dequeue_up_to op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _queue_dequeue_up_to_v2(handle, n, component_types, timeout_ms=-1, name=None):
+  raise RuntimeError("queue_dequeue_up_to op does not support eager execution. Arg 'handle' is a ref.")
+
+def queue_dequeue_up_to_v2(handle, n, component_types, timeout_ms=-1, name=None):
   r"""Dequeues `n` tuples of one or more tensors from the given queue.
 
   This operation is not supported by all queues.  If a queue does not support
@@ -2557,18 +3624,17 @@ def _queue_dequeue_up_to_v2(handle, n, component_types, timeout_ms=-1, name=None
 
   Returns:
     A list of `Tensor` objects of type `component_types`.
-    One or more tensors that were dequeued as a tuple.
   """
-  if not isinstance(component_types, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'component_types' argument to "
-        "'queue_dequeue_up_to_v2' Op, not %r." % component_types)
-  component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
-  if timeout_ms is None:
-    timeout_ms = -1
-  timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(component_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'component_types' argument to "
+          "'queue_dequeue_up_to_v2' Op, not %r." % component_types)
+    component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
+    if timeout_ms is None:
+      timeout_ms = -1
+    timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
     _, _, _op = _op_def_lib._apply_op_helper(
         "QueueDequeueUpToV2", handle=handle, n=n,
         component_types=component_types, timeout_ms=timeout_ms, name=name)
@@ -2578,20 +3644,55 @@ def _queue_dequeue_up_to_v2(handle, n, component_types, timeout_ms=-1, name=None
     _inputs_flat = _op.inputs
     _attrs = ("component_types", _op.get_attr("component_types"),
               "timeout_ms", _op.get_attr("timeout_ms"))
+    _execute.record_gradient(
+      "QueueDequeueUpToV2", _inputs_flat, _attrs, _result, name)
+    return _result
+
   else:
-    handle = _ops.convert_to_tensor(handle, _dtypes.resource)
-    n = _ops.convert_to_tensor(n, _dtypes.int32)
-    _inputs_flat = [handle, n]
-    _attrs = ("component_types", component_types, "timeout_ms", timeout_ms)
-    _result = _execute.execute(b"QueueDequeueUpToV2", len(component_types),
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "QueueDequeueUpToV2", name,
+        _ctx._post_execution_callbacks, handle, n, "component_types",
+        component_types, "timeout_ms", timeout_ms)
+      return _result
+    except _core._FallbackException:
+      return queue_dequeue_up_to_v2_eager_fallback(
+          handle, n, component_types=component_types, timeout_ms=timeout_ms,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def queue_dequeue_up_to_v2_eager_fallback(handle, n, component_types, timeout_ms=-1, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function queue_dequeue_up_to_v2
+  """
+  _ctx = _context.context()
+  if not isinstance(component_types, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'component_types' argument to "
+        "'queue_dequeue_up_to_v2' Op, not %r." % component_types)
+  component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
+  if timeout_ms is None:
+    timeout_ms = -1
+  timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
+  handle = _ops.convert_to_tensor(handle, _dtypes.resource)
+  n = _ops.convert_to_tensor(n, _dtypes.int32)
+  _inputs_flat = [handle, n]
+  _attrs = ("component_types", component_types, "timeout_ms", timeout_ms)
+  _result = _execute.execute(b"QueueDequeueUpToV2", len(component_types),
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "QueueDequeueUpToV2", _inputs_flat, _attrs, _result, name)
   return _result
 
 
-def _queue_dequeue_v2(handle, component_types, timeout_ms=-1, name=None):
+def queue_dequeue_v2(handle, component_types, timeout_ms=-1, name=None):
   r"""Dequeues a tuple of one or more tensors from the given queue.
 
   This operation has k outputs, where k is the number of components
@@ -2613,18 +3714,17 @@ def _queue_dequeue_v2(handle, component_types, timeout_ms=-1, name=None):
 
   Returns:
     A list of `Tensor` objects of type `component_types`.
-    One or more tensors that were dequeued as a tuple.
   """
-  if not isinstance(component_types, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'component_types' argument to "
-        "'queue_dequeue_v2' Op, not %r." % component_types)
-  component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
-  if timeout_ms is None:
-    timeout_ms = -1
-  timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(component_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'component_types' argument to "
+          "'queue_dequeue_v2' Op, not %r." % component_types)
+    component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
+    if timeout_ms is None:
+      timeout_ms = -1
+    timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
     _, _, _op = _op_def_lib._apply_op_helper(
         "QueueDequeueV2", handle=handle, component_types=component_types,
         timeout_ms=timeout_ms, name=name)
@@ -2634,19 +3734,54 @@ def _queue_dequeue_v2(handle, component_types, timeout_ms=-1, name=None):
     _inputs_flat = _op.inputs
     _attrs = ("component_types", _op.get_attr("component_types"),
               "timeout_ms", _op.get_attr("timeout_ms"))
+    _execute.record_gradient(
+      "QueueDequeueV2", _inputs_flat, _attrs, _result, name)
+    return _result
+
   else:
-    handle = _ops.convert_to_tensor(handle, _dtypes.resource)
-    _inputs_flat = [handle]
-    _attrs = ("component_types", component_types, "timeout_ms", timeout_ms)
-    _result = _execute.execute(b"QueueDequeueV2", len(component_types),
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "QueueDequeueV2", name,
+        _ctx._post_execution_callbacks, handle, "component_types",
+        component_types, "timeout_ms", timeout_ms)
+      return _result
+    except _core._FallbackException:
+      return queue_dequeue_v2_eager_fallback(
+          handle, component_types=component_types, timeout_ms=timeout_ms,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def queue_dequeue_v2_eager_fallback(handle, component_types, timeout_ms=-1, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function queue_dequeue_v2
+  """
+  _ctx = _context.context()
+  if not isinstance(component_types, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'component_types' argument to "
+        "'queue_dequeue_v2' Op, not %r." % component_types)
+  component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
+  if timeout_ms is None:
+    timeout_ms = -1
+  timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
+  handle = _ops.convert_to_tensor(handle, _dtypes.resource)
+  _inputs_flat = [handle]
+  _attrs = ("component_types", component_types, "timeout_ms", timeout_ms)
+  _result = _execute.execute(b"QueueDequeueV2", len(component_types),
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "QueueDequeueV2", _inputs_flat, _attrs, _result, name)
   return _result
 
 
-def _queue_enqueue(handle, components, timeout_ms=-1, name=None):
+def queue_enqueue(handle, components, timeout_ms=-1, name=None):
   r"""Enqueues a tuple of one or more tensors in the given queue.
 
   The components input has k elements, which correspond to the components of
@@ -2668,23 +3803,25 @@ def _queue_enqueue(handle, components, timeout_ms=-1, name=None):
   Returns:
     The created Operation.
   """
-  if timeout_ms is None:
-    timeout_ms = -1
-  timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if timeout_ms is None:
+      timeout_ms = -1
+    timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
     _, _, _op = _op_def_lib._apply_op_helper(
         "QueueEnqueue", handle=handle, components=components,
         timeout_ms=timeout_ms, name=name)
     return _op
-  else:
-    raise RuntimeError(
-        "queue_enqueue op does not support eager execution. Arg 'handle'' is a ref.")
     _result = None
-  return _result
+    return _result
+
+  else:
+    raise RuntimeError("queue_enqueue op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _queue_enqueue_many(handle, components, timeout_ms=-1, name=None):
+  raise RuntimeError("queue_enqueue op does not support eager execution. Arg 'handle' is a ref.")
+
+def queue_enqueue_many(handle, components, timeout_ms=-1, name=None):
   r"""Enqueues zero or more tuples of one or more tensors in the given queue.
 
   This operation slices each component tensor along the 0th dimension to
@@ -2711,23 +3848,25 @@ def _queue_enqueue_many(handle, components, timeout_ms=-1, name=None):
   Returns:
     The created Operation.
   """
-  if timeout_ms is None:
-    timeout_ms = -1
-  timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if timeout_ms is None:
+      timeout_ms = -1
+    timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
     _, _, _op = _op_def_lib._apply_op_helper(
         "QueueEnqueueMany", handle=handle, components=components,
         timeout_ms=timeout_ms, name=name)
     return _op
-  else:
-    raise RuntimeError(
-        "queue_enqueue_many op does not support eager execution. Arg 'handle'' is a ref.")
     _result = None
-  return _result
+    return _result
+
+  else:
+    raise RuntimeError("queue_enqueue_many op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _queue_enqueue_many_v2(handle, components, timeout_ms=-1, name=None):
+  raise RuntimeError("queue_enqueue_many op does not support eager execution. Arg 'handle' is a ref.")
+
+def queue_enqueue_many_v2(handle, components, timeout_ms=-1, name=None):
   r"""Enqueues zero or more tuples of one or more tensors in the given queue.
 
   This operation slices each component tensor along the 0th dimension to
@@ -2754,27 +3893,55 @@ def _queue_enqueue_many_v2(handle, components, timeout_ms=-1, name=None):
   Returns:
     The created Operation.
   """
-  if timeout_ms is None:
-    timeout_ms = -1
-  timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if timeout_ms is None:
+      timeout_ms = -1
+    timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
     _, _, _op = _op_def_lib._apply_op_helper(
         "QueueEnqueueManyV2", handle=handle, components=components,
         timeout_ms=timeout_ms, name=name)
     return _op
-  else:
-    _attr_Tcomponents, components = _execute.convert_to_mixed_eager_tensors(components, _ctx)
-    handle = _ops.convert_to_tensor(handle, _dtypes.resource)
-    _inputs_flat = [handle] + list(components)
-    _attrs = ("Tcomponents", _attr_Tcomponents, "timeout_ms", timeout_ms)
-    _result = _execute.execute(b"QueueEnqueueManyV2", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "QueueEnqueueManyV2", name,
+        _ctx._post_execution_callbacks, handle, components, "timeout_ms",
+        timeout_ms)
+      return _result
+    except _core._FallbackException:
+      return queue_enqueue_many_v2_eager_fallback(
+          handle, components, timeout_ms=timeout_ms, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def queue_enqueue_many_v2_eager_fallback(handle, components, timeout_ms=-1, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function queue_enqueue_many_v2
+  """
+  _ctx = _context.context()
+  if timeout_ms is None:
+    timeout_ms = -1
+  timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
+  _attr_Tcomponents, components = _execute.convert_to_mixed_eager_tensors(components, _ctx)
+  handle = _ops.convert_to_tensor(handle, _dtypes.resource)
+  _inputs_flat = [handle] + list(components)
+  _attrs = ("Tcomponents", _attr_Tcomponents, "timeout_ms", timeout_ms)
+  _result = _execute.execute(b"QueueEnqueueManyV2", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 
-def _queue_enqueue_v2(handle, components, timeout_ms=-1, name=None):
+def queue_enqueue_v2(handle, components, timeout_ms=-1, name=None):
   r"""Enqueues a tuple of one or more tensors in the given queue.
 
   The components input has k elements, which correspond to the components of
@@ -2796,27 +3963,54 @@ def _queue_enqueue_v2(handle, components, timeout_ms=-1, name=None):
   Returns:
     The created Operation.
   """
-  if timeout_ms is None:
-    timeout_ms = -1
-  timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if timeout_ms is None:
+      timeout_ms = -1
+    timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
     _, _, _op = _op_def_lib._apply_op_helper(
         "QueueEnqueueV2", handle=handle, components=components,
         timeout_ms=timeout_ms, name=name)
     return _op
-  else:
-    _attr_Tcomponents, components = _execute.convert_to_mixed_eager_tensors(components, _ctx)
-    handle = _ops.convert_to_tensor(handle, _dtypes.resource)
-    _inputs_flat = [handle] + list(components)
-    _attrs = ("Tcomponents", _attr_Tcomponents, "timeout_ms", timeout_ms)
-    _result = _execute.execute(b"QueueEnqueueV2", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "QueueEnqueueV2", name,
+        _ctx._post_execution_callbacks, handle, components, "timeout_ms",
+        timeout_ms)
+      return _result
+    except _core._FallbackException:
+      return queue_enqueue_v2_eager_fallback(
+          handle, components, timeout_ms=timeout_ms, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def queue_enqueue_v2_eager_fallback(handle, components, timeout_ms=-1, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function queue_enqueue_v2
+  """
+  _ctx = _context.context()
+  if timeout_ms is None:
+    timeout_ms = -1
+  timeout_ms = _execute.make_int(timeout_ms, "timeout_ms")
+  _attr_Tcomponents, components = _execute.convert_to_mixed_eager_tensors(components, _ctx)
+  handle = _ops.convert_to_tensor(handle, _dtypes.resource)
+  _inputs_flat = [handle] + list(components)
+  _attrs = ("Tcomponents", _attr_Tcomponents, "timeout_ms", timeout_ms)
+  _result = _execute.execute(b"QueueEnqueueV2", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 
-@tf_export('QueueIsClosed')
 def queue_is_closed(handle, name=None):
   r"""Returns true if queue is closed.
 
@@ -2831,22 +4025,23 @@ def queue_is_closed(handle, name=None):
     A `Tensor` of type `bool`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "QueueIsClosed", handle=handle, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
-  else:
-    raise RuntimeError(
-        "queue_is_closed op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "QueueIsClosed", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("queue_is_closed op does not support eager execution. Arg 'handle' is a ref.")
 
 
-@tf_export('QueueIsClosedV2')
+  raise RuntimeError("queue_is_closed op does not support eager execution. Arg 'handle' is a ref.")
+
 def queue_is_closed_v2(handle, name=None):
   r"""Returns true if queue is closed.
 
@@ -2861,25 +4056,51 @@ def queue_is_closed_v2(handle, name=None):
     A `Tensor` of type `bool`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "QueueIsClosedV2", handle=handle, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "QueueIsClosedV2", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    handle = _ops.convert_to_tensor(handle, _dtypes.resource)
-    _inputs_flat = [handle]
-    _attrs = None
-    _result = _execute.execute(b"QueueIsClosedV2", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "QueueIsClosedV2", name,
+        _ctx._post_execution_callbacks, handle)
+      return _result
+    except _core._FallbackException:
+      return queue_is_closed_v2_eager_fallback(
+          handle, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def queue_is_closed_v2_eager_fallback(handle, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function queue_is_closed_v2
+  """
+  _ctx = _context.context()
+  handle = _ops.convert_to_tensor(handle, _dtypes.resource)
+  _inputs_flat = [handle]
+  _attrs = None
+  _result = _execute.execute(b"QueueIsClosedV2", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "QueueIsClosedV2", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-def _queue_size(handle, name=None):
+def queue_size(handle, name=None):
   r"""Computes the number of elements in the given queue.
 
   Args:
@@ -2887,25 +4108,27 @@ def _queue_size(handle, name=None):
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type `int32`. The number of elements in the given queue.
+    A `Tensor` of type `int32`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "QueueSize", handle=handle, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
-  else:
-    raise RuntimeError(
-        "queue_size op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "QueueSize", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("queue_size op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _queue_size_v2(handle, name=None):
+  raise RuntimeError("queue_size op does not support eager execution. Arg 'handle' is a ref.")
+
+def queue_size_v2(handle, name=None):
   r"""Computes the number of elements in the given queue.
 
   Args:
@@ -2913,28 +4136,54 @@ def _queue_size_v2(handle, name=None):
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type `int32`. The number of elements in the given queue.
+    A `Tensor` of type `int32`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "QueueSizeV2", handle=handle, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "QueueSizeV2", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    handle = _ops.convert_to_tensor(handle, _dtypes.resource)
-    _inputs_flat = [handle]
-    _attrs = None
-    _result = _execute.execute(b"QueueSizeV2", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "QueueSizeV2", name,
+        _ctx._post_execution_callbacks, handle)
+      return _result
+    except _core._FallbackException:
+      return queue_size_v2_eager_fallback(
+          handle, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def queue_size_v2_eager_fallback(handle, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function queue_size_v2
+  """
+  _ctx = _context.context()
+  handle = _ops.convert_to_tensor(handle, _dtypes.resource)
+  _inputs_flat = [handle]
+  _attrs = None
+  _result = _execute.execute(b"QueueSizeV2", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "QueueSizeV2", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-def _random_shuffle_queue(component_types, shapes=[], capacity=-1, min_after_dequeue=0, seed=0, seed2=0, container="", shared_name="", name=None):
+def random_shuffle_queue(component_types, shapes=[], capacity=-1, min_after_dequeue=0, seed=0, seed2=0, container="", shared_name="", name=None):
   r"""A queue that randomizes the order of elements.
 
   Args:
@@ -2966,40 +4215,40 @@ def _random_shuffle_queue(component_types, shapes=[], capacity=-1, min_after_deq
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type mutable `string`. The handle to the queue.
+    A `Tensor` of type mutable `string`.
   """
-  if not isinstance(component_types, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'component_types' argument to "
-        "'random_shuffle_queue' Op, not %r." % component_types)
-  component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
-  if shapes is None:
-    shapes = []
-  if not isinstance(shapes, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'shapes' argument to "
-        "'random_shuffle_queue' Op, not %r." % shapes)
-  shapes = [_execute.make_shape(_s, "shapes") for _s in shapes]
-  if capacity is None:
-    capacity = -1
-  capacity = _execute.make_int(capacity, "capacity")
-  if min_after_dequeue is None:
-    min_after_dequeue = 0
-  min_after_dequeue = _execute.make_int(min_after_dequeue, "min_after_dequeue")
-  if seed is None:
-    seed = 0
-  seed = _execute.make_int(seed, "seed")
-  if seed2 is None:
-    seed2 = 0
-  seed2 = _execute.make_int(seed2, "seed2")
-  if container is None:
-    container = ""
-  container = _execute.make_str(container, "container")
-  if shared_name is None:
-    shared_name = ""
-  shared_name = _execute.make_str(shared_name, "shared_name")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(component_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'component_types' argument to "
+          "'random_shuffle_queue' Op, not %r." % component_types)
+    component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
+    if shapes is None:
+      shapes = []
+    if not isinstance(shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'shapes' argument to "
+          "'random_shuffle_queue' Op, not %r." % shapes)
+    shapes = [_execute.make_shape(_s, "shapes") for _s in shapes]
+    if capacity is None:
+      capacity = -1
+    capacity = _execute.make_int(capacity, "capacity")
+    if min_after_dequeue is None:
+      min_after_dequeue = 0
+    min_after_dequeue = _execute.make_int(min_after_dequeue, "min_after_dequeue")
+    if seed is None:
+      seed = 0
+    seed = _execute.make_int(seed, "seed")
+    if seed2 is None:
+      seed2 = 0
+    seed2 = _execute.make_int(seed2, "seed2")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
     _, _, _op = _op_def_lib._apply_op_helper(
         "RandomShuffleQueue", component_types=component_types, shapes=shapes,
         capacity=capacity, min_after_dequeue=min_after_dequeue, seed=seed,
@@ -3012,16 +4261,18 @@ def _random_shuffle_queue(component_types, shapes=[], capacity=-1, min_after_deq
               _op.get_attr("seed"), "seed2", _op.get_attr("seed2"),
               "container", _op.get_attr("container"), "shared_name",
               _op.get_attr("shared_name"))
-  else:
-    raise RuntimeError(
-        "random_shuffle_queue op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "RandomShuffleQueue", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("random_shuffle_queue op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _random_shuffle_queue_v2(component_types, shapes=[], capacity=-1, min_after_dequeue=0, seed=0, seed2=0, container="", shared_name="", name=None):
+  raise RuntimeError("random_shuffle_queue op does not support eager execution. Arg 'handle' is a ref.")
+
+def random_shuffle_queue_v2(component_types, shapes=[], capacity=-1, min_after_dequeue=0, seed=0, seed2=0, container="", shared_name="", name=None):
   r"""A queue that randomizes the order of elements.
 
   Args:
@@ -3053,8 +4304,85 @@ def _random_shuffle_queue_v2(component_types, shapes=[], capacity=-1, min_after_
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type `resource`. The handle to the queue.
+    A `Tensor` of type `resource`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(component_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'component_types' argument to "
+          "'random_shuffle_queue_v2' Op, not %r." % component_types)
+    component_types = [_execute.make_type(_t, "component_types") for _t in component_types]
+    if shapes is None:
+      shapes = []
+    if not isinstance(shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'shapes' argument to "
+          "'random_shuffle_queue_v2' Op, not %r." % shapes)
+    shapes = [_execute.make_shape(_s, "shapes") for _s in shapes]
+    if capacity is None:
+      capacity = -1
+    capacity = _execute.make_int(capacity, "capacity")
+    if min_after_dequeue is None:
+      min_after_dequeue = 0
+    min_after_dequeue = _execute.make_int(min_after_dequeue, "min_after_dequeue")
+    if seed is None:
+      seed = 0
+    seed = _execute.make_int(seed, "seed")
+    if seed2 is None:
+      seed2 = 0
+    seed2 = _execute.make_int(seed2, "seed2")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "RandomShuffleQueueV2", component_types=component_types,
+        shapes=shapes, capacity=capacity, min_after_dequeue=min_after_dequeue,
+        seed=seed, seed2=seed2, container=container, shared_name=shared_name,
+        name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("component_types", _op.get_attr("component_types"), "shapes",
+              _op.get_attr("shapes"), "capacity", _op.get_attr("capacity"),
+              "min_after_dequeue", _op.get_attr("min_after_dequeue"), "seed",
+              _op.get_attr("seed"), "seed2", _op.get_attr("seed2"),
+              "container", _op.get_attr("container"), "shared_name",
+              _op.get_attr("shared_name"))
+    _execute.record_gradient(
+      "RandomShuffleQueueV2", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "RandomShuffleQueueV2", name,
+        _ctx._post_execution_callbacks, "component_types", component_types,
+        "shapes", shapes, "capacity", capacity, "min_after_dequeue",
+        min_after_dequeue, "seed", seed, "seed2", seed2, "container",
+        container, "shared_name", shared_name)
+      return _result
+    except _core._FallbackException:
+      return random_shuffle_queue_v2_eager_fallback(
+          component_types=component_types, shapes=shapes, capacity=capacity,
+          min_after_dequeue=min_after_dequeue, seed=seed, seed2=seed2,
+          container=container, shared_name=shared_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def random_shuffle_queue_v2_eager_fallback(component_types, shapes=[], capacity=-1, min_after_dequeue=0, seed=0, seed2=0, container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function random_shuffle_queue_v2
+  """
+  _ctx = _context.context()
   if not isinstance(component_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'component_types' argument to "
@@ -3085,37 +4413,18 @@ def _random_shuffle_queue_v2(component_types, shapes=[], capacity=-1, min_after_
   if shared_name is None:
     shared_name = ""
   shared_name = _execute.make_str(shared_name, "shared_name")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "RandomShuffleQueueV2", component_types=component_types,
-        shapes=shapes, capacity=capacity, min_after_dequeue=min_after_dequeue,
-        seed=seed, seed2=seed2, container=container, shared_name=shared_name,
-        name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("component_types", _op.get_attr("component_types"), "shapes",
-              _op.get_attr("shapes"), "capacity", _op.get_attr("capacity"),
-              "min_after_dequeue", _op.get_attr("min_after_dequeue"), "seed",
-              _op.get_attr("seed"), "seed2", _op.get_attr("seed2"),
-              "container", _op.get_attr("container"), "shared_name",
-              _op.get_attr("shared_name"))
-  else:
-    _inputs_flat = []
-    _attrs = ("component_types", component_types, "shapes", shapes,
-              "capacity", capacity, "min_after_dequeue", min_after_dequeue,
-              "seed", seed, "seed2", seed2, "container", container,
-              "shared_name", shared_name)
-    _result = _execute.execute(b"RandomShuffleQueueV2", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+  _inputs_flat = []
+  _attrs = ("component_types", component_types, "shapes", shapes, "capacity",
+  capacity, "min_after_dequeue", min_after_dequeue, "seed", seed, "seed2",
+  seed2, "container", container, "shared_name", shared_name)
+  _result = _execute.execute(b"RandomShuffleQueueV2", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "RandomShuffleQueueV2", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('RecordInput')
 def record_input(file_pattern, file_random_seed=301, file_shuffle_shift_ratio=0, file_buffer_size=10000, file_parallelism=16, batch_size=32, compression_type="", name=None):
   r"""Emits randomized records.
 
@@ -3137,8 +4446,80 @@ def record_input(file_pattern, file_random_seed=301, file_shuffle_shift_ratio=0,
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type `string`. A tensor of shape [batch_size].
+    A `Tensor` of type `string`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    file_pattern = _execute.make_str(file_pattern, "file_pattern")
+    if file_random_seed is None:
+      file_random_seed = 301
+    file_random_seed = _execute.make_int(file_random_seed, "file_random_seed")
+    if file_shuffle_shift_ratio is None:
+      file_shuffle_shift_ratio = 0
+    file_shuffle_shift_ratio = _execute.make_float(file_shuffle_shift_ratio, "file_shuffle_shift_ratio")
+    if file_buffer_size is None:
+      file_buffer_size = 10000
+    file_buffer_size = _execute.make_int(file_buffer_size, "file_buffer_size")
+    if file_parallelism is None:
+      file_parallelism = 16
+    file_parallelism = _execute.make_int(file_parallelism, "file_parallelism")
+    if batch_size is None:
+      batch_size = 32
+    batch_size = _execute.make_int(batch_size, "batch_size")
+    if compression_type is None:
+      compression_type = ""
+    compression_type = _execute.make_str(compression_type, "compression_type")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "RecordInput", file_pattern=file_pattern,
+        file_random_seed=file_random_seed,
+        file_shuffle_shift_ratio=file_shuffle_shift_ratio,
+        file_buffer_size=file_buffer_size, file_parallelism=file_parallelism,
+        batch_size=batch_size, compression_type=compression_type, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("file_pattern", _op.get_attr("file_pattern"),
+              "file_random_seed", _op.get_attr("file_random_seed"),
+              "file_shuffle_shift_ratio",
+              _op.get_attr("file_shuffle_shift_ratio"), "file_buffer_size",
+              _op.get_attr("file_buffer_size"), "file_parallelism",
+              _op.get_attr("file_parallelism"), "batch_size",
+              _op.get_attr("batch_size"), "compression_type",
+              _op.get_attr("compression_type"))
+    _execute.record_gradient(
+      "RecordInput", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "RecordInput", name,
+        _ctx._post_execution_callbacks, "file_pattern", file_pattern,
+        "file_random_seed", file_random_seed, "file_shuffle_shift_ratio",
+        file_shuffle_shift_ratio, "file_buffer_size", file_buffer_size,
+        "file_parallelism", file_parallelism, "batch_size", batch_size,
+        "compression_type", compression_type)
+      return _result
+    except _core._FallbackException:
+      return record_input_eager_fallback(
+          file_pattern=file_pattern, file_random_seed=file_random_seed,
+          file_shuffle_shift_ratio=file_shuffle_shift_ratio,
+          file_buffer_size=file_buffer_size,
+          file_parallelism=file_parallelism, batch_size=batch_size,
+          compression_type=compression_type, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def record_input_eager_fallback(file_pattern, file_random_seed=301, file_shuffle_shift_ratio=0, file_buffer_size=10000, file_parallelism=16, batch_size=32, compression_type="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function record_input
+  """
+  _ctx = _context.context()
   file_pattern = _execute.make_str(file_pattern, "file_pattern")
   if file_random_seed is None:
     file_random_seed = 301
@@ -3158,40 +4539,19 @@ def record_input(file_pattern, file_random_seed=301, file_shuffle_shift_ratio=0,
   if compression_type is None:
     compression_type = ""
   compression_type = _execute.make_str(compression_type, "compression_type")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "RecordInput", file_pattern=file_pattern,
-        file_random_seed=file_random_seed,
-        file_shuffle_shift_ratio=file_shuffle_shift_ratio,
-        file_buffer_size=file_buffer_size, file_parallelism=file_parallelism,
-        batch_size=batch_size, compression_type=compression_type, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("file_pattern", _op.get_attr("file_pattern"),
-              "file_random_seed", _op.get_attr("file_random_seed"),
-              "file_shuffle_shift_ratio",
-              _op.get_attr("file_shuffle_shift_ratio"), "file_buffer_size",
-              _op.get_attr("file_buffer_size"), "file_parallelism",
-              _op.get_attr("file_parallelism"), "batch_size",
-              _op.get_attr("batch_size"), "compression_type",
-              _op.get_attr("compression_type"))
-  else:
-    _inputs_flat = []
-    _attrs = ("file_pattern", file_pattern, "file_random_seed",
-              file_random_seed, "file_shuffle_shift_ratio",
-              file_shuffle_shift_ratio, "file_buffer_size", file_buffer_size,
-              "file_parallelism", file_parallelism, "batch_size", batch_size,
-              "compression_type", compression_type)
-    _result = _execute.execute(b"RecordInput", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  _inputs_flat = []
+  _attrs = ("file_pattern", file_pattern, "file_random_seed",
+  file_random_seed, "file_shuffle_shift_ratio", file_shuffle_shift_ratio,
+  "file_buffer_size", file_buffer_size, "file_parallelism", file_parallelism,
+  "batch_size", batch_size, "compression_type", compression_type)
+  _result = _execute.execute(b"RecordInput", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "RecordInput", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('SparseAccumulatorApplyGradient')
 def sparse_accumulator_apply_gradient(handle, local_step, gradient_indices, gradient_values, gradient_shape, has_known_shape, name=None):
   r"""Applies a sparse gradient to a given accumulator.
 
@@ -3205,7 +4565,7 @@ def sparse_accumulator_apply_gradient(handle, local_step, gradient_indices, grad
     gradient_indices: A `Tensor` of type `int64`.
       Indices of the sparse gradient to be accumulated. Must be a
       vector.
-    gradient_values: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int64`, `int32`, `uint8`, `uint16`, `int16`, `int8`, `complex64`, `complex128`, `qint8`, `quint8`, `qint32`, `half`, `uint32`, `uint64`, `bfloat16`.
+    gradient_values: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `complex64`, `int64`, `qint8`, `quint8`, `qint32`, `bfloat16`, `uint16`, `complex128`, `half`, `uint32`, `uint64`.
       Values are the non-zero slices of the gradient, and must have
       the same first dimension as indices, i.e., the nnz represented by indices and
       values must be consistent.
@@ -3219,21 +4579,23 @@ def sparse_accumulator_apply_gradient(handle, local_step, gradient_indices, grad
   Returns:
     The created Operation.
   """
-  has_known_shape = _execute.make_bool(has_known_shape, "has_known_shape")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    has_known_shape = _execute.make_bool(has_known_shape, "has_known_shape")
     _, _, _op = _op_def_lib._apply_op_helper(
         "SparseAccumulatorApplyGradient", handle=handle,
         local_step=local_step, gradient_indices=gradient_indices,
         gradient_values=gradient_values, gradient_shape=gradient_shape,
         has_known_shape=has_known_shape, name=name)
     return _op
-  else:
-    raise RuntimeError(
-        "sparse_accumulator_apply_gradient op does not support eager execution. Arg 'handle'' is a ref.")
     _result = None
-  return _result
+    return _result
 
+  else:
+    raise RuntimeError("sparse_accumulator_apply_gradient op does not support eager execution. Arg 'handle' is a ref.")
+
+
+  raise RuntimeError("sparse_accumulator_apply_gradient op does not support eager execution. Arg 'handle' is a ref.")
 
 _sparse_accumulator_take_gradient_outputs = ["indices", "values", "shape"]
 _SparseAccumulatorTakeGradientOutput = _collections.namedtuple(
@@ -3241,7 +4603,6 @@ _SparseAccumulatorTakeGradientOutput = _collections.namedtuple(
     _sparse_accumulator_take_gradient_outputs)
 
 
-@tf_export('SparseAccumulatorTakeGradient')
 def sparse_accumulator_take_gradient(handle, num_required, dtype, name=None):
   r"""Extracts the average sparse gradient in a SparseConditionalAccumulator.
 
@@ -3257,7 +4618,7 @@ def sparse_accumulator_take_gradient(handle, num_required, dtype, name=None):
       The handle to a SparseConditionalAccumulator.
     num_required: A `Tensor` of type `int32`.
       Number of gradients required before we return an aggregate.
-    dtype: A `tf.DType` from: `tf.float32, tf.float64, tf.int64, tf.int32, tf.uint8, tf.uint16, tf.int16, tf.int8, tf.complex64, tf.complex128, tf.qint8, tf.quint8, tf.qint32, tf.half, tf.uint32, tf.uint64, tf.bfloat16`.
+    dtype: A `tf.DType` from: `tf.float32, tf.float64, tf.int32, tf.uint8, tf.int16, tf.int8, tf.complex64, tf.int64, tf.qint8, tf.quint8, tf.qint32, tf.bfloat16, tf.uint16, tf.complex128, tf.half, tf.uint32, tf.uint64`.
       The data type of accumulated gradients. Needs to correspond to the type
       of the accumulator.
     name: A name for the operation (optional).
@@ -3265,29 +4626,30 @@ def sparse_accumulator_take_gradient(handle, num_required, dtype, name=None):
   Returns:
     A tuple of `Tensor` objects (indices, values, shape).
 
-    indices: A `Tensor` of type `int64`. Indices of the average of the accumulated sparse gradients.
-    values: A `Tensor` of type `dtype`. Values of the average of the accumulated sparse gradients.
-    shape: A `Tensor` of type `int64`. Shape of the average of the accumulated sparse gradients.
+    indices: A `Tensor` of type `int64`.
+    values: A `Tensor` of type `dtype`.
+    shape: A `Tensor` of type `int64`.
   """
-  dtype = _execute.make_type(dtype, "dtype")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    dtype = _execute.make_type(dtype, "dtype")
     _, _, _op = _op_def_lib._apply_op_helper(
         "SparseAccumulatorTakeGradient", handle=handle,
         num_required=num_required, dtype=dtype, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("dtype", _op.get_attr("dtype"))
-  else:
-    raise RuntimeError(
-        "sparse_accumulator_take_gradient op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "SparseAccumulatorTakeGradient", _inputs_flat, _attrs, _result, name)
-  _result = _SparseAccumulatorTakeGradientOutput._make(_result)
-  return _result
+    _result = _SparseAccumulatorTakeGradientOutput._make(_result)
+    return _result
+
+  else:
+    raise RuntimeError("sparse_accumulator_take_gradient op does not support eager execution. Arg 'handle' is a ref.")
 
 
-@tf_export('SparseConditionalAccumulator')
+  raise RuntimeError("sparse_accumulator_take_gradient op does not support eager execution. Arg 'handle' is a ref.")
+
 def sparse_conditional_accumulator(dtype, shape, container="", shared_name="", name=None):
   r"""A conditional accumulator for aggregating sparse gradients.
 
@@ -3299,7 +4661,7 @@ def sparse_conditional_accumulator(dtype, shape, container="", shared_name="", n
   the accumulator.
 
   Args:
-    dtype: A `tf.DType` from: `tf.float32, tf.float64, tf.int64, tf.int32, tf.uint8, tf.uint16, tf.int16, tf.int8, tf.complex64, tf.complex128, tf.qint8, tf.quint8, tf.qint32, tf.half, tf.uint32, tf.uint64, tf.bfloat16`.
+    dtype: A `tf.DType` from: `tf.float32, tf.float64, tf.int32, tf.uint8, tf.int16, tf.int8, tf.complex64, tf.int64, tf.qint8, tf.quint8, tf.qint32, tf.bfloat16, tf.uint16, tf.complex128, tf.half, tf.uint32, tf.uint64`.
       The type of the value being accumulated.
     shape: A `tf.TensorShape` or list of `ints`. The shape of the values.
     container: An optional `string`. Defaults to `""`.
@@ -3311,18 +4673,18 @@ def sparse_conditional_accumulator(dtype, shape, container="", shared_name="", n
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type mutable `string`. The handle to the accumulator.
+    A `Tensor` of type mutable `string`.
   """
-  dtype = _execute.make_type(dtype, "dtype")
-  shape = _execute.make_shape(shape, "shape")
-  if container is None:
-    container = ""
-  container = _execute.make_str(container, "container")
-  if shared_name is None:
-    shared_name = ""
-  shared_name = _execute.make_str(shared_name, "shared_name")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    dtype = _execute.make_type(dtype, "dtype")
+    shape = _execute.make_shape(shape, "shape")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
     _, _, _op = _op_def_lib._apply_op_helper(
         "SparseConditionalAccumulator", dtype=dtype, shape=shape,
         container=container, shared_name=shared_name, name=name)
@@ -3331,14 +4693,16 @@ def sparse_conditional_accumulator(dtype, shape, container="", shared_name="", n
     _attrs = ("dtype", _op.get_attr("dtype"), "shape", _op.get_attr("shape"),
               "container", _op.get_attr("container"), "shared_name",
               _op.get_attr("shared_name"))
-  else:
-    raise RuntimeError(
-        "sparse_conditional_accumulator op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "SparseConditionalAccumulator", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
 
+  else:
+    raise RuntimeError("sparse_conditional_accumulator op does not support eager execution. Arg 'handle' is a ref.")
+
+
+  raise RuntimeError("sparse_conditional_accumulator op does not support eager execution. Arg 'handle' is a ref.")
 
 def _stack(elem_type, stack_name="", name=None):
   r"""Deprecated, use StackV2.
@@ -3351,28 +4715,30 @@ def _stack(elem_type, stack_name="", name=None):
   Returns:
     A `Tensor` of type mutable `string`.
   """
-  elem_type = _execute.make_type(elem_type, "elem_type")
-  if stack_name is None:
-    stack_name = ""
-  stack_name = _execute.make_str(stack_name, "stack_name")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    elem_type = _execute.make_type(elem_type, "elem_type")
+    if stack_name is None:
+      stack_name = ""
+    stack_name = _execute.make_str(stack_name, "stack_name")
     _, _, _op = _op_def_lib._apply_op_helper(
         "Stack", elem_type=elem_type, stack_name=stack_name, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("elem_type", _op.get_attr("elem_type"), "stack_name",
               _op.get_attr("stack_name"))
-  else:
-    raise RuntimeError(
-        "stack op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "Stack", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("stack op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _stack_close(handle, name=None):
+  raise RuntimeError("stack op does not support eager execution. Arg 'handle' is a ref.")
+
+def stack_close(handle, name=None):
   r"""Deprecated, use StackCloseV2.
 
   Args:
@@ -3383,18 +4749,20 @@ def _stack_close(handle, name=None):
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "StackClose", handle=handle, name=name)
     return _op
-  else:
-    raise RuntimeError(
-        "stack_close op does not support eager execution. Arg 'handle'' is a ref.")
     _result = None
-  return _result
+    return _result
+
+  else:
+    raise RuntimeError("stack_close op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _stack_close_v2(handle, name=None):
+  raise RuntimeError("stack_close op does not support eager execution. Arg 'handle' is a ref.")
+
+def stack_close_v2(handle, name=None):
   r"""Delete the stack from its resource container.
 
   Args:
@@ -3405,21 +4773,45 @@ def _stack_close_v2(handle, name=None):
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "StackCloseV2", handle=handle, name=name)
     return _op
-  else:
-    handle = _ops.convert_to_tensor(handle, _dtypes.resource)
-    _inputs_flat = [handle]
-    _attrs = None
-    _result = _execute.execute(b"StackCloseV2", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "StackCloseV2", name,
+        _ctx._post_execution_callbacks, handle)
+      return _result
+    except _core._FallbackException:
+      return stack_close_v2_eager_fallback(
+          handle, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def stack_close_v2_eager_fallback(handle, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function stack_close_v2
+  """
+  _ctx = _context.context()
+  handle = _ops.convert_to_tensor(handle, _dtypes.resource)
+  _inputs_flat = [handle]
+  _attrs = None
+  _result = _execute.execute(b"StackCloseV2", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 
-def _stack_pop(handle, elem_type, name=None):
+def stack_pop(handle, elem_type, name=None):
   r"""Deprecated, use StackPopV2.
 
   Args:
@@ -3430,24 +4822,26 @@ def _stack_pop(handle, elem_type, name=None):
   Returns:
     A `Tensor` of type `elem_type`.
   """
-  elem_type = _execute.make_type(elem_type, "elem_type")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    elem_type = _execute.make_type(elem_type, "elem_type")
     _, _, _op = _op_def_lib._apply_op_helper(
         "StackPop", handle=handle, elem_type=elem_type, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("elem_type", _op.get_attr("elem_type"))
-  else:
-    raise RuntimeError(
-        "stack_pop op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "StackPop", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("stack_pop op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _stack_pop_v2(handle, elem_type, name=None):
+  raise RuntimeError("stack_pop op does not support eager execution. Arg 'handle' is a ref.")
+
+def stack_pop_v2(handle, elem_type, name=None):
   r"""Pop the element at the top of the stack.
 
   Args:
@@ -3457,29 +4851,55 @@ def _stack_pop_v2(handle, elem_type, name=None):
 
   Returns:
     A `Tensor` of type `elem_type`.
-    The tensor that is popped from the top of the stack.
   """
-  elem_type = _execute.make_type(elem_type, "elem_type")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    elem_type = _execute.make_type(elem_type, "elem_type")
     _, _, _op = _op_def_lib._apply_op_helper(
         "StackPopV2", handle=handle, elem_type=elem_type, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("elem_type", _op.get_attr("elem_type"))
+    _execute.record_gradient(
+      "StackPopV2", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    handle = _ops.convert_to_tensor(handle, _dtypes.resource)
-    _inputs_flat = [handle]
-    _attrs = ("elem_type", elem_type)
-    _result = _execute.execute(b"StackPopV2", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "StackPopV2", name,
+        _ctx._post_execution_callbacks, handle, "elem_type", elem_type)
+      return _result
+    except _core._FallbackException:
+      return stack_pop_v2_eager_fallback(
+          handle, elem_type=elem_type, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def stack_pop_v2_eager_fallback(handle, elem_type, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function stack_pop_v2
+  """
+  _ctx = _context.context()
+  elem_type = _execute.make_type(elem_type, "elem_type")
+  handle = _ops.convert_to_tensor(handle, _dtypes.resource)
+  _inputs_flat = [handle]
+  _attrs = ("elem_type", elem_type)
+  _result = _execute.execute(b"StackPopV2", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "StackPopV2", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-def _stack_push(handle, elem, swap_memory=False, name=None):
+def stack_push(handle, elem, swap_memory=False, name=None):
   r"""Deprecated, use StackPushV2.
 
   Args:
@@ -3491,11 +4911,11 @@ def _stack_push(handle, elem, swap_memory=False, name=None):
   Returns:
     A `Tensor`. Has the same type as `elem`.
   """
-  if swap_memory is None:
-    swap_memory = False
-  swap_memory = _execute.make_bool(swap_memory, "swap_memory")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if swap_memory is None:
+      swap_memory = False
+    swap_memory = _execute.make_bool(swap_memory, "swap_memory")
     _, _, _op = _op_def_lib._apply_op_helper(
         "StackPush", handle=handle, elem=elem, swap_memory=swap_memory,
         name=name)
@@ -3503,16 +4923,18 @@ def _stack_push(handle, elem, swap_memory=False, name=None):
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"), "swap_memory",
               _op.get_attr("swap_memory"))
-  else:
-    raise RuntimeError(
-        "stack_push op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "StackPush", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("stack_push op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _stack_push_v2(handle, elem, swap_memory=False, name=None):
+  raise RuntimeError("stack_push op does not support eager execution. Arg 'handle' is a ref.")
+
+def stack_push_v2(handle, elem, swap_memory=False, name=None):
   r"""Push an element onto the stack.
 
   Args:
@@ -3524,13 +4946,12 @@ def _stack_push_v2(handle, elem, swap_memory=False, name=None):
 
   Returns:
     A `Tensor`. Has the same type as `elem`.
-    The same tensor as the input 'elem'.
   """
-  if swap_memory is None:
-    swap_memory = False
-  swap_memory = _execute.make_bool(swap_memory, "swap_memory")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if swap_memory is None:
+      swap_memory = False
+    swap_memory = _execute.make_bool(swap_memory, "swap_memory")
     _, _, _op = _op_def_lib._apply_op_helper(
         "StackPushV2", handle=handle, elem=elem, swap_memory=swap_memory,
         name=name)
@@ -3538,20 +4959,50 @@ def _stack_push_v2(handle, elem, swap_memory=False, name=None):
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"), "swap_memory",
               _op.get_attr("swap_memory"))
+    _execute.record_gradient(
+      "StackPushV2", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (elem,) = _execute.args_to_matching_eager([elem], _ctx)
-    handle = _ops.convert_to_tensor(handle, _dtypes.resource)
-    _inputs_flat = [handle, elem]
-    _attrs = ("T", _attr_T, "swap_memory", swap_memory)
-    _result = _execute.execute(b"StackPushV2", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "StackPushV2", name,
+        _ctx._post_execution_callbacks, handle, elem, "swap_memory",
+        swap_memory)
+      return _result
+    except _core._FallbackException:
+      return stack_push_v2_eager_fallback(
+          handle, elem, swap_memory=swap_memory, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def stack_push_v2_eager_fallback(handle, elem, swap_memory=False, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function stack_push_v2
+  """
+  _ctx = _context.context()
+  if swap_memory is None:
+    swap_memory = False
+  swap_memory = _execute.make_bool(swap_memory, "swap_memory")
+  _attr_T, (elem,) = _execute.args_to_matching_eager([elem], _ctx)
+  handle = _ops.convert_to_tensor(handle, _dtypes.resource)
+  _inputs_flat = [handle, elem]
+  _attrs = ("T", _attr_T, "swap_memory", swap_memory)
+  _result = _execute.execute(b"StackPushV2", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "StackPushV2", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-def _stack_v2(max_size, elem_type, stack_name="", name=None):
+def stack_v2(max_size, elem_type, stack_name="", name=None):
   r"""A stack that produces elements in first-in last-out order.
 
   Args:
@@ -3565,14 +5016,14 @@ def _stack_v2(max_size, elem_type, stack_name="", name=None):
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type `resource`. The handle to the stack.
+    A `Tensor` of type `resource`.
   """
-  elem_type = _execute.make_type(elem_type, "elem_type")
-  if stack_name is None:
-    stack_name = ""
-  stack_name = _execute.make_str(stack_name, "stack_name")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    elem_type = _execute.make_type(elem_type, "elem_type")
+    if stack_name is None:
+      stack_name = ""
+    stack_name = _execute.make_str(stack_name, "stack_name")
     _, _, _op = _op_def_lib._apply_op_helper(
         "StackV2", max_size=max_size, elem_type=elem_type,
         stack_name=stack_name, name=name)
@@ -3580,19 +5031,49 @@ def _stack_v2(max_size, elem_type, stack_name="", name=None):
     _inputs_flat = _op.inputs
     _attrs = ("elem_type", _op.get_attr("elem_type"), "stack_name",
               _op.get_attr("stack_name"))
+    _execute.record_gradient(
+      "StackV2", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    max_size = _ops.convert_to_tensor(max_size, _dtypes.int32)
-    _inputs_flat = [max_size]
-    _attrs = ("elem_type", elem_type, "stack_name", stack_name)
-    _result = _execute.execute(b"StackV2", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "StackV2", name,
+        _ctx._post_execution_callbacks, max_size, "elem_type", elem_type,
+        "stack_name", stack_name)
+      return _result
+    except _core._FallbackException:
+      return stack_v2_eager_fallback(
+          max_size, elem_type=elem_type, stack_name=stack_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def stack_v2_eager_fallback(max_size, elem_type, stack_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function stack_v2
+  """
+  _ctx = _context.context()
+  elem_type = _execute.make_type(elem_type, "elem_type")
+  if stack_name is None:
+    stack_name = ""
+  stack_name = _execute.make_str(stack_name, "stack_name")
+  max_size = _ops.convert_to_tensor(max_size, _dtypes.int32)
+  _inputs_flat = [max_size]
+  _attrs = ("elem_type", elem_type, "stack_name", stack_name)
+  _result = _execute.execute(b"StackV2", 1, inputs=_inputs_flat, attrs=_attrs,
+                             ctx=_ctx, name=name)
   _execute.record_gradient(
       "StackV2", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('Stage')
 def stage(values, capacity=0, memory_limit=0, container="", shared_name="", name=None):
   r"""Stage values similar to a lightweight Enqueue.
 
@@ -3618,6 +5099,52 @@ def stage(values, capacity=0, memory_limit=0, container="", shared_name="", name
   Returns:
     The created Operation.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if capacity is None:
+      capacity = 0
+    capacity = _execute.make_int(capacity, "capacity")
+    if memory_limit is None:
+      memory_limit = 0
+    memory_limit = _execute.make_int(memory_limit, "memory_limit")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "Stage", values=values, capacity=capacity, memory_limit=memory_limit,
+        container=container, shared_name=shared_name, name=name)
+    return _op
+    _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "Stage", name,
+        _ctx._post_execution_callbacks, values, "capacity", capacity,
+        "memory_limit", memory_limit, "container", container, "shared_name",
+        shared_name)
+      return _result
+    except _core._FallbackException:
+      return stage_eager_fallback(
+          values, capacity=capacity, memory_limit=memory_limit,
+          container=container, shared_name=shared_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def stage_eager_fallback(values, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function stage
+  """
+  _ctx = _context.context()
   if capacity is None:
     capacity = 0
   capacity = _execute.make_int(capacity, "capacity")
@@ -3630,25 +5157,16 @@ def stage(values, capacity=0, memory_limit=0, container="", shared_name="", name
   if shared_name is None:
     shared_name = ""
   shared_name = _execute.make_str(shared_name, "shared_name")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "Stage", values=values, capacity=capacity, memory_limit=memory_limit,
-        container=container, shared_name=shared_name, name=name)
-    return _op
-  else:
-    _attr_dtypes, values = _execute.convert_to_mixed_eager_tensors(values, _ctx)
-    _inputs_flat = list(values)
-    _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
-              _attr_dtypes, "container", container, "shared_name",
-              shared_name)
-    _result = _execute.execute(b"Stage", 0, inputs=_inputs_flat, attrs=_attrs,
-                               ctx=_ctx, name=name)
-    _result = None
+  _attr_dtypes, values = _execute.convert_to_mixed_eager_tensors(values, _ctx)
+  _inputs_flat = list(values)
+  _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
+  _attr_dtypes, "container", container, "shared_name", shared_name)
+  _result = _execute.execute(b"Stage", 0, inputs=_inputs_flat, attrs=_attrs,
+                             ctx=_ctx, name=name)
+  _result = None
   return _result
 
 
-@tf_export('StageClear')
 def stage_clear(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
   r"""Op removes all elements in the underlying container.
 
@@ -3663,6 +5181,58 @@ def stage_clear(dtypes, capacity=0, memory_limit=0, container="", shared_name=""
   Returns:
     The created Operation.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(dtypes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dtypes' argument to "
+          "'stage_clear' Op, not %r." % dtypes)
+    dtypes = [_execute.make_type(_t, "dtypes") for _t in dtypes]
+    if capacity is None:
+      capacity = 0
+    capacity = _execute.make_int(capacity, "capacity")
+    if memory_limit is None:
+      memory_limit = 0
+    memory_limit = _execute.make_int(memory_limit, "memory_limit")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "StageClear", dtypes=dtypes, capacity=capacity,
+        memory_limit=memory_limit, container=container,
+        shared_name=shared_name, name=name)
+    return _op
+    _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "StageClear", name,
+        _ctx._post_execution_callbacks, "capacity", capacity, "memory_limit",
+        memory_limit, "dtypes", dtypes, "container", container, "shared_name",
+        shared_name)
+      return _result
+    except _core._FallbackException:
+      return stage_clear_eager_fallback(
+          capacity=capacity, memory_limit=memory_limit, dtypes=dtypes,
+          container=container, shared_name=shared_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def stage_clear_eager_fallback(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function stage_clear
+  """
+  _ctx = _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -3680,24 +5250,15 @@ def stage_clear(dtypes, capacity=0, memory_limit=0, container="", shared_name=""
   if shared_name is None:
     shared_name = ""
   shared_name = _execute.make_str(shared_name, "shared_name")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "StageClear", dtypes=dtypes, capacity=capacity,
-        memory_limit=memory_limit, container=container,
-        shared_name=shared_name, name=name)
-    return _op
-  else:
-    _inputs_flat = []
-    _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
-              dtypes, "container", container, "shared_name", shared_name)
-    _result = _execute.execute(b"StageClear", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
-    _result = None
+  _inputs_flat = []
+  _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
+  dtypes, "container", container, "shared_name", shared_name)
+  _result = _execute.execute(b"StageClear", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 
-@tf_export('StagePeek')
 def stage_peek(index, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
   r"""Op peeks at the values at the specified index.  If the
 
@@ -3717,6 +5278,66 @@ def stage_peek(index, dtypes, capacity=0, memory_limit=0, container="", shared_n
   Returns:
     A list of `Tensor` objects of type `dtypes`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(dtypes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dtypes' argument to "
+          "'stage_peek' Op, not %r." % dtypes)
+    dtypes = [_execute.make_type(_t, "dtypes") for _t in dtypes]
+    if capacity is None:
+      capacity = 0
+    capacity = _execute.make_int(capacity, "capacity")
+    if memory_limit is None:
+      memory_limit = 0
+    memory_limit = _execute.make_int(memory_limit, "memory_limit")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "StagePeek", index=index, dtypes=dtypes, capacity=capacity,
+        memory_limit=memory_limit, container=container,
+        shared_name=shared_name, name=name)
+    _result = _op.outputs[:]
+    if not _result:
+      return _op
+    _inputs_flat = _op.inputs
+    _attrs = ("capacity", _op.get_attr("capacity"), "memory_limit",
+              _op.get_attr("memory_limit"), "dtypes", _op.get_attr("dtypes"),
+              "container", _op.get_attr("container"), "shared_name",
+              _op.get_attr("shared_name"))
+    _execute.record_gradient(
+      "StagePeek", _inputs_flat, _attrs, _result, name)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "StagePeek", name,
+        _ctx._post_execution_callbacks, index, "capacity", capacity,
+        "memory_limit", memory_limit, "dtypes", dtypes, "container",
+        container, "shared_name", shared_name)
+      return _result
+    except _core._FallbackException:
+      return stage_peek_eager_fallback(
+          index, capacity=capacity, memory_limit=memory_limit, dtypes=dtypes,
+          container=container, shared_name=shared_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def stage_peek_eager_fallback(index, dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function stage_peek
+  """
+  _ctx = _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -3734,33 +5355,17 @@ def stage_peek(index, dtypes, capacity=0, memory_limit=0, container="", shared_n
   if shared_name is None:
     shared_name = ""
   shared_name = _execute.make_str(shared_name, "shared_name")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "StagePeek", index=index, dtypes=dtypes, capacity=capacity,
-        memory_limit=memory_limit, container=container,
-        shared_name=shared_name, name=name)
-    _result = _op.outputs[:]
-    if not _result:
-      return _op
-    _inputs_flat = _op.inputs
-    _attrs = ("capacity", _op.get_attr("capacity"), "memory_limit",
-              _op.get_attr("memory_limit"), "dtypes", _op.get_attr("dtypes"),
-              "container", _op.get_attr("container"), "shared_name",
-              _op.get_attr("shared_name"))
-  else:
-    index = _ops.convert_to_tensor(index, _dtypes.int32)
-    _inputs_flat = [index]
-    _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
-              dtypes, "container", container, "shared_name", shared_name)
-    _result = _execute.execute(b"StagePeek", len(dtypes), inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  index = _ops.convert_to_tensor(index, _dtypes.int32)
+  _inputs_flat = [index]
+  _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
+  dtypes, "container", container, "shared_name", shared_name)
+  _result = _execute.execute(b"StagePeek", len(dtypes), inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "StagePeek", _inputs_flat, _attrs, _result, name)
   return _result
 
 
-@tf_export('StageSize')
 def stage_size(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
   r"""Op returns the number of elements in the underlying container.
 
@@ -3775,6 +5380,65 @@ def stage_size(dtypes, capacity=0, memory_limit=0, container="", shared_name="",
   Returns:
     A `Tensor` of type `int32`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(dtypes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dtypes' argument to "
+          "'stage_size' Op, not %r." % dtypes)
+    dtypes = [_execute.make_type(_t, "dtypes") for _t in dtypes]
+    if capacity is None:
+      capacity = 0
+    capacity = _execute.make_int(capacity, "capacity")
+    if memory_limit is None:
+      memory_limit = 0
+    memory_limit = _execute.make_int(memory_limit, "memory_limit")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "StageSize", dtypes=dtypes, capacity=capacity,
+        memory_limit=memory_limit, container=container,
+        shared_name=shared_name, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("capacity", _op.get_attr("capacity"), "memory_limit",
+              _op.get_attr("memory_limit"), "dtypes", _op.get_attr("dtypes"),
+              "container", _op.get_attr("container"), "shared_name",
+              _op.get_attr("shared_name"))
+    _execute.record_gradient(
+      "StageSize", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "StageSize", name,
+        _ctx._post_execution_callbacks, "capacity", capacity, "memory_limit",
+        memory_limit, "dtypes", dtypes, "container", container, "shared_name",
+        shared_name)
+      return _result
+    except _core._FallbackException:
+      return stage_size_eager_fallback(
+          capacity=capacity, memory_limit=memory_limit, dtypes=dtypes,
+          container=container, shared_name=shared_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def stage_size_eager_fallback(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function stage_size
+  """
+  _ctx = _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -3792,31 +5456,18 @@ def stage_size(dtypes, capacity=0, memory_limit=0, container="", shared_name="",
   if shared_name is None:
     shared_name = ""
   shared_name = _execute.make_str(shared_name, "shared_name")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "StageSize", dtypes=dtypes, capacity=capacity,
-        memory_limit=memory_limit, container=container,
-        shared_name=shared_name, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("capacity", _op.get_attr("capacity"), "memory_limit",
-              _op.get_attr("memory_limit"), "dtypes", _op.get_attr("dtypes"),
-              "container", _op.get_attr("container"), "shared_name",
-              _op.get_attr("shared_name"))
-  else:
-    _inputs_flat = []
-    _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
-              dtypes, "container", container, "shared_name", shared_name)
-    _result = _execute.execute(b"StageSize", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  _inputs_flat = []
+  _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
+  dtypes, "container", container, "shared_name", shared_name)
+  _result = _execute.execute(b"StageSize", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "StageSize", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-def _tensor_array(size, dtype, dynamic_size=False, clear_after_read=True, tensor_array_name="", element_shape=None, name=None):
+def tensor_array(size, dtype, dynamic_size=False, clear_after_read=True, tensor_array_name="", element_shape=None, name=None):
   r"""TODO: add doc.
 
   Args:
@@ -3831,21 +5482,21 @@ def _tensor_array(size, dtype, dynamic_size=False, clear_after_read=True, tensor
   Returns:
     A `Tensor` of type mutable `string`.
   """
-  dtype = _execute.make_type(dtype, "dtype")
-  if dynamic_size is None:
-    dynamic_size = False
-  dynamic_size = _execute.make_bool(dynamic_size, "dynamic_size")
-  if clear_after_read is None:
-    clear_after_read = True
-  clear_after_read = _execute.make_bool(clear_after_read, "clear_after_read")
-  if tensor_array_name is None:
-    tensor_array_name = ""
-  tensor_array_name = _execute.make_str(tensor_array_name, "tensor_array_name")
-  if element_shape is None:
-    element_shape = None
-  element_shape = _execute.make_shape(element_shape, "element_shape")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    dtype = _execute.make_type(dtype, "dtype")
+    if dynamic_size is None:
+      dynamic_size = False
+    dynamic_size = _execute.make_bool(dynamic_size, "dynamic_size")
+    if clear_after_read is None:
+      clear_after_read = True
+    clear_after_read = _execute.make_bool(clear_after_read, "clear_after_read")
+    if tensor_array_name is None:
+      tensor_array_name = ""
+    tensor_array_name = _execute.make_str(tensor_array_name, "tensor_array_name")
+    if element_shape is None:
+      element_shape = None
+    element_shape = _execute.make_shape(element_shape, "element_shape")
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArray", size=size, dtype=dtype, dynamic_size=dynamic_size,
         clear_after_read=clear_after_read,
@@ -3858,16 +5509,18 @@ def _tensor_array(size, dtype, dynamic_size=False, clear_after_read=True, tensor
               _op.get_attr("clear_after_read"), "tensor_array_name",
               _op.get_attr("tensor_array_name"), "element_shape",
               _op.get_attr("element_shape"))
-  else:
-    raise RuntimeError(
-        "tensor_array op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "TensorArray", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("tensor_array op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _tensor_array_close(handle, name=None):
+  raise RuntimeError("tensor_array op does not support eager execution. Arg 'handle' is a ref.")
+
+def tensor_array_close(handle, name=None):
   r"""TODO: add doc.
 
   Args:
@@ -3878,18 +5531,20 @@ def _tensor_array_close(handle, name=None):
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayClose", handle=handle, name=name)
     return _op
-  else:
-    raise RuntimeError(
-        "tensor_array_close op does not support eager execution. Arg 'handle'' is a ref.")
     _result = None
-  return _result
+    return _result
+
+  else:
+    raise RuntimeError("tensor_array_close op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _tensor_array_close_v2(handle, name=None):
+  raise RuntimeError("tensor_array_close op does not support eager execution. Arg 'handle' is a ref.")
+
+def tensor_array_close_v2(handle, name=None):
   r"""Deprecated. Use TensorArrayCloseV3
 
   Args:
@@ -3900,21 +5555,45 @@ def _tensor_array_close_v2(handle, name=None):
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayCloseV2", handle=handle, name=name)
     return _op
-  else:
-    handle = _ops.convert_to_tensor(handle, _dtypes.string)
-    _inputs_flat = [handle]
-    _attrs = None
-    _result = _execute.execute(b"TensorArrayCloseV2", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TensorArrayCloseV2", name,
+        _ctx._post_execution_callbacks, handle)
+      return _result
+    except _core._FallbackException:
+      return tensor_array_close_v2_eager_fallback(
+          handle, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tensor_array_close_v2_eager_fallback(handle, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tensor_array_close_v2
+  """
+  _ctx = _context.context()
+  handle = _ops.convert_to_tensor(handle, _dtypes.string)
+  _inputs_flat = [handle]
+  _attrs = None
+  _result = _execute.execute(b"TensorArrayCloseV2", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 
-def _tensor_array_close_v3(handle, name=None):
+def tensor_array_close_v3(handle, name=None):
   r"""Delete the TensorArray from its resource container.
 
   This enables the user to close and release the resource in the middle
@@ -3929,26 +5608,50 @@ def _tensor_array_close_v3(handle, name=None):
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayCloseV3", handle=handle, name=name)
     return _op
-  else:
-    handle = _ops.convert_to_tensor(handle, _dtypes.resource)
-    _inputs_flat = [handle]
-    _attrs = None
-    _result = _execute.execute(b"TensorArrayCloseV3", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TensorArrayCloseV3", name,
+        _ctx._post_execution_callbacks, handle)
+      return _result
+    except _core._FallbackException:
+      return tensor_array_close_v3_eager_fallback(
+          handle, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tensor_array_close_v3_eager_fallback(handle, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tensor_array_close_v3
+  """
+  _ctx = _context.context()
+  handle = _ops.convert_to_tensor(handle, _dtypes.resource)
+  _inputs_flat = [handle]
+  _attrs = None
+  _result = _execute.execute(b"TensorArrayCloseV3", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 
-__tensor_array_concat_outputs = ["value", "lengths"]
+_tensor_array_concat_outputs = ["value", "lengths"]
 _TensorArrayConcatOutput = _collections.namedtuple(
-    "TensorArrayConcat", __tensor_array_concat_outputs)
+    "TensorArrayConcat", _tensor_array_concat_outputs)
 
 
-def _tensor_array_concat(handle, flow_in, dtype, element_shape_except0=None, name=None):
+def tensor_array_concat(handle, flow_in, dtype, element_shape_except0=None, name=None):
   r"""TODO: add doc.
 
   Args:
@@ -3964,12 +5667,12 @@ def _tensor_array_concat(handle, flow_in, dtype, element_shape_except0=None, nam
     value: A `Tensor` of type `dtype`.
     lengths: A `Tensor` of type `int64`.
   """
-  dtype = _execute.make_type(dtype, "dtype")
-  if element_shape_except0 is None:
-    element_shape_except0 = None
-  element_shape_except0 = _execute.make_shape(element_shape_except0, "element_shape_except0")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    dtype = _execute.make_type(dtype, "dtype")
+    if element_shape_except0 is None:
+      element_shape_except0 = None
+    element_shape_except0 = _execute.make_shape(element_shape_except0, "element_shape_except0")
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayConcat", handle=handle, flow_in=flow_in, dtype=dtype,
         element_shape_except0=element_shape_except0, name=name)
@@ -3977,21 +5680,23 @@ def _tensor_array_concat(handle, flow_in, dtype, element_shape_except0=None, nam
     _inputs_flat = _op.inputs
     _attrs = ("dtype", _op.get_attr("dtype"), "element_shape_except0",
               _op.get_attr("element_shape_except0"))
-  else:
-    raise RuntimeError(
-        "tensor_array_concat op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "TensorArrayConcat", _inputs_flat, _attrs, _result, name)
-  _result = _TensorArrayConcatOutput._make(_result)
-  return _result
+    _result = _TensorArrayConcatOutput._make(_result)
+    return _result
+
+  else:
+    raise RuntimeError("tensor_array_concat op does not support eager execution. Arg 'handle' is a ref.")
 
 
-__tensor_array_concat_v2_outputs = ["value", "lengths"]
+  raise RuntimeError("tensor_array_concat op does not support eager execution. Arg 'handle' is a ref.")
+
+_tensor_array_concat_v2_outputs = ["value", "lengths"]
 _TensorArrayConcatV2Output = _collections.namedtuple(
-    "TensorArrayConcatV2", __tensor_array_concat_v2_outputs)
+    "TensorArrayConcatV2", _tensor_array_concat_v2_outputs)
 
 
-def _tensor_array_concat_v2(handle, flow_in, dtype, element_shape_except0=None, name=None):
+def tensor_array_concat_v2(handle, flow_in, dtype, element_shape_except0=None, name=None):
   r"""Deprecated. Use TensorArrayConcatV3
 
   Args:
@@ -4007,12 +5712,12 @@ def _tensor_array_concat_v2(handle, flow_in, dtype, element_shape_except0=None, 
     value: A `Tensor` of type `dtype`.
     lengths: A `Tensor` of type `int64`.
   """
-  dtype = _execute.make_type(dtype, "dtype")
-  if element_shape_except0 is None:
-    element_shape_except0 = None
-  element_shape_except0 = _execute.make_shape(element_shape_except0, "element_shape_except0")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    dtype = _execute.make_type(dtype, "dtype")
+    if element_shape_except0 is None:
+      element_shape_except0 = None
+    element_shape_except0 = _execute.make_shape(element_shape_except0, "element_shape_except0")
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayConcatV2", handle=handle, flow_in=flow_in, dtype=dtype,
         element_shape_except0=element_shape_except0, name=name)
@@ -4020,25 +5725,58 @@ def _tensor_array_concat_v2(handle, flow_in, dtype, element_shape_except0=None, 
     _inputs_flat = _op.inputs
     _attrs = ("dtype", _op.get_attr("dtype"), "element_shape_except0",
               _op.get_attr("element_shape_except0"))
+    _execute.record_gradient(
+      "TensorArrayConcatV2", _inputs_flat, _attrs, _result, name)
+    _result = _TensorArrayConcatV2Output._make(_result)
+    return _result
+
   else:
-    handle = _ops.convert_to_tensor(handle, _dtypes.string)
-    flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
-    _inputs_flat = [handle, flow_in]
-    _attrs = ("dtype", dtype, "element_shape_except0", element_shape_except0)
-    _result = _execute.execute(b"TensorArrayConcatV2", 2, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TensorArrayConcatV2", name,
+        _ctx._post_execution_callbacks, handle, flow_in, "dtype", dtype,
+        "element_shape_except0", element_shape_except0)
+      _result = _TensorArrayConcatV2Output._make(_result)
+      return _result
+    except _core._FallbackException:
+      return tensor_array_concat_v2_eager_fallback(
+          handle, flow_in, dtype=dtype,
+          element_shape_except0=element_shape_except0, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tensor_array_concat_v2_eager_fallback(handle, flow_in, dtype, element_shape_except0=None, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tensor_array_concat_v2
+  """
+  _ctx = _context.context()
+  dtype = _execute.make_type(dtype, "dtype")
+  if element_shape_except0 is None:
+    element_shape_except0 = None
+  element_shape_except0 = _execute.make_shape(element_shape_except0, "element_shape_except0")
+  handle = _ops.convert_to_tensor(handle, _dtypes.string)
+  flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
+  _inputs_flat = [handle, flow_in]
+  _attrs = ("dtype", dtype, "element_shape_except0", element_shape_except0)
+  _result = _execute.execute(b"TensorArrayConcatV2", 2, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TensorArrayConcatV2", _inputs_flat, _attrs, _result, name)
   _result = _TensorArrayConcatV2Output._make(_result)
   return _result
 
 
-__tensor_array_concat_v3_outputs = ["value", "lengths"]
+_tensor_array_concat_v3_outputs = ["value", "lengths"]
 _TensorArrayConcatV3Output = _collections.namedtuple(
-    "TensorArrayConcatV3", __tensor_array_concat_v3_outputs)
+    "TensorArrayConcatV3", _tensor_array_concat_v3_outputs)
 
 
-def _tensor_array_concat_v3(handle, flow_in, dtype, element_shape_except0=None, name=None):
+def tensor_array_concat_v3(handle, flow_in, dtype, element_shape_except0=None, name=None):
   r"""Concat the elements from the TensorArray into value `value`.
 
   Takes `T` elements of shapes
@@ -4068,18 +5806,15 @@ def _tensor_array_concat_v3(handle, flow_in, dtype, element_shape_except0=None, 
   Returns:
     A tuple of `Tensor` objects (value, lengths).
 
-    value: A `Tensor` of type `dtype`. All of the elements in the TensorArray, concatenated along the first
-      axis.
-    lengths: A `Tensor` of type `int64`. A vector of the row sizes of the original T elements in the
-      value output.  In the example above, this would be the values:
-      `(n1, n2, ..., n(T-1))`.
+    value: A `Tensor` of type `dtype`.
+    lengths: A `Tensor` of type `int64`.
   """
-  dtype = _execute.make_type(dtype, "dtype")
-  if element_shape_except0 is None:
-    element_shape_except0 = None
-  element_shape_except0 = _execute.make_shape(element_shape_except0, "element_shape_except0")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    dtype = _execute.make_type(dtype, "dtype")
+    if element_shape_except0 is None:
+      element_shape_except0 = None
+    element_shape_except0 = _execute.make_shape(element_shape_except0, "element_shape_except0")
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayConcatV3", handle=handle, flow_in=flow_in, dtype=dtype,
         element_shape_except0=element_shape_except0, name=name)
@@ -4087,20 +5822,53 @@ def _tensor_array_concat_v3(handle, flow_in, dtype, element_shape_except0=None, 
     _inputs_flat = _op.inputs
     _attrs = ("dtype", _op.get_attr("dtype"), "element_shape_except0",
               _op.get_attr("element_shape_except0"))
+    _execute.record_gradient(
+      "TensorArrayConcatV3", _inputs_flat, _attrs, _result, name)
+    _result = _TensorArrayConcatV3Output._make(_result)
+    return _result
+
   else:
-    handle = _ops.convert_to_tensor(handle, _dtypes.resource)
-    flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
-    _inputs_flat = [handle, flow_in]
-    _attrs = ("dtype", dtype, "element_shape_except0", element_shape_except0)
-    _result = _execute.execute(b"TensorArrayConcatV3", 2, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TensorArrayConcatV3", name,
+        _ctx._post_execution_callbacks, handle, flow_in, "dtype", dtype,
+        "element_shape_except0", element_shape_except0)
+      _result = _TensorArrayConcatV3Output._make(_result)
+      return _result
+    except _core._FallbackException:
+      return tensor_array_concat_v3_eager_fallback(
+          handle, flow_in, dtype=dtype,
+          element_shape_except0=element_shape_except0, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tensor_array_concat_v3_eager_fallback(handle, flow_in, dtype, element_shape_except0=None, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tensor_array_concat_v3
+  """
+  _ctx = _context.context()
+  dtype = _execute.make_type(dtype, "dtype")
+  if element_shape_except0 is None:
+    element_shape_except0 = None
+  element_shape_except0 = _execute.make_shape(element_shape_except0, "element_shape_except0")
+  handle = _ops.convert_to_tensor(handle, _dtypes.resource)
+  flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
+  _inputs_flat = [handle, flow_in]
+  _attrs = ("dtype", dtype, "element_shape_except0", element_shape_except0)
+  _result = _execute.execute(b"TensorArrayConcatV3", 2, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TensorArrayConcatV3", _inputs_flat, _attrs, _result, name)
   _result = _TensorArrayConcatV3Output._make(_result)
   return _result
 
 
-def _tensor_array_gather(handle, indices, flow_in, dtype, element_shape=None, name=None):
+def tensor_array_gather(handle, indices, flow_in, dtype, element_shape=None, name=None):
   r"""TODO: add doc.
 
   Args:
@@ -4114,12 +5882,12 @@ def _tensor_array_gather(handle, indices, flow_in, dtype, element_shape=None, na
   Returns:
     A `Tensor` of type `dtype`.
   """
-  dtype = _execute.make_type(dtype, "dtype")
-  if element_shape is None:
-    element_shape = None
-  element_shape = _execute.make_shape(element_shape, "element_shape")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    dtype = _execute.make_type(dtype, "dtype")
+    if element_shape is None:
+      element_shape = None
+    element_shape = _execute.make_shape(element_shape, "element_shape")
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayGather", handle=handle, indices=indices, flow_in=flow_in,
         dtype=dtype, element_shape=element_shape, name=name)
@@ -4127,16 +5895,18 @@ def _tensor_array_gather(handle, indices, flow_in, dtype, element_shape=None, na
     _inputs_flat = _op.inputs
     _attrs = ("dtype", _op.get_attr("dtype"), "element_shape",
               _op.get_attr("element_shape"))
-  else:
-    raise RuntimeError(
-        "tensor_array_gather op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "TensorArrayGather", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("tensor_array_gather op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _tensor_array_gather_v2(handle, indices, flow_in, dtype, element_shape=None, name=None):
+  raise RuntimeError("tensor_array_gather op does not support eager execution. Arg 'handle' is a ref.")
+
+def tensor_array_gather_v2(handle, indices, flow_in, dtype, element_shape=None, name=None):
   r"""Deprecated. Use TensorArrayGatherV3
 
   Args:
@@ -4150,12 +5920,12 @@ def _tensor_array_gather_v2(handle, indices, flow_in, dtype, element_shape=None,
   Returns:
     A `Tensor` of type `dtype`.
   """
-  dtype = _execute.make_type(dtype, "dtype")
-  if element_shape is None:
-    element_shape = None
-  element_shape = _execute.make_shape(element_shape, "element_shape")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    dtype = _execute.make_type(dtype, "dtype")
+    if element_shape is None:
+      element_shape = None
+    element_shape = _execute.make_shape(element_shape, "element_shape")
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayGatherV2", handle=handle, indices=indices,
         flow_in=flow_in, dtype=dtype, element_shape=element_shape, name=name)
@@ -4163,21 +5933,53 @@ def _tensor_array_gather_v2(handle, indices, flow_in, dtype, element_shape=None,
     _inputs_flat = _op.inputs
     _attrs = ("dtype", _op.get_attr("dtype"), "element_shape",
               _op.get_attr("element_shape"))
+    _execute.record_gradient(
+      "TensorArrayGatherV2", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    handle = _ops.convert_to_tensor(handle, _dtypes.string)
-    indices = _ops.convert_to_tensor(indices, _dtypes.int32)
-    flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
-    _inputs_flat = [handle, indices, flow_in]
-    _attrs = ("dtype", dtype, "element_shape", element_shape)
-    _result = _execute.execute(b"TensorArrayGatherV2", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TensorArrayGatherV2", name,
+        _ctx._post_execution_callbacks, handle, indices, flow_in, "dtype",
+        dtype, "element_shape", element_shape)
+      return _result
+    except _core._FallbackException:
+      return tensor_array_gather_v2_eager_fallback(
+          handle, indices, flow_in, dtype=dtype, element_shape=element_shape,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tensor_array_gather_v2_eager_fallback(handle, indices, flow_in, dtype, element_shape=None, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tensor_array_gather_v2
+  """
+  _ctx = _context.context()
+  dtype = _execute.make_type(dtype, "dtype")
+  if element_shape is None:
+    element_shape = None
+  element_shape = _execute.make_shape(element_shape, "element_shape")
+  handle = _ops.convert_to_tensor(handle, _dtypes.string)
+  indices = _ops.convert_to_tensor(indices, _dtypes.int32)
+  flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
+  _inputs_flat = [handle, indices, flow_in]
+  _attrs = ("dtype", dtype, "element_shape", element_shape)
+  _result = _execute.execute(b"TensorArrayGatherV2", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TensorArrayGatherV2", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-def _tensor_array_gather_v3(handle, indices, flow_in, dtype, element_shape=None, name=None):
+def tensor_array_gather_v3(handle, indices, flow_in, dtype, element_shape=None, name=None):
   r"""Gather specific elements from the TensorArray into output `value`.
 
   All elements selected by `indices` must have the same shape.
@@ -4197,15 +5999,13 @@ def _tensor_array_gather_v3(handle, indices, flow_in, dtype, element_shape=None,
 
   Returns:
     A `Tensor` of type `dtype`.
-    All of the elements in the TensorArray, concatenated along a new
-    axis (the new dimension 0).
   """
-  dtype = _execute.make_type(dtype, "dtype")
-  if element_shape is None:
-    element_shape = None
-  element_shape = _execute.make_shape(element_shape, "element_shape")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    dtype = _execute.make_type(dtype, "dtype")
+    if element_shape is None:
+      element_shape = None
+    element_shape = _execute.make_shape(element_shape, "element_shape")
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayGatherV3", handle=handle, indices=indices,
         flow_in=flow_in, dtype=dtype, element_shape=element_shape, name=name)
@@ -4213,21 +6013,53 @@ def _tensor_array_gather_v3(handle, indices, flow_in, dtype, element_shape=None,
     _inputs_flat = _op.inputs
     _attrs = ("dtype", _op.get_attr("dtype"), "element_shape",
               _op.get_attr("element_shape"))
+    _execute.record_gradient(
+      "TensorArrayGatherV3", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    handle = _ops.convert_to_tensor(handle, _dtypes.resource)
-    indices = _ops.convert_to_tensor(indices, _dtypes.int32)
-    flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
-    _inputs_flat = [handle, indices, flow_in]
-    _attrs = ("dtype", dtype, "element_shape", element_shape)
-    _result = _execute.execute(b"TensorArrayGatherV3", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TensorArrayGatherV3", name,
+        _ctx._post_execution_callbacks, handle, indices, flow_in, "dtype",
+        dtype, "element_shape", element_shape)
+      return _result
+    except _core._FallbackException:
+      return tensor_array_gather_v3_eager_fallback(
+          handle, indices, flow_in, dtype=dtype, element_shape=element_shape,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tensor_array_gather_v3_eager_fallback(handle, indices, flow_in, dtype, element_shape=None, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tensor_array_gather_v3
+  """
+  _ctx = _context.context()
+  dtype = _execute.make_type(dtype, "dtype")
+  if element_shape is None:
+    element_shape = None
+  element_shape = _execute.make_shape(element_shape, "element_shape")
+  handle = _ops.convert_to_tensor(handle, _dtypes.resource)
+  indices = _ops.convert_to_tensor(indices, _dtypes.int32)
+  flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
+  _inputs_flat = [handle, indices, flow_in]
+  _attrs = ("dtype", dtype, "element_shape", element_shape)
+  _result = _execute.execute(b"TensorArrayGatherV3", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TensorArrayGatherV3", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-def _tensor_array_grad(handle, flow_in, source, name=None):
+def tensor_array_grad(handle, flow_in, source, name=None):
   r"""TODO: add doc.
 
   Args:
@@ -4239,25 +6071,27 @@ def _tensor_array_grad(handle, flow_in, source, name=None):
   Returns:
     A `Tensor` of type mutable `string`.
   """
-  source = _execute.make_str(source, "source")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    source = _execute.make_str(source, "source")
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayGrad", handle=handle, flow_in=flow_in, source=source,
         name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("source", _op.get_attr("source"))
-  else:
-    raise RuntimeError(
-        "tensor_array_grad op does not support eager execution. Arg 'grad_handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "TensorArrayGrad", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("tensor_array_grad op does not support eager execution. Arg 'grad_handle' is a ref.")
 
 
-def _tensor_array_grad_v2(handle, flow_in, source, name=None):
+  raise RuntimeError("tensor_array_grad op does not support eager execution. Arg 'grad_handle' is a ref.")
+
+def tensor_array_grad_v2(handle, flow_in, source, name=None):
   r"""Deprecated. Use TensorArrayGradV3
 
   Args:
@@ -4269,34 +6103,61 @@ def _tensor_array_grad_v2(handle, flow_in, source, name=None):
   Returns:
     A `Tensor` of type `string`.
   """
-  source = _execute.make_str(source, "source")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    source = _execute.make_str(source, "source")
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayGradV2", handle=handle, flow_in=flow_in, source=source,
         name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("source", _op.get_attr("source"))
+    _execute.record_gradient(
+      "TensorArrayGradV2", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    handle = _ops.convert_to_tensor(handle, _dtypes.string)
-    flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
-    _inputs_flat = [handle, flow_in]
-    _attrs = ("source", source)
-    _result = _execute.execute(b"TensorArrayGradV2", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TensorArrayGradV2", name,
+        _ctx._post_execution_callbacks, handle, flow_in, "source", source)
+      return _result
+    except _core._FallbackException:
+      return tensor_array_grad_v2_eager_fallback(
+          handle, flow_in, source=source, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tensor_array_grad_v2_eager_fallback(handle, flow_in, source, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tensor_array_grad_v2
+  """
+  _ctx = _context.context()
+  source = _execute.make_str(source, "source")
+  handle = _ops.convert_to_tensor(handle, _dtypes.string)
+  flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
+  _inputs_flat = [handle, flow_in]
+  _attrs = ("source", source)
+  _result = _execute.execute(b"TensorArrayGradV2", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TensorArrayGradV2", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-__tensor_array_grad_v3_outputs = ["grad_handle", "flow_out"]
+_tensor_array_grad_v3_outputs = ["grad_handle", "flow_out"]
 _TensorArrayGradV3Output = _collections.namedtuple(
-    "TensorArrayGradV3", __tensor_array_grad_v3_outputs)
+    "TensorArrayGradV3", _tensor_array_grad_v3_outputs)
 
 
-def _tensor_array_grad_v3(handle, flow_in, source, name=None):
+def tensor_array_grad_v3(handle, flow_in, source, name=None):
   r"""Creates a TensorArray for storing the gradients of values in the given handle.
 
   If the given TensorArray gradient already exists, returns a reference to it.
@@ -4352,29 +6213,57 @@ def _tensor_array_grad_v3(handle, flow_in, source, name=None):
     grad_handle: A `Tensor` of type `resource`.
     flow_out: A `Tensor` of type `float32`.
   """
-  source = _execute.make_str(source, "source")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    source = _execute.make_str(source, "source")
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayGradV3", handle=handle, flow_in=flow_in, source=source,
         name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("source", _op.get_attr("source"))
+    _execute.record_gradient(
+      "TensorArrayGradV3", _inputs_flat, _attrs, _result, name)
+    _result = _TensorArrayGradV3Output._make(_result)
+    return _result
+
   else:
-    handle = _ops.convert_to_tensor(handle, _dtypes.resource)
-    flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
-    _inputs_flat = [handle, flow_in]
-    _attrs = ("source", source)
-    _result = _execute.execute(b"TensorArrayGradV3", 2, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TensorArrayGradV3", name,
+        _ctx._post_execution_callbacks, handle, flow_in, "source", source)
+      _result = _TensorArrayGradV3Output._make(_result)
+      return _result
+    except _core._FallbackException:
+      return tensor_array_grad_v3_eager_fallback(
+          handle, flow_in, source=source, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tensor_array_grad_v3_eager_fallback(handle, flow_in, source, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tensor_array_grad_v3
+  """
+  _ctx = _context.context()
+  source = _execute.make_str(source, "source")
+  handle = _ops.convert_to_tensor(handle, _dtypes.resource)
+  flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
+  _inputs_flat = [handle, flow_in]
+  _attrs = ("source", source)
+  _result = _execute.execute(b"TensorArrayGradV3", 2, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TensorArrayGradV3", _inputs_flat, _attrs, _result, name)
   _result = _TensorArrayGradV3Output._make(_result)
   return _result
 
 
-def _tensor_array_pack(handle, flow_in, dtype, element_shape=None, name=None):
+def tensor_array_pack(handle, flow_in, dtype, element_shape=None, name=None):
   r"""TODO: add doc.
 
   Args:
@@ -4387,12 +6276,12 @@ def _tensor_array_pack(handle, flow_in, dtype, element_shape=None, name=None):
   Returns:
     A `Tensor` of type `dtype`.
   """
-  dtype = _execute.make_type(dtype, "dtype")
-  if element_shape is None:
-    element_shape = None
-  element_shape = _execute.make_shape(element_shape, "element_shape")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    dtype = _execute.make_type(dtype, "dtype")
+    if element_shape is None:
+      element_shape = None
+    element_shape = _execute.make_shape(element_shape, "element_shape")
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayPack", handle=handle, flow_in=flow_in, dtype=dtype,
         element_shape=element_shape, name=name)
@@ -4400,16 +6289,18 @@ def _tensor_array_pack(handle, flow_in, dtype, element_shape=None, name=None):
     _inputs_flat = _op.inputs
     _attrs = ("dtype", _op.get_attr("dtype"), "element_shape",
               _op.get_attr("element_shape"))
-  else:
-    raise RuntimeError(
-        "tensor_array_pack op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "TensorArrayPack", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("tensor_array_pack op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _tensor_array_read(handle, index, flow_in, dtype, name=None):
+  raise RuntimeError("tensor_array_pack op does not support eager execution. Arg 'handle' is a ref.")
+
+def tensor_array_read(handle, index, flow_in, dtype, name=None):
   r"""TODO: add doc.
 
   Args:
@@ -4422,25 +6313,27 @@ def _tensor_array_read(handle, index, flow_in, dtype, name=None):
   Returns:
     A `Tensor` of type `dtype`.
   """
-  dtype = _execute.make_type(dtype, "dtype")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    dtype = _execute.make_type(dtype, "dtype")
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayRead", handle=handle, index=index, flow_in=flow_in,
         dtype=dtype, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("dtype", _op.get_attr("dtype"))
-  else:
-    raise RuntimeError(
-        "tensor_array_read op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "TensorArrayRead", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("tensor_array_read op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _tensor_array_read_v2(handle, index, flow_in, dtype, name=None):
+  raise RuntimeError("tensor_array_read op does not support eager execution. Arg 'handle' is a ref.")
+
+def tensor_array_read_v2(handle, index, flow_in, dtype, name=None):
   r"""Deprecated. Use TensorArrayReadV3
 
   Args:
@@ -4453,30 +6346,58 @@ def _tensor_array_read_v2(handle, index, flow_in, dtype, name=None):
   Returns:
     A `Tensor` of type `dtype`.
   """
-  dtype = _execute.make_type(dtype, "dtype")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    dtype = _execute.make_type(dtype, "dtype")
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayReadV2", handle=handle, index=index, flow_in=flow_in,
         dtype=dtype, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("dtype", _op.get_attr("dtype"))
+    _execute.record_gradient(
+      "TensorArrayReadV2", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    handle = _ops.convert_to_tensor(handle, _dtypes.string)
-    index = _ops.convert_to_tensor(index, _dtypes.int32)
-    flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
-    _inputs_flat = [handle, index, flow_in]
-    _attrs = ("dtype", dtype)
-    _result = _execute.execute(b"TensorArrayReadV2", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TensorArrayReadV2", name,
+        _ctx._post_execution_callbacks, handle, index, flow_in, "dtype",
+        dtype)
+      return _result
+    except _core._FallbackException:
+      return tensor_array_read_v2_eager_fallback(
+          handle, index, flow_in, dtype=dtype, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tensor_array_read_v2_eager_fallback(handle, index, flow_in, dtype, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tensor_array_read_v2
+  """
+  _ctx = _context.context()
+  dtype = _execute.make_type(dtype, "dtype")
+  handle = _ops.convert_to_tensor(handle, _dtypes.string)
+  index = _ops.convert_to_tensor(index, _dtypes.int32)
+  flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
+  _inputs_flat = [handle, index, flow_in]
+  _attrs = ("dtype", dtype)
+  _result = _execute.execute(b"TensorArrayReadV2", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TensorArrayReadV2", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-def _tensor_array_read_v3(handle, index, flow_in, dtype, name=None):
+def tensor_array_read_v3(handle, index, flow_in, dtype, name=None):
   r"""Read an element from the TensorArray into output `value`.
 
   Args:
@@ -4488,32 +6409,60 @@ def _tensor_array_read_v3(handle, index, flow_in, dtype, name=None):
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type `dtype`. The tensor that is read from the TensorArray.
+    A `Tensor` of type `dtype`.
   """
-  dtype = _execute.make_type(dtype, "dtype")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    dtype = _execute.make_type(dtype, "dtype")
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayReadV3", handle=handle, index=index, flow_in=flow_in,
         dtype=dtype, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("dtype", _op.get_attr("dtype"))
+    _execute.record_gradient(
+      "TensorArrayReadV3", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    handle = _ops.convert_to_tensor(handle, _dtypes.resource)
-    index = _ops.convert_to_tensor(index, _dtypes.int32)
-    flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
-    _inputs_flat = [handle, index, flow_in]
-    _attrs = ("dtype", dtype)
-    _result = _execute.execute(b"TensorArrayReadV3", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TensorArrayReadV3", name,
+        _ctx._post_execution_callbacks, handle, index, flow_in, "dtype",
+        dtype)
+      return _result
+    except _core._FallbackException:
+      return tensor_array_read_v3_eager_fallback(
+          handle, index, flow_in, dtype=dtype, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tensor_array_read_v3_eager_fallback(handle, index, flow_in, dtype, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tensor_array_read_v3
+  """
+  _ctx = _context.context()
+  dtype = _execute.make_type(dtype, "dtype")
+  handle = _ops.convert_to_tensor(handle, _dtypes.resource)
+  index = _ops.convert_to_tensor(index, _dtypes.int32)
+  flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
+  _inputs_flat = [handle, index, flow_in]
+  _attrs = ("dtype", dtype)
+  _result = _execute.execute(b"TensorArrayReadV3", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TensorArrayReadV3", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-def _tensor_array_scatter(handle, indices, value, flow_in, name=None):
+def tensor_array_scatter(handle, indices, value, flow_in, name=None):
   r"""TODO: add doc.
 
   Args:
@@ -4527,23 +6476,25 @@ def _tensor_array_scatter(handle, indices, value, flow_in, name=None):
     A `Tensor` of type `float32`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayScatter", handle=handle, indices=indices, value=value,
         flow_in=flow_in, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"))
-  else:
-    raise RuntimeError(
-        "tensor_array_scatter op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "TensorArrayScatter", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("tensor_array_scatter op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _tensor_array_scatter_v2(handle, indices, value, flow_in, name=None):
+  raise RuntimeError("tensor_array_scatter op does not support eager execution. Arg 'handle' is a ref.")
+
+def tensor_array_scatter_v2(handle, indices, value, flow_in, name=None):
   r"""Deprecated. Use TensorArrayScatterV3
 
   Args:
@@ -4557,30 +6508,55 @@ def _tensor_array_scatter_v2(handle, indices, value, flow_in, name=None):
     A `Tensor` of type `float32`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayScatterV2", handle=handle, indices=indices, value=value,
         flow_in=flow_in, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "TensorArrayScatterV2", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
-    handle = _ops.convert_to_tensor(handle, _dtypes.string)
-    indices = _ops.convert_to_tensor(indices, _dtypes.int32)
-    flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
-    _inputs_flat = [handle, indices, value, flow_in]
-    _attrs = ("T", _attr_T)
-    _result = _execute.execute(b"TensorArrayScatterV2", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TensorArrayScatterV2", name,
+        _ctx._post_execution_callbacks, handle, indices, value, flow_in)
+      return _result
+    except _core._FallbackException:
+      return tensor_array_scatter_v2_eager_fallback(
+          handle, indices, value, flow_in, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tensor_array_scatter_v2_eager_fallback(handle, indices, value, flow_in, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tensor_array_scatter_v2
+  """
+  _ctx = _context.context()
+  _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
+  handle = _ops.convert_to_tensor(handle, _dtypes.string)
+  indices = _ops.convert_to_tensor(indices, _dtypes.int32)
+  flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
+  _inputs_flat = [handle, indices, value, flow_in]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"TensorArrayScatterV2", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TensorArrayScatterV2", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-def _tensor_array_scatter_v3(handle, indices, value, flow_in, name=None):
+def tensor_array_scatter_v3(handle, indices, value, flow_in, name=None):
   r"""Scatter the data from the input value into specific TensorArray elements.
 
   `indices` must be a vector, its length must match the first dim of `value`.
@@ -4596,33 +6572,57 @@ def _tensor_array_scatter_v3(handle, indices, value, flow_in, name=None):
 
   Returns:
     A `Tensor` of type `float32`.
-    A float scalar that enforces proper chaining of operations.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayScatterV3", handle=handle, indices=indices, value=value,
         flow_in=flow_in, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "TensorArrayScatterV3", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
-    handle = _ops.convert_to_tensor(handle, _dtypes.resource)
-    indices = _ops.convert_to_tensor(indices, _dtypes.int32)
-    flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
-    _inputs_flat = [handle, indices, value, flow_in]
-    _attrs = ("T", _attr_T)
-    _result = _execute.execute(b"TensorArrayScatterV3", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TensorArrayScatterV3", name,
+        _ctx._post_execution_callbacks, handle, indices, value, flow_in)
+      return _result
+    except _core._FallbackException:
+      return tensor_array_scatter_v3_eager_fallback(
+          handle, indices, value, flow_in, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tensor_array_scatter_v3_eager_fallback(handle, indices, value, flow_in, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tensor_array_scatter_v3
+  """
+  _ctx = _context.context()
+  _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
+  handle = _ops.convert_to_tensor(handle, _dtypes.resource)
+  indices = _ops.convert_to_tensor(indices, _dtypes.int32)
+  flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
+  _inputs_flat = [handle, indices, value, flow_in]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"TensorArrayScatterV3", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TensorArrayScatterV3", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-def _tensor_array_size(handle, flow_in, name=None):
+def tensor_array_size(handle, flow_in, name=None):
   r"""TODO: add doc.
 
   Args:
@@ -4634,22 +6634,24 @@ def _tensor_array_size(handle, flow_in, name=None):
     A `Tensor` of type `int32`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArraySize", handle=handle, flow_in=flow_in, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
-  else:
-    raise RuntimeError(
-        "tensor_array_size op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "TensorArraySize", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("tensor_array_size op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _tensor_array_size_v2(handle, flow_in, name=None):
+  raise RuntimeError("tensor_array_size op does not support eager execution. Arg 'handle' is a ref.")
+
+def tensor_array_size_v2(handle, flow_in, name=None):
   r"""Deprecated. Use TensorArraySizeV3
 
   Args:
@@ -4661,26 +6663,52 @@ def _tensor_array_size_v2(handle, flow_in, name=None):
     A `Tensor` of type `int32`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArraySizeV2", handle=handle, flow_in=flow_in, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "TensorArraySizeV2", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    handle = _ops.convert_to_tensor(handle, _dtypes.string)
-    flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
-    _inputs_flat = [handle, flow_in]
-    _attrs = None
-    _result = _execute.execute(b"TensorArraySizeV2", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TensorArraySizeV2", name,
+        _ctx._post_execution_callbacks, handle, flow_in)
+      return _result
+    except _core._FallbackException:
+      return tensor_array_size_v2_eager_fallback(
+          handle, flow_in, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tensor_array_size_v2_eager_fallback(handle, flow_in, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tensor_array_size_v2
+  """
+  _ctx = _context.context()
+  handle = _ops.convert_to_tensor(handle, _dtypes.string)
+  flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
+  _inputs_flat = [handle, flow_in]
+  _attrs = None
+  _result = _execute.execute(b"TensorArraySizeV2", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TensorArraySizeV2", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-def _tensor_array_size_v3(handle, flow_in, name=None):
+def tensor_array_size_v3(handle, flow_in, name=None):
   r"""Get the current size of the TensorArray.
 
   Args:
@@ -4691,29 +6719,55 @@ def _tensor_array_size_v3(handle, flow_in, name=None):
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type `int32`. The current size of the TensorArray.
+    A `Tensor` of type `int32`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArraySizeV3", handle=handle, flow_in=flow_in, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "TensorArraySizeV3", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    handle = _ops.convert_to_tensor(handle, _dtypes.resource)
-    flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
-    _inputs_flat = [handle, flow_in]
-    _attrs = None
-    _result = _execute.execute(b"TensorArraySizeV3", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TensorArraySizeV3", name,
+        _ctx._post_execution_callbacks, handle, flow_in)
+      return _result
+    except _core._FallbackException:
+      return tensor_array_size_v3_eager_fallback(
+          handle, flow_in, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tensor_array_size_v3_eager_fallback(handle, flow_in, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tensor_array_size_v3
+  """
+  _ctx = _context.context()
+  handle = _ops.convert_to_tensor(handle, _dtypes.resource)
+  flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
+  _inputs_flat = [handle, flow_in]
+  _attrs = None
+  _result = _execute.execute(b"TensorArraySizeV3", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TensorArraySizeV3", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-def _tensor_array_split(handle, value, lengths, flow_in, name=None):
+def tensor_array_split(handle, value, lengths, flow_in, name=None):
   r"""TODO: add doc.
 
   Args:
@@ -4727,23 +6781,25 @@ def _tensor_array_split(handle, value, lengths, flow_in, name=None):
     A `Tensor` of type `float32`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArraySplit", handle=handle, value=value, lengths=lengths,
         flow_in=flow_in, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"))
-  else:
-    raise RuntimeError(
-        "tensor_array_split op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "TensorArraySplit", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("tensor_array_split op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _tensor_array_split_v2(handle, value, lengths, flow_in, name=None):
+  raise RuntimeError("tensor_array_split op does not support eager execution. Arg 'handle' is a ref.")
+
+def tensor_array_split_v2(handle, value, lengths, flow_in, name=None):
   r"""Deprecated. Use TensorArraySplitV3
 
   Args:
@@ -4757,29 +6813,55 @@ def _tensor_array_split_v2(handle, value, lengths, flow_in, name=None):
     A `Tensor` of type `float32`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArraySplitV2", handle=handle, value=value, lengths=lengths,
         flow_in=flow_in, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "TensorArraySplitV2", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
-    handle = _ops.convert_to_tensor(handle, _dtypes.string)
-    lengths = _ops.convert_to_tensor(lengths, _dtypes.int64)
-    flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
-    _inputs_flat = [handle, value, lengths, flow_in]
-    _attrs = ("T", _attr_T)
-    _result = _execute.execute(b"TensorArraySplitV2", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TensorArraySplitV2", name,
+        _ctx._post_execution_callbacks, handle, value, lengths, flow_in)
+      return _result
+    except _core._FallbackException:
+      return tensor_array_split_v2_eager_fallback(
+          handle, value, lengths, flow_in, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tensor_array_split_v2_eager_fallback(handle, value, lengths, flow_in, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tensor_array_split_v2
+  """
+  _ctx = _context.context()
+  _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
+  handle = _ops.convert_to_tensor(handle, _dtypes.string)
+  lengths = _ops.convert_to_tensor(lengths, _dtypes.int64)
+  flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
+  _inputs_flat = [handle, value, lengths, flow_in]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"TensorArraySplitV2", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TensorArraySplitV2", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-def _tensor_array_split_v3(handle, value, lengths, flow_in, name=None):
+def tensor_array_split_v3(handle, value, lengths, flow_in, name=None):
   r"""Split the data from the input value into TensorArray elements.
 
   Assuming that `lengths` takes on values
@@ -4812,32 +6894,57 @@ def _tensor_array_split_v3(handle, value, lengths, flow_in, name=None):
 
   Returns:
     A `Tensor` of type `float32`.
-    A float scalar that enforces proper chaining of operations.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArraySplitV3", handle=handle, value=value, lengths=lengths,
         flow_in=flow_in, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "TensorArraySplitV3", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
-    handle = _ops.convert_to_tensor(handle, _dtypes.resource)
-    lengths = _ops.convert_to_tensor(lengths, _dtypes.int64)
-    flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
-    _inputs_flat = [handle, value, lengths, flow_in]
-    _attrs = ("T", _attr_T)
-    _result = _execute.execute(b"TensorArraySplitV3", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TensorArraySplitV3", name,
+        _ctx._post_execution_callbacks, handle, value, lengths, flow_in)
+      return _result
+    except _core._FallbackException:
+      return tensor_array_split_v3_eager_fallback(
+          handle, value, lengths, flow_in, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tensor_array_split_v3_eager_fallback(handle, value, lengths, flow_in, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tensor_array_split_v3
+  """
+  _ctx = _context.context()
+  _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
+  handle = _ops.convert_to_tensor(handle, _dtypes.resource)
+  lengths = _ops.convert_to_tensor(lengths, _dtypes.int64)
+  flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
+  _inputs_flat = [handle, value, lengths, flow_in]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"TensorArraySplitV3", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TensorArraySplitV3", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-def _tensor_array_unpack(handle, value, flow_in, name=None):
+def tensor_array_unpack(handle, value, flow_in, name=None):
   r"""TODO: add doc.
 
   Args:
@@ -4850,23 +6957,25 @@ def _tensor_array_unpack(handle, value, flow_in, name=None):
     A `Tensor` of type `float32`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayUnpack", handle=handle, value=value, flow_in=flow_in,
         name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"))
-  else:
-    raise RuntimeError(
-        "tensor_array_unpack op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "TensorArrayUnpack", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("tensor_array_unpack op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _tensor_array_v2(size, dtype, element_shape=None, dynamic_size=False, clear_after_read=True, tensor_array_name="", name=None):
+  raise RuntimeError("tensor_array_unpack op does not support eager execution. Arg 'handle' is a ref.")
+
+def tensor_array_v2(size, dtype, element_shape=None, dynamic_size=False, clear_after_read=True, tensor_array_name="", name=None):
   r"""Deprecated. Use TensorArrayV3
 
   Args:
@@ -4881,6 +6990,63 @@ def _tensor_array_v2(size, dtype, element_shape=None, dynamic_size=False, clear_
   Returns:
     A `Tensor` of type `string`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    dtype = _execute.make_type(dtype, "dtype")
+    if element_shape is None:
+      element_shape = None
+    element_shape = _execute.make_shape(element_shape, "element_shape")
+    if dynamic_size is None:
+      dynamic_size = False
+    dynamic_size = _execute.make_bool(dynamic_size, "dynamic_size")
+    if clear_after_read is None:
+      clear_after_read = True
+    clear_after_read = _execute.make_bool(clear_after_read, "clear_after_read")
+    if tensor_array_name is None:
+      tensor_array_name = ""
+    tensor_array_name = _execute.make_str(tensor_array_name, "tensor_array_name")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "TensorArrayV2", size=size, dtype=dtype, element_shape=element_shape,
+        dynamic_size=dynamic_size, clear_after_read=clear_after_read,
+        tensor_array_name=tensor_array_name, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("dtype", _op.get_attr("dtype"), "element_shape",
+              _op.get_attr("element_shape"), "dynamic_size",
+              _op.get_attr("dynamic_size"), "clear_after_read",
+              _op.get_attr("clear_after_read"), "tensor_array_name",
+              _op.get_attr("tensor_array_name"))
+    _execute.record_gradient(
+      "TensorArrayV2", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TensorArrayV2", name,
+        _ctx._post_execution_callbacks, size, "dtype", dtype, "element_shape",
+        element_shape, "dynamic_size", dynamic_size, "clear_after_read",
+        clear_after_read, "tensor_array_name", tensor_array_name)
+      return _result
+    except _core._FallbackException:
+      return tensor_array_v2_eager_fallback(
+          size, dtype=dtype, element_shape=element_shape,
+          dynamic_size=dynamic_size, clear_after_read=clear_after_read,
+          tensor_array_name=tensor_array_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tensor_array_v2_eager_fallback(size, dtype, element_shape=None, dynamic_size=False, clear_after_read=True, tensor_array_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tensor_array_v2
+  """
+  _ctx = _context.context()
   dtype = _execute.make_type(dtype, "dtype")
   if element_shape is None:
     element_shape = None
@@ -4894,39 +7060,25 @@ def _tensor_array_v2(size, dtype, element_shape=None, dynamic_size=False, clear_
   if tensor_array_name is None:
     tensor_array_name = ""
   tensor_array_name = _execute.make_str(tensor_array_name, "tensor_array_name")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "TensorArrayV2", size=size, dtype=dtype, element_shape=element_shape,
-        dynamic_size=dynamic_size, clear_after_read=clear_after_read,
-        tensor_array_name=tensor_array_name, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("dtype", _op.get_attr("dtype"), "element_shape",
-              _op.get_attr("element_shape"), "dynamic_size",
-              _op.get_attr("dynamic_size"), "clear_after_read",
-              _op.get_attr("clear_after_read"), "tensor_array_name",
-              _op.get_attr("tensor_array_name"))
-  else:
-    size = _ops.convert_to_tensor(size, _dtypes.int32)
-    _inputs_flat = [size]
-    _attrs = ("dtype", dtype, "element_shape", element_shape, "dynamic_size",
-              dynamic_size, "clear_after_read", clear_after_read,
-              "tensor_array_name", tensor_array_name)
-    _result = _execute.execute(b"TensorArrayV2", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  size = _ops.convert_to_tensor(size, _dtypes.int32)
+  _inputs_flat = [size]
+  _attrs = ("dtype", dtype, "element_shape", element_shape, "dynamic_size",
+  dynamic_size, "clear_after_read", clear_after_read, "tensor_array_name",
+  tensor_array_name)
+  _result = _execute.execute(b"TensorArrayV2", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TensorArrayV2", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-__tensor_array_v3_outputs = ["handle", "flow"]
+_tensor_array_v3_outputs = ["handle", "flow"]
 _TensorArrayV3Output = _collections.namedtuple(
-    "TensorArrayV3", __tensor_array_v3_outputs)
+    "TensorArrayV3", _tensor_array_v3_outputs)
 
 
-def _tensor_array_v3(size, dtype, element_shape=None, dynamic_size=False, clear_after_read=True, identical_element_shapes=False, tensor_array_name="", name=None):
+def tensor_array_v3(size, dtype, element_shape=None, dynamic_size=False, clear_after_read=True, identical_element_shapes=False, tensor_array_name="", name=None):
   r"""An array of Tensors of given size.
 
   Write data via Write and read via Read or Pack.
@@ -4961,9 +7113,74 @@ def _tensor_array_v3(size, dtype, element_shape=None, dynamic_size=False, clear_
   Returns:
     A tuple of `Tensor` objects (handle, flow).
 
-    handle: A `Tensor` of type `resource`. The handle to the TensorArray.
-    flow: A `Tensor` of type `float32`. A scalar used to control gradient flow.
+    handle: A `Tensor` of type `resource`.
+    flow: A `Tensor` of type `float32`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    dtype = _execute.make_type(dtype, "dtype")
+    if element_shape is None:
+      element_shape = None
+    element_shape = _execute.make_shape(element_shape, "element_shape")
+    if dynamic_size is None:
+      dynamic_size = False
+    dynamic_size = _execute.make_bool(dynamic_size, "dynamic_size")
+    if clear_after_read is None:
+      clear_after_read = True
+    clear_after_read = _execute.make_bool(clear_after_read, "clear_after_read")
+    if identical_element_shapes is None:
+      identical_element_shapes = False
+    identical_element_shapes = _execute.make_bool(identical_element_shapes, "identical_element_shapes")
+    if tensor_array_name is None:
+      tensor_array_name = ""
+    tensor_array_name = _execute.make_str(tensor_array_name, "tensor_array_name")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "TensorArrayV3", size=size, dtype=dtype, element_shape=element_shape,
+        dynamic_size=dynamic_size, clear_after_read=clear_after_read,
+        identical_element_shapes=identical_element_shapes,
+        tensor_array_name=tensor_array_name, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("dtype", _op.get_attr("dtype"), "element_shape",
+              _op.get_attr("element_shape"), "dynamic_size",
+              _op.get_attr("dynamic_size"), "clear_after_read",
+              _op.get_attr("clear_after_read"), "identical_element_shapes",
+              _op.get_attr("identical_element_shapes"), "tensor_array_name",
+              _op.get_attr("tensor_array_name"))
+    _execute.record_gradient(
+      "TensorArrayV3", _inputs_flat, _attrs, _result, name)
+    _result = _TensorArrayV3Output._make(_result)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TensorArrayV3", name,
+        _ctx._post_execution_callbacks, size, "dtype", dtype, "element_shape",
+        element_shape, "dynamic_size", dynamic_size, "clear_after_read",
+        clear_after_read, "identical_element_shapes",
+        identical_element_shapes, "tensor_array_name", tensor_array_name)
+      _result = _TensorArrayV3Output._make(_result)
+      return _result
+    except _core._FallbackException:
+      return tensor_array_v3_eager_fallback(
+          size, dtype=dtype, element_shape=element_shape,
+          dynamic_size=dynamic_size, clear_after_read=clear_after_read,
+          identical_element_shapes=identical_element_shapes,
+          tensor_array_name=tensor_array_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tensor_array_v3_eager_fallback(size, dtype, element_shape=None, dynamic_size=False, clear_after_read=True, identical_element_shapes=False, tensor_array_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tensor_array_v3
+  """
+  _ctx = _context.context()
   dtype = _execute.make_type(dtype, "dtype")
   if element_shape is None:
     element_shape = None
@@ -4980,37 +7197,21 @@ def _tensor_array_v3(size, dtype, element_shape=None, dynamic_size=False, clear_
   if tensor_array_name is None:
     tensor_array_name = ""
   tensor_array_name = _execute.make_str(tensor_array_name, "tensor_array_name")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "TensorArrayV3", size=size, dtype=dtype, element_shape=element_shape,
-        dynamic_size=dynamic_size, clear_after_read=clear_after_read,
-        identical_element_shapes=identical_element_shapes,
-        tensor_array_name=tensor_array_name, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("dtype", _op.get_attr("dtype"), "element_shape",
-              _op.get_attr("element_shape"), "dynamic_size",
-              _op.get_attr("dynamic_size"), "clear_after_read",
-              _op.get_attr("clear_after_read"), "identical_element_shapes",
-              _op.get_attr("identical_element_shapes"), "tensor_array_name",
-              _op.get_attr("tensor_array_name"))
-  else:
-    size = _ops.convert_to_tensor(size, _dtypes.int32)
-    _inputs_flat = [size]
-    _attrs = ("dtype", dtype, "element_shape", element_shape, "dynamic_size",
-              dynamic_size, "clear_after_read", clear_after_read,
-              "identical_element_shapes", identical_element_shapes,
-              "tensor_array_name", tensor_array_name)
-    _result = _execute.execute(b"TensorArrayV3", 2, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  size = _ops.convert_to_tensor(size, _dtypes.int32)
+  _inputs_flat = [size]
+  _attrs = ("dtype", dtype, "element_shape", element_shape, "dynamic_size",
+  dynamic_size, "clear_after_read", clear_after_read,
+  "identical_element_shapes", identical_element_shapes, "tensor_array_name",
+  tensor_array_name)
+  _result = _execute.execute(b"TensorArrayV3", 2, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TensorArrayV3", _inputs_flat, _attrs, _result, name)
   _result = _TensorArrayV3Output._make(_result)
   return _result
 
 
-def _tensor_array_write(handle, index, value, flow_in, name=None):
+def tensor_array_write(handle, index, value, flow_in, name=None):
   r"""TODO: add doc.
 
   Args:
@@ -5024,23 +7225,25 @@ def _tensor_array_write(handle, index, value, flow_in, name=None):
     A `Tensor` of type `float32`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayWrite", handle=handle, index=index, value=value,
         flow_in=flow_in, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"))
-  else:
-    raise RuntimeError(
-        "tensor_array_write op does not support eager execution. Arg 'handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "TensorArrayWrite", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("tensor_array_write op does not support eager execution. Arg 'handle' is a ref.")
 
 
-def _tensor_array_write_v2(handle, index, value, flow_in, name=None):
+  raise RuntimeError("tensor_array_write op does not support eager execution. Arg 'handle' is a ref.")
+
+def tensor_array_write_v2(handle, index, value, flow_in, name=None):
   r"""Deprecated. Use TensorArrayGradV3
 
   Args:
@@ -5054,29 +7257,55 @@ def _tensor_array_write_v2(handle, index, value, flow_in, name=None):
     A `Tensor` of type `float32`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayWriteV2", handle=handle, index=index, value=value,
         flow_in=flow_in, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "TensorArrayWriteV2", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
-    handle = _ops.convert_to_tensor(handle, _dtypes.string)
-    index = _ops.convert_to_tensor(index, _dtypes.int32)
-    flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
-    _inputs_flat = [handle, index, value, flow_in]
-    _attrs = ("T", _attr_T)
-    _result = _execute.execute(b"TensorArrayWriteV2", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TensorArrayWriteV2", name,
+        _ctx._post_execution_callbacks, handle, index, value, flow_in)
+      return _result
+    except _core._FallbackException:
+      return tensor_array_write_v2_eager_fallback(
+          handle, index, value, flow_in, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tensor_array_write_v2_eager_fallback(handle, index, value, flow_in, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tensor_array_write_v2
+  """
+  _ctx = _context.context()
+  _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
+  handle = _ops.convert_to_tensor(handle, _dtypes.string)
+  index = _ops.convert_to_tensor(index, _dtypes.int32)
+  flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
+  _inputs_flat = [handle, index, value, flow_in]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"TensorArrayWriteV2", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TensorArrayWriteV2", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-def _tensor_array_write_v3(handle, index, value, flow_in, name=None):
+def tensor_array_write_v3(handle, index, value, flow_in, name=None):
   r"""Push an element onto the tensor_array.
 
   Args:
@@ -5090,32 +7319,56 @@ def _tensor_array_write_v3(handle, index, value, flow_in, name=None):
 
   Returns:
     A `Tensor` of type `float32`.
-    A float scalar that enforces proper chaining of operations.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorArrayWriteV3", handle=handle, index=index, value=value,
         flow_in=flow_in, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "TensorArrayWriteV3", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
-    handle = _ops.convert_to_tensor(handle, _dtypes.resource)
-    index = _ops.convert_to_tensor(index, _dtypes.int32)
-    flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
-    _inputs_flat = [handle, index, value, flow_in]
-    _attrs = ("T", _attr_T)
-    _result = _execute.execute(b"TensorArrayWriteV3", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TensorArrayWriteV3", name,
+        _ctx._post_execution_callbacks, handle, index, value, flow_in)
+      return _result
+    except _core._FallbackException:
+      return tensor_array_write_v3_eager_fallback(
+          handle, index, value, flow_in, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tensor_array_write_v3_eager_fallback(handle, index, value, flow_in, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tensor_array_write_v3
+  """
+  _ctx = _context.context()
+  _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
+  handle = _ops.convert_to_tensor(handle, _dtypes.resource)
+  index = _ops.convert_to_tensor(index, _dtypes.int32)
+  flow_in = _ops.convert_to_tensor(flow_in, _dtypes.float32)
+  _inputs_flat = [handle, index, value, flow_in]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"TensorArrayWriteV3", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TensorArrayWriteV3", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('Unstage')
 def unstage(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
   r"""Op is similar to a lightweight Dequeue.
 
@@ -5133,6 +7386,66 @@ def unstage(dtypes, capacity=0, memory_limit=0, container="", shared_name="", na
   Returns:
     A list of `Tensor` objects of type `dtypes`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(dtypes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dtypes' argument to "
+          "'unstage' Op, not %r." % dtypes)
+    dtypes = [_execute.make_type(_t, "dtypes") for _t in dtypes]
+    if capacity is None:
+      capacity = 0
+    capacity = _execute.make_int(capacity, "capacity")
+    if memory_limit is None:
+      memory_limit = 0
+    memory_limit = _execute.make_int(memory_limit, "memory_limit")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "Unstage", dtypes=dtypes, capacity=capacity,
+        memory_limit=memory_limit, container=container,
+        shared_name=shared_name, name=name)
+    _result = _op.outputs[:]
+    if not _result:
+      return _op
+    _inputs_flat = _op.inputs
+    _attrs = ("capacity", _op.get_attr("capacity"), "memory_limit",
+              _op.get_attr("memory_limit"), "dtypes", _op.get_attr("dtypes"),
+              "container", _op.get_attr("container"), "shared_name",
+              _op.get_attr("shared_name"))
+    _execute.record_gradient(
+      "Unstage", _inputs_flat, _attrs, _result, name)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "Unstage", name,
+        _ctx._post_execution_callbacks, "capacity", capacity, "memory_limit",
+        memory_limit, "dtypes", dtypes, "container", container, "shared_name",
+        shared_name)
+      return _result
+    except _core._FallbackException:
+      return unstage_eager_fallback(
+          capacity=capacity, memory_limit=memory_limit, dtypes=dtypes,
+          container=container, shared_name=shared_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def unstage_eager_fallback(dtypes, capacity=0, memory_limit=0, container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function unstage
+  """
+  _ctx = _context.context()
   if not isinstance(dtypes, (list, tuple)):
     raise TypeError(
         "Expected list for 'dtypes' argument to "
@@ -5150,26 +7463,11 @@ def unstage(dtypes, capacity=0, memory_limit=0, container="", shared_name="", na
   if shared_name is None:
     shared_name = ""
   shared_name = _execute.make_str(shared_name, "shared_name")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "Unstage", dtypes=dtypes, capacity=capacity,
-        memory_limit=memory_limit, container=container,
-        shared_name=shared_name, name=name)
-    _result = _op.outputs[:]
-    if not _result:
-      return _op
-    _inputs_flat = _op.inputs
-    _attrs = ("capacity", _op.get_attr("capacity"), "memory_limit",
-              _op.get_attr("memory_limit"), "dtypes", _op.get_attr("dtypes"),
-              "container", _op.get_attr("container"), "shared_name",
-              _op.get_attr("shared_name"))
-  else:
-    _inputs_flat = []
-    _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
-              dtypes, "container", container, "shared_name", shared_name)
-    _result = _execute.execute(b"Unstage", len(dtypes), inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  _inputs_flat = []
+  _attrs = ("capacity", capacity, "memory_limit", memory_limit, "dtypes",
+  dtypes, "container", container, "shared_name", shared_name)
+  _result = _execute.execute(b"Unstage", len(dtypes), inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "Unstage", _inputs_flat, _attrs, _result, name)
   return _result
@@ -5203,21 +7501,21 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #       list {
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
-#         type: DT_INT64
 #         type: DT_INT32
 #         type: DT_UINT8
-#         type: DT_UINT16
 #         type: DT_INT16
 #         type: DT_INT8
 #         type: DT_COMPLEX64
-#         type: DT_COMPLEX128
+#         type: DT_INT64
 #         type: DT_QINT8
 #         type: DT_QUINT8
 #         type: DT_QINT32
+#         type: DT_BFLOAT16
+#         type: DT_UINT16
+#         type: DT_COMPLEX128
 #         type: DT_HALF
 #         type: DT_UINT32
 #         type: DT_UINT64
-#         type: DT_BFLOAT16
 #       }
 #     }
 #   }
@@ -5268,21 +7566,21 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #       list {
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
-#         type: DT_INT64
 #         type: DT_INT32
 #         type: DT_UINT8
-#         type: DT_UINT16
 #         type: DT_INT16
 #         type: DT_INT8
 #         type: DT_COMPLEX64
-#         type: DT_COMPLEX128
+#         type: DT_INT64
 #         type: DT_QINT8
 #         type: DT_QUINT8
 #         type: DT_QINT32
+#         type: DT_BFLOAT16
+#         type: DT_UINT16
+#         type: DT_COMPLEX128
 #         type: DT_HALF
 #         type: DT_UINT32
 #         type: DT_UINT64
-#         type: DT_BFLOAT16
 #       }
 #     }
 #   }
@@ -5460,21 +7758,21 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #       list {
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
-#         type: DT_INT64
 #         type: DT_INT32
 #         type: DT_UINT8
-#         type: DT_UINT16
 #         type: DT_INT16
 #         type: DT_INT8
 #         type: DT_COMPLEX64
-#         type: DT_COMPLEX128
+#         type: DT_INT64
 #         type: DT_QINT8
 #         type: DT_QUINT8
 #         type: DT_QINT32
+#         type: DT_BFLOAT16
+#         type: DT_UINT16
+#         type: DT_COMPLEX128
 #         type: DT_HALF
 #         type: DT_UINT32
 #         type: DT_UINT64
-#         type: DT_BFLOAT16
 #       }
 #     }
 #   }
@@ -5504,6 +7802,7 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     name: "handle"
 #     type: DT_STRING
 #   }
+#   is_stateful: true
 # }
 # op {
 #   name: "DynamicPartition"
@@ -5674,6 +7973,7 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     name: "T"
 #     type: "type"
 #   }
+#   is_stateful: true
 # }
 # op {
 #   name: "GetSessionHandleV2"
@@ -5705,6 +8005,7 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     name: "dtype"
 #     type: "type"
 #   }
+#   is_stateful: true
 # }
 # op {
 #   name: "MapClear"
@@ -7136,21 +9437,21 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #       list {
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
-#         type: DT_INT64
 #         type: DT_INT32
 #         type: DT_UINT8
-#         type: DT_UINT16
 #         type: DT_INT16
 #         type: DT_INT8
 #         type: DT_COMPLEX64
-#         type: DT_COMPLEX128
+#         type: DT_INT64
 #         type: DT_QINT8
 #         type: DT_QUINT8
 #         type: DT_QINT32
+#         type: DT_BFLOAT16
+#         type: DT_UINT16
+#         type: DT_COMPLEX128
 #         type: DT_HALF
 #         type: DT_UINT32
 #         type: DT_UINT64
-#         type: DT_BFLOAT16
 #       }
 #     }
 #   }
@@ -7189,21 +9490,21 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #       list {
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
-#         type: DT_INT64
 #         type: DT_INT32
 #         type: DT_UINT8
-#         type: DT_UINT16
 #         type: DT_INT16
 #         type: DT_INT8
 #         type: DT_COMPLEX64
-#         type: DT_COMPLEX128
+#         type: DT_INT64
 #         type: DT_QINT8
 #         type: DT_QUINT8
 #         type: DT_QINT32
+#         type: DT_BFLOAT16
+#         type: DT_UINT16
+#         type: DT_COMPLEX128
 #         type: DT_HALF
 #         type: DT_UINT32
 #         type: DT_UINT64
-#         type: DT_BFLOAT16
 #       }
 #     }
 #   }
@@ -7222,21 +9523,21 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #       list {
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
-#         type: DT_INT64
 #         type: DT_INT32
 #         type: DT_UINT8
-#         type: DT_UINT16
 #         type: DT_INT16
 #         type: DT_INT8
 #         type: DT_COMPLEX64
-#         type: DT_COMPLEX128
+#         type: DT_INT64
 #         type: DT_QINT8
 #         type: DT_QUINT8
 #         type: DT_QINT32
+#         type: DT_BFLOAT16
+#         type: DT_UINT16
+#         type: DT_COMPLEX128
 #         type: DT_HALF
 #         type: DT_UINT32
 #         type: DT_UINT64
-#         type: DT_BFLOAT16
 #       }
 #     }
 #   }
@@ -7646,6 +9947,10 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     name: "handle"
 #     type: DT_STRING
 #   }
+#   deprecation {
+#     version: 26
+#     explanation: "Use TensorArrayCloseV3"
+#   }
 # }
 # op {
 #   name: "TensorArrayCloseV3"
@@ -7825,6 +10130,10 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #       }
 #     }
 #   }
+#   deprecation {
+#     version: 26
+#     explanation: "Use TensorArrayGatherV3"
+#   }
 # }
 # op {
 #   name: "TensorArrayGatherV3"
@@ -7901,6 +10210,10 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #   attr {
 #     name: "source"
 #     type: "string"
+#   }
+#   deprecation {
+#     version: 26
+#     explanation: "Use TensorArrayGradV3"
 #   }
 #   is_stateful: true
 # }
@@ -8011,6 +10324,10 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     name: "dtype"
 #     type: "type"
 #   }
+#   deprecation {
+#     version: 26
+#     explanation: "Use TensorArrayReadV3"
+#   }
 # }
 # op {
 #   name: "TensorArrayReadV3"
@@ -8094,6 +10411,10 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     name: "T"
 #     type: "type"
 #   }
+#   deprecation {
+#     version: 26
+#     explanation: "Use TensorArrayScatterV3"
+#   }
 # }
 # op {
 #   name: "TensorArrayScatterV3"
@@ -8156,6 +10477,10 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #   output_arg {
 #     name: "size"
 #     type: DT_INT32
+#   }
+#   deprecation {
+#     version: 26
+#     explanation: "Use TensorArraySizeV3"
 #   }
 # }
 # op {
@@ -8231,6 +10556,10 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #   attr {
 #     name: "T"
 #     type: "type"
+#   }
+#   deprecation {
+#     version: 26
+#     explanation: "Use TensorArraySplitV3"
 #   }
 # }
 # op {
@@ -8332,6 +10661,10 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     default_value {
 #       s: ""
 #     }
+#   }
+#   deprecation {
+#     version: 26
+#     explanation: "Use TensorArrayV3"
 #   }
 #   is_stateful: true
 # }
@@ -8450,6 +10783,10 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     name: "T"
 #     type: "type"
 #   }
+#   deprecation {
+#     version: 26
+#     explanation: "Use TensorArrayWriteV3"
+#   }
 # }
 # op {
 #   name: "TensorArrayWriteV3"
@@ -8523,4 +10860,4 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #   }
 #   is_stateful: true
 # }
-_op_def_lib = _InitOpDefLibrary(b"\nr\n\030AccumulatorApplyGradient\022\r\n\006handle\030\007\200\001\001\022\016\n\nlocal_step\030\t\022\021\n\010gradient\"\005dtype\"$\n\005dtype\022\004type:\025\n\0232\021\001\002\t\003\004\021\005\006\010\022\013\014\r\023\026\027\016\n?\n\031AccumulatorNumAccumulated\022\r\n\006handle\030\007\200\001\001\032\023\n\017num_accumulated\030\003\n>\n\030AccumulatorSetGlobalStep\022\r\n\006handle\030\007\200\001\001\022\023\n\017new_global_step\030\t\nr\n\027AccumulatorTakeGradient\022\r\n\006handle\030\007\200\001\001\022\020\n\014num_required\030\003\032\020\n\007average\"\005dtype\"$\n\005dtype\022\004type:\025\n\0232\021\001\002\t\003\004\021\005\006\010\022\013\014\r\023\026\027\016\n\255\001\n\007Barrier\032\r\n\006handle\030\007\200\001\001\"!\n\017component_types\022\nlist(type)(\0010\001\"\033\n\006shapes\022\013list(shape)\032\002\n\000(\001\"\034\n\010capacity\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\nB\n\014BarrierClose\022\r\n\006handle\030\007\200\001\001\"#\n\027cancel_pending_enqueues\022\004bool\032\002(\000\n0\n\025BarrierIncompleteSize\022\r\n\006handle\030\007\200\001\001\032\010\n\004size\030\003\n\\\n\021BarrierInsertMany\022\r\n\006handle\030\007\200\001\001\022\010\n\004keys\030\007\022\013\n\006values\"\001T\"\t\n\001T\022\004type\"\026\n\017component_index\022\003int\n+\n\020BarrierReadySize\022\r\n\006handle\030\007\200\001\001\032\010\n\004size\030\003\n\347\001\n\017BarrierTakeMany\022\r\n\006handle\030\007\200\001\001\022\020\n\014num_elements\030\003\032\013\n\007indices\030\t\032\010\n\004keys\030\007\032\031\n\006values2\017component_types\"!\n\017component_types\022\nlist(type)(\0010\001\"\035\n\021allow_small_batch\022\004bool\032\002(\000\"\037\n\023wait_for_incomplete\022\004bool\032\002(\000\"\036\n\ntimeout_ms\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\n\224\001\n\026ConditionalAccumulator\032\r\n\006handle\030\007\200\001\001\"$\n\005dtype\022\004type:\025\n\0232\021\001\002\t\003\004\021\005\006\010\022\013\014\r\023\026\027\016\"\016\n\005shape\022\005shape\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n!\n\023DeleteSessionTensor\022\n\n\006handle\030\007\nq\n\020DynamicPartition\022\t\n\004data\"\001T\022\016\n\npartitions\030\003\032\034\n\007outputs\"\001T*\016num_partitions\"\031\n\016num_partitions\022\003int(\0010\001\"\t\n\001T\022\004type\nS\n\rDynamicStitch\022\016\n\007indices\030\003*\001N\022\014\n\004data\"\001T*\001N\032\013\n\006merged\"\001T\"\014\n\001N\022\003int(\0010\001\"\t\n\001T\022\004type\n\257\001\n\tFIFOQueue\032\r\n\006handle\030\007\200\001\001\"!\n\017component_types\022\nlist(type)(\0010\001\"\033\n\006shapes\022\013list(shape)\032\002\n\000(\001\"\034\n\010capacity\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\256\001\n\013FIFOQueueV2\032\n\n\006handle\030\024\"!\n\017component_types\022\nlist(type)(\0010\001\"\033\n\006shapes\022\013list(shape)\032\002\n\000(\001\"\034\n\010capacity\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n+\n\tFakeQueue\022\014\n\010resource\030\024\032\r\n\006handle\030\007\200\001\001\210\001\001\n5\n\020GetSessionHandle\022\n\n\005value\"\001T\032\n\n\006handle\030\007\"\t\n\001T\022\004type\n:\n\022GetSessionHandleV2\022\n\n\005value\"\001T\032\n\n\006handle\030\024\"\t\n\001T\022\004type\210\001\001\n=\n\020GetSessionTensor\022\n\n\006handle\030\007\032\016\n\005value\"\005dtype\"\r\n\005dtype\022\004type\n\211\001\n\010MapClear\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\024\n\006dtypes\022\nlist(type)\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\234\001\n\021MapIncompleteSize\032\010\n\004size\030\003\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\024\n\006dtypes\022\nlist(type)\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\264\001\n\007MapPeek\022\007\n\003key\030\t\022\013\n\007indices\030\003\032\020\n\006values2\006dtypes\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\030\n\006dtypes\022\nlist(type)(\0010\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\222\001\n\007MapSize\032\010\n\004size\030\003\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\024\n\006dtypes\022\nlist(type)\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\325\001\n\010MapStage\022\007\n\003key\030\t\022\013\n\007indices\030\003\022\025\n\006values2\013fake_dtypes\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\024\n\006dtypes\022\nlist(type)\"\035\n\013fake_dtypes\022\nlist(type)(\0010\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\267\001\n\nMapUnstage\022\007\n\003key\030\t\022\013\n\007indices\030\003\032\020\n\006values2\006dtypes\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\030\n\006dtypes\022\nlist(type)(\0010\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\274\001\n\017MapUnstageNoKey\022\013\n\007indices\030\003\032\007\n\003key\030\t\032\020\n\006values2\006dtypes\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\030\n\006dtypes\022\nlist(type)(\0010\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\220\001\n\017OrderedMapClear\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\024\n\006dtypes\022\nlist(type)\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\243\001\n\030OrderedMapIncompleteSize\032\010\n\004size\030\003\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\024\n\006dtypes\022\nlist(type)\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\273\001\n\016OrderedMapPeek\022\007\n\003key\030\t\022\013\n\007indices\030\003\032\020\n\006values2\006dtypes\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\030\n\006dtypes\022\nlist(type)(\0010\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\231\001\n\016OrderedMapSize\032\010\n\004size\030\003\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\024\n\006dtypes\022\nlist(type)\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\334\001\n\017OrderedMapStage\022\007\n\003key\030\t\022\013\n\007indices\030\003\022\025\n\006values2\013fake_dtypes\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\024\n\006dtypes\022\nlist(type)\"\035\n\013fake_dtypes\022\nlist(type)(\0010\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\276\001\n\021OrderedMapUnstage\022\007\n\003key\030\t\022\013\n\007indices\030\003\032\020\n\006values2\006dtypes\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\030\n\006dtypes\022\nlist(type)(\0010\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\303\001\n\026OrderedMapUnstageNoKey\022\013\n\007indices\030\003\032\007\n\003key\030\t\032\020\n\006values2\006dtypes\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\030\n\006dtypes\022\nlist(type)(\0010\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\266\001\n\020PaddingFIFOQueue\032\r\n\006handle\030\007\200\001\001\"!\n\017component_types\022\nlist(type)(\0010\001\"\033\n\006shapes\022\013list(shape)\032\002\n\000(\001\"\034\n\010capacity\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\265\001\n\022PaddingFIFOQueueV2\032\n\n\006handle\030\024\"!\n\017component_types\022\nlist(type)(\0010\001\"\033\n\006shapes\022\013list(shape)\032\002\n\000(\001\"\034\n\010capacity\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n[\n\025ParallelDynamicStitch\022\016\n\007indices\030\003*\001N\022\014\n\004data\"\001T*\001N\032\013\n\006merged\"\001T\"\014\n\001N\022\003int(\0010\001\"\t\n\001T\022\004type\n\261\001\n\rPriorityQueue\032\r\n\006handle\030\007\200\001\001\"#\n\017component_types\022\nlist(type)\032\002\n\000(\001\"\027\n\006shapes\022\013list(shape)(\001\"\034\n\010capacity\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\260\001\n\017PriorityQueueV2\032\n\n\006handle\030\024\"#\n\017component_types\022\nlist(type)\032\002\n\000(\001\"\027\n\006shapes\022\013list(shape)(\001\"\034\n\010capacity\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n@\n\nQueueClose\022\r\n\006handle\030\007\200\001\001\"#\n\027cancel_pending_enqueues\022\004bool\032\002(\000\nB\n\014QueueCloseV2\022\n\n\006handle\030\024\"#\n\027cancel_pending_enqueues\022\004bool\032\002(\000\210\001\001\n\177\n\014QueueDequeue\022\r\n\006handle\030\007\200\001\001\032\035\n\ncomponents2\017component_types\"!\n\017component_types\022\nlist(type)(\0010\001\"\036\n\ntimeout_ms\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\n\212\001\n\020QueueDequeueMany\022\r\n\006handle\030\007\200\001\001\022\005\n\001n\030\003\032\035\n\ncomponents2\017component_types\"!\n\017component_types\022\nlist(type)(\0010\001\"\036\n\ntimeout_ms\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\n\214\001\n\022QueueDequeueManyV2\022\n\n\006handle\030\024\022\005\n\001n\030\003\032\035\n\ncomponents2\017component_types\"!\n\017component_types\022\nlist(type)(\0010\001\"\036\n\ntimeout_ms\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\210\001\001\n\212\001\n\020QueueDequeueUpTo\022\r\n\006handle\030\007\200\001\001\022\005\n\001n\030\003\032\035\n\ncomponents2\017component_types\"!\n\017component_types\022\nlist(type)(\0010\001\"\036\n\ntimeout_ms\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\n\214\001\n\022QueueDequeueUpToV2\022\n\n\006handle\030\024\022\005\n\001n\030\003\032\035\n\ncomponents2\017component_types\"!\n\017component_types\022\nlist(type)(\0010\001\"\036\n\ntimeout_ms\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\210\001\001\n\201\001\n\016QueueDequeueV2\022\n\n\006handle\030\024\032\035\n\ncomponents2\017component_types\"!\n\017component_types\022\nlist(type)(\0010\001\"\036\n\ntimeout_ms\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\210\001\001\nw\n\014QueueEnqueue\022\r\n\006handle\030\007\200\001\001\022\031\n\ncomponents2\013Tcomponents\"\035\n\013Tcomponents\022\nlist(type)(\0010\001\"\036\n\ntimeout_ms\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\n{\n\020QueueEnqueueMany\022\r\n\006handle\030\007\200\001\001\022\031\n\ncomponents2\013Tcomponents\"\035\n\013Tcomponents\022\nlist(type)(\0010\001\"\036\n\ntimeout_ms\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\n}\n\022QueueEnqueueManyV2\022\n\n\006handle\030\024\022\031\n\ncomponents2\013Tcomponents\"\035\n\013Tcomponents\022\nlist(type)(\0010\001\"\036\n\ntimeout_ms\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\210\001\001\ny\n\016QueueEnqueueV2\022\n\n\006handle\030\024\022\031\n\ncomponents2\013Tcomponents\"\035\n\013Tcomponents\022\nlist(type)(\0010\001\"\036\n\ntimeout_ms\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\210\001\001\n-\n\rQueueIsClosed\022\r\n\006handle\030\007\200\001\001\032\r\n\tis_closed\030\n\n/\n\017QueueIsClosedV2\022\n\n\006handle\030\024\032\r\n\tis_closed\030\n\210\001\001\n$\n\tQueueSize\022\r\n\006handle\030\007\200\001\001\032\010\n\004size\030\003\n&\n\013QueueSizeV2\022\n\n\006handle\030\024\032\010\n\004size\030\003\210\001\001\n\371\001\n\022RandomShuffleQueue\032\r\n\006handle\030\007\200\001\001\"!\n\017component_types\022\nlist(type)(\0010\001\"\033\n\006shapes\022\013list(shape)\032\002\n\000(\001\"\034\n\010capacity\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\"\034\n\021min_after_dequeue\022\003int\032\002\030\000\"\017\n\004seed\022\003int\032\002\030\000\"\020\n\005seed2\022\003int\032\002\030\000\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\370\001\n\024RandomShuffleQueueV2\032\n\n\006handle\030\024\"!\n\017component_types\022\nlist(type)(\0010\001\"\033\n\006shapes\022\013list(shape)\032\002\n\000(\001\"\034\n\010capacity\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\"\034\n\021min_after_dequeue\022\003int\032\002\030\000\"\017\n\004seed\022\003int\032\002\030\000\"\020\n\005seed2\022\003int\032\002\030\000\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\357\001\n\013RecordInput\032\013\n\007records\030\007\"\026\n\014file_pattern\022\006string\"\034\n\020file_random_seed\022\003int\032\003\030\255\002\"(\n\030file_shuffle_shift_ratio\022\005float\032\005%\000\000\000\000\"\034\n\020file_buffer_size\022\003int\032\003\030\220N\"\033\n\020file_parallelism\022\003int\032\002\030\020\"\025\n\nbatch_size\022\003int\032\002\030 \"\036\n\020compression_type\022\006string\032\002\022\000\210\001\001\n\302\001\n\036SparseAccumulatorApplyGradient\022\r\n\006handle\030\007\200\001\001\022\016\n\nlocal_step\030\t\022\024\n\020gradient_indices\030\t\022\030\n\017gradient_values\"\005dtype\022\022\n\016gradient_shape\030\t\"$\n\005dtype\022\004type:\025\n\0232\021\001\002\t\003\004\021\005\006\010\022\013\014\r\023\026\027\016\"\027\n\017has_known_shape\022\004bool\n\217\001\n\035SparseAccumulatorTakeGradient\022\r\n\006handle\030\007\200\001\001\022\020\n\014num_required\030\003\032\013\n\007indices\030\t\032\017\n\006values\"\005dtype\032\t\n\005shape\030\t\"$\n\005dtype\022\004type:\025\n\0232\021\001\002\t\003\004\021\005\006\010\022\013\014\r\023\026\027\016\n\232\001\n\034SparseConditionalAccumulator\032\r\n\006handle\030\007\200\001\001\"$\n\005dtype\022\004type:\025\n\0232\021\001\002\t\003\004\021\005\006\010\022\013\014\r\023\026\027\016\"\016\n\005shape\022\005shape\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\nF\n\005Stack\032\r\n\006handle\030\007\200\001\001\"\021\n\telem_type\022\004type\"\030\n\nstack_name\022\006string\032\002\022\000\210\001\001\n\033\n\nStackClose\022\r\n\006handle\030\007\200\001\001\n\035\n\014StackCloseV2\022\n\n\006handle\030\024\210\001\001\n?\n\010StackPop\022\r\n\006handle\030\007\200\001\001\032\021\n\004elem\"\telem_type\"\021\n\telem_type\022\004type\nA\n\nStackPopV2\022\n\n\006handle\030\024\032\021\n\004elem\"\telem_type\"\021\n\telem_type\022\004type\210\001\001\nV\n\tStackPush\022\r\n\006handle\030\007\200\001\001\022\t\n\004elem\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\027\n\013swap_memory\022\004bool\032\002(\000\nX\n\013StackPushV2\022\n\n\006handle\030\024\022\t\n\004elem\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\027\n\013swap_memory\022\004bool\032\002(\000\210\001\001\nS\n\007StackV2\022\014\n\010max_size\030\003\032\n\n\006handle\030\024\"\021\n\telem_type\022\004type\"\030\n\nstack_name\022\006string\032\002\022\000\210\001\001\n\234\001\n\005Stage\022\020\n\006values2\006dtypes\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\030\n\006dtypes\022\nlist(type)(\0010\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\213\001\n\nStageClear\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\024\n\006dtypes\022\nlist(type)\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\253\001\n\tStagePeek\022\t\n\005index\030\003\032\020\n\006values2\006dtypes\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\030\n\006dtypes\022\nlist(type)(\0010\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\224\001\n\tStageSize\032\010\n\004size\030\003\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\024\n\006dtypes\022\nlist(type)\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\306\001\n\013TensorArray\022\010\n\004size\030\003\032\r\n\006handle\030\007\200\001\001\"\r\n\005dtype\022\004type\"\030\n\014dynamic_size\022\004bool\032\002(\000\"\034\n\020clear_after_read\022\004bool\032\002(\001\"\037\n\021tensor_array_name\022\006string\032\002\022\000\"\034\n\relement_shape\022\005shape\032\004:\002\030\001B\025\010\020\022\021Use TensorArrayV3\210\001\001\n=\n\020TensorArrayClose\022\r\n\006handle\030\007\200\001\001B\032\010\020\022\026Use TensorArrayCloseV3\n \n\022TensorArrayCloseV2\022\n\n\006handle\030\007\n#\n\022TensorArrayCloseV3\022\n\n\006handle\030\024\210\001\001\n\234\001\n\021TensorArrayConcat\022\r\n\006handle\030\007\200\001\001\022\013\n\007flow_in\030\001\032\016\n\005value\"\005dtype\032\013\n\007lengths\030\t\"\r\n\005dtype\022\004type\"$\n\025element_shape_except0\022\005shape\032\004:\002\030\001B\031\010\020\022\025Use TensorArrayGradV3\n\200\001\n\023TensorArrayConcatV2\022\n\n\006handle\030\007\022\013\n\007flow_in\030\001\032\016\n\005value\"\005dtype\032\013\n\007lengths\030\t\"\r\n\005dtype\022\004type\"$\n\025element_shape_except0\022\005shape\032\004:\002\030\001\n\203\001\n\023TensorArrayConcatV3\022\n\n\006handle\030\024\022\013\n\007flow_in\030\001\032\016\n\005value\"\005dtype\032\013\n\007lengths\030\t\"\r\n\005dtype\022\004type\"$\n\025element_shape_except0\022\005shape\032\004:\002\030\001\210\001\001\n\226\001\n\021TensorArrayGather\022\r\n\006handle\030\007\200\001\001\022\013\n\007indices\030\003\022\013\n\007flow_in\030\001\032\016\n\005value\"\005dtype\"\r\n\005dtype\022\004type\"\034\n\relement_shape\022\005shape\032\004:\002\030\001B\033\010\020\022\027Use TensorArrayGatherV3\nx\n\023TensorArrayGatherV2\022\n\n\006handle\030\007\022\013\n\007indices\030\003\022\013\n\007flow_in\030\001\032\016\n\005value\"\005dtype\"\r\n\005dtype\022\004type\"\034\n\relement_shape\022\005shape\032\004:\002\030\001\n{\n\023TensorArrayGatherV3\022\n\n\006handle\030\024\022\013\n\007indices\030\003\022\013\n\007flow_in\030\001\032\016\n\005value\"\005dtype\"\r\n\005dtype\022\004type\"\034\n\relement_shape\022\005shape\032\004:\002\030\001\210\001\001\nn\n\017TensorArrayGrad\022\n\n\006handle\030\007\022\013\n\007flow_in\030\001\032\022\n\013grad_handle\030\007\200\001\001\"\020\n\006source\022\006stringB\031\010\020\022\025Use TensorArrayGradV3\210\001\001\nR\n\021TensorArrayGradV2\022\n\n\006handle\030\007\022\013\n\007flow_in\030\001\032\017\n\013grad_handle\030\007\"\020\n\006source\022\006string\210\001\001\n`\n\021TensorArrayGradV3\022\n\n\006handle\030\024\022\013\n\007flow_in\030\001\032\017\n\013grad_handle\030\024\032\014\n\010flow_out\030\001\"\020\n\006source\022\006string\210\001\001\n\224\001\n\017TensorArrayPack\022\r\n\006handle\030\007\200\001\001\022\013\n\007flow_in\030\001\032\016\n\005value\"\005dtype\"\r\n\005dtype\022\004type\"\034\n\relement_shape\022\005shape\032\004:\002\030\001B(\010\020\022$Use TensorArrayGatherV3 with RangeOp\nr\n\017TensorArrayRead\022\r\n\006handle\030\007\200\001\001\022\t\n\005index\030\003\022\013\n\007flow_in\030\001\032\016\n\005value\"\005dtype\"\r\n\005dtype\022\004typeB\031\010\020\022\025Use TensorArrayReadV3\nV\n\021TensorArrayReadV2\022\n\n\006handle\030\007\022\t\n\005index\030\003\022\013\n\007flow_in\030\001\032\016\n\005value\"\005dtype\"\r\n\005dtype\022\004type\nY\n\021TensorArrayReadV3\022\n\n\006handle\030\024\022\t\n\005index\030\003\022\013\n\007flow_in\030\001\032\016\n\005value\"\005dtype\"\r\n\005dtype\022\004type\210\001\001\n}\n\022TensorArrayScatter\022\r\n\006handle\030\007\200\001\001\022\013\n\007indices\030\003\022\n\n\005value\"\001T\022\013\n\007flow_in\030\001\032\014\n\010flow_out\030\001\"\t\n\001T\022\004typeB\031\010\023\022\025Use TensorArrayGradV3\na\n\024TensorArrayScatterV2\022\n\n\006handle\030\007\022\013\n\007indices\030\003\022\n\n\005value\"\001T\022\013\n\007flow_in\030\001\032\014\n\010flow_out\030\001\"\t\n\001T\022\004type\nd\n\024TensorArrayScatterV3\022\n\n\006handle\030\024\022\013\n\007indices\030\003\022\n\n\005value\"\001T\022\013\n\007flow_in\030\001\032\014\n\010flow_out\030\001\"\t\n\001T\022\004type\210\001\001\nR\n\017TensorArraySize\022\r\n\006handle\030\007\200\001\001\022\013\n\007flow_in\030\001\032\010\n\004size\030\003B\031\010\020\022\025Use TensorArraySizeV3\n6\n\021TensorArraySizeV2\022\n\n\006handle\030\007\022\013\n\007flow_in\030\001\032\010\n\004size\030\003\n9\n\021TensorArraySizeV3\022\n\n\006handle\030\024\022\013\n\007flow_in\030\001\032\010\n\004size\030\003\210\001\001\n|\n\020TensorArraySplit\022\r\n\006handle\030\007\200\001\001\022\n\n\005value\"\001T\022\013\n\007lengths\030\t\022\013\n\007flow_in\030\001\032\014\n\010flow_out\030\001\"\t\n\001T\022\004typeB\032\010\020\022\026Use TensorArraySplitV3\n_\n\022TensorArraySplitV2\022\n\n\006handle\030\007\022\n\n\005value\"\001T\022\013\n\007lengths\030\t\022\013\n\007flow_in\030\001\032\014\n\010flow_out\030\001\"\t\n\001T\022\004type\nb\n\022TensorArraySplitV3\022\n\n\006handle\030\024\022\n\n\005value\"\001T\022\013\n\007lengths\030\t\022\013\n\007flow_in\030\001\032\014\n\010flow_out\030\001\"\t\n\001T\022\004type\210\001\001\n\177\n\021TensorArrayUnpack\022\r\n\006handle\030\007\200\001\001\022\n\n\005value\"\001T\022\013\n\007flow_in\030\001\032\014\n\010flow_out\030\001\"\t\n\001T\022\004typeB)\010\024\022%Use TensorArrayScatterV3 with RangeOp\n\256\001\n\rTensorArrayV2\022\010\n\004size\030\003\032\n\n\006handle\030\007\"\r\n\005dtype\022\004type\"\034\n\relement_shape\022\005shape\032\004:\002\030\001\"\030\n\014dynamic_size\022\004bool\032\002(\000\"\034\n\020clear_after_read\022\004bool\032\002(\001\"\037\n\021tensor_array_name\022\006string\032\002\022\000\210\001\001\n\336\001\n\rTensorArrayV3\022\010\n\004size\030\003\032\n\n\006handle\030\024\032\010\n\004flow\030\001\"\r\n\005dtype\022\004type\"\034\n\relement_shape\022\005shape\032\004:\002\030\001\"\030\n\014dynamic_size\022\004bool\032\002(\000\"\034\n\020clear_after_read\022\004bool\032\002(\001\"$\n\030identical_element_shapes\022\004bool\032\002(\000\"\037\n\021tensor_array_name\022\006string\032\002\022\000\210\001\001\nz\n\020TensorArrayWrite\022\r\n\006handle\030\007\200\001\001\022\t\n\005index\030\003\022\n\n\005value\"\001T\022\013\n\007flow_in\030\001\032\014\n\010flow_out\030\001\"\t\n\001T\022\004typeB\032\010\020\022\026Use TensorArrayWriteV3\n]\n\022TensorArrayWriteV2\022\n\n\006handle\030\007\022\t\n\005index\030\003\022\n\n\005value\"\001T\022\013\n\007flow_in\030\001\032\014\n\010flow_out\030\001\"\t\n\001T\022\004type\n`\n\022TensorArrayWriteV3\022\n\n\006handle\030\024\022\t\n\005index\030\003\022\n\n\005value\"\001T\022\013\n\007flow_in\030\001\032\014\n\010flow_out\030\001\"\t\n\001T\022\004type\210\001\001\n\236\001\n\007Unstage\032\020\n\006values2\006dtypes\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\030\n\006dtypes\022\nlist(type)(\0010\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001")
+_op_def_lib = _InitOpDefLibrary(b"\nr\n\030AccumulatorApplyGradient\022\r\n\006handle\030\007\200\001\001\022\016\n\nlocal_step\030\t\022\021\n\010gradient\"\005dtype\"$\n\005dtype\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\n?\n\031AccumulatorNumAccumulated\022\r\n\006handle\030\007\200\001\001\032\023\n\017num_accumulated\030\003\n>\n\030AccumulatorSetGlobalStep\022\r\n\006handle\030\007\200\001\001\022\023\n\017new_global_step\030\t\nr\n\027AccumulatorTakeGradient\022\r\n\006handle\030\007\200\001\001\022\020\n\014num_required\030\003\032\020\n\007average\"\005dtype\"$\n\005dtype\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\n\255\001\n\007Barrier\032\r\n\006handle\030\007\200\001\001\"!\n\017component_types\022\nlist(type)(\0010\001\"\033\n\006shapes\022\013list(shape)\032\002\n\000(\001\"\034\n\010capacity\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\nB\n\014BarrierClose\022\r\n\006handle\030\007\200\001\001\"#\n\027cancel_pending_enqueues\022\004bool\032\002(\000\n0\n\025BarrierIncompleteSize\022\r\n\006handle\030\007\200\001\001\032\010\n\004size\030\003\n\\\n\021BarrierInsertMany\022\r\n\006handle\030\007\200\001\001\022\010\n\004keys\030\007\022\013\n\006values\"\001T\"\t\n\001T\022\004type\"\026\n\017component_index\022\003int\n+\n\020BarrierReadySize\022\r\n\006handle\030\007\200\001\001\032\010\n\004size\030\003\n\347\001\n\017BarrierTakeMany\022\r\n\006handle\030\007\200\001\001\022\020\n\014num_elements\030\003\032\013\n\007indices\030\t\032\010\n\004keys\030\007\032\031\n\006values2\017component_types\"!\n\017component_types\022\nlist(type)(\0010\001\"\035\n\021allow_small_batch\022\004bool\032\002(\000\"\037\n\023wait_for_incomplete\022\004bool\032\002(\000\"\036\n\ntimeout_ms\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\n\224\001\n\026ConditionalAccumulator\032\r\n\006handle\030\007\200\001\001\"$\n\005dtype\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\016\n\005shape\022\005shape\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n$\n\023DeleteSessionTensor\022\n\n\006handle\030\007\210\001\001\nq\n\020DynamicPartition\022\t\n\004data\"\001T\022\016\n\npartitions\030\003\032\034\n\007outputs\"\001T*\016num_partitions\"\031\n\016num_partitions\022\003int(\0010\001\"\t\n\001T\022\004type\nS\n\rDynamicStitch\022\016\n\007indices\030\003*\001N\022\014\n\004data\"\001T*\001N\032\013\n\006merged\"\001T\"\014\n\001N\022\003int(\0010\001\"\t\n\001T\022\004type\n\257\001\n\tFIFOQueue\032\r\n\006handle\030\007\200\001\001\"!\n\017component_types\022\nlist(type)(\0010\001\"\033\n\006shapes\022\013list(shape)\032\002\n\000(\001\"\034\n\010capacity\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\256\001\n\013FIFOQueueV2\032\n\n\006handle\030\024\"!\n\017component_types\022\nlist(type)(\0010\001\"\033\n\006shapes\022\013list(shape)\032\002\n\000(\001\"\034\n\010capacity\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n+\n\tFakeQueue\022\014\n\010resource\030\024\032\r\n\006handle\030\007\200\001\001\210\001\001\n8\n\020GetSessionHandle\022\n\n\005value\"\001T\032\n\n\006handle\030\007\"\t\n\001T\022\004type\210\001\001\n:\n\022GetSessionHandleV2\022\n\n\005value\"\001T\032\n\n\006handle\030\024\"\t\n\001T\022\004type\210\001\001\n@\n\020GetSessionTensor\022\n\n\006handle\030\007\032\016\n\005value\"\005dtype\"\r\n\005dtype\022\004type\210\001\001\n\211\001\n\010MapClear\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\024\n\006dtypes\022\nlist(type)\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\234\001\n\021MapIncompleteSize\032\010\n\004size\030\003\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\024\n\006dtypes\022\nlist(type)\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\264\001\n\007MapPeek\022\007\n\003key\030\t\022\013\n\007indices\030\003\032\020\n\006values2\006dtypes\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\030\n\006dtypes\022\nlist(type)(\0010\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\222\001\n\007MapSize\032\010\n\004size\030\003\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\024\n\006dtypes\022\nlist(type)\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\325\001\n\010MapStage\022\007\n\003key\030\t\022\013\n\007indices\030\003\022\025\n\006values2\013fake_dtypes\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\024\n\006dtypes\022\nlist(type)\"\035\n\013fake_dtypes\022\nlist(type)(\0010\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\267\001\n\nMapUnstage\022\007\n\003key\030\t\022\013\n\007indices\030\003\032\020\n\006values2\006dtypes\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\030\n\006dtypes\022\nlist(type)(\0010\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\274\001\n\017MapUnstageNoKey\022\013\n\007indices\030\003\032\007\n\003key\030\t\032\020\n\006values2\006dtypes\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\030\n\006dtypes\022\nlist(type)(\0010\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\220\001\n\017OrderedMapClear\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\024\n\006dtypes\022\nlist(type)\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\243\001\n\030OrderedMapIncompleteSize\032\010\n\004size\030\003\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\024\n\006dtypes\022\nlist(type)\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\273\001\n\016OrderedMapPeek\022\007\n\003key\030\t\022\013\n\007indices\030\003\032\020\n\006values2\006dtypes\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\030\n\006dtypes\022\nlist(type)(\0010\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\231\001\n\016OrderedMapSize\032\010\n\004size\030\003\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\024\n\006dtypes\022\nlist(type)\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\334\001\n\017OrderedMapStage\022\007\n\003key\030\t\022\013\n\007indices\030\003\022\025\n\006values2\013fake_dtypes\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\024\n\006dtypes\022\nlist(type)\"\035\n\013fake_dtypes\022\nlist(type)(\0010\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\276\001\n\021OrderedMapUnstage\022\007\n\003key\030\t\022\013\n\007indices\030\003\032\020\n\006values2\006dtypes\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\030\n\006dtypes\022\nlist(type)(\0010\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\303\001\n\026OrderedMapUnstageNoKey\022\013\n\007indices\030\003\032\007\n\003key\030\t\032\020\n\006values2\006dtypes\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\030\n\006dtypes\022\nlist(type)(\0010\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\266\001\n\020PaddingFIFOQueue\032\r\n\006handle\030\007\200\001\001\"!\n\017component_types\022\nlist(type)(\0010\001\"\033\n\006shapes\022\013list(shape)\032\002\n\000(\001\"\034\n\010capacity\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\265\001\n\022PaddingFIFOQueueV2\032\n\n\006handle\030\024\"!\n\017component_types\022\nlist(type)(\0010\001\"\033\n\006shapes\022\013list(shape)\032\002\n\000(\001\"\034\n\010capacity\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n[\n\025ParallelDynamicStitch\022\016\n\007indices\030\003*\001N\022\014\n\004data\"\001T*\001N\032\013\n\006merged\"\001T\"\014\n\001N\022\003int(\0010\001\"\t\n\001T\022\004type\n\261\001\n\rPriorityQueue\032\r\n\006handle\030\007\200\001\001\"#\n\017component_types\022\nlist(type)\032\002\n\000(\001\"\027\n\006shapes\022\013list(shape)(\001\"\034\n\010capacity\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\260\001\n\017PriorityQueueV2\032\n\n\006handle\030\024\"#\n\017component_types\022\nlist(type)\032\002\n\000(\001\"\027\n\006shapes\022\013list(shape)(\001\"\034\n\010capacity\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n@\n\nQueueClose\022\r\n\006handle\030\007\200\001\001\"#\n\027cancel_pending_enqueues\022\004bool\032\002(\000\nB\n\014QueueCloseV2\022\n\n\006handle\030\024\"#\n\027cancel_pending_enqueues\022\004bool\032\002(\000\210\001\001\n\177\n\014QueueDequeue\022\r\n\006handle\030\007\200\001\001\032\035\n\ncomponents2\017component_types\"!\n\017component_types\022\nlist(type)(\0010\001\"\036\n\ntimeout_ms\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\n\212\001\n\020QueueDequeueMany\022\r\n\006handle\030\007\200\001\001\022\005\n\001n\030\003\032\035\n\ncomponents2\017component_types\"!\n\017component_types\022\nlist(type)(\0010\001\"\036\n\ntimeout_ms\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\n\214\001\n\022QueueDequeueManyV2\022\n\n\006handle\030\024\022\005\n\001n\030\003\032\035\n\ncomponents2\017component_types\"!\n\017component_types\022\nlist(type)(\0010\001\"\036\n\ntimeout_ms\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\210\001\001\n\212\001\n\020QueueDequeueUpTo\022\r\n\006handle\030\007\200\001\001\022\005\n\001n\030\003\032\035\n\ncomponents2\017component_types\"!\n\017component_types\022\nlist(type)(\0010\001\"\036\n\ntimeout_ms\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\n\214\001\n\022QueueDequeueUpToV2\022\n\n\006handle\030\024\022\005\n\001n\030\003\032\035\n\ncomponents2\017component_types\"!\n\017component_types\022\nlist(type)(\0010\001\"\036\n\ntimeout_ms\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\210\001\001\n\201\001\n\016QueueDequeueV2\022\n\n\006handle\030\024\032\035\n\ncomponents2\017component_types\"!\n\017component_types\022\nlist(type)(\0010\001\"\036\n\ntimeout_ms\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\210\001\001\nw\n\014QueueEnqueue\022\r\n\006handle\030\007\200\001\001\022\031\n\ncomponents2\013Tcomponents\"\035\n\013Tcomponents\022\nlist(type)(\0010\001\"\036\n\ntimeout_ms\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\n{\n\020QueueEnqueueMany\022\r\n\006handle\030\007\200\001\001\022\031\n\ncomponents2\013Tcomponents\"\035\n\013Tcomponents\022\nlist(type)(\0010\001\"\036\n\ntimeout_ms\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\n}\n\022QueueEnqueueManyV2\022\n\n\006handle\030\024\022\031\n\ncomponents2\013Tcomponents\"\035\n\013Tcomponents\022\nlist(type)(\0010\001\"\036\n\ntimeout_ms\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\210\001\001\ny\n\016QueueEnqueueV2\022\n\n\006handle\030\024\022\031\n\ncomponents2\013Tcomponents\"\035\n\013Tcomponents\022\nlist(type)(\0010\001\"\036\n\ntimeout_ms\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\210\001\001\n-\n\rQueueIsClosed\022\r\n\006handle\030\007\200\001\001\032\r\n\tis_closed\030\n\n/\n\017QueueIsClosedV2\022\n\n\006handle\030\024\032\r\n\tis_closed\030\n\210\001\001\n$\n\tQueueSize\022\r\n\006handle\030\007\200\001\001\032\010\n\004size\030\003\n&\n\013QueueSizeV2\022\n\n\006handle\030\024\032\010\n\004size\030\003\210\001\001\n\371\001\n\022RandomShuffleQueue\032\r\n\006handle\030\007\200\001\001\"!\n\017component_types\022\nlist(type)(\0010\001\"\033\n\006shapes\022\013list(shape)\032\002\n\000(\001\"\034\n\010capacity\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\"\034\n\021min_after_dequeue\022\003int\032\002\030\000\"\017\n\004seed\022\003int\032\002\030\000\"\020\n\005seed2\022\003int\032\002\030\000\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\370\001\n\024RandomShuffleQueueV2\032\n\n\006handle\030\024\"!\n\017component_types\022\nlist(type)(\0010\001\"\033\n\006shapes\022\013list(shape)\032\002\n\000(\001\"\034\n\010capacity\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\"\034\n\021min_after_dequeue\022\003int\032\002\030\000\"\017\n\004seed\022\003int\032\002\030\000\"\020\n\005seed2\022\003int\032\002\030\000\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\357\001\n\013RecordInput\032\013\n\007records\030\007\"\026\n\014file_pattern\022\006string\"\034\n\020file_random_seed\022\003int\032\003\030\255\002\"(\n\030file_shuffle_shift_ratio\022\005float\032\005%\000\000\000\000\"\034\n\020file_buffer_size\022\003int\032\003\030\220N\"\033\n\020file_parallelism\022\003int\032\002\030\020\"\025\n\nbatch_size\022\003int\032\002\030 \"\036\n\020compression_type\022\006string\032\002\022\000\210\001\001\n\302\001\n\036SparseAccumulatorApplyGradient\022\r\n\006handle\030\007\200\001\001\022\016\n\nlocal_step\030\t\022\024\n\020gradient_indices\030\t\022\030\n\017gradient_values\"\005dtype\022\022\n\016gradient_shape\030\t\"$\n\005dtype\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\027\n\017has_known_shape\022\004bool\n\217\001\n\035SparseAccumulatorTakeGradient\022\r\n\006handle\030\007\200\001\001\022\020\n\014num_required\030\003\032\013\n\007indices\030\t\032\017\n\006values\"\005dtype\032\t\n\005shape\030\t\"$\n\005dtype\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\n\232\001\n\034SparseConditionalAccumulator\032\r\n\006handle\030\007\200\001\001\"$\n\005dtype\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\016\n\005shape\022\005shape\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\nF\n\005Stack\032\r\n\006handle\030\007\200\001\001\"\021\n\telem_type\022\004type\"\030\n\nstack_name\022\006string\032\002\022\000\210\001\001\n\033\n\nStackClose\022\r\n\006handle\030\007\200\001\001\n\035\n\014StackCloseV2\022\n\n\006handle\030\024\210\001\001\n?\n\010StackPop\022\r\n\006handle\030\007\200\001\001\032\021\n\004elem\"\telem_type\"\021\n\telem_type\022\004type\nA\n\nStackPopV2\022\n\n\006handle\030\024\032\021\n\004elem\"\telem_type\"\021\n\telem_type\022\004type\210\001\001\nV\n\tStackPush\022\r\n\006handle\030\007\200\001\001\022\t\n\004elem\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\027\n\013swap_memory\022\004bool\032\002(\000\nX\n\013StackPushV2\022\n\n\006handle\030\024\022\t\n\004elem\"\001T\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\027\n\013swap_memory\022\004bool\032\002(\000\210\001\001\nS\n\007StackV2\022\014\n\010max_size\030\003\032\n\n\006handle\030\024\"\021\n\telem_type\022\004type\"\030\n\nstack_name\022\006string\032\002\022\000\210\001\001\n\234\001\n\005Stage\022\020\n\006values2\006dtypes\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\030\n\006dtypes\022\nlist(type)(\0010\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\213\001\n\nStageClear\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\024\n\006dtypes\022\nlist(type)\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\253\001\n\tStagePeek\022\t\n\005index\030\003\032\020\n\006values2\006dtypes\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\030\n\006dtypes\022\nlist(type)(\0010\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\224\001\n\tStageSize\032\010\n\004size\030\003\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\024\n\006dtypes\022\nlist(type)\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\306\001\n\013TensorArray\022\010\n\004size\030\003\032\r\n\006handle\030\007\200\001\001\"\r\n\005dtype\022\004type\"\030\n\014dynamic_size\022\004bool\032\002(\000\"\034\n\020clear_after_read\022\004bool\032\002(\001\"\037\n\021tensor_array_name\022\006string\032\002\022\000\"\034\n\relement_shape\022\005shape\032\004:\002\030\001B\025\010\020\022\021Use TensorArrayV3\210\001\001\n=\n\020TensorArrayClose\022\r\n\006handle\030\007\200\001\001B\032\010\020\022\026Use TensorArrayCloseV3\n<\n\022TensorArrayCloseV2\022\n\n\006handle\030\007B\032\010\032\022\026Use TensorArrayCloseV3\n#\n\022TensorArrayCloseV3\022\n\n\006handle\030\024\210\001\001\n\234\001\n\021TensorArrayConcat\022\r\n\006handle\030\007\200\001\001\022\013\n\007flow_in\030\001\032\016\n\005value\"\005dtype\032\013\n\007lengths\030\t\"\r\n\005dtype\022\004type\"$\n\025element_shape_except0\022\005shape\032\004:\002\030\001B\031\010\020\022\025Use TensorArrayGradV3\n\200\001\n\023TensorArrayConcatV2\022\n\n\006handle\030\007\022\013\n\007flow_in\030\001\032\016\n\005value\"\005dtype\032\013\n\007lengths\030\t\"\r\n\005dtype\022\004type\"$\n\025element_shape_except0\022\005shape\032\004:\002\030\001\n\203\001\n\023TensorArrayConcatV3\022\n\n\006handle\030\024\022\013\n\007flow_in\030\001\032\016\n\005value\"\005dtype\032\013\n\007lengths\030\t\"\r\n\005dtype\022\004type\"$\n\025element_shape_except0\022\005shape\032\004:\002\030\001\210\001\001\n\226\001\n\021TensorArrayGather\022\r\n\006handle\030\007\200\001\001\022\013\n\007indices\030\003\022\013\n\007flow_in\030\001\032\016\n\005value\"\005dtype\"\r\n\005dtype\022\004type\"\034\n\relement_shape\022\005shape\032\004:\002\030\001B\033\010\020\022\027Use TensorArrayGatherV3\n\225\001\n\023TensorArrayGatherV2\022\n\n\006handle\030\007\022\013\n\007indices\030\003\022\013\n\007flow_in\030\001\032\016\n\005value\"\005dtype\"\r\n\005dtype\022\004type\"\034\n\relement_shape\022\005shape\032\004:\002\030\001B\033\010\032\022\027Use TensorArrayGatherV3\n{\n\023TensorArrayGatherV3\022\n\n\006handle\030\024\022\013\n\007indices\030\003\022\013\n\007flow_in\030\001\032\016\n\005value\"\005dtype\"\r\n\005dtype\022\004type\"\034\n\relement_shape\022\005shape\032\004:\002\030\001\210\001\001\nn\n\017TensorArrayGrad\022\n\n\006handle\030\007\022\013\n\007flow_in\030\001\032\022\n\013grad_handle\030\007\200\001\001\"\020\n\006source\022\006stringB\031\010\020\022\025Use TensorArrayGradV3\210\001\001\nm\n\021TensorArrayGradV2\022\n\n\006handle\030\007\022\013\n\007flow_in\030\001\032\017\n\013grad_handle\030\007\"\020\n\006source\022\006stringB\031\010\032\022\025Use TensorArrayGradV3\210\001\001\n`\n\021TensorArrayGradV3\022\n\n\006handle\030\024\022\013\n\007flow_in\030\001\032\017\n\013grad_handle\030\024\032\014\n\010flow_out\030\001\"\020\n\006source\022\006string\210\001\001\n\224\001\n\017TensorArrayPack\022\r\n\006handle\030\007\200\001\001\022\013\n\007flow_in\030\001\032\016\n\005value\"\005dtype\"\r\n\005dtype\022\004type\"\034\n\relement_shape\022\005shape\032\004:\002\030\001B(\010\020\022$Use TensorArrayGatherV3 with RangeOp\nr\n\017TensorArrayRead\022\r\n\006handle\030\007\200\001\001\022\t\n\005index\030\003\022\013\n\007flow_in\030\001\032\016\n\005value\"\005dtype\"\r\n\005dtype\022\004typeB\031\010\020\022\025Use TensorArrayReadV3\nq\n\021TensorArrayReadV2\022\n\n\006handle\030\007\022\t\n\005index\030\003\022\013\n\007flow_in\030\001\032\016\n\005value\"\005dtype\"\r\n\005dtype\022\004typeB\031\010\032\022\025Use TensorArrayReadV3\nY\n\021TensorArrayReadV3\022\n\n\006handle\030\024\022\t\n\005index\030\003\022\013\n\007flow_in\030\001\032\016\n\005value\"\005dtype\"\r\n\005dtype\022\004type\210\001\001\n}\n\022TensorArrayScatter\022\r\n\006handle\030\007\200\001\001\022\013\n\007indices\030\003\022\n\n\005value\"\001T\022\013\n\007flow_in\030\001\032\014\n\010flow_out\030\001\"\t\n\001T\022\004typeB\031\010\023\022\025Use TensorArrayGradV3\n\177\n\024TensorArrayScatterV2\022\n\n\006handle\030\007\022\013\n\007indices\030\003\022\n\n\005value\"\001T\022\013\n\007flow_in\030\001\032\014\n\010flow_out\030\001\"\t\n\001T\022\004typeB\034\010\032\022\030Use TensorArrayScatterV3\nd\n\024TensorArrayScatterV3\022\n\n\006handle\030\024\022\013\n\007indices\030\003\022\n\n\005value\"\001T\022\013\n\007flow_in\030\001\032\014\n\010flow_out\030\001\"\t\n\001T\022\004type\210\001\001\nR\n\017TensorArraySize\022\r\n\006handle\030\007\200\001\001\022\013\n\007flow_in\030\001\032\010\n\004size\030\003B\031\010\020\022\025Use TensorArraySizeV3\nQ\n\021TensorArraySizeV2\022\n\n\006handle\030\007\022\013\n\007flow_in\030\001\032\010\n\004size\030\003B\031\010\032\022\025Use TensorArraySizeV3\n9\n\021TensorArraySizeV3\022\n\n\006handle\030\024\022\013\n\007flow_in\030\001\032\010\n\004size\030\003\210\001\001\n|\n\020TensorArraySplit\022\r\n\006handle\030\007\200\001\001\022\n\n\005value\"\001T\022\013\n\007lengths\030\t\022\013\n\007flow_in\030\001\032\014\n\010flow_out\030\001\"\t\n\001T\022\004typeB\032\010\020\022\026Use TensorArraySplitV3\n{\n\022TensorArraySplitV2\022\n\n\006handle\030\007\022\n\n\005value\"\001T\022\013\n\007lengths\030\t\022\013\n\007flow_in\030\001\032\014\n\010flow_out\030\001\"\t\n\001T\022\004typeB\032\010\032\022\026Use TensorArraySplitV3\nb\n\022TensorArraySplitV3\022\n\n\006handle\030\024\022\n\n\005value\"\001T\022\013\n\007lengths\030\t\022\013\n\007flow_in\030\001\032\014\n\010flow_out\030\001\"\t\n\001T\022\004type\210\001\001\n\177\n\021TensorArrayUnpack\022\r\n\006handle\030\007\200\001\001\022\n\n\005value\"\001T\022\013\n\007flow_in\030\001\032\014\n\010flow_out\030\001\"\t\n\001T\022\004typeB)\010\024\022%Use TensorArrayScatterV3 with RangeOp\n\305\001\n\rTensorArrayV2\022\010\n\004size\030\003\032\n\n\006handle\030\007\"\r\n\005dtype\022\004type\"\034\n\relement_shape\022\005shape\032\004:\002\030\001\"\030\n\014dynamic_size\022\004bool\032\002(\000\"\034\n\020clear_after_read\022\004bool\032\002(\001\"\037\n\021tensor_array_name\022\006string\032\002\022\000B\025\010\032\022\021Use TensorArrayV3\210\001\001\n\336\001\n\rTensorArrayV3\022\010\n\004size\030\003\032\n\n\006handle\030\024\032\010\n\004flow\030\001\"\r\n\005dtype\022\004type\"\034\n\relement_shape\022\005shape\032\004:\002\030\001\"\030\n\014dynamic_size\022\004bool\032\002(\000\"\034\n\020clear_after_read\022\004bool\032\002(\001\"$\n\030identical_element_shapes\022\004bool\032\002(\000\"\037\n\021tensor_array_name\022\006string\032\002\022\000\210\001\001\nz\n\020TensorArrayWrite\022\r\n\006handle\030\007\200\001\001\022\t\n\005index\030\003\022\n\n\005value\"\001T\022\013\n\007flow_in\030\001\032\014\n\010flow_out\030\001\"\t\n\001T\022\004typeB\032\010\020\022\026Use TensorArrayWriteV3\ny\n\022TensorArrayWriteV2\022\n\n\006handle\030\007\022\t\n\005index\030\003\022\n\n\005value\"\001T\022\013\n\007flow_in\030\001\032\014\n\010flow_out\030\001\"\t\n\001T\022\004typeB\032\010\032\022\026Use TensorArrayWriteV3\n`\n\022TensorArrayWriteV3\022\n\n\006handle\030\024\022\t\n\005index\030\003\022\n\n\005value\"\001T\022\013\n\007flow_in\030\001\032\014\n\010flow_out\030\001\"\t\n\001T\022\004type\210\001\001\n\236\001\n\007Unstage\032\020\n\006values2\006dtypes\"\025\n\010capacity\022\003int\032\002\030\000(\001\"\031\n\014memory_limit\022\003int\032\002\030\000(\001\"\030\n\006dtypes\022\nlist(type)(\0010\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001")

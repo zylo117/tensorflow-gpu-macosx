@@ -5,11 +5,14 @@ Original C++ source file: fused_conv2d_bias_activation_op.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,7 +24,7 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('FusedConv2DBiasActivation')
+@tf_export('fused_conv2d_bias_activation')
 def fused_conv2d_bias_activation(conv_input, filter, bias, side_input, conv_input_scale, side_input_scale, strides, padding, data_format="NHWC", filter_format="HWIO", activation_mode="Relu", dilations=[1, 1, 1, 1], name=None):
   r"""    Computes a fused kernel which implements: 2-D convolution, adds side input,
 
@@ -94,6 +97,78 @@ def fused_conv2d_bias_activation(conv_input, filter, bias, side_input, conv_inpu
   Returns:
     A `Tensor`. Has the same type as `conv_input`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(strides, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'strides' argument to "
+          "'fused_conv2d_bias_activation' Op, not %r." % strides)
+    strides = [_execute.make_int(_i, "strides") for _i in strides]
+    padding = _execute.make_str(padding, "padding")
+    if data_format is None:
+      data_format = "NHWC"
+    data_format = _execute.make_str(data_format, "data_format")
+    if filter_format is None:
+      filter_format = "HWIO"
+    filter_format = _execute.make_str(filter_format, "filter_format")
+    if activation_mode is None:
+      activation_mode = "Relu"
+    activation_mode = _execute.make_str(activation_mode, "activation_mode")
+    if dilations is None:
+      dilations = [1, 1, 1, 1]
+    if not isinstance(dilations, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dilations' argument to "
+          "'fused_conv2d_bias_activation' Op, not %r." % dilations)
+    dilations = [_execute.make_int(_i, "dilations") for _i in dilations]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "FusedConv2DBiasActivation", conv_input=conv_input, filter=filter,
+        bias=bias, side_input=side_input, conv_input_scale=conv_input_scale,
+        side_input_scale=side_input_scale, strides=strides, padding=padding,
+        data_format=data_format, filter_format=filter_format,
+        activation_mode=activation_mode, dilations=dilations, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("T", _op.get_attr("T"), "Tbias", _op.get_attr("Tbias"),
+              "strides", _op.get_attr("strides"), "padding",
+              _op.get_attr("padding"), "data_format",
+              _op.get_attr("data_format"), "filter_format",
+              _op.get_attr("filter_format"), "activation_mode",
+              _op.get_attr("activation_mode"), "dilations",
+              _op.get_attr("dilations"))
+    _execute.record_gradient(
+      "FusedConv2DBiasActivation", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "FusedConv2DBiasActivation", name,
+        _ctx._post_execution_callbacks, conv_input, filter, bias, side_input,
+        conv_input_scale, side_input_scale, "strides", strides, "padding",
+        padding, "data_format", data_format, "filter_format", filter_format,
+        "activation_mode", activation_mode, "dilations", dilations)
+      return _result
+    except _core._FallbackException:
+      return fused_conv2d_bias_activation_eager_fallback(
+          conv_input, filter, bias, side_input, conv_input_scale,
+          side_input_scale, strides=strides, padding=padding,
+          data_format=data_format, filter_format=filter_format,
+          activation_mode=activation_mode, dilations=dilations, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def fused_conv2d_bias_activation_eager_fallback(conv_input, filter, bias, side_input, conv_input_scale, side_input_scale, strides, padding, data_format="NHWC", filter_format="HWIO", activation_mode="Relu", dilations=[1, 1, 1, 1], name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function fused_conv2d_bias_activation
+  """
+  _ctx = _context.context()
   if not isinstance(strides, (list, tuple)):
     raise TypeError(
         "Expected list for 'strides' argument to "
@@ -116,37 +191,18 @@ def fused_conv2d_bias_activation(conv_input, filter, bias, side_input, conv_inpu
         "Expected list for 'dilations' argument to "
         "'fused_conv2d_bias_activation' Op, not %r." % dilations)
   dilations = [_execute.make_int(_i, "dilations") for _i in dilations]
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "FusedConv2DBiasActivation", conv_input=conv_input, filter=filter,
-        bias=bias, side_input=side_input, conv_input_scale=conv_input_scale,
-        side_input_scale=side_input_scale, strides=strides, padding=padding,
-        data_format=data_format, filter_format=filter_format,
-        activation_mode=activation_mode, dilations=dilations, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("T", _op.get_attr("T"), "Tbias", _op.get_attr("Tbias"),
-              "strides", _op.get_attr("strides"), "padding",
-              _op.get_attr("padding"), "data_format",
-              _op.get_attr("data_format"), "filter_format",
-              _op.get_attr("filter_format"), "activation_mode",
-              _op.get_attr("activation_mode"), "dilations",
-              _op.get_attr("dilations"))
-  else:
-    _attr_T, _inputs_T = _execute.args_to_matching_eager([conv_input, filter, side_input], _ctx)
-    (conv_input, filter, side_input) = _inputs_T
-    _attr_Tbias, (bias,) = _execute.args_to_matching_eager([bias], _ctx)
-    conv_input_scale = _ops.convert_to_tensor(conv_input_scale, _dtypes.float32)
-    side_input_scale = _ops.convert_to_tensor(side_input_scale, _dtypes.float32)
-    _inputs_flat = [conv_input, filter, bias, side_input, conv_input_scale, side_input_scale]
-    _attrs = ("T", _attr_T, "Tbias", _attr_Tbias, "strides", strides,
-              "padding", padding, "data_format", data_format, "filter_format",
-              filter_format, "activation_mode", activation_mode, "dilations",
-              dilations)
-    _result = _execute.execute(b"FusedConv2DBiasActivation", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+  _attr_T, _inputs_T = _execute.args_to_matching_eager([conv_input, filter, side_input], _ctx)
+  (conv_input, filter, side_input) = _inputs_T
+  _attr_Tbias, (bias,) = _execute.args_to_matching_eager([bias], _ctx)
+  conv_input_scale = _ops.convert_to_tensor(conv_input_scale, _dtypes.float32)
+  side_input_scale = _ops.convert_to_tensor(side_input_scale, _dtypes.float32)
+  _inputs_flat = [conv_input, filter, bias, side_input, conv_input_scale, side_input_scale]
+  _attrs = ("T", _attr_T, "Tbias", _attr_Tbias, "strides", strides, "padding",
+  padding, "data_format", data_format, "filter_format", filter_format,
+  "activation_mode", activation_mode, "dilations", dilations)
+  _result = _execute.execute(b"FusedConv2DBiasActivation", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "FusedConv2DBiasActivation", _inputs_flat, _attrs, _result, name)
   _result, = _result

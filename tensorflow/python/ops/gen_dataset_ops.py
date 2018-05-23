@@ -5,11 +5,14 @@ Original C++ source file: dataset_ops.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,7 +24,6 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('BatchDataset')
 def batch_dataset(input_dataset, batch_size, output_types, output_shapes, name=None):
   r"""Creates a dataset that batches `batch_size` elements from `input_dataset`.
 
@@ -37,6 +39,54 @@ def batch_dataset(input_dataset, batch_size, output_types, output_shapes, name=N
   Returns:
     A `Tensor` of type `variant`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'batch_dataset' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'batch_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "BatchDataset", input_dataset=input_dataset, batch_size=batch_size,
+        output_types=output_types, output_shapes=output_shapes, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
+              _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "BatchDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "BatchDataset", name,
+        _ctx._post_execution_callbacks, input_dataset, batch_size,
+        "output_types", output_types, "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return batch_dataset_eager_fallback(
+          input_dataset, batch_size, output_types=output_types,
+          output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def batch_dataset_eager_fallback(input_dataset, batch_size, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function batch_dataset
+  """
+  _ctx = _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -47,29 +97,18 @@ def batch_dataset(input_dataset, batch_size, output_types, output_shapes, name=N
         "Expected list for 'output_shapes' argument to "
         "'batch_dataset' Op, not %r." % output_shapes)
   output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "BatchDataset", input_dataset=input_dataset, batch_size=batch_size,
-        output_types=output_types, output_shapes=output_shapes, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
-              _op.get_attr("output_shapes"))
-  else:
-    input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
-    batch_size = _ops.convert_to_tensor(batch_size, _dtypes.int64)
-    _inputs_flat = [input_dataset, batch_size]
-    _attrs = ("output_types", output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"BatchDataset", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
+  batch_size = _ops.convert_to_tensor(batch_size, _dtypes.int64)
+  _inputs_flat = [input_dataset, batch_size]
+  _attrs = ("output_types", output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"BatchDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "BatchDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('BytesProducedStatsDataset')
 def bytes_produced_stats_dataset(input_dataset, tag, output_types, output_shapes, name=None):
   r"""Records the bytes size of each element of `input_dataset` in a StatsAggregator.
 
@@ -83,6 +122,54 @@ def bytes_produced_stats_dataset(input_dataset, tag, output_types, output_shapes
   Returns:
     A `Tensor` of type `variant`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'bytes_produced_stats_dataset' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'bytes_produced_stats_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "BytesProducedStatsDataset", input_dataset=input_dataset, tag=tag,
+        output_types=output_types, output_shapes=output_shapes, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
+              _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "BytesProducedStatsDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "BytesProducedStatsDataset", name,
+        _ctx._post_execution_callbacks, input_dataset, tag, "output_types",
+        output_types, "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return bytes_produced_stats_dataset_eager_fallback(
+          input_dataset, tag, output_types=output_types,
+          output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def bytes_produced_stats_dataset_eager_fallback(input_dataset, tag, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function bytes_produced_stats_dataset
+  """
+  _ctx = _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -93,30 +180,19 @@ def bytes_produced_stats_dataset(input_dataset, tag, output_types, output_shapes
         "Expected list for 'output_shapes' argument to "
         "'bytes_produced_stats_dataset' Op, not %r." % output_shapes)
   output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "BytesProducedStatsDataset", input_dataset=input_dataset, tag=tag,
-        output_types=output_types, output_shapes=output_shapes, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
-              _op.get_attr("output_shapes"))
-  else:
-    input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
-    tag = _ops.convert_to_tensor(tag, _dtypes.string)
-    _inputs_flat = [input_dataset, tag]
-    _attrs = ("output_types", output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"BytesProducedStatsDataset", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+  input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
+  tag = _ops.convert_to_tensor(tag, _dtypes.string)
+  _inputs_flat = [input_dataset, tag]
+  _attrs = ("output_types", output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"BytesProducedStatsDataset", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "BytesProducedStatsDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('CacheDataset')
 def cache_dataset(input_dataset, filename, output_types, output_shapes, name=None):
   r"""Creates a dataset that caches elements from `input_dataset`.
 
@@ -137,6 +213,54 @@ def cache_dataset(input_dataset, filename, output_types, output_shapes, name=Non
   Returns:
     A `Tensor` of type `variant`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'cache_dataset' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'cache_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "CacheDataset", input_dataset=input_dataset, filename=filename,
+        output_types=output_types, output_shapes=output_shapes, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
+              _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "CacheDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "CacheDataset", name,
+        _ctx._post_execution_callbacks, input_dataset, filename,
+        "output_types", output_types, "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return cache_dataset_eager_fallback(
+          input_dataset, filename, output_types=output_types,
+          output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def cache_dataset_eager_fallback(input_dataset, filename, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function cache_dataset
+  """
+  _ctx = _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -147,29 +271,18 @@ def cache_dataset(input_dataset, filename, output_types, output_shapes, name=Non
         "Expected list for 'output_shapes' argument to "
         "'cache_dataset' Op, not %r." % output_shapes)
   output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "CacheDataset", input_dataset=input_dataset, filename=filename,
-        output_types=output_types, output_shapes=output_shapes, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
-              _op.get_attr("output_shapes"))
-  else:
-    input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
-    filename = _ops.convert_to_tensor(filename, _dtypes.string)
-    _inputs_flat = [input_dataset, filename]
-    _attrs = ("output_types", output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"CacheDataset", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
+  filename = _ops.convert_to_tensor(filename, _dtypes.string)
+  _inputs_flat = [input_dataset, filename]
+  _attrs = ("output_types", output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"CacheDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "CacheDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('ConcatenateDataset')
 def concatenate_dataset(input_dataset, another_dataset, output_types, output_shapes, name=None):
   r"""Creates a dataset that concatenates `input_dataset` with `another_dataset`.
 
@@ -183,6 +296,55 @@ def concatenate_dataset(input_dataset, another_dataset, output_types, output_sha
   Returns:
     A `Tensor` of type `variant`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'concatenate_dataset' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'concatenate_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "ConcatenateDataset", input_dataset=input_dataset,
+        another_dataset=another_dataset, output_types=output_types,
+        output_shapes=output_shapes, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
+              _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "ConcatenateDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "ConcatenateDataset", name,
+        _ctx._post_execution_callbacks, input_dataset, another_dataset,
+        "output_types", output_types, "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return concatenate_dataset_eager_fallback(
+          input_dataset, another_dataset, output_types=output_types,
+          output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def concatenate_dataset_eager_fallback(input_dataset, another_dataset, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function concatenate_dataset
+  """
+  _ctx = _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -193,30 +355,18 @@ def concatenate_dataset(input_dataset, another_dataset, output_types, output_sha
         "Expected list for 'output_shapes' argument to "
         "'concatenate_dataset' Op, not %r." % output_shapes)
   output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "ConcatenateDataset", input_dataset=input_dataset,
-        another_dataset=another_dataset, output_types=output_types,
-        output_shapes=output_shapes, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
-              _op.get_attr("output_shapes"))
-  else:
-    input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
-    another_dataset = _ops.convert_to_tensor(another_dataset, _dtypes.variant)
-    _inputs_flat = [input_dataset, another_dataset]
-    _attrs = ("output_types", output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"ConcatenateDataset", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
+  another_dataset = _ops.convert_to_tensor(another_dataset, _dtypes.variant)
+  _inputs_flat = [input_dataset, another_dataset]
+  _attrs = ("output_types", output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"ConcatenateDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "ConcatenateDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('DatasetToSingleElement')
 def dataset_to_single_element(dataset, output_types, output_shapes, name=None):
   r"""Outputs the single element from the given dataset.
 
@@ -229,8 +379,54 @@ def dataset_to_single_element(dataset, output_types, output_shapes, name=None):
 
   Returns:
     A list of `Tensor` objects of type `output_types`.
-    The components of the single element of `input`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'dataset_to_single_element' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'dataset_to_single_element' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "DatasetToSingleElement", dataset=dataset, output_types=output_types,
+        output_shapes=output_shapes, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
+              _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "DatasetToSingleElement", _inputs_flat, _attrs, _result, name)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "DatasetToSingleElement", name,
+        _ctx._post_execution_callbacks, dataset, "output_types", output_types,
+        "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return dataset_to_single_element_eager_fallback(
+          dataset, output_types=output_types, output_shapes=output_shapes,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def dataset_to_single_element_eager_fallback(dataset, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function dataset_to_single_element
+  """
+  _ctx = _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -241,30 +437,19 @@ def dataset_to_single_element(dataset, output_types, output_shapes, name=None):
         "Expected list for 'output_shapes' argument to "
         "'dataset_to_single_element' Op, not %r." % output_shapes)
   output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "DatasetToSingleElement", dataset=dataset, output_types=output_types,
-        output_shapes=output_shapes, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
-              _op.get_attr("output_shapes"))
-  else:
-    dataset = _ops.convert_to_tensor(dataset, _dtypes.variant)
-    _inputs_flat = [dataset]
-    _attrs = ("output_types", output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"DatasetToSingleElement", len(output_types),
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+  dataset = _ops.convert_to_tensor(dataset, _dtypes.variant)
+  _inputs_flat = [dataset]
+  _attrs = ("output_types", output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"DatasetToSingleElement", len(output_types),
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "DatasetToSingleElement", _inputs_flat, _attrs, _result, name)
   return _result
 
 
-@tf_export('DenseToSparseBatchDataset')
 def dense_to_sparse_batch_dataset(input_dataset, batch_size, row_shape, output_types, output_shapes, name=None):
-  r"""Creates a dataset that yields a SparseTensor for each element of the input.
+  r"""Creates a dataset that batches input elements into a SparseTensor.
 
   Args:
     input_dataset: A `Tensor` of type `variant`.
@@ -283,6 +468,55 @@ def dense_to_sparse_batch_dataset(input_dataset, batch_size, row_shape, output_t
   Returns:
     A `Tensor` of type `variant`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'dense_to_sparse_batch_dataset' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'dense_to_sparse_batch_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "DenseToSparseBatchDataset", input_dataset=input_dataset,
+        batch_size=batch_size, row_shape=row_shape, output_types=output_types,
+        output_shapes=output_shapes, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
+              _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "DenseToSparseBatchDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "DenseToSparseBatchDataset", name,
+        _ctx._post_execution_callbacks, input_dataset, batch_size, row_shape,
+        "output_types", output_types, "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return dense_to_sparse_batch_dataset_eager_fallback(
+          input_dataset, batch_size, row_shape, output_types=output_types,
+          output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def dense_to_sparse_batch_dataset_eager_fallback(input_dataset, batch_size, row_shape, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function dense_to_sparse_batch_dataset
+  """
+  _ctx = _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -293,32 +527,20 @@ def dense_to_sparse_batch_dataset(input_dataset, batch_size, row_shape, output_t
         "Expected list for 'output_shapes' argument to "
         "'dense_to_sparse_batch_dataset' Op, not %r." % output_shapes)
   output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "DenseToSparseBatchDataset", input_dataset=input_dataset,
-        batch_size=batch_size, row_shape=row_shape, output_types=output_types,
-        output_shapes=output_shapes, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
-              _op.get_attr("output_shapes"))
-  else:
-    input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
-    batch_size = _ops.convert_to_tensor(batch_size, _dtypes.int64)
-    row_shape = _ops.convert_to_tensor(row_shape, _dtypes.int64)
-    _inputs_flat = [input_dataset, batch_size, row_shape]
-    _attrs = ("output_types", output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"DenseToSparseBatchDataset", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+  input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
+  batch_size = _ops.convert_to_tensor(batch_size, _dtypes.int64)
+  row_shape = _ops.convert_to_tensor(row_shape, _dtypes.int64)
+  _inputs_flat = [input_dataset, batch_size, row_shape]
+  _attrs = ("output_types", output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"DenseToSparseBatchDataset", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "DenseToSparseBatchDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('DeserializeIterator')
 def deserialize_iterator(resource_handle, serialized, name=None):
   r"""Converts the given variant tensor to an iterator and stores it in the given resource.
 
@@ -334,23 +556,98 @@ def deserialize_iterator(resource_handle, serialized, name=None):
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "DeserializeIterator", resource_handle=resource_handle,
         serialized=serialized, name=name)
     return _op
-  else:
-    resource_handle = _ops.convert_to_tensor(resource_handle, _dtypes.resource)
-    serialized = _ops.convert_to_tensor(serialized, _dtypes.variant)
-    _inputs_flat = [resource_handle, serialized]
-    _attrs = None
-    _result = _execute.execute(b"DeserializeIterator", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "DeserializeIterator", name,
+        _ctx._post_execution_callbacks, resource_handle, serialized)
+      return _result
+    except _core._FallbackException:
+      return deserialize_iterator_eager_fallback(
+          resource_handle, serialized, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def deserialize_iterator_eager_fallback(resource_handle, serialized, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function deserialize_iterator
+  """
+  _ctx = _context.context()
+  resource_handle = _ops.convert_to_tensor(resource_handle, _dtypes.resource)
+  serialized = _ops.convert_to_tensor(serialized, _dtypes.variant)
+  _inputs_flat = [resource_handle, serialized]
+  _attrs = None
+  _result = _execute.execute(b"DeserializeIterator", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 
-@tf_export('FilterDataset')
+def enqueue_in_queue_dataset(queue, components, name=None):
+  r"""TODO: add doc.
+
+  Args:
+    queue: A `Tensor` of type `variant`.
+    components: A list of `Tensor` objects.
+    name: A name for the operation (optional).
+
+  Returns:
+    The created Operation.
+  """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "EnqueueInQueueDataset", queue=queue, components=components,
+        name=name)
+    return _op
+    _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "EnqueueInQueueDataset", name,
+        _ctx._post_execution_callbacks, queue, components)
+      return _result
+    except _core._FallbackException:
+      return enqueue_in_queue_dataset_eager_fallback(
+          queue, components, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def enqueue_in_queue_dataset_eager_fallback(queue, components, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function enqueue_in_queue_dataset
+  """
+  _ctx = _context.context()
+  _attr_Tcomponents, components = _execute.convert_to_mixed_eager_tensors(components, _ctx)
+  queue = _ops.convert_to_tensor(queue, _dtypes.variant)
+  _inputs_flat = [queue] + list(components)
+  _attrs = ("Tcomponents", _attr_Tcomponents)
+  _result = _execute.execute(b"EnqueueInQueueDataset", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
+  return _result
+
+
 def filter_dataset(input_dataset, other_arguments, predicate, output_types, output_shapes, name=None):
   r"""Creates a dataset containing elements of `input_dataset` matching `predicate`.
 
@@ -374,18 +671,18 @@ def filter_dataset(input_dataset, other_arguments, predicate, output_types, outp
   Returns:
     A `Tensor` of type `variant`.
   """
-  if not isinstance(output_types, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'output_types' argument to "
-        "'filter_dataset' Op, not %r." % output_types)
-  output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
-  if not isinstance(output_shapes, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'output_shapes' argument to "
-        "'filter_dataset' Op, not %r." % output_shapes)
-  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'filter_dataset' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'filter_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
     _, _, _op = _op_def_lib._apply_op_helper(
         "FilterDataset", input_dataset=input_dataset,
         other_arguments=other_arguments, predicate=predicate,
@@ -396,21 +693,59 @@ def filter_dataset(input_dataset, other_arguments, predicate, output_types, outp
               _op.get_attr("Targuments"), "output_types",
               _op.get_attr("output_types"), "output_shapes",
               _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "FilterDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_Targuments, other_arguments = _execute.convert_to_mixed_eager_tensors(other_arguments, _ctx)
-    input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
-    _inputs_flat = [input_dataset] + list(other_arguments)
-    _attrs = ("predicate", predicate, "Targuments", _attr_Targuments,
-              "output_types", output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"FilterDataset", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "FilterDataset", name,
+        _ctx._post_execution_callbacks, input_dataset, other_arguments,
+        "predicate", predicate, "output_types", output_types, "output_shapes",
+        output_shapes)
+      return _result
+    except _core._FallbackException:
+      return filter_dataset_eager_fallback(
+          input_dataset, other_arguments, predicate=predicate,
+          output_types=output_types, output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def filter_dataset_eager_fallback(input_dataset, other_arguments, predicate, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function filter_dataset
+  """
+  _ctx = _context.context()
+  if not isinstance(output_types, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_types' argument to "
+        "'filter_dataset' Op, not %r." % output_types)
+  output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+  if not isinstance(output_shapes, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_shapes' argument to "
+        "'filter_dataset' Op, not %r." % output_shapes)
+  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+  _attr_Targuments, other_arguments = _execute.convert_to_mixed_eager_tensors(other_arguments, _ctx)
+  input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
+  _inputs_flat = [input_dataset] + list(other_arguments)
+  _attrs = ("predicate", predicate, "Targuments", _attr_Targuments,
+  "output_types", output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"FilterDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "FilterDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('FixedLengthRecordDataset')
 def fixed_length_record_dataset(filenames, header_bytes, record_bytes, footer_bytes, buffer_size, name=None):
   r"""Creates a dataset that emits the records from one or more binary files.
 
@@ -434,7 +769,7 @@ def fixed_length_record_dataset(filenames, header_bytes, record_bytes, footer_by
     A `Tensor` of type `variant`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "FixedLengthRecordDataset", filenames=filenames,
         header_bytes=header_bytes, record_bytes=record_bytes,
@@ -442,24 +777,51 @@ def fixed_length_record_dataset(filenames, header_bytes, record_bytes, footer_by
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "FixedLengthRecordDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    filenames = _ops.convert_to_tensor(filenames, _dtypes.string)
-    header_bytes = _ops.convert_to_tensor(header_bytes, _dtypes.int64)
-    record_bytes = _ops.convert_to_tensor(record_bytes, _dtypes.int64)
-    footer_bytes = _ops.convert_to_tensor(footer_bytes, _dtypes.int64)
-    buffer_size = _ops.convert_to_tensor(buffer_size, _dtypes.int64)
-    _inputs_flat = [filenames, header_bytes, record_bytes, footer_bytes, buffer_size]
-    _attrs = None
-    _result = _execute.execute(b"FixedLengthRecordDataset", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "FixedLengthRecordDataset", name,
+        _ctx._post_execution_callbacks, filenames, header_bytes, record_bytes,
+        footer_bytes, buffer_size)
+      return _result
+    except _core._FallbackException:
+      return fixed_length_record_dataset_eager_fallback(
+          filenames, header_bytes, record_bytes, footer_bytes, buffer_size,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def fixed_length_record_dataset_eager_fallback(filenames, header_bytes, record_bytes, footer_bytes, buffer_size, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function fixed_length_record_dataset
+  """
+  _ctx = _context.context()
+  filenames = _ops.convert_to_tensor(filenames, _dtypes.string)
+  header_bytes = _ops.convert_to_tensor(header_bytes, _dtypes.int64)
+  record_bytes = _ops.convert_to_tensor(record_bytes, _dtypes.int64)
+  footer_bytes = _ops.convert_to_tensor(footer_bytes, _dtypes.int64)
+  buffer_size = _ops.convert_to_tensor(buffer_size, _dtypes.int64)
+  _inputs_flat = [filenames, header_bytes, record_bytes, footer_bytes, buffer_size]
+  _attrs = None
+  _result = _execute.execute(b"FixedLengthRecordDataset", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "FixedLengthRecordDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('FlatMapDataset')
 def flat_map_dataset(input_dataset, other_arguments, f, output_types, output_shapes, name=None):
   r"""Creates a dataset that applies `f` to the outputs of `input_dataset`.
 
@@ -481,18 +843,18 @@ def flat_map_dataset(input_dataset, other_arguments, f, output_types, output_sha
   Returns:
     A `Tensor` of type `variant`.
   """
-  if not isinstance(output_types, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'output_types' argument to "
-        "'flat_map_dataset' Op, not %r." % output_types)
-  output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
-  if not isinstance(output_shapes, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'output_shapes' argument to "
-        "'flat_map_dataset' Op, not %r." % output_shapes)
-  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'flat_map_dataset' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'flat_map_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
     _, _, _op = _op_def_lib._apply_op_helper(
         "FlatMapDataset", input_dataset=input_dataset,
         other_arguments=other_arguments, f=f, output_types=output_types,
@@ -503,21 +865,162 @@ def flat_map_dataset(input_dataset, other_arguments, f, output_types, output_sha
               _op.get_attr("Targuments"), "output_types",
               _op.get_attr("output_types"), "output_shapes",
               _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "FlatMapDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_Targuments, other_arguments = _execute.convert_to_mixed_eager_tensors(other_arguments, _ctx)
-    input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
-    _inputs_flat = [input_dataset] + list(other_arguments)
-    _attrs = ("f", f, "Targuments", _attr_Targuments, "output_types",
-              output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"FlatMapDataset", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "FlatMapDataset", name,
+        _ctx._post_execution_callbacks, input_dataset, other_arguments, "f",
+        f, "output_types", output_types, "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return flat_map_dataset_eager_fallback(
+          input_dataset, other_arguments, f=f, output_types=output_types,
+          output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def flat_map_dataset_eager_fallback(input_dataset, other_arguments, f, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function flat_map_dataset
+  """
+  _ctx = _context.context()
+  if not isinstance(output_types, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_types' argument to "
+        "'flat_map_dataset' Op, not %r." % output_types)
+  output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+  if not isinstance(output_shapes, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_shapes' argument to "
+        "'flat_map_dataset' Op, not %r." % output_shapes)
+  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+  _attr_Targuments, other_arguments = _execute.convert_to_mixed_eager_tensors(other_arguments, _ctx)
+  input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
+  _inputs_flat = [input_dataset] + list(other_arguments)
+  _attrs = ("f", f, "Targuments", _attr_Targuments, "output_types",
+  output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"FlatMapDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "FlatMapDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('GroupByWindowDataset')
+def generator_dataset(init_func_other_args, next_func_other_args, finalize_func_other_args, init_func, next_func, finalize_func, output_types, output_shapes, name=None):
+  r"""Creates a dataset that invokes a function to generate elements.
+
+  Args:
+    init_func_other_args: A list of `Tensor` objects.
+    next_func_other_args: A list of `Tensor` objects.
+    finalize_func_other_args: A list of `Tensor` objects.
+    init_func: A function decorated with @Defun.
+    next_func: A function decorated with @Defun.
+    finalize_func: A function decorated with @Defun.
+    output_types: A list of `tf.DTypes` that has length `>= 1`.
+    output_shapes: A list of shapes (each a `tf.TensorShape` or list of `ints`) that has length `>= 1`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `variant`.
+  """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'generator_dataset' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'generator_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "GeneratorDataset", init_func_other_args=init_func_other_args,
+        next_func_other_args=next_func_other_args,
+        finalize_func_other_args=finalize_func_other_args,
+        init_func=init_func, next_func=next_func, finalize_func=finalize_func,
+        output_types=output_types, output_shapes=output_shapes, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("init_func", _op.get_attr("init_func"), "next_func",
+              _op.get_attr("next_func"), "finalize_func",
+              _op.get_attr("finalize_func"), "Tinit_func_args",
+              _op.get_attr("Tinit_func_args"), "Tnext_func_args",
+              _op.get_attr("Tnext_func_args"), "Tfinalize_func_args",
+              _op.get_attr("Tfinalize_func_args"), "output_types",
+              _op.get_attr("output_types"), "output_shapes",
+              _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "GeneratorDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "GeneratorDataset", name,
+        _ctx._post_execution_callbacks, init_func_other_args,
+        next_func_other_args, finalize_func_other_args, "init_func",
+        init_func, "next_func", next_func, "finalize_func", finalize_func,
+        "output_types", output_types, "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return generator_dataset_eager_fallback(
+          init_func_other_args, next_func_other_args,
+          finalize_func_other_args, init_func=init_func, next_func=next_func,
+          finalize_func=finalize_func, output_types=output_types,
+          output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def generator_dataset_eager_fallback(init_func_other_args, next_func_other_args, finalize_func_other_args, init_func, next_func, finalize_func, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function generator_dataset
+  """
+  _ctx = _context.context()
+  if not isinstance(output_types, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_types' argument to "
+        "'generator_dataset' Op, not %r." % output_types)
+  output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+  if not isinstance(output_shapes, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_shapes' argument to "
+        "'generator_dataset' Op, not %r." % output_shapes)
+  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+  _attr_Tinit_func_args, init_func_other_args = _execute.convert_to_mixed_eager_tensors(init_func_other_args, _ctx)
+  _attr_Tnext_func_args, next_func_other_args = _execute.convert_to_mixed_eager_tensors(next_func_other_args, _ctx)
+  _attr_Tfinalize_func_args, finalize_func_other_args = _execute.convert_to_mixed_eager_tensors(finalize_func_other_args, _ctx)
+  _inputs_flat = list(init_func_other_args) + list(next_func_other_args) + list(finalize_func_other_args)
+  _attrs = ("init_func", init_func, "next_func", next_func, "finalize_func",
+  finalize_func, "Tinit_func_args", _attr_Tinit_func_args, "Tnext_func_args",
+  _attr_Tnext_func_args, "Tfinalize_func_args", _attr_Tfinalize_func_args,
+  "output_types", output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"GeneratorDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _execute.record_gradient(
+      "GeneratorDataset", _inputs_flat, _attrs, _result, name)
+  _result, = _result
+  return _result
+
+
 def group_by_window_dataset(input_dataset, key_func_other_arguments, reduce_func_other_arguments, window_size_func_other_arguments, key_func, reduce_func, window_size_func, output_types, output_shapes, name=None):
   r"""Creates a dataset that computes a windowed group-by on `input_dataset`.
 
@@ -540,18 +1043,18 @@ def group_by_window_dataset(input_dataset, key_func_other_arguments, reduce_func
   Returns:
     A `Tensor` of type `variant`.
   """
-  if not isinstance(output_types, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'output_types' argument to "
-        "'group_by_window_dataset' Op, not %r." % output_types)
-  output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
-  if not isinstance(output_shapes, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'output_shapes' argument to "
-        "'group_by_window_dataset' Op, not %r." % output_shapes)
-  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'group_by_window_dataset' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'group_by_window_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
     _, _, _op = _op_def_lib._apply_op_helper(
         "GroupByWindowDataset", input_dataset=input_dataset,
         key_func_other_arguments=key_func_other_arguments,
@@ -572,74 +1075,70 @@ def group_by_window_dataset(input_dataset, key_func_other_arguments, reduce_func
               _op.get_attr("Twindow_size_func_other_arguments"),
               "output_types", _op.get_attr("output_types"), "output_shapes",
               _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "GroupByWindowDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_Tkey_func_other_arguments, key_func_other_arguments = _execute.convert_to_mixed_eager_tensors(key_func_other_arguments, _ctx)
-    _attr_Treduce_func_other_arguments, reduce_func_other_arguments = _execute.convert_to_mixed_eager_tensors(reduce_func_other_arguments, _ctx)
-    _attr_Twindow_size_func_other_arguments, window_size_func_other_arguments = _execute.convert_to_mixed_eager_tensors(window_size_func_other_arguments, _ctx)
-    input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
-    _inputs_flat = [input_dataset] + list(key_func_other_arguments) + list(reduce_func_other_arguments) + list(window_size_func_other_arguments)
-    _attrs = ("key_func", key_func, "reduce_func", reduce_func,
-              "window_size_func", window_size_func,
-              "Tkey_func_other_arguments", _attr_Tkey_func_other_arguments,
-              "Treduce_func_other_arguments",
-              _attr_Treduce_func_other_arguments,
-              "Twindow_size_func_other_arguments",
-              _attr_Twindow_size_func_other_arguments, "output_types",
-              output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"GroupByWindowDataset", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "GroupByWindowDataset", name,
+        _ctx._post_execution_callbacks, input_dataset,
+        key_func_other_arguments, reduce_func_other_arguments,
+        window_size_func_other_arguments, "key_func", key_func, "reduce_func",
+        reduce_func, "window_size_func", window_size_func, "output_types",
+        output_types, "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return group_by_window_dataset_eager_fallback(
+          input_dataset, key_func_other_arguments,
+          reduce_func_other_arguments, window_size_func_other_arguments,
+          key_func=key_func, reduce_func=reduce_func,
+          window_size_func=window_size_func, output_types=output_types,
+          output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def group_by_window_dataset_eager_fallback(input_dataset, key_func_other_arguments, reduce_func_other_arguments, window_size_func_other_arguments, key_func, reduce_func, window_size_func, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function group_by_window_dataset
+  """
+  _ctx = _context.context()
+  if not isinstance(output_types, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_types' argument to "
+        "'group_by_window_dataset' Op, not %r." % output_types)
+  output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+  if not isinstance(output_shapes, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_shapes' argument to "
+        "'group_by_window_dataset' Op, not %r." % output_shapes)
+  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+  _attr_Tkey_func_other_arguments, key_func_other_arguments = _execute.convert_to_mixed_eager_tensors(key_func_other_arguments, _ctx)
+  _attr_Treduce_func_other_arguments, reduce_func_other_arguments = _execute.convert_to_mixed_eager_tensors(reduce_func_other_arguments, _ctx)
+  _attr_Twindow_size_func_other_arguments, window_size_func_other_arguments = _execute.convert_to_mixed_eager_tensors(window_size_func_other_arguments, _ctx)
+  input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
+  _inputs_flat = [input_dataset] + list(key_func_other_arguments) + list(reduce_func_other_arguments) + list(window_size_func_other_arguments)
+  _attrs = ("key_func", key_func, "reduce_func", reduce_func,
+  "window_size_func", window_size_func, "Tkey_func_other_arguments",
+  _attr_Tkey_func_other_arguments, "Treduce_func_other_arguments",
+  _attr_Treduce_func_other_arguments, "Twindow_size_func_other_arguments",
+  _attr_Twindow_size_func_other_arguments, "output_types", output_types,
+  "output_shapes", output_shapes)
+  _result = _execute.execute(b"GroupByWindowDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "GroupByWindowDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('IgnoreErrorsDataset')
-def ignore_errors_dataset(input_dataset, output_types, output_shapes, name=None):
-  r"""Creates a dataset that contains the elements of `input_dataset` ignoring errors.
-
-  Args:
-    input_dataset: A `Tensor` of type `variant`.
-    output_types: A list of `tf.DTypes` that has length `>= 1`.
-    output_shapes: A list of shapes (each a `tf.TensorShape` or list of `ints`) that has length `>= 1`.
-    name: A name for the operation (optional).
-
-  Returns:
-    A `Tensor` of type `variant`.
-  """
-  if not isinstance(output_types, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'output_types' argument to "
-        "'ignore_errors_dataset' Op, not %r." % output_types)
-  output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
-  if not isinstance(output_shapes, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'output_shapes' argument to "
-        "'ignore_errors_dataset' Op, not %r." % output_shapes)
-  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "IgnoreErrorsDataset", input_dataset=input_dataset,
-        output_types=output_types, output_shapes=output_shapes, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
-              _op.get_attr("output_shapes"))
-  else:
-    input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
-    _inputs_flat = [input_dataset]
-    _attrs = ("output_types", output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"IgnoreErrorsDataset", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
-  _execute.record_gradient(
-      "IgnoreErrorsDataset", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
-
-
-@tf_export('InterleaveDataset')
 def interleave_dataset(input_dataset, other_arguments, cycle_length, block_length, f, output_types, output_shapes, name=None):
   r"""Creates a dataset that applies `f` to the outputs of `input_dataset`.
 
@@ -665,18 +1164,18 @@ def interleave_dataset(input_dataset, other_arguments, cycle_length, block_lengt
   Returns:
     A `Tensor` of type `variant`.
   """
-  if not isinstance(output_types, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'output_types' argument to "
-        "'interleave_dataset' Op, not %r." % output_types)
-  output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
-  if not isinstance(output_shapes, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'output_shapes' argument to "
-        "'interleave_dataset' Op, not %r." % output_shapes)
-  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'interleave_dataset' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'interleave_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
     _, _, _op = _op_def_lib._apply_op_helper(
         "InterleaveDataset", input_dataset=input_dataset,
         other_arguments=other_arguments, cycle_length=cycle_length,
@@ -688,23 +1187,61 @@ def interleave_dataset(input_dataset, other_arguments, cycle_length, block_lengt
               _op.get_attr("Targuments"), "output_types",
               _op.get_attr("output_types"), "output_shapes",
               _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "InterleaveDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_Targuments, other_arguments = _execute.convert_to_mixed_eager_tensors(other_arguments, _ctx)
-    input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
-    cycle_length = _ops.convert_to_tensor(cycle_length, _dtypes.int64)
-    block_length = _ops.convert_to_tensor(block_length, _dtypes.int64)
-    _inputs_flat = [input_dataset] + list(other_arguments) + [cycle_length, block_length]
-    _attrs = ("f", f, "Targuments", _attr_Targuments, "output_types",
-              output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"InterleaveDataset", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "InterleaveDataset", name,
+        _ctx._post_execution_callbacks, input_dataset, other_arguments,
+        cycle_length, block_length, "f", f, "output_types", output_types,
+        "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return interleave_dataset_eager_fallback(
+          input_dataset, other_arguments, cycle_length, block_length, f=f,
+          output_types=output_types, output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def interleave_dataset_eager_fallback(input_dataset, other_arguments, cycle_length, block_length, f, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function interleave_dataset
+  """
+  _ctx = _context.context()
+  if not isinstance(output_types, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_types' argument to "
+        "'interleave_dataset' Op, not %r." % output_types)
+  output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+  if not isinstance(output_shapes, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_shapes' argument to "
+        "'interleave_dataset' Op, not %r." % output_shapes)
+  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+  _attr_Targuments, other_arguments = _execute.convert_to_mixed_eager_tensors(other_arguments, _ctx)
+  input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
+  cycle_length = _ops.convert_to_tensor(cycle_length, _dtypes.int64)
+  block_length = _ops.convert_to_tensor(block_length, _dtypes.int64)
+  _inputs_flat = [input_dataset] + list(other_arguments) + [cycle_length, block_length]
+  _attrs = ("f", f, "Targuments", _attr_Targuments, "output_types",
+  output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"InterleaveDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "InterleaveDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('Iterator')
 def iterator(shared_name, container, output_types, output_shapes, name=None):
   r"""A container for an iterator resource.
 
@@ -717,9 +1254,60 @@ def iterator(shared_name, container, output_types, output_shapes, name=None):
 
   Returns:
     A `Tensor` of type `resource`.
-    A handle to the iterator that can be passed to a "MakeIterator"
-    or "IteratorGetNext" op.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    container = _execute.make_str(container, "container")
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'iterator' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'iterator' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "Iterator", shared_name=shared_name, container=container,
+        output_types=output_types, output_shapes=output_shapes, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("shared_name", _op.get_attr("shared_name"), "container",
+              _op.get_attr("container"), "output_types",
+              _op.get_attr("output_types"), "output_shapes",
+              _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "Iterator", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "Iterator", name,
+        _ctx._post_execution_callbacks, "shared_name", shared_name,
+        "container", container, "output_types", output_types, "output_shapes",
+        output_shapes)
+      return _result
+    except _core._FallbackException:
+      return iterator_eager_fallback(
+          shared_name=shared_name, container=container,
+          output_types=output_types, output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def iterator_eager_fallback(shared_name, container, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function iterator
+  """
+  _ctx = _context.context()
   shared_name = _execute.make_str(shared_name, "shared_name")
   container = _execute.make_str(container, "container")
   if not isinstance(output_types, (list, tuple)):
@@ -732,30 +1320,17 @@ def iterator(shared_name, container, output_types, output_shapes, name=None):
         "Expected list for 'output_shapes' argument to "
         "'iterator' Op, not %r." % output_shapes)
   output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "Iterator", shared_name=shared_name, container=container,
-        output_types=output_types, output_shapes=output_shapes, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("shared_name", _op.get_attr("shared_name"), "container",
-              _op.get_attr("container"), "output_types",
-              _op.get_attr("output_types"), "output_shapes",
-              _op.get_attr("output_shapes"))
-  else:
-    _inputs_flat = []
-    _attrs = ("shared_name", shared_name, "container", container,
-              "output_types", output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"Iterator", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  _inputs_flat = []
+  _attrs = ("shared_name", shared_name, "container", container,
+  "output_types", output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"Iterator", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "Iterator", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('IteratorFromStringHandle')
 def iterator_from_string_handle(string_handle, output_types=[], output_shapes=[], name=None):
   r"""Converts the given string representing a handle to an iterator to a resource.
 
@@ -771,8 +1346,60 @@ def iterator_from_string_handle(string_handle, output_types=[], output_shapes=[]
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type `resource`. A handle to an iterator resource.
+    A `Tensor` of type `resource`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if output_types is None:
+      output_types = []
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'iterator_from_string_handle' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if output_shapes is None:
+      output_shapes = []
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'iterator_from_string_handle' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "IteratorFromStringHandle", string_handle=string_handle,
+        output_types=output_types, output_shapes=output_shapes, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
+              _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "IteratorFromStringHandle", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "IteratorFromStringHandle", name,
+        _ctx._post_execution_callbacks, string_handle, "output_types",
+        output_types, "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return iterator_from_string_handle_eager_fallback(
+          string_handle, output_types=output_types,
+          output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def iterator_from_string_handle_eager_fallback(string_handle, output_types=[], output_shapes=[], name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function iterator_from_string_handle
+  """
+  _ctx = _context.context()
   if output_types is None:
     output_types = []
   if not isinstance(output_types, (list, tuple)):
@@ -787,29 +1414,18 @@ def iterator_from_string_handle(string_handle, output_types=[], output_shapes=[]
         "Expected list for 'output_shapes' argument to "
         "'iterator_from_string_handle' Op, not %r." % output_shapes)
   output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "IteratorFromStringHandle", string_handle=string_handle,
-        output_types=output_types, output_shapes=output_shapes, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
-              _op.get_attr("output_shapes"))
-  else:
-    string_handle = _ops.convert_to_tensor(string_handle, _dtypes.string)
-    _inputs_flat = [string_handle]
-    _attrs = ("output_types", output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"IteratorFromStringHandle", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+  string_handle = _ops.convert_to_tensor(string_handle, _dtypes.string)
+  _inputs_flat = [string_handle]
+  _attrs = ("output_types", output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"IteratorFromStringHandle", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "IteratorFromStringHandle", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('IteratorGetNext')
 def iterator_get_next(iterator, output_types, output_shapes, name=None):
   r"""Gets the next output from the given iterator.
 
@@ -822,6 +1438,55 @@ def iterator_get_next(iterator, output_types, output_shapes, name=None):
   Returns:
     A list of `Tensor` objects of type `output_types`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'iterator_get_next' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'iterator_get_next' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "IteratorGetNext", iterator=iterator, output_types=output_types,
+        output_shapes=output_shapes, name=name)
+    _result = _op.outputs[:]
+    if not _result:
+      return _op
+    _inputs_flat = _op.inputs
+    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
+              _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "IteratorGetNext", _inputs_flat, _attrs, _result, name)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "IteratorGetNext", name,
+        _ctx._post_execution_callbacks, iterator, "output_types",
+        output_types, "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return iterator_get_next_eager_fallback(
+          iterator, output_types=output_types, output_shapes=output_shapes,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def iterator_get_next_eager_fallback(iterator, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function iterator_get_next
+  """
+  _ctx = _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -832,10 +1497,48 @@ def iterator_get_next(iterator, output_types, output_shapes, name=None):
         "Expected list for 'output_shapes' argument to "
         "'iterator_get_next' Op, not %r." % output_shapes)
   output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+  iterator = _ops.convert_to_tensor(iterator, _dtypes.resource)
+  _inputs_flat = [iterator]
+  _attrs = ("output_types", output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"IteratorGetNext", len(output_types),
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
+  _execute.record_gradient(
+      "IteratorGetNext", _inputs_flat, _attrs, _result, name)
+  return _result
+
+
+def iterator_get_next_sync(iterator, output_types, output_shapes, name=None):
+  r"""Gets the next output from the given iterator.
+
+  This operation is a synchronous version IteratorGetNext. It should only be used
+  in situations where the iterator does not block the calling thread, or where
+  the calling thread is not a member of the thread pool used to execute parallel
+  operations (e.g. in eager mode).
+
+  Args:
+    iterator: A `Tensor` of type `resource`.
+    output_types: A list of `tf.DTypes` that has length `>= 1`.
+    output_shapes: A list of shapes (each a `tf.TensorShape` or list of `ints`) that has length `>= 1`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A list of `Tensor` objects of type `output_types`.
+  """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'iterator_get_next_sync' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'iterator_get_next_sync' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
     _, _, _op = _op_def_lib._apply_op_helper(
-        "IteratorGetNext", iterator=iterator, output_types=output_types,
+        "IteratorGetNextSync", iterator=iterator, output_types=output_types,
         output_shapes=output_shapes, name=name)
     _result = _op.outputs[:]
     if not _result:
@@ -843,19 +1546,55 @@ def iterator_get_next(iterator, output_types, output_shapes, name=None):
     _inputs_flat = _op.inputs
     _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
               _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "IteratorGetNextSync", _inputs_flat, _attrs, _result, name)
+    return _result
+
   else:
-    iterator = _ops.convert_to_tensor(iterator, _dtypes.resource)
-    _inputs_flat = [iterator]
-    _attrs = ("output_types", output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"IteratorGetNext", len(output_types),
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "IteratorGetNextSync", name,
+        _ctx._post_execution_callbacks, iterator, "output_types",
+        output_types, "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return iterator_get_next_sync_eager_fallback(
+          iterator, output_types=output_types, output_shapes=output_shapes,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def iterator_get_next_sync_eager_fallback(iterator, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function iterator_get_next_sync
+  """
+  _ctx = _context.context()
+  if not isinstance(output_types, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_types' argument to "
+        "'iterator_get_next_sync' Op, not %r." % output_types)
+  output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+  if not isinstance(output_shapes, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_shapes' argument to "
+        "'iterator_get_next_sync' Op, not %r." % output_shapes)
+  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+  iterator = _ops.convert_to_tensor(iterator, _dtypes.resource)
+  _inputs_flat = [iterator]
+  _attrs = ("output_types", output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"IteratorGetNextSync", len(output_types),
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
-      "IteratorGetNext", _inputs_flat, _attrs, _result, name)
+      "IteratorGetNextSync", _inputs_flat, _attrs, _result, name)
   return _result
 
 
-@tf_export('IteratorSetStatsAggregator')
 def iterator_set_stats_aggregator(iterator_handle, stats_aggregator_handle, name=None):
   r"""Associates the given iterator with the given statistics aggregator.
 
@@ -868,24 +1607,48 @@ def iterator_set_stats_aggregator(iterator_handle, stats_aggregator_handle, name
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "IteratorSetStatsAggregator", iterator_handle=iterator_handle,
         stats_aggregator_handle=stats_aggregator_handle, name=name)
     return _op
-  else:
-    iterator_handle = _ops.convert_to_tensor(iterator_handle, _dtypes.resource)
-    stats_aggregator_handle = _ops.convert_to_tensor(stats_aggregator_handle, _dtypes.resource)
-    _inputs_flat = [iterator_handle, stats_aggregator_handle]
-    _attrs = None
-    _result = _execute.execute(b"IteratorSetStatsAggregator", 0,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "IteratorSetStatsAggregator", name,
+        _ctx._post_execution_callbacks, iterator_handle,
+        stats_aggregator_handle)
+      return _result
+    except _core._FallbackException:
+      return iterator_set_stats_aggregator_eager_fallback(
+          iterator_handle, stats_aggregator_handle, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def iterator_set_stats_aggregator_eager_fallback(iterator_handle, stats_aggregator_handle, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function iterator_set_stats_aggregator
+  """
+  _ctx = _context.context()
+  iterator_handle = _ops.convert_to_tensor(iterator_handle, _dtypes.resource)
+  stats_aggregator_handle = _ops.convert_to_tensor(stats_aggregator_handle, _dtypes.resource)
+  _inputs_flat = [iterator_handle, stats_aggregator_handle]
+  _attrs = None
+  _result = _execute.execute(b"IteratorSetStatsAggregator", 0,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
+  _result = None
   return _result
 
 
-@tf_export('IteratorToStringHandle')
 def iterator_to_string_handle(resource_handle, name=None):
   r"""Converts the given `resource_handle` representing an iterator to a string.
 
@@ -895,29 +1658,54 @@ def iterator_to_string_handle(resource_handle, name=None):
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type `string`. A string representation of the given handle.
+    A `Tensor` of type `string`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "IteratorToStringHandle", resource_handle=resource_handle, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "IteratorToStringHandle", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    resource_handle = _ops.convert_to_tensor(resource_handle, _dtypes.resource)
-    _inputs_flat = [resource_handle]
-    _attrs = None
-    _result = _execute.execute(b"IteratorToStringHandle", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "IteratorToStringHandle", name,
+        _ctx._post_execution_callbacks, resource_handle)
+      return _result
+    except _core._FallbackException:
+      return iterator_to_string_handle_eager_fallback(
+          resource_handle, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def iterator_to_string_handle_eager_fallback(resource_handle, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function iterator_to_string_handle
+  """
+  _ctx = _context.context()
+  resource_handle = _ops.convert_to_tensor(resource_handle, _dtypes.resource)
+  _inputs_flat = [resource_handle]
+  _attrs = None
+  _result = _execute.execute(b"IteratorToStringHandle", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "IteratorToStringHandle", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('LatencyStatsDataset')
 def latency_stats_dataset(input_dataset, tag, output_types, output_shapes, name=None):
   r"""Records the latency of producing `input_dataset` elements in a StatsAggregator.
 
@@ -931,6 +1719,54 @@ def latency_stats_dataset(input_dataset, tag, output_types, output_shapes, name=
   Returns:
     A `Tensor` of type `variant`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'latency_stats_dataset' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'latency_stats_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "LatencyStatsDataset", input_dataset=input_dataset, tag=tag,
+        output_types=output_types, output_shapes=output_shapes, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
+              _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "LatencyStatsDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "LatencyStatsDataset", name,
+        _ctx._post_execution_callbacks, input_dataset, tag, "output_types",
+        output_types, "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return latency_stats_dataset_eager_fallback(
+          input_dataset, tag, output_types=output_types,
+          output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def latency_stats_dataset_eager_fallback(input_dataset, tag, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function latency_stats_dataset
+  """
+  _ctx = _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -941,29 +1777,18 @@ def latency_stats_dataset(input_dataset, tag, output_types, output_shapes, name=
         "Expected list for 'output_shapes' argument to "
         "'latency_stats_dataset' Op, not %r." % output_shapes)
   output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "LatencyStatsDataset", input_dataset=input_dataset, tag=tag,
-        output_types=output_types, output_shapes=output_shapes, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
-              _op.get_attr("output_shapes"))
-  else:
-    input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
-    tag = _ops.convert_to_tensor(tag, _dtypes.string)
-    _inputs_flat = [input_dataset, tag]
-    _attrs = ("output_types", output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"LatencyStatsDataset", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
+  tag = _ops.convert_to_tensor(tag, _dtypes.string)
+  _inputs_flat = [input_dataset, tag]
+  _attrs = ("output_types", output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"LatencyStatsDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "LatencyStatsDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('MakeIterator')
 def make_iterator(dataset, iterator, name=None):
   r"""Makes a new iterator from the given `dataset` and stores it in `iterator`.
 
@@ -979,22 +1804,45 @@ def make_iterator(dataset, iterator, name=None):
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "MakeIterator", dataset=dataset, iterator=iterator, name=name)
     return _op
-  else:
-    dataset = _ops.convert_to_tensor(dataset, _dtypes.variant)
-    iterator = _ops.convert_to_tensor(iterator, _dtypes.resource)
-    _inputs_flat = [dataset, iterator]
-    _attrs = None
-    _result = _execute.execute(b"MakeIterator", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "MakeIterator", name,
+        _ctx._post_execution_callbacks, dataset, iterator)
+      return _result
+    except _core._FallbackException:
+      return make_iterator_eager_fallback(
+          dataset, iterator, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def make_iterator_eager_fallback(dataset, iterator, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function make_iterator
+  """
+  _ctx = _context.context()
+  dataset = _ops.convert_to_tensor(dataset, _dtypes.variant)
+  iterator = _ops.convert_to_tensor(iterator, _dtypes.resource)
+  _inputs_flat = [dataset, iterator]
+  _attrs = None
+  _result = _execute.execute(b"MakeIterator", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 
-@tf_export('MapAndBatchDataset')
 def map_and_batch_dataset(input_dataset, other_arguments, batch_size, num_parallel_batches, f, output_types, output_shapes, name=None):
   r"""Creates a dataset that applies `f` to the outputs of `input_dataset` and then
 
@@ -1022,18 +1870,18 @@ def map_and_batch_dataset(input_dataset, other_arguments, batch_size, num_parall
   Returns:
     A `Tensor` of type `variant`.
   """
-  if not isinstance(output_types, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'output_types' argument to "
-        "'map_and_batch_dataset' Op, not %r." % output_types)
-  output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
-  if not isinstance(output_shapes, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'output_shapes' argument to "
-        "'map_and_batch_dataset' Op, not %r." % output_shapes)
-  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'map_and_batch_dataset' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'map_and_batch_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
     _, _, _op = _op_def_lib._apply_op_helper(
         "MapAndBatchDataset", input_dataset=input_dataset,
         other_arguments=other_arguments, batch_size=batch_size,
@@ -1045,23 +1893,62 @@ def map_and_batch_dataset(input_dataset, other_arguments, batch_size, num_parall
               _op.get_attr("Targuments"), "output_types",
               _op.get_attr("output_types"), "output_shapes",
               _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "MapAndBatchDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_Targuments, other_arguments = _execute.convert_to_mixed_eager_tensors(other_arguments, _ctx)
-    input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
-    batch_size = _ops.convert_to_tensor(batch_size, _dtypes.int64)
-    num_parallel_batches = _ops.convert_to_tensor(num_parallel_batches, _dtypes.int64)
-    _inputs_flat = [input_dataset] + list(other_arguments) + [batch_size, num_parallel_batches]
-    _attrs = ("f", f, "Targuments", _attr_Targuments, "output_types",
-              output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"MapAndBatchDataset", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "MapAndBatchDataset", name,
+        _ctx._post_execution_callbacks, input_dataset, other_arguments,
+        batch_size, num_parallel_batches, "f", f, "output_types",
+        output_types, "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return map_and_batch_dataset_eager_fallback(
+          input_dataset, other_arguments, batch_size, num_parallel_batches,
+          f=f, output_types=output_types, output_shapes=output_shapes,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def map_and_batch_dataset_eager_fallback(input_dataset, other_arguments, batch_size, num_parallel_batches, f, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function map_and_batch_dataset
+  """
+  _ctx = _context.context()
+  if not isinstance(output_types, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_types' argument to "
+        "'map_and_batch_dataset' Op, not %r." % output_types)
+  output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+  if not isinstance(output_shapes, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_shapes' argument to "
+        "'map_and_batch_dataset' Op, not %r." % output_shapes)
+  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+  _attr_Targuments, other_arguments = _execute.convert_to_mixed_eager_tensors(other_arguments, _ctx)
+  input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
+  batch_size = _ops.convert_to_tensor(batch_size, _dtypes.int64)
+  num_parallel_batches = _ops.convert_to_tensor(num_parallel_batches, _dtypes.int64)
+  _inputs_flat = [input_dataset] + list(other_arguments) + [batch_size, num_parallel_batches]
+  _attrs = ("f", f, "Targuments", _attr_Targuments, "output_types",
+  output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"MapAndBatchDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "MapAndBatchDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('MapDataset')
 def map_dataset(input_dataset, other_arguments, f, output_types, output_shapes, name=None):
   r"""Creates a dataset that applies `f` to the outputs of `input_dataset`.
 
@@ -1076,18 +1963,18 @@ def map_dataset(input_dataset, other_arguments, f, output_types, output_shapes, 
   Returns:
     A `Tensor` of type `variant`.
   """
-  if not isinstance(output_types, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'output_types' argument to "
-        "'map_dataset' Op, not %r." % output_types)
-  output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
-  if not isinstance(output_shapes, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'output_shapes' argument to "
-        "'map_dataset' Op, not %r." % output_shapes)
-  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'map_dataset' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'map_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
     _, _, _op = _op_def_lib._apply_op_helper(
         "MapDataset", input_dataset=input_dataset,
         other_arguments=other_arguments, f=f, output_types=output_types,
@@ -1098,21 +1985,58 @@ def map_dataset(input_dataset, other_arguments, f, output_types, output_shapes, 
               _op.get_attr("Targuments"), "output_types",
               _op.get_attr("output_types"), "output_shapes",
               _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "MapDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_Targuments, other_arguments = _execute.convert_to_mixed_eager_tensors(other_arguments, _ctx)
-    input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
-    _inputs_flat = [input_dataset] + list(other_arguments)
-    _attrs = ("f", f, "Targuments", _attr_Targuments, "output_types",
-              output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"MapDataset", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "MapDataset", name,
+        _ctx._post_execution_callbacks, input_dataset, other_arguments, "f",
+        f, "output_types", output_types, "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return map_dataset_eager_fallback(
+          input_dataset, other_arguments, f=f, output_types=output_types,
+          output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def map_dataset_eager_fallback(input_dataset, other_arguments, f, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function map_dataset
+  """
+  _ctx = _context.context()
+  if not isinstance(output_types, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_types' argument to "
+        "'map_dataset' Op, not %r." % output_types)
+  output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+  if not isinstance(output_shapes, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_shapes' argument to "
+        "'map_dataset' Op, not %r." % output_shapes)
+  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+  _attr_Targuments, other_arguments = _execute.convert_to_mixed_eager_tensors(other_arguments, _ctx)
+  input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
+  _inputs_flat = [input_dataset] + list(other_arguments)
+  _attrs = ("f", f, "Targuments", _attr_Targuments, "output_types",
+  output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"MapDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "MapDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('OneShotIterator')
 def one_shot_iterator(dataset_factory, output_types, output_shapes, container="", shared_name="", name=None):
   r"""Makes a "one-shot" iterator that can be iterated only once.
 
@@ -1146,9 +2070,67 @@ def one_shot_iterator(dataset_factory, output_types, output_shapes, container=""
 
   Returns:
     A `Tensor` of type `resource`.
-    A handle to the iterator that can be passed to an "IteratorGetNext"
-    op.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'one_shot_iterator' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'one_shot_iterator' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "OneShotIterator", dataset_factory=dataset_factory,
+        output_types=output_types, output_shapes=output_shapes,
+        container=container, shared_name=shared_name, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("dataset_factory", _op.get_attr("dataset_factory"),
+              "output_types", _op.get_attr("output_types"), "output_shapes",
+              _op.get_attr("output_shapes"), "container",
+              _op.get_attr("container"), "shared_name",
+              _op.get_attr("shared_name"))
+    _execute.record_gradient(
+      "OneShotIterator", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "OneShotIterator", name,
+        _ctx._post_execution_callbacks, "dataset_factory", dataset_factory,
+        "output_types", output_types, "output_shapes", output_shapes,
+        "container", container, "shared_name", shared_name)
+      return _result
+    except _core._FallbackException:
+      return one_shot_iterator_eager_fallback(
+          dataset_factory=dataset_factory, output_types=output_types,
+          output_shapes=output_shapes, container=container,
+          shared_name=shared_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def one_shot_iterator_eager_fallback(dataset_factory, output_types, output_shapes, container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function one_shot_iterator
+  """
+  _ctx = _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -1165,33 +2147,18 @@ def one_shot_iterator(dataset_factory, output_types, output_shapes, container=""
   if shared_name is None:
     shared_name = ""
   shared_name = _execute.make_str(shared_name, "shared_name")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "OneShotIterator", dataset_factory=dataset_factory,
-        output_types=output_types, output_shapes=output_shapes,
-        container=container, shared_name=shared_name, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("dataset_factory", _op.get_attr("dataset_factory"),
-              "output_types", _op.get_attr("output_types"), "output_shapes",
-              _op.get_attr("output_shapes"), "container",
-              _op.get_attr("container"), "shared_name",
-              _op.get_attr("shared_name"))
-  else:
-    _inputs_flat = []
-    _attrs = ("dataset_factory", dataset_factory, "output_types",
-              output_types, "output_shapes", output_shapes, "container",
-              container, "shared_name", shared_name)
-    _result = _execute.execute(b"OneShotIterator", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  _inputs_flat = []
+  _attrs = ("dataset_factory", dataset_factory, "output_types", output_types,
+  "output_shapes", output_shapes, "container", container, "shared_name",
+  shared_name)
+  _result = _execute.execute(b"OneShotIterator", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "OneShotIterator", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('PaddedBatchDataset')
 def padded_batch_dataset(input_dataset, batch_size, padded_shapes, padding_values, output_shapes, name=None):
   r"""Creates a dataset that batches and pads `batch_size` elements from the input.
 
@@ -1214,6 +2181,55 @@ def padded_batch_dataset(input_dataset, batch_size, padded_shapes, padding_value
   Returns:
     A `Tensor` of type `variant`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(padded_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'padded_shapes' argument to "
+          "'padded_batch_dataset' Op, not %r." % padded_shapes)
+    _attr_N = len(padded_shapes)
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'padded_batch_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "PaddedBatchDataset", input_dataset=input_dataset,
+        batch_size=batch_size, padded_shapes=padded_shapes,
+        padding_values=padding_values, output_shapes=output_shapes, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("Toutput_types", _op.get_attr("Toutput_types"), "output_shapes",
+              _op.get_attr("output_shapes"), "N", _op.get_attr("N"))
+    _execute.record_gradient(
+      "PaddedBatchDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "PaddedBatchDataset", name,
+        _ctx._post_execution_callbacks, input_dataset, batch_size,
+        padded_shapes, padding_values, "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return padded_batch_dataset_eager_fallback(
+          input_dataset, batch_size, padded_shapes, padding_values,
+          output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def padded_batch_dataset_eager_fallback(input_dataset, batch_size, padded_shapes, padding_values, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function padded_batch_dataset
+  """
+  _ctx = _context.context()
   if not isinstance(padded_shapes, (list, tuple)):
     raise TypeError(
         "Expected list for 'padded_shapes' argument to "
@@ -1224,33 +2240,21 @@ def padded_batch_dataset(input_dataset, batch_size, padded_shapes, padding_value
         "Expected list for 'output_shapes' argument to "
         "'padded_batch_dataset' Op, not %r." % output_shapes)
   output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "PaddedBatchDataset", input_dataset=input_dataset,
-        batch_size=batch_size, padded_shapes=padded_shapes,
-        padding_values=padding_values, output_shapes=output_shapes, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("Toutput_types", _op.get_attr("Toutput_types"), "output_shapes",
-              _op.get_attr("output_shapes"), "N", _op.get_attr("N"))
-  else:
-    _attr_Toutput_types, padding_values = _execute.convert_to_mixed_eager_tensors(padding_values, _ctx)
-    input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
-    batch_size = _ops.convert_to_tensor(batch_size, _dtypes.int64)
-    padded_shapes = _ops.convert_n_to_tensor(padded_shapes, _dtypes.int64)
-    _inputs_flat = [input_dataset, batch_size] + list(padded_shapes) + list(padding_values)
-    _attrs = ("Toutput_types", _attr_Toutput_types, "output_shapes",
-              output_shapes, "N", _attr_N)
-    _result = _execute.execute(b"PaddedBatchDataset", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  _attr_Toutput_types, padding_values = _execute.convert_to_mixed_eager_tensors(padding_values, _ctx)
+  input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
+  batch_size = _ops.convert_to_tensor(batch_size, _dtypes.int64)
+  padded_shapes = _ops.convert_n_to_tensor(padded_shapes, _dtypes.int64)
+  _inputs_flat = [input_dataset, batch_size] + list(padded_shapes) + list(padding_values)
+  _attrs = ("Toutput_types", _attr_Toutput_types, "output_shapes",
+  output_shapes, "N", _attr_N)
+  _result = _execute.execute(b"PaddedBatchDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "PaddedBatchDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('ParallelInterleaveDataset')
 def parallel_interleave_dataset(input_dataset, other_arguments, cycle_length, block_length, sloppy, buffer_output_elements, prefetch_input_elements, f, output_types, output_shapes, name=None):
   r"""Creates a dataset that applies `f` to the outputs of `input_dataset`.
 
@@ -1281,18 +2285,18 @@ def parallel_interleave_dataset(input_dataset, other_arguments, cycle_length, bl
   Returns:
     A `Tensor` of type `variant`.
   """
-  if not isinstance(output_types, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'output_types' argument to "
-        "'parallel_interleave_dataset' Op, not %r." % output_types)
-  output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
-  if not isinstance(output_shapes, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'output_shapes' argument to "
-        "'parallel_interleave_dataset' Op, not %r." % output_shapes)
-  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'parallel_interleave_dataset' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'parallel_interleave_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
     _, _, _op = _op_def_lib._apply_op_helper(
         "ParallelInterleaveDataset", input_dataset=input_dataset,
         other_arguments=other_arguments, cycle_length=cycle_length,
@@ -1306,27 +2310,67 @@ def parallel_interleave_dataset(input_dataset, other_arguments, cycle_length, bl
               _op.get_attr("Targuments"), "output_types",
               _op.get_attr("output_types"), "output_shapes",
               _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "ParallelInterleaveDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_Targuments, other_arguments = _execute.convert_to_mixed_eager_tensors(other_arguments, _ctx)
-    input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
-    cycle_length = _ops.convert_to_tensor(cycle_length, _dtypes.int64)
-    block_length = _ops.convert_to_tensor(block_length, _dtypes.int64)
-    sloppy = _ops.convert_to_tensor(sloppy, _dtypes.bool)
-    buffer_output_elements = _ops.convert_to_tensor(buffer_output_elements, _dtypes.int64)
-    prefetch_input_elements = _ops.convert_to_tensor(prefetch_input_elements, _dtypes.int64)
-    _inputs_flat = [input_dataset] + list(other_arguments) + [cycle_length, block_length, sloppy, buffer_output_elements, prefetch_input_elements]
-    _attrs = ("f", f, "Targuments", _attr_Targuments, "output_types",
-              output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"ParallelInterleaveDataset", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "ParallelInterleaveDataset", name,
+        _ctx._post_execution_callbacks, input_dataset, other_arguments,
+        cycle_length, block_length, sloppy, buffer_output_elements,
+        prefetch_input_elements, "f", f, "output_types", output_types,
+        "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return parallel_interleave_dataset_eager_fallback(
+          input_dataset, other_arguments, cycle_length, block_length, sloppy,
+          buffer_output_elements, prefetch_input_elements, f=f,
+          output_types=output_types, output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def parallel_interleave_dataset_eager_fallback(input_dataset, other_arguments, cycle_length, block_length, sloppy, buffer_output_elements, prefetch_input_elements, f, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function parallel_interleave_dataset
+  """
+  _ctx = _context.context()
+  if not isinstance(output_types, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_types' argument to "
+        "'parallel_interleave_dataset' Op, not %r." % output_types)
+  output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+  if not isinstance(output_shapes, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_shapes' argument to "
+        "'parallel_interleave_dataset' Op, not %r." % output_shapes)
+  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+  _attr_Targuments, other_arguments = _execute.convert_to_mixed_eager_tensors(other_arguments, _ctx)
+  input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
+  cycle_length = _ops.convert_to_tensor(cycle_length, _dtypes.int64)
+  block_length = _ops.convert_to_tensor(block_length, _dtypes.int64)
+  sloppy = _ops.convert_to_tensor(sloppy, _dtypes.bool)
+  buffer_output_elements = _ops.convert_to_tensor(buffer_output_elements, _dtypes.int64)
+  prefetch_input_elements = _ops.convert_to_tensor(prefetch_input_elements, _dtypes.int64)
+  _inputs_flat = [input_dataset] + list(other_arguments) + [cycle_length, block_length, sloppy, buffer_output_elements, prefetch_input_elements]
+  _attrs = ("f", f, "Targuments", _attr_Targuments, "output_types",
+  output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"ParallelInterleaveDataset", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "ParallelInterleaveDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('ParallelMapDataset')
 def parallel_map_dataset(input_dataset, other_arguments, num_parallel_calls, f, output_types, output_shapes, name=None):
   r"""Creates a dataset that applies `f` to the outputs of `input_dataset`.
 
@@ -1347,18 +2391,18 @@ def parallel_map_dataset(input_dataset, other_arguments, num_parallel_calls, f, 
   Returns:
     A `Tensor` of type `variant`.
   """
-  if not isinstance(output_types, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'output_types' argument to "
-        "'parallel_map_dataset' Op, not %r." % output_types)
-  output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
-  if not isinstance(output_shapes, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'output_shapes' argument to "
-        "'parallel_map_dataset' Op, not %r." % output_shapes)
-  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'parallel_map_dataset' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'parallel_map_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
     _, _, _op = _op_def_lib._apply_op_helper(
         "ParallelMapDataset", input_dataset=input_dataset,
         other_arguments=other_arguments,
@@ -1370,22 +2414,60 @@ def parallel_map_dataset(input_dataset, other_arguments, num_parallel_calls, f, 
               _op.get_attr("Targuments"), "output_types",
               _op.get_attr("output_types"), "output_shapes",
               _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "ParallelMapDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_Targuments, other_arguments = _execute.convert_to_mixed_eager_tensors(other_arguments, _ctx)
-    input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
-    num_parallel_calls = _ops.convert_to_tensor(num_parallel_calls, _dtypes.int32)
-    _inputs_flat = [input_dataset] + list(other_arguments) + [num_parallel_calls]
-    _attrs = ("f", f, "Targuments", _attr_Targuments, "output_types",
-              output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"ParallelMapDataset", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "ParallelMapDataset", name,
+        _ctx._post_execution_callbacks, input_dataset, other_arguments,
+        num_parallel_calls, "f", f, "output_types", output_types,
+        "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return parallel_map_dataset_eager_fallback(
+          input_dataset, other_arguments, num_parallel_calls, f=f,
+          output_types=output_types, output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def parallel_map_dataset_eager_fallback(input_dataset, other_arguments, num_parallel_calls, f, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function parallel_map_dataset
+  """
+  _ctx = _context.context()
+  if not isinstance(output_types, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_types' argument to "
+        "'parallel_map_dataset' Op, not %r." % output_types)
+  output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+  if not isinstance(output_shapes, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_shapes' argument to "
+        "'parallel_map_dataset' Op, not %r." % output_shapes)
+  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+  _attr_Targuments, other_arguments = _execute.convert_to_mixed_eager_tensors(other_arguments, _ctx)
+  input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
+  num_parallel_calls = _ops.convert_to_tensor(num_parallel_calls, _dtypes.int32)
+  _inputs_flat = [input_dataset] + list(other_arguments) + [num_parallel_calls]
+  _attrs = ("f", f, "Targuments", _attr_Targuments, "output_types",
+  output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"ParallelMapDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "ParallelMapDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('PrefetchDataset')
 def prefetch_dataset(input_dataset, buffer_size, output_types, output_shapes, name=None):
   r"""Creates a dataset that asynchronously prefetches elements from `input_dataset`.
 
@@ -1401,6 +2483,55 @@ def prefetch_dataset(input_dataset, buffer_size, output_types, output_shapes, na
   Returns:
     A `Tensor` of type `variant`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'prefetch_dataset' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'prefetch_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "PrefetchDataset", input_dataset=input_dataset,
+        buffer_size=buffer_size, output_types=output_types,
+        output_shapes=output_shapes, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
+              _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "PrefetchDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "PrefetchDataset", name,
+        _ctx._post_execution_callbacks, input_dataset, buffer_size,
+        "output_types", output_types, "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return prefetch_dataset_eager_fallback(
+          input_dataset, buffer_size, output_types=output_types,
+          output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def prefetch_dataset_eager_fallback(input_dataset, buffer_size, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function prefetch_dataset
+  """
+  _ctx = _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -1411,30 +2542,108 @@ def prefetch_dataset(input_dataset, buffer_size, output_types, output_shapes, na
         "Expected list for 'output_shapes' argument to "
         "'prefetch_dataset' Op, not %r." % output_shapes)
   output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "PrefetchDataset", input_dataset=input_dataset,
-        buffer_size=buffer_size, output_types=output_types,
-        output_shapes=output_shapes, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
-              _op.get_attr("output_shapes"))
-  else:
-    input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
-    buffer_size = _ops.convert_to_tensor(buffer_size, _dtypes.int64)
-    _inputs_flat = [input_dataset, buffer_size]
-    _attrs = ("output_types", output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"PrefetchDataset", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
+  buffer_size = _ops.convert_to_tensor(buffer_size, _dtypes.int64)
+  _inputs_flat = [input_dataset, buffer_size]
+  _attrs = ("output_types", output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"PrefetchDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "PrefetchDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('RandomDataset')
+def prepend_from_queue_and_padded_batch_dataset(input_dataset, batch_size, padded_shapes, padding_values, output_shapes, name=None):
+  r"""TODO: add doc.
+
+  Args:
+    input_dataset: A `Tensor` of type `variant`.
+    batch_size: A `Tensor` of type `int64`.
+    padded_shapes: A list of at least 1 `Tensor` objects with type `int64`.
+    padding_values: A list of `Tensor` objects.
+    output_shapes: A list of shapes (each a `tf.TensorShape` or list of `ints`) that has length `>= 1`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `variant`.
+  """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(padded_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'padded_shapes' argument to "
+          "'prepend_from_queue_and_padded_batch_dataset' Op, not %r." % padded_shapes)
+    _attr_N = len(padded_shapes)
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'prepend_from_queue_and_padded_batch_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "PrependFromQueueAndPaddedBatchDataset", input_dataset=input_dataset,
+        batch_size=batch_size, padded_shapes=padded_shapes,
+        padding_values=padding_values, output_shapes=output_shapes, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("Toutput_types", _op.get_attr("Toutput_types"), "output_shapes",
+              _op.get_attr("output_shapes"), "N", _op.get_attr("N"))
+    _execute.record_gradient(
+      "PrependFromQueueAndPaddedBatchDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name,
+        "PrependFromQueueAndPaddedBatchDataset", name,
+        _ctx._post_execution_callbacks, input_dataset, batch_size,
+        padded_shapes, padding_values, "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return prepend_from_queue_and_padded_batch_dataset_eager_fallback(
+          input_dataset, batch_size, padded_shapes, padding_values,
+          output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def prepend_from_queue_and_padded_batch_dataset_eager_fallback(input_dataset, batch_size, padded_shapes, padding_values, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function prepend_from_queue_and_padded_batch_dataset
+  """
+  _ctx = _context.context()
+  if not isinstance(padded_shapes, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'padded_shapes' argument to "
+        "'prepend_from_queue_and_padded_batch_dataset' Op, not %r." % padded_shapes)
+  _attr_N = len(padded_shapes)
+  if not isinstance(output_shapes, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_shapes' argument to "
+        "'prepend_from_queue_and_padded_batch_dataset' Op, not %r." % output_shapes)
+  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+  _attr_Toutput_types, padding_values = _execute.convert_to_mixed_eager_tensors(padding_values, _ctx)
+  input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
+  batch_size = _ops.convert_to_tensor(batch_size, _dtypes.int64)
+  padded_shapes = _ops.convert_n_to_tensor(padded_shapes, _dtypes.int64)
+  _inputs_flat = [input_dataset, batch_size] + list(padded_shapes) + list(padding_values)
+  _attrs = ("Toutput_types", _attr_Toutput_types, "output_shapes",
+  output_shapes, "N", _attr_N)
+  _result = _execute.execute(b"PrependFromQueueAndPaddedBatchDataset", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
+  _execute.record_gradient(
+      "PrependFromQueueAndPaddedBatchDataset", _inputs_flat, _attrs, _result, name)
+  _result, = _result
+  return _result
+
+
 def random_dataset(seed, seed2, output_types, output_shapes, name=None):
   r"""Creates a Dataset that returns pseudorandom numbers.
 
@@ -1452,6 +2661,54 @@ def random_dataset(seed, seed2, output_types, output_shapes, name=None):
   Returns:
     A `Tensor` of type `variant`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'random_dataset' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'random_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "RandomDataset", seed=seed, seed2=seed2, output_types=output_types,
+        output_shapes=output_shapes, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
+              _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "RandomDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "RandomDataset", name,
+        _ctx._post_execution_callbacks, seed, seed2, "output_types",
+        output_types, "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return random_dataset_eager_fallback(
+          seed, seed2, output_types=output_types, output_shapes=output_shapes,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def random_dataset_eager_fallback(seed, seed2, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function random_dataset
+  """
+  _ctx = _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -1462,29 +2719,18 @@ def random_dataset(seed, seed2, output_types, output_shapes, name=None):
         "Expected list for 'output_shapes' argument to "
         "'random_dataset' Op, not %r." % output_shapes)
   output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "RandomDataset", seed=seed, seed2=seed2, output_types=output_types,
-        output_shapes=output_shapes, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
-              _op.get_attr("output_shapes"))
-  else:
-    seed = _ops.convert_to_tensor(seed, _dtypes.int64)
-    seed2 = _ops.convert_to_tensor(seed2, _dtypes.int64)
-    _inputs_flat = [seed, seed2]
-    _attrs = ("output_types", output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"RandomDataset", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  seed = _ops.convert_to_tensor(seed, _dtypes.int64)
+  seed2 = _ops.convert_to_tensor(seed2, _dtypes.int64)
+  _inputs_flat = [seed, seed2]
+  _attrs = ("output_types", output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"RandomDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "RandomDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('RangeDataset')
 def range_dataset(start, stop, step, output_types, output_shapes, name=None):
   r"""Creates a dataset with a range of values. Corresponds to python's xrange.
 
@@ -1502,6 +2748,54 @@ def range_dataset(start, stop, step, output_types, output_shapes, name=None):
   Returns:
     A `Tensor` of type `variant`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'range_dataset' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'range_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "RangeDataset", start=start, stop=stop, step=step,
+        output_types=output_types, output_shapes=output_shapes, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
+              _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "RangeDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "RangeDataset", name,
+        _ctx._post_execution_callbacks, start, stop, step, "output_types",
+        output_types, "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return range_dataset_eager_fallback(
+          start, stop, step, output_types=output_types,
+          output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def range_dataset_eager_fallback(start, stop, step, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function range_dataset
+  """
+  _ctx = _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -1512,30 +2806,19 @@ def range_dataset(start, stop, step, output_types, output_shapes, name=None):
         "Expected list for 'output_shapes' argument to "
         "'range_dataset' Op, not %r." % output_shapes)
   output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "RangeDataset", start=start, stop=stop, step=step,
-        output_types=output_types, output_shapes=output_shapes, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
-              _op.get_attr("output_shapes"))
-  else:
-    start = _ops.convert_to_tensor(start, _dtypes.int64)
-    stop = _ops.convert_to_tensor(stop, _dtypes.int64)
-    step = _ops.convert_to_tensor(step, _dtypes.int64)
-    _inputs_flat = [start, stop, step]
-    _attrs = ("output_types", output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"RangeDataset", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  start = _ops.convert_to_tensor(start, _dtypes.int64)
+  stop = _ops.convert_to_tensor(stop, _dtypes.int64)
+  step = _ops.convert_to_tensor(step, _dtypes.int64)
+  _inputs_flat = [start, stop, step]
+  _attrs = ("output_types", output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"RangeDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "RangeDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('RepeatDataset')
 def repeat_dataset(input_dataset, count, output_types, output_shapes, name=None):
   r"""Creates a dataset that emits the outputs of `input_dataset` `count` times.
 
@@ -1551,6 +2834,54 @@ def repeat_dataset(input_dataset, count, output_types, output_shapes, name=None)
   Returns:
     A `Tensor` of type `variant`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'repeat_dataset' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'repeat_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "RepeatDataset", input_dataset=input_dataset, count=count,
+        output_types=output_types, output_shapes=output_shapes, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
+              _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "RepeatDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "RepeatDataset", name,
+        _ctx._post_execution_callbacks, input_dataset, count, "output_types",
+        output_types, "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return repeat_dataset_eager_fallback(
+          input_dataset, count, output_types=output_types,
+          output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def repeat_dataset_eager_fallback(input_dataset, count, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function repeat_dataset
+  """
+  _ctx = _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -1561,29 +2892,18 @@ def repeat_dataset(input_dataset, count, output_types, output_shapes, name=None)
         "Expected list for 'output_shapes' argument to "
         "'repeat_dataset' Op, not %r." % output_shapes)
   output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "RepeatDataset", input_dataset=input_dataset, count=count,
-        output_types=output_types, output_shapes=output_shapes, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
-              _op.get_attr("output_shapes"))
-  else:
-    input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
-    count = _ops.convert_to_tensor(count, _dtypes.int64)
-    _inputs_flat = [input_dataset, count]
-    _attrs = ("output_types", output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"RepeatDataset", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
+  count = _ops.convert_to_tensor(count, _dtypes.int64)
+  _inputs_flat = [input_dataset, count]
+  _attrs = ("output_types", output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"RepeatDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "RepeatDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('ScanDataset')
 def scan_dataset(input_dataset, initial_state, other_arguments, f, output_types, output_shapes, name=None):
   r"""Creates a dataset successively reduces `f` over the elements of `input_dataset`.
 
@@ -1599,18 +2919,18 @@ def scan_dataset(input_dataset, initial_state, other_arguments, f, output_types,
   Returns:
     A `Tensor` of type `variant`.
   """
-  if not isinstance(output_types, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'output_types' argument to "
-        "'scan_dataset' Op, not %r." % output_types)
-  output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
-  if not isinstance(output_shapes, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'output_shapes' argument to "
-        "'scan_dataset' Op, not %r." % output_shapes)
-  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'scan_dataset' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'scan_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
     _, _, _op = _op_def_lib._apply_op_helper(
         "ScanDataset", input_dataset=input_dataset,
         initial_state=initial_state, other_arguments=other_arguments, f=f,
@@ -1621,22 +2941,60 @@ def scan_dataset(input_dataset, initial_state, other_arguments, f, output_types,
               "Targuments", _op.get_attr("Targuments"), "output_types",
               _op.get_attr("output_types"), "output_shapes",
               _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "ScanDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_Tstate, initial_state = _execute.convert_to_mixed_eager_tensors(initial_state, _ctx)
-    _attr_Targuments, other_arguments = _execute.convert_to_mixed_eager_tensors(other_arguments, _ctx)
-    input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
-    _inputs_flat = [input_dataset] + list(initial_state) + list(other_arguments)
-    _attrs = ("f", f, "Tstate", _attr_Tstate, "Targuments", _attr_Targuments,
-              "output_types", output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"ScanDataset", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "ScanDataset", name,
+        _ctx._post_execution_callbacks, input_dataset, initial_state,
+        other_arguments, "f", f, "output_types", output_types,
+        "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return scan_dataset_eager_fallback(
+          input_dataset, initial_state, other_arguments, f=f,
+          output_types=output_types, output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def scan_dataset_eager_fallback(input_dataset, initial_state, other_arguments, f, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function scan_dataset
+  """
+  _ctx = _context.context()
+  if not isinstance(output_types, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_types' argument to "
+        "'scan_dataset' Op, not %r." % output_types)
+  output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+  if not isinstance(output_shapes, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_shapes' argument to "
+        "'scan_dataset' Op, not %r." % output_shapes)
+  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+  _attr_Tstate, initial_state = _execute.convert_to_mixed_eager_tensors(initial_state, _ctx)
+  _attr_Targuments, other_arguments = _execute.convert_to_mixed_eager_tensors(other_arguments, _ctx)
+  input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
+  _inputs_flat = [input_dataset] + list(initial_state) + list(other_arguments)
+  _attrs = ("f", f, "Tstate", _attr_Tstate, "Targuments", _attr_Targuments,
+  "output_types", output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"ScanDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "ScanDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('SerializeIterator')
 def serialize_iterator(resource_handle, name=None):
   r"""Converts the given `resource_handle` representing an iterator to a variant tensor.
 
@@ -1647,29 +3005,155 @@ def serialize_iterator(resource_handle, name=None):
 
   Returns:
     A `Tensor` of type `variant`.
-    A variant tensor storing the state of the iterator contained in the
-    resource.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "SerializeIterator", resource_handle=resource_handle, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "SerializeIterator", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    resource_handle = _ops.convert_to_tensor(resource_handle, _dtypes.resource)
-    _inputs_flat = [resource_handle]
-    _attrs = None
-    _result = _execute.execute(b"SerializeIterator", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "SerializeIterator", name,
+        _ctx._post_execution_callbacks, resource_handle)
+      return _result
+    except _core._FallbackException:
+      return serialize_iterator_eager_fallback(
+          resource_handle, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def serialize_iterator_eager_fallback(resource_handle, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function serialize_iterator
+  """
+  _ctx = _context.context()
+  resource_handle = _ops.convert_to_tensor(resource_handle, _dtypes.resource)
+  _inputs_flat = [resource_handle]
+  _attrs = None
+  _result = _execute.execute(b"SerializeIterator", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "SerializeIterator", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('ShuffleDataset')
+def shuffle_and_repeat_dataset(input_dataset, buffer_size, seed, seed2, count, output_types, output_shapes, name=None):
+  r"""Creates a dataset that shuffles and repeats elements from `input_dataset`
+
+  pseudorandomly.
+
+  Args:
+    input_dataset: A `Tensor` of type `variant`.
+    buffer_size: A `Tensor` of type `int64`.
+      The number of output elements to buffer in an iterator over
+      this dataset. Compare with the `min_after_dequeue` attr when creating a
+      `RandomShuffleQueue`.
+    seed: A `Tensor` of type `int64`.
+      A scalar seed for the random number generator. If either `seed` or
+      `seed2` is set to be non-zero, the random number generator is seeded
+      by the given seed.  Otherwise, a random seed is used.
+    seed2: A `Tensor` of type `int64`.
+      A second scalar seed to avoid seed collision.
+    count: A `Tensor` of type `int64`.
+      A scalar representing the number of times the underlying dataset
+      should be repeated. The default is `-1`, which results in infinite repetition.
+    output_types: A list of `tf.DTypes` that has length `>= 1`.
+    output_shapes: A list of shapes (each a `tf.TensorShape` or list of `ints`) that has length `>= 1`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `variant`.
+  """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'shuffle_and_repeat_dataset' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'shuffle_and_repeat_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "ShuffleAndRepeatDataset", input_dataset=input_dataset,
+        buffer_size=buffer_size, seed=seed, seed2=seed2, count=count,
+        output_types=output_types, output_shapes=output_shapes, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
+              _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "ShuffleAndRepeatDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "ShuffleAndRepeatDataset", name,
+        _ctx._post_execution_callbacks, input_dataset, buffer_size, seed,
+        seed2, count, "output_types", output_types, "output_shapes",
+        output_shapes)
+      return _result
+    except _core._FallbackException:
+      return shuffle_and_repeat_dataset_eager_fallback(
+          input_dataset, buffer_size, seed, seed2, count,
+          output_types=output_types, output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def shuffle_and_repeat_dataset_eager_fallback(input_dataset, buffer_size, seed, seed2, count, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function shuffle_and_repeat_dataset
+  """
+  _ctx = _context.context()
+  if not isinstance(output_types, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_types' argument to "
+        "'shuffle_and_repeat_dataset' Op, not %r." % output_types)
+  output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+  if not isinstance(output_shapes, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_shapes' argument to "
+        "'shuffle_and_repeat_dataset' Op, not %r." % output_shapes)
+  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+  input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
+  buffer_size = _ops.convert_to_tensor(buffer_size, _dtypes.int64)
+  seed = _ops.convert_to_tensor(seed, _dtypes.int64)
+  seed2 = _ops.convert_to_tensor(seed2, _dtypes.int64)
+  count = _ops.convert_to_tensor(count, _dtypes.int64)
+  _inputs_flat = [input_dataset, buffer_size, seed, seed2, count]
+  _attrs = ("output_types", output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"ShuffleAndRepeatDataset", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
+  _execute.record_gradient(
+      "ShuffleAndRepeatDataset", _inputs_flat, _attrs, _result, name)
+  _result, = _result
+  return _result
+
+
 def shuffle_dataset(input_dataset, buffer_size, seed, seed2, output_types, output_shapes, reshuffle_each_iteration=True, name=None):
   r"""Creates a dataset that shuffles elements from `input_dataset` pseudorandomly.
 
@@ -1680,8 +3164,8 @@ def shuffle_dataset(input_dataset, buffer_size, seed, seed2, output_types, outpu
       this dataset. Compare with the `min_after_dequeue` attr when creating a
       `RandomShuffleQueue`.
     seed: A `Tensor` of type `int64`.
-      A scalar seed for the random number generator. If either seed or
-      seed2 is set to be non-zero, the random number generator is seeded
+      A scalar seed for the random number generator. If either `seed` or
+      `seed2` is set to be non-zero, the random number generator is seeded
       by the given seed.  Otherwise, a random seed is used.
     seed2: A `Tensor` of type `int64`.
       A second scalar seed to avoid seed collision.
@@ -1698,6 +3182,63 @@ def shuffle_dataset(input_dataset, buffer_size, seed, seed2, output_types, outpu
   Returns:
     A `Tensor` of type `variant`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'shuffle_dataset' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'shuffle_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+    if reshuffle_each_iteration is None:
+      reshuffle_each_iteration = True
+    reshuffle_each_iteration = _execute.make_bool(reshuffle_each_iteration, "reshuffle_each_iteration")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "ShuffleDataset", input_dataset=input_dataset,
+        buffer_size=buffer_size, seed=seed, seed2=seed2,
+        output_types=output_types, output_shapes=output_shapes,
+        reshuffle_each_iteration=reshuffle_each_iteration, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("reshuffle_each_iteration",
+              _op.get_attr("reshuffle_each_iteration"), "output_types",
+              _op.get_attr("output_types"), "output_shapes",
+              _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "ShuffleDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "ShuffleDataset", name,
+        _ctx._post_execution_callbacks, input_dataset, buffer_size, seed,
+        seed2, "reshuffle_each_iteration", reshuffle_each_iteration,
+        "output_types", output_types, "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return shuffle_dataset_eager_fallback(
+          input_dataset, buffer_size, seed, seed2,
+          reshuffle_each_iteration=reshuffle_each_iteration,
+          output_types=output_types, output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def shuffle_dataset_eager_fallback(input_dataset, buffer_size, seed, seed2, output_types, output_shapes, reshuffle_each_iteration=True, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function shuffle_dataset
+  """
+  _ctx = _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -1711,36 +3252,21 @@ def shuffle_dataset(input_dataset, buffer_size, seed, seed2, output_types, outpu
   if reshuffle_each_iteration is None:
     reshuffle_each_iteration = True
   reshuffle_each_iteration = _execute.make_bool(reshuffle_each_iteration, "reshuffle_each_iteration")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "ShuffleDataset", input_dataset=input_dataset,
-        buffer_size=buffer_size, seed=seed, seed2=seed2,
-        output_types=output_types, output_shapes=output_shapes,
-        reshuffle_each_iteration=reshuffle_each_iteration, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("reshuffle_each_iteration",
-              _op.get_attr("reshuffle_each_iteration"), "output_types",
-              _op.get_attr("output_types"), "output_shapes",
-              _op.get_attr("output_shapes"))
-  else:
-    input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
-    buffer_size = _ops.convert_to_tensor(buffer_size, _dtypes.int64)
-    seed = _ops.convert_to_tensor(seed, _dtypes.int64)
-    seed2 = _ops.convert_to_tensor(seed2, _dtypes.int64)
-    _inputs_flat = [input_dataset, buffer_size, seed, seed2]
-    _attrs = ("reshuffle_each_iteration", reshuffle_each_iteration,
-              "output_types", output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"ShuffleDataset", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
+  buffer_size = _ops.convert_to_tensor(buffer_size, _dtypes.int64)
+  seed = _ops.convert_to_tensor(seed, _dtypes.int64)
+  seed2 = _ops.convert_to_tensor(seed2, _dtypes.int64)
+  _inputs_flat = [input_dataset, buffer_size, seed, seed2]
+  _attrs = ("reshuffle_each_iteration", reshuffle_each_iteration,
+  "output_types", output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"ShuffleDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "ShuffleDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('SkipDataset')
 def skip_dataset(input_dataset, count, output_types, output_shapes, name=None):
   r"""Creates a dataset that skips `count` elements from the `input_dataset`.
 
@@ -1756,6 +3282,54 @@ def skip_dataset(input_dataset, count, output_types, output_shapes, name=None):
   Returns:
     A `Tensor` of type `variant`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'skip_dataset' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'skip_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "SkipDataset", input_dataset=input_dataset, count=count,
+        output_types=output_types, output_shapes=output_shapes, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
+              _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "SkipDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "SkipDataset", name,
+        _ctx._post_execution_callbacks, input_dataset, count, "output_types",
+        output_types, "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return skip_dataset_eager_fallback(
+          input_dataset, count, output_types=output_types,
+          output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def skip_dataset_eager_fallback(input_dataset, count, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function skip_dataset
+  """
+  _ctx = _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -1766,29 +3340,109 @@ def skip_dataset(input_dataset, count, output_types, output_shapes, name=None):
         "Expected list for 'output_shapes' argument to "
         "'skip_dataset' Op, not %r." % output_shapes)
   output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "SkipDataset", input_dataset=input_dataset, count=count,
-        output_types=output_types, output_shapes=output_shapes, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
-              _op.get_attr("output_shapes"))
-  else:
-    input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
-    count = _ops.convert_to_tensor(count, _dtypes.int64)
-    _inputs_flat = [input_dataset, count]
-    _attrs = ("output_types", output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"SkipDataset", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
+  count = _ops.convert_to_tensor(count, _dtypes.int64)
+  _inputs_flat = [input_dataset, count]
+  _attrs = ("output_types", output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"SkipDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "SkipDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('SparseTensorSliceDataset')
+@tf_export('slide_dataset')
+def slide_dataset(input_dataset, window_size, stride, output_types, output_shapes, name=None):
+  r"""Creates a dataset that passes a sliding window over `input_dataset`.
+
+  Args:
+    input_dataset: A `Tensor` of type `variant`.
+    window_size: A `Tensor` of type `int64`.
+      A scalar representing the number of elements in the
+      sliding window.
+    stride: A `Tensor` of type `int64`.
+      A scalar representing the steps moving the sliding window
+      forward in one iteration. It must be in `[1, window_size)`.
+    output_types: A list of `tf.DTypes` that has length `>= 1`.
+    output_shapes: A list of shapes (each a `tf.TensorShape` or list of `ints`) that has length `>= 1`.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `variant`.
+  """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'slide_dataset' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'slide_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "SlideDataset", input_dataset=input_dataset, window_size=window_size,
+        stride=stride, output_types=output_types, output_shapes=output_shapes,
+        name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
+              _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "SlideDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "SlideDataset", name,
+        _ctx._post_execution_callbacks, input_dataset, window_size, stride,
+        "output_types", output_types, "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return slide_dataset_eager_fallback(
+          input_dataset, window_size, stride, output_types=output_types,
+          output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def slide_dataset_eager_fallback(input_dataset, window_size, stride, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function slide_dataset
+  """
+  _ctx = _context.context()
+  if not isinstance(output_types, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_types' argument to "
+        "'slide_dataset' Op, not %r." % output_types)
+  output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+  if not isinstance(output_shapes, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_shapes' argument to "
+        "'slide_dataset' Op, not %r." % output_shapes)
+  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+  input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
+  window_size = _ops.convert_to_tensor(window_size, _dtypes.int64)
+  stride = _ops.convert_to_tensor(stride, _dtypes.int64)
+  _inputs_flat = [input_dataset, window_size, stride]
+  _attrs = ("output_types", output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"SlideDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _execute.record_gradient(
+      "SlideDataset", _inputs_flat, _attrs, _result, name)
+  _result, = _result
+  return _result
+
+
 def sparse_tensor_slice_dataset(indices, values, dense_shape, name=None):
   r"""Creates a dataset that splits a SparseTensor into elements row-wise.
 
@@ -1802,29 +3456,54 @@ def sparse_tensor_slice_dataset(indices, values, dense_shape, name=None):
     A `Tensor` of type `variant`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "SparseTensorSliceDataset", indices=indices, values=values,
         dense_shape=dense_shape, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("Tvalues", _op.get_attr("Tvalues"))
+    _execute.record_gradient(
+      "SparseTensorSliceDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_Tvalues, (values,) = _execute.args_to_matching_eager([values], _ctx)
-    indices = _ops.convert_to_tensor(indices, _dtypes.int64)
-    dense_shape = _ops.convert_to_tensor(dense_shape, _dtypes.int64)
-    _inputs_flat = [indices, values, dense_shape]
-    _attrs = ("Tvalues", _attr_Tvalues)
-    _result = _execute.execute(b"SparseTensorSliceDataset", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "SparseTensorSliceDataset", name,
+        _ctx._post_execution_callbacks, indices, values, dense_shape)
+      return _result
+    except _core._FallbackException:
+      return sparse_tensor_slice_dataset_eager_fallback(
+          indices, values, dense_shape, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def sparse_tensor_slice_dataset_eager_fallback(indices, values, dense_shape, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function sparse_tensor_slice_dataset
+  """
+  _ctx = _context.context()
+  _attr_Tvalues, (values,) = _execute.args_to_matching_eager([values], _ctx)
+  indices = _ops.convert_to_tensor(indices, _dtypes.int64)
+  dense_shape = _ops.convert_to_tensor(dense_shape, _dtypes.int64)
+  _inputs_flat = [indices, values, dense_shape]
+  _attrs = ("Tvalues", _attr_Tvalues)
+  _result = _execute.execute(b"SparseTensorSliceDataset", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "SparseTensorSliceDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('SqlDataset')
 def sql_dataset(driver_name, data_source_name, query, output_types, output_shapes, name=None):
   r"""Creates a dataset that executes a SQL query and emits rows of the result set.
 
@@ -1841,6 +3520,55 @@ def sql_dataset(driver_name, data_source_name, query, output_types, output_shape
   Returns:
     A `Tensor` of type `variant`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'sql_dataset' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'sql_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "SqlDataset", driver_name=driver_name,
+        data_source_name=data_source_name, query=query,
+        output_types=output_types, output_shapes=output_shapes, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
+              _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "SqlDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "SqlDataset", name,
+        _ctx._post_execution_callbacks, driver_name, data_source_name, query,
+        "output_types", output_types, "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return sql_dataset_eager_fallback(
+          driver_name, data_source_name, query, output_types=output_types,
+          output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def sql_dataset_eager_fallback(driver_name, data_source_name, query, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function sql_dataset
+  """
+  _ctx = _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -1851,31 +3579,19 @@ def sql_dataset(driver_name, data_source_name, query, output_types, output_shape
         "Expected list for 'output_shapes' argument to "
         "'sql_dataset' Op, not %r." % output_shapes)
   output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "SqlDataset", driver_name=driver_name,
-        data_source_name=data_source_name, query=query,
-        output_types=output_types, output_shapes=output_shapes, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
-              _op.get_attr("output_shapes"))
-  else:
-    driver_name = _ops.convert_to_tensor(driver_name, _dtypes.string)
-    data_source_name = _ops.convert_to_tensor(data_source_name, _dtypes.string)
-    query = _ops.convert_to_tensor(query, _dtypes.string)
-    _inputs_flat = [driver_name, data_source_name, query]
-    _attrs = ("output_types", output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"SqlDataset", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  driver_name = _ops.convert_to_tensor(driver_name, _dtypes.string)
+  data_source_name = _ops.convert_to_tensor(data_source_name, _dtypes.string)
+  query = _ops.convert_to_tensor(query, _dtypes.string)
+  _inputs_flat = [driver_name, data_source_name, query]
+  _attrs = ("output_types", output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"SqlDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "SqlDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('StatsAggregatorHandle')
 def stats_aggregator_handle(container="", shared_name="", name=None):
   r"""Creates a statistics manager resource.
 
@@ -1887,14 +3603,14 @@ def stats_aggregator_handle(container="", shared_name="", name=None):
   Returns:
     A `Tensor` of type `resource`.
   """
-  if container is None:
-    container = ""
-  container = _execute.make_str(container, "container")
-  if shared_name is None:
-    shared_name = ""
-  shared_name = _execute.make_str(shared_name, "shared_name")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatsAggregatorHandle", container=container, shared_name=shared_name,
         name=name)
@@ -1902,19 +3618,50 @@ def stats_aggregator_handle(container="", shared_name="", name=None):
     _inputs_flat = _op.inputs
     _attrs = ("container", _op.get_attr("container"), "shared_name",
               _op.get_attr("shared_name"))
+    _execute.record_gradient(
+      "StatsAggregatorHandle", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _inputs_flat = []
-    _attrs = ("container", container, "shared_name", shared_name)
-    _result = _execute.execute(b"StatsAggregatorHandle", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "StatsAggregatorHandle", name,
+        _ctx._post_execution_callbacks, "container", container, "shared_name",
+        shared_name)
+      return _result
+    except _core._FallbackException:
+      return stats_aggregator_handle_eager_fallback(
+          container=container, shared_name=shared_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def stats_aggregator_handle_eager_fallback(container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function stats_aggregator_handle
+  """
+  _ctx = _context.context()
+  if container is None:
+    container = ""
+  container = _execute.make_str(container, "container")
+  if shared_name is None:
+    shared_name = ""
+  shared_name = _execute.make_str(shared_name, "shared_name")
+  _inputs_flat = []
+  _attrs = ("container", container, "shared_name", shared_name)
+  _result = _execute.execute(b"StatsAggregatorHandle", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "StatsAggregatorHandle", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('StatsAggregatorSummary')
 def stats_aggregator_summary(iterator, name=None):
   r"""Produces a summary of any statistics recorded by the given statistics manager.
 
@@ -1926,26 +3673,51 @@ def stats_aggregator_summary(iterator, name=None):
     A `Tensor` of type `string`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatsAggregatorSummary", iterator=iterator, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "StatsAggregatorSummary", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    iterator = _ops.convert_to_tensor(iterator, _dtypes.resource)
-    _inputs_flat = [iterator]
-    _attrs = None
-    _result = _execute.execute(b"StatsAggregatorSummary", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "StatsAggregatorSummary", name,
+        _ctx._post_execution_callbacks, iterator)
+      return _result
+    except _core._FallbackException:
+      return stats_aggregator_summary_eager_fallback(
+          iterator, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def stats_aggregator_summary_eager_fallback(iterator, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function stats_aggregator_summary
+  """
+  _ctx = _context.context()
+  iterator = _ops.convert_to_tensor(iterator, _dtypes.resource)
+  _inputs_flat = [iterator]
+  _attrs = None
+  _result = _execute.execute(b"StatsAggregatorSummary", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "StatsAggregatorSummary", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('TFRecordDataset')
 def tf_record_dataset(filenames, compression_type, buffer_size, name=None):
   r"""Creates a dataset that emits the records from one or more TFRecord files.
 
@@ -1965,28 +3737,54 @@ def tf_record_dataset(filenames, compression_type, buffer_size, name=None):
     A `Tensor` of type `variant`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "TFRecordDataset", filenames=filenames,
         compression_type=compression_type, buffer_size=buffer_size, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "TFRecordDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    filenames = _ops.convert_to_tensor(filenames, _dtypes.string)
-    compression_type = _ops.convert_to_tensor(compression_type, _dtypes.string)
-    buffer_size = _ops.convert_to_tensor(buffer_size, _dtypes.int64)
-    _inputs_flat = [filenames, compression_type, buffer_size]
-    _attrs = None
-    _result = _execute.execute(b"TFRecordDataset", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TFRecordDataset", name,
+        _ctx._post_execution_callbacks, filenames, compression_type,
+        buffer_size)
+      return _result
+    except _core._FallbackException:
+      return tf_record_dataset_eager_fallback(
+          filenames, compression_type, buffer_size, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tf_record_dataset_eager_fallback(filenames, compression_type, buffer_size, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tf_record_dataset
+  """
+  _ctx = _context.context()
+  filenames = _ops.convert_to_tensor(filenames, _dtypes.string)
+  compression_type = _ops.convert_to_tensor(compression_type, _dtypes.string)
+  buffer_size = _ops.convert_to_tensor(buffer_size, _dtypes.int64)
+  _inputs_flat = [filenames, compression_type, buffer_size]
+  _attrs = None
+  _result = _execute.execute(b"TFRecordDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TFRecordDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('TakeDataset')
 def take_dataset(input_dataset, count, output_types, output_shapes, name=None):
   r"""Creates a dataset that contains `count` elements from the `input_dataset`.
 
@@ -2003,6 +3801,54 @@ def take_dataset(input_dataset, count, output_types, output_shapes, name=None):
   Returns:
     A `Tensor` of type `variant`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'take_dataset' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'take_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "TakeDataset", input_dataset=input_dataset, count=count,
+        output_types=output_types, output_shapes=output_shapes, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
+              _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "TakeDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TakeDataset", name,
+        _ctx._post_execution_callbacks, input_dataset, count, "output_types",
+        output_types, "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return take_dataset_eager_fallback(
+          input_dataset, count, output_types=output_types,
+          output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def take_dataset_eager_fallback(input_dataset, count, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function take_dataset
+  """
+  _ctx = _context.context()
   if not isinstance(output_types, (list, tuple)):
     raise TypeError(
         "Expected list for 'output_types' argument to "
@@ -2013,29 +3859,18 @@ def take_dataset(input_dataset, count, output_types, output_shapes, name=None):
         "Expected list for 'output_shapes' argument to "
         "'take_dataset' Op, not %r." % output_shapes)
   output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "TakeDataset", input_dataset=input_dataset, count=count,
-        output_types=output_types, output_shapes=output_shapes, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
-              _op.get_attr("output_shapes"))
-  else:
-    input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
-    count = _ops.convert_to_tensor(count, _dtypes.int64)
-    _inputs_flat = [input_dataset, count]
-    _attrs = ("output_types", output_types, "output_shapes", output_shapes)
-    _result = _execute.execute(b"TakeDataset", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  input_dataset = _ops.convert_to_tensor(input_dataset, _dtypes.variant)
+  count = _ops.convert_to_tensor(count, _dtypes.int64)
+  _inputs_flat = [input_dataset, count]
+  _attrs = ("output_types", output_types, "output_shapes", output_shapes)
+  _result = _execute.execute(b"TakeDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TakeDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('TensorDataset')
 def tensor_dataset(components, output_shapes, name=None):
   r"""Creates a dataset that emits `components` as a tuple of tensors once.
 
@@ -2047,13 +3882,13 @@ def tensor_dataset(components, output_shapes, name=None):
   Returns:
     A `Tensor` of type `variant`.
   """
-  if not isinstance(output_shapes, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'output_shapes' argument to "
-        "'tensor_dataset' Op, not %r." % output_shapes)
-  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'tensor_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorDataset", components=components, output_shapes=output_shapes,
         name=name)
@@ -2061,20 +3896,51 @@ def tensor_dataset(components, output_shapes, name=None):
     _inputs_flat = _op.inputs
     _attrs = ("Toutput_types", _op.get_attr("Toutput_types"), "output_shapes",
               _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "TensorDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_Toutput_types, components = _execute.convert_to_mixed_eager_tensors(components, _ctx)
-    _inputs_flat = list(components)
-    _attrs = ("Toutput_types", _attr_Toutput_types, "output_shapes",
-              output_shapes)
-    _result = _execute.execute(b"TensorDataset", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TensorDataset", name,
+        _ctx._post_execution_callbacks, components, "output_shapes",
+        output_shapes)
+      return _result
+    except _core._FallbackException:
+      return tensor_dataset_eager_fallback(
+          components, output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tensor_dataset_eager_fallback(components, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tensor_dataset
+  """
+  _ctx = _context.context()
+  if not isinstance(output_shapes, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_shapes' argument to "
+        "'tensor_dataset' Op, not %r." % output_shapes)
+  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+  _attr_Toutput_types, components = _execute.convert_to_mixed_eager_tensors(components, _ctx)
+  _inputs_flat = list(components)
+  _attrs = ("Toutput_types", _attr_Toutput_types, "output_shapes",
+  output_shapes)
+  _result = _execute.execute(b"TensorDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TensorDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('TensorSliceDataset')
 def tensor_slice_dataset(components, output_shapes, name=None):
   r"""Creates a dataset that emits each dim-0 slice of `components` once.
 
@@ -2086,13 +3952,13 @@ def tensor_slice_dataset(components, output_shapes, name=None):
   Returns:
     A `Tensor` of type `variant`.
   """
-  if not isinstance(output_shapes, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'output_shapes' argument to "
-        "'tensor_slice_dataset' Op, not %r." % output_shapes)
-  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'tensor_slice_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorSliceDataset", components=components,
         output_shapes=output_shapes, name=name)
@@ -2100,20 +3966,51 @@ def tensor_slice_dataset(components, output_shapes, name=None):
     _inputs_flat = _op.inputs
     _attrs = ("Toutput_types", _op.get_attr("Toutput_types"), "output_shapes",
               _op.get_attr("output_shapes"))
+    _execute.record_gradient(
+      "TensorSliceDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_Toutput_types, components = _execute.convert_to_mixed_eager_tensors(components, _ctx)
-    _inputs_flat = list(components)
-    _attrs = ("Toutput_types", _attr_Toutput_types, "output_shapes",
-              output_shapes)
-    _result = _execute.execute(b"TensorSliceDataset", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TensorSliceDataset", name,
+        _ctx._post_execution_callbacks, components, "output_shapes",
+        output_shapes)
+      return _result
+    except _core._FallbackException:
+      return tensor_slice_dataset_eager_fallback(
+          components, output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tensor_slice_dataset_eager_fallback(components, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tensor_slice_dataset
+  """
+  _ctx = _context.context()
+  if not isinstance(output_shapes, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'output_shapes' argument to "
+        "'tensor_slice_dataset' Op, not %r." % output_shapes)
+  output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+  _attr_Toutput_types, components = _execute.convert_to_mixed_eager_tensors(components, _ctx)
+  _inputs_flat = list(components)
+  _attrs = ("Toutput_types", _attr_Toutput_types, "output_shapes",
+  output_shapes)
+  _result = _execute.execute(b"TensorSliceDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TensorSliceDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('TextLineDataset')
 def text_line_dataset(filenames, compression_type, buffer_size, name=None):
   r"""Creates a dataset that emits the lines of one or more text files.
 
@@ -2132,28 +4029,54 @@ def text_line_dataset(filenames, compression_type, buffer_size, name=None):
     A `Tensor` of type `variant`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "TextLineDataset", filenames=filenames,
         compression_type=compression_type, buffer_size=buffer_size, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "TextLineDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    filenames = _ops.convert_to_tensor(filenames, _dtypes.string)
-    compression_type = _ops.convert_to_tensor(compression_type, _dtypes.string)
-    buffer_size = _ops.convert_to_tensor(buffer_size, _dtypes.int64)
-    _inputs_flat = [filenames, compression_type, buffer_size]
-    _attrs = None
-    _result = _execute.execute(b"TextLineDataset", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TextLineDataset", name,
+        _ctx._post_execution_callbacks, filenames, compression_type,
+        buffer_size)
+      return _result
+    except _core._FallbackException:
+      return text_line_dataset_eager_fallback(
+          filenames, compression_type, buffer_size, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def text_line_dataset_eager_fallback(filenames, compression_type, buffer_size, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function text_line_dataset
+  """
+  _ctx = _context.context()
+  filenames = _ops.convert_to_tensor(filenames, _dtypes.string)
+  compression_type = _ops.convert_to_tensor(compression_type, _dtypes.string)
+  buffer_size = _ops.convert_to_tensor(buffer_size, _dtypes.int64)
+  _inputs_flat = [filenames, compression_type, buffer_size]
+  _attrs = None
+  _result = _execute.execute(b"TextLineDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TextLineDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('ZipDataset')
 def zip_dataset(input_datasets, output_types, output_shapes, name=None):
   r"""Creates a dataset that zips together `input_datasets`.
 
@@ -2166,6 +4089,59 @@ def zip_dataset(input_datasets, output_types, output_shapes, name=None):
   Returns:
     A `Tensor` of type `variant`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(input_datasets, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'input_datasets' argument to "
+          "'zip_dataset' Op, not %r." % input_datasets)
+    _attr_N = len(input_datasets)
+    if not isinstance(output_types, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_types' argument to "
+          "'zip_dataset' Op, not %r." % output_types)
+    output_types = [_execute.make_type(_t, "output_types") for _t in output_types]
+    if not isinstance(output_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'output_shapes' argument to "
+          "'zip_dataset' Op, not %r." % output_shapes)
+    output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "ZipDataset", input_datasets=input_datasets,
+        output_types=output_types, output_shapes=output_shapes, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
+              _op.get_attr("output_shapes"), "N", _op.get_attr("N"))
+    _execute.record_gradient(
+      "ZipDataset", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "ZipDataset", name,
+        _ctx._post_execution_callbacks, input_datasets, "output_types",
+        output_types, "output_shapes", output_shapes)
+      return _result
+    except _core._FallbackException:
+      return zip_dataset_eager_fallback(
+          input_datasets, output_types=output_types,
+          output_shapes=output_shapes, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def zip_dataset_eager_fallback(input_datasets, output_types, output_shapes, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function zip_dataset
+  """
+  _ctx = _context.context()
   if not isinstance(input_datasets, (list, tuple)):
     raise TypeError(
         "Expected list for 'input_datasets' argument to "
@@ -2181,22 +4157,12 @@ def zip_dataset(input_datasets, output_types, output_shapes, name=None):
         "Expected list for 'output_shapes' argument to "
         "'zip_dataset' Op, not %r." % output_shapes)
   output_shapes = [_execute.make_shape(_s, "output_shapes") for _s in output_shapes]
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "ZipDataset", input_datasets=input_datasets,
-        output_types=output_types, output_shapes=output_shapes, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("output_types", _op.get_attr("output_types"), "output_shapes",
-              _op.get_attr("output_shapes"), "N", _op.get_attr("N"))
-  else:
-    input_datasets = _ops.convert_n_to_tensor(input_datasets, _dtypes.variant)
-    _inputs_flat = list(input_datasets)
-    _attrs = ("output_types", output_types, "output_shapes", output_shapes,
-              "N", _attr_N)
-    _result = _execute.execute(b"ZipDataset", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  input_datasets = _ops.convert_n_to_tensor(input_datasets, _dtypes.variant)
+  _inputs_flat = list(input_datasets)
+  _attrs = ("output_types", output_types, "output_shapes", output_shapes, "N",
+  _attr_N)
+  _result = _execute.execute(b"ZipDataset", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "ZipDataset", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -2384,6 +4350,24 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #   is_stateful: true
 # }
 # op {
+#   name: "EnqueueInQueueDataset"
+#   input_arg {
+#     name: "queue"
+#     type: DT_VARIANT
+#   }
+#   input_arg {
+#     name: "components"
+#     type_list_attr: "Tcomponents"
+#   }
+#   attr {
+#     name: "Tcomponents"
+#     type: "list(type)"
+#     has_minimum: true
+#     minimum: 1
+#   }
+#   is_stateful: true
+# }
+# op {
 #   name: "FilterDataset"
 #   input_arg {
 #     name: "input_dataset"
@@ -2484,6 +4468,65 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #   }
 # }
 # op {
+#   name: "GeneratorDataset"
+#   input_arg {
+#     name: "init_func_other_args"
+#     type_list_attr: "Tinit_func_args"
+#   }
+#   input_arg {
+#     name: "next_func_other_args"
+#     type_list_attr: "Tnext_func_args"
+#   }
+#   input_arg {
+#     name: "finalize_func_other_args"
+#     type_list_attr: "Tfinalize_func_args"
+#   }
+#   output_arg {
+#     name: "handle"
+#     type: DT_VARIANT
+#   }
+#   attr {
+#     name: "init_func"
+#     type: "func"
+#   }
+#   attr {
+#     name: "next_func"
+#     type: "func"
+#   }
+#   attr {
+#     name: "finalize_func"
+#     type: "func"
+#   }
+#   attr {
+#     name: "Tinit_func_args"
+#     type: "list(type)"
+#     has_minimum: true
+#   }
+#   attr {
+#     name: "Tnext_func_args"
+#     type: "list(type)"
+#     has_minimum: true
+#   }
+#   attr {
+#     name: "Tfinalize_func_args"
+#     type: "list(type)"
+#     has_minimum: true
+#   }
+#   attr {
+#     name: "output_types"
+#     type: "list(type)"
+#     has_minimum: true
+#     minimum: 1
+#   }
+#   attr {
+#     name: "output_shapes"
+#     type: "list(shape)"
+#     has_minimum: true
+#     minimum: 1
+#   }
+#   is_stateful: true
+# }
+# op {
 #   name: "GroupByWindowDataset"
 #   input_arg {
 #     name: "input_dataset"
@@ -2531,29 +4574,6 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     name: "Twindow_size_func_other_arguments"
 #     type: "list(type)"
 #     has_minimum: true
-#   }
-#   attr {
-#     name: "output_types"
-#     type: "list(type)"
-#     has_minimum: true
-#     minimum: 1
-#   }
-#   attr {
-#     name: "output_shapes"
-#     type: "list(shape)"
-#     has_minimum: true
-#     minimum: 1
-#   }
-# }
-# op {
-#   name: "IgnoreErrorsDataset"
-#   input_arg {
-#     name: "input_dataset"
-#     type: DT_VARIANT
-#   }
-#   output_arg {
-#     name: "handle"
-#     type: DT_VARIANT
 #   }
 #   attr {
 #     name: "output_types"
@@ -2672,6 +4692,30 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 # }
 # op {
 #   name: "IteratorGetNext"
+#   input_arg {
+#     name: "iterator"
+#     type: DT_RESOURCE
+#   }
+#   output_arg {
+#     name: "components"
+#     type_list_attr: "output_types"
+#   }
+#   attr {
+#     name: "output_types"
+#     type: "list(type)"
+#     has_minimum: true
+#     minimum: 1
+#   }
+#   attr {
+#     name: "output_shapes"
+#     type: "list(shape)"
+#     has_minimum: true
+#     minimum: 1
+#   }
+#   is_stateful: true
+# }
+# op {
+#   name: "IteratorGetNextSync"
 #   input_arg {
 #     name: "iterator"
 #     type: DT_RESOURCE
@@ -3041,6 +5085,48 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #   }
 # }
 # op {
+#   name: "PrependFromQueueAndPaddedBatchDataset"
+#   input_arg {
+#     name: "input_dataset"
+#     type: DT_VARIANT
+#   }
+#   input_arg {
+#     name: "batch_size"
+#     type: DT_INT64
+#   }
+#   input_arg {
+#     name: "padded_shapes"
+#     type: DT_INT64
+#     number_attr: "N"
+#   }
+#   input_arg {
+#     name: "padding_values"
+#     type_list_attr: "Toutput_types"
+#   }
+#   output_arg {
+#     name: "handle"
+#     type: DT_VARIANT
+#   }
+#   attr {
+#     name: "Toutput_types"
+#     type: "list(type)"
+#     has_minimum: true
+#     minimum: 1
+#   }
+#   attr {
+#     name: "output_shapes"
+#     type: "list(shape)"
+#     has_minimum: true
+#     minimum: 1
+#   }
+#   attr {
+#     name: "N"
+#     type: "int"
+#     has_minimum: true
+#     minimum: 1
+#   }
+# }
+# op {
 #   name: "RandomDataset"
 #   input_arg {
 #     name: "seed"
@@ -3186,6 +5272,45 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #   is_stateful: true
 # }
 # op {
+#   name: "ShuffleAndRepeatDataset"
+#   input_arg {
+#     name: "input_dataset"
+#     type: DT_VARIANT
+#   }
+#   input_arg {
+#     name: "buffer_size"
+#     type: DT_INT64
+#   }
+#   input_arg {
+#     name: "seed"
+#     type: DT_INT64
+#   }
+#   input_arg {
+#     name: "seed2"
+#     type: DT_INT64
+#   }
+#   input_arg {
+#     name: "count"
+#     type: DT_INT64
+#   }
+#   output_arg {
+#     name: "handle"
+#     type: DT_VARIANT
+#   }
+#   attr {
+#     name: "output_types"
+#     type: "list(type)"
+#     has_minimum: true
+#     minimum: 1
+#   }
+#   attr {
+#     name: "output_shapes"
+#     type: "list(shape)"
+#     has_minimum: true
+#     minimum: 1
+#   }
+# }
+# op {
 #   name: "ShuffleDataset"
 #   input_arg {
 #     name: "input_dataset"
@@ -3235,6 +5360,37 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #   }
 #   input_arg {
 #     name: "count"
+#     type: DT_INT64
+#   }
+#   output_arg {
+#     name: "handle"
+#     type: DT_VARIANT
+#   }
+#   attr {
+#     name: "output_types"
+#     type: "list(type)"
+#     has_minimum: true
+#     minimum: 1
+#   }
+#   attr {
+#     name: "output_shapes"
+#     type: "list(shape)"
+#     has_minimum: true
+#     minimum: 1
+#   }
+# }
+# op {
+#   name: "SlideDataset"
+#   input_arg {
+#     name: "input_dataset"
+#     type: DT_VARIANT
+#   }
+#   input_arg {
+#     name: "window_size"
+#     type: DT_INT64
+#   }
+#   input_arg {
+#     name: "stride"
 #     type: DT_INT64
 #   }
 #   output_arg {
@@ -3489,4 +5645,4 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     minimum: 1
 #   }
 # }
-_op_def_lib = _InitOpDefLibrary(b"\n\177\n\014BatchDataset\022\021\n\rinput_dataset\030\025\022\016\n\nbatch_size\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\205\001\n\031BytesProducedStatsDataset\022\021\n\rinput_dataset\030\025\022\007\n\003tag\030\007\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n}\n\014CacheDataset\022\021\n\rinput_dataset\030\025\022\014\n\010filename\030\007\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\212\001\n\022ConcatenateDataset\022\021\n\rinput_dataset\030\025\022\023\n\017another_dataset\030\025\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\203\001\n\026DatasetToSingleElement\022\013\n\007dataset\030\025\032\032\n\ncomponents2\014output_types\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\233\001\n\031DenseToSparseBatchDataset\022\021\n\rinput_dataset\030\025\022\016\n\nbatch_size\030\t\022\r\n\trow_shape\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n=\n\023DeserializeIterator\022\023\n\017resource_handle\030\024\022\016\n\nserialized\030\025\210\001\001\n\276\001\n\rFilterDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\032\n\n\006handle\030\025\"\021\n\tpredicate\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\177\n\030FixedLengthRecordDataset\022\r\n\tfilenames\030\007\022\020\n\014header_bytes\030\t\022\020\n\014record_bytes\030\t\022\020\n\014footer_bytes\030\t\022\017\n\013buffer_size\030\t\032\n\n\006handle\030\025\210\001\001\n\267\001\n\016FlatMapDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\377\003\n\024GroupByWindowDataset\022\021\n\rinput_dataset\030\025\0225\n\030key_func_other_arguments2\031Tkey_func_other_arguments\022;\n\033reduce_func_other_arguments2\034Treduce_func_other_arguments\022E\n window_size_func_other_arguments2!Twindow_size_func_other_arguments\032\n\n\006handle\030\025\"\020\n\010key_func\022\004func\"\023\n\013reduce_func\022\004func\"\030\n\020window_size_func\022\004func\")\n\031Tkey_func_other_arguments\022\nlist(type)(\001\",\n\034Treduce_func_other_arguments\022\nlist(type)(\001\"1\n!Twindow_size_func_other_arguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\nv\n\023IgnoreErrorsDataset\022\021\n\rinput_dataset\030\025\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\336\001\n\021InterleaveDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\022\020\n\014cycle_length\030\t\022\020\n\014block_length\030\t\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\207\001\n\010Iterator\032\n\n\006handle\030\024\"\025\n\013shared_name\022\006string\"\023\n\tcontainer\022\006string\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\n\213\001\n\030IteratorFromStringHandle\022\021\n\rstring_handle\030\007\032\023\n\017resource_handle\030\024\" \n\014output_types\022\nlist(type)\032\002\n\000(\001\"\"\n\routput_shapes\022\013list(shape)\032\002\n\000(\001\210\001\001\n\200\001\n\017IteratorGetNext\022\014\n\010iterator\030\024\032\032\n\ncomponents2\014output_types\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\nQ\n\032IteratorSetStatsAggregator\022\023\n\017iterator_handle\030\024\022\033\n\027stats_aggregator_handle\030\024\210\001\001\nC\n\026IteratorToStringHandle\022\023\n\017resource_handle\030\024\032\021\n\rstring_handle\030\007\210\001\001\n\177\n\023LatencyStatsDataset\022\021\n\rinput_dataset\030\025\022\007\n\003tag\030\007\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n,\n\014MakeIterator\022\013\n\007dataset\030\025\022\014\n\010iterator\030\024\210\001\001\n\345\001\n\022MapAndBatchDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\022\016\n\nbatch_size\030\t\022\030\n\024num_parallel_batches\030\t\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\263\001\n\nMapDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\257\001\n\017OneShotIterator\032\n\n\006handle\030\024\"\027\n\017dataset_factory\022\004func\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\313\001\n\022PaddedBatchDataset\022\021\n\rinput_dataset\030\025\022\016\n\nbatch_size\030\t\022\024\n\rpadded_shapes\030\t*\001N\022\037\n\016padding_values2\rToutput_types\032\n\n\006handle\030\025\"\037\n\rToutput_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\"\014\n\001N\022\003int(\0010\001\n\253\002\n\031ParallelInterleaveDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\022\020\n\014cycle_length\030\t\022\020\n\014block_length\030\t\022\n\n\006sloppy\030\n\022\032\n\026buffer_output_elements\030\t\022\033\n\027prefetch_input_elements\030\t\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\323\001\n\022ParallelMapDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\022\026\n\022num_parallel_calls\030\003\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\203\001\n\017PrefetchDataset\022\021\n\rinput_dataset\030\025\022\017\n\013buffer_size\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\nu\n\rRandomDataset\022\010\n\004seed\030\t\022\t\n\005seed2\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\n~\n\014RangeDataset\022\t\n\005start\030\t\022\010\n\004stop\030\t\022\010\n\004step\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\n{\n\rRepeatDataset\022\021\n\rinput_dataset\030\025\022\t\n\005count\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\347\001\n\013ScanDataset\022\021\n\rinput_dataset\030\025\022\027\n\rinitial_state2\006Tstate\022\035\n\017other_arguments2\nTarguments\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\030\n\006Tstate\022\nlist(type)(\0010\001\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n;\n\021SerializeIterator\022\023\n\017resource_handle\030\024\032\016\n\nserialized\030\025\210\001\001\n\275\001\n\016ShuffleDataset\022\021\n\rinput_dataset\030\025\022\017\n\013buffer_size\030\t\022\010\n\004seed\030\t\022\t\n\005seed2\030\t\032\n\n\006handle\030\025\"$\n\030reshuffle_each_iteration\022\004bool\032\002(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\ny\n\013SkipDataset\022\021\n\rinput_dataset\030\025\022\t\n\005count\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\nk\n\030SparseTensorSliceDataset\022\013\n\007indices\030\t\022\021\n\006values\"\007Tvalues\022\017\n\013dense_shape\030\t\032\n\n\006handle\030\025\"\017\n\007Tvalues\022\004type\210\001\001\n\217\001\n\nSqlDataset\022\017\n\013driver_name\030\007\022\024\n\020data_source_name\030\007\022\t\n\005query\030\007\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\nZ\n\025StatsAggregatorHandle\032\n\n\006handle\030\024\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n6\n\026StatsAggregatorSummary\022\014\n\010iterator\030\024\032\013\n\007summary\030\007\210\001\001\nV\n\017TFRecordDataset\022\r\n\tfilenames\030\007\022\024\n\020compression_type\030\007\022\017\n\013buffer_size\030\t\032\n\n\006handle\030\025\210\001\001\ny\n\013TakeDataset\022\021\n\rinput_dataset\030\025\022\t\n\005count\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n~\n\rTensorDataset\022\033\n\ncomponents2\rToutput_types\032\n\n\006handle\030\025\"\037\n\rToutput_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\n\203\001\n\022TensorSliceDataset\022\033\n\ncomponents2\rToutput_types\032\n\n\006handle\030\025\"\037\n\rToutput_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\nV\n\017TextLineDataset\022\r\n\tfilenames\030\007\022\024\n\020compression_type\030\007\022\017\n\013buffer_size\030\t\032\n\n\006handle\030\025\210\001\001\n\177\n\nZipDataset\022\025\n\016input_datasets\030\025*\001N\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\"\014\n\001N\022\003int(\0010\001")
+_op_def_lib = _InitOpDefLibrary(b"\n\177\n\014BatchDataset\022\021\n\rinput_dataset\030\025\022\016\n\nbatch_size\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\205\001\n\031BytesProducedStatsDataset\022\021\n\rinput_dataset\030\025\022\007\n\003tag\030\007\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n}\n\014CacheDataset\022\021\n\rinput_dataset\030\025\022\014\n\010filename\030\007\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\212\001\n\022ConcatenateDataset\022\021\n\rinput_dataset\030\025\022\023\n\017another_dataset\030\025\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\203\001\n\026DatasetToSingleElement\022\013\n\007dataset\030\025\032\032\n\ncomponents2\014output_types\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\233\001\n\031DenseToSparseBatchDataset\022\021\n\rinput_dataset\030\025\022\016\n\nbatch_size\030\t\022\r\n\trow_shape\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n=\n\023DeserializeIterator\022\023\n\017resource_handle\030\024\022\016\n\nserialized\030\025\210\001\001\n_\n\025EnqueueInQueueDataset\022\t\n\005queue\030\025\022\031\n\ncomponents2\013Tcomponents\"\035\n\013Tcomponents\022\nlist(type)(\0010\001\210\001\001\n\276\001\n\rFilterDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\032\n\n\006handle\030\025\"\021\n\tpredicate\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\177\n\030FixedLengthRecordDataset\022\r\n\tfilenames\030\007\022\020\n\014header_bytes\030\t\022\020\n\014record_bytes\030\t\022\020\n\014footer_bytes\030\t\022\017\n\013buffer_size\030\t\032\n\n\006handle\030\025\210\001\001\n\267\001\n\016FlatMapDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\212\003\n\020GeneratorDataset\022\'\n\024init_func_other_args2\017Tinit_func_args\022\'\n\024next_func_other_args2\017Tnext_func_args\022/\n\030finalize_func_other_args2\023Tfinalize_func_args\032\n\n\006handle\030\025\"\021\n\tinit_func\022\004func\"\021\n\tnext_func\022\004func\"\025\n\rfinalize_func\022\004func\"\037\n\017Tinit_func_args\022\nlist(type)(\001\"\037\n\017Tnext_func_args\022\nlist(type)(\001\"#\n\023Tfinalize_func_args\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\n\377\003\n\024GroupByWindowDataset\022\021\n\rinput_dataset\030\025\0225\n\030key_func_other_arguments2\031Tkey_func_other_arguments\022;\n\033reduce_func_other_arguments2\034Treduce_func_other_arguments\022E\n window_size_func_other_arguments2!Twindow_size_func_other_arguments\032\n\n\006handle\030\025\"\020\n\010key_func\022\004func\"\023\n\013reduce_func\022\004func\"\030\n\020window_size_func\022\004func\")\n\031Tkey_func_other_arguments\022\nlist(type)(\001\",\n\034Treduce_func_other_arguments\022\nlist(type)(\001\"1\n!Twindow_size_func_other_arguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\336\001\n\021InterleaveDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\022\020\n\014cycle_length\030\t\022\020\n\014block_length\030\t\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\207\001\n\010Iterator\032\n\n\006handle\030\024\"\025\n\013shared_name\022\006string\"\023\n\tcontainer\022\006string\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\n\213\001\n\030IteratorFromStringHandle\022\021\n\rstring_handle\030\007\032\023\n\017resource_handle\030\024\" \n\014output_types\022\nlist(type)\032\002\n\000(\001\"\"\n\routput_shapes\022\013list(shape)\032\002\n\000(\001\210\001\001\n\200\001\n\017IteratorGetNext\022\014\n\010iterator\030\024\032\032\n\ncomponents2\014output_types\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\n\204\001\n\023IteratorGetNextSync\022\014\n\010iterator\030\024\032\032\n\ncomponents2\014output_types\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\nQ\n\032IteratorSetStatsAggregator\022\023\n\017iterator_handle\030\024\022\033\n\027stats_aggregator_handle\030\024\210\001\001\nC\n\026IteratorToStringHandle\022\023\n\017resource_handle\030\024\032\021\n\rstring_handle\030\007\210\001\001\n\177\n\023LatencyStatsDataset\022\021\n\rinput_dataset\030\025\022\007\n\003tag\030\007\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n,\n\014MakeIterator\022\013\n\007dataset\030\025\022\014\n\010iterator\030\024\210\001\001\n\345\001\n\022MapAndBatchDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\022\016\n\nbatch_size\030\t\022\030\n\024num_parallel_batches\030\t\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\263\001\n\nMapDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\257\001\n\017OneShotIterator\032\n\n\006handle\030\024\"\027\n\017dataset_factory\022\004func\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\313\001\n\022PaddedBatchDataset\022\021\n\rinput_dataset\030\025\022\016\n\nbatch_size\030\t\022\024\n\rpadded_shapes\030\t*\001N\022\037\n\016padding_values2\rToutput_types\032\n\n\006handle\030\025\"\037\n\rToutput_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\"\014\n\001N\022\003int(\0010\001\n\253\002\n\031ParallelInterleaveDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\022\020\n\014cycle_length\030\t\022\020\n\014block_length\030\t\022\n\n\006sloppy\030\n\022\032\n\026buffer_output_elements\030\t\022\033\n\027prefetch_input_elements\030\t\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\323\001\n\022ParallelMapDataset\022\021\n\rinput_dataset\030\025\022\035\n\017other_arguments2\nTarguments\022\026\n\022num_parallel_calls\030\003\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\203\001\n\017PrefetchDataset\022\021\n\rinput_dataset\030\025\022\017\n\013buffer_size\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\336\001\n%PrependFromQueueAndPaddedBatchDataset\022\021\n\rinput_dataset\030\025\022\016\n\nbatch_size\030\t\022\024\n\rpadded_shapes\030\t*\001N\022\037\n\016padding_values2\rToutput_types\032\n\n\006handle\030\025\"\037\n\rToutput_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\"\014\n\001N\022\003int(\0010\001\nu\n\rRandomDataset\022\010\n\004seed\030\t\022\t\n\005seed2\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\n~\n\014RangeDataset\022\t\n\005start\030\t\022\010\n\004stop\030\t\022\010\n\004step\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\n{\n\rRepeatDataset\022\021\n\rinput_dataset\030\025\022\t\n\005count\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\347\001\n\013ScanDataset\022\021\n\rinput_dataset\030\025\022\027\n\rinitial_state2\006Tstate\022\035\n\017other_arguments2\nTarguments\032\n\n\006handle\030\025\"\t\n\001f\022\004func\"\030\n\006Tstate\022\nlist(type)(\0010\001\"\032\n\nTarguments\022\nlist(type)(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n;\n\021SerializeIterator\022\023\n\017resource_handle\030\024\032\016\n\nserialized\030\025\210\001\001\n\253\001\n\027ShuffleAndRepeatDataset\022\021\n\rinput_dataset\030\025\022\017\n\013buffer_size\030\t\022\010\n\004seed\030\t\022\t\n\005seed2\030\t\022\t\n\005count\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\275\001\n\016ShuffleDataset\022\021\n\rinput_dataset\030\025\022\017\n\013buffer_size\030\t\022\010\n\004seed\030\t\022\t\n\005seed2\030\t\032\n\n\006handle\030\025\"$\n\030reshuffle_each_iteration\022\004bool\032\002(\001\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\ny\n\013SkipDataset\022\021\n\rinput_dataset\030\025\022\t\n\005count\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n\214\001\n\014SlideDataset\022\021\n\rinput_dataset\030\025\022\017\n\013window_size\030\t\022\n\n\006stride\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\nk\n\030SparseTensorSliceDataset\022\013\n\007indices\030\t\022\021\n\006values\"\007Tvalues\022\017\n\013dense_shape\030\t\032\n\n\006handle\030\025\"\017\n\007Tvalues\022\004type\210\001\001\n\217\001\n\nSqlDataset\022\017\n\013driver_name\030\007\022\024\n\020data_source_name\030\007\022\t\n\005query\030\007\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\nZ\n\025StatsAggregatorHandle\032\n\n\006handle\030\024\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n6\n\026StatsAggregatorSummary\022\014\n\010iterator\030\024\032\013\n\007summary\030\007\210\001\001\nV\n\017TFRecordDataset\022\r\n\tfilenames\030\007\022\024\n\020compression_type\030\007\022\017\n\013buffer_size\030\t\032\n\n\006handle\030\025\210\001\001\ny\n\013TakeDataset\022\021\n\rinput_dataset\030\025\022\t\n\005count\030\t\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\n~\n\rTensorDataset\022\033\n\ncomponents2\rToutput_types\032\n\n\006handle\030\025\"\037\n\rToutput_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\n\203\001\n\022TensorSliceDataset\022\033\n\ncomponents2\rToutput_types\032\n\n\006handle\030\025\"\037\n\rToutput_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\210\001\001\nV\n\017TextLineDataset\022\r\n\tfilenames\030\007\022\024\n\020compression_type\030\007\022\017\n\013buffer_size\030\t\032\n\n\006handle\030\025\210\001\001\n\177\n\nZipDataset\022\025\n\016input_datasets\030\025*\001N\032\n\n\006handle\030\025\"\036\n\014output_types\022\nlist(type)(\0010\001\" \n\routput_shapes\022\013list(shape)(\0010\001\"\014\n\001N\022\003int(\0010\001")

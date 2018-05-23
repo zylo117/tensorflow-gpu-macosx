@@ -5,11 +5,14 @@ Original C++ source file: bitwise_ops.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -37,19 +40,45 @@ def bitwise_and(x, y, name=None):
     A `Tensor`. Has the same type as `x`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "BitwiseAnd", x=x, y=y, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "BitwiseAnd", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, _inputs_T = _execute.args_to_matching_eager([x, y], _ctx)
-    (x, y) = _inputs_T
-    _inputs_flat = [x, y]
-    _attrs = ("T", _attr_T)
-    _result = _execute.execute(b"BitwiseAnd", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "BitwiseAnd", name,
+        _ctx._post_execution_callbacks, x, y)
+      return _result
+    except _core._FallbackException:
+      return bitwise_and_eager_fallback(
+          x, y, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def bitwise_and_eager_fallback(x, y, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function bitwise_and
+  """
+  _ctx = _context.context()
+  _attr_T, _inputs_T = _execute.args_to_matching_eager([x, y], _ctx)
+  (x, y) = _inputs_T
+  _inputs_flat = [x, y]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"BitwiseAnd", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "BitwiseAnd", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -72,19 +101,45 @@ def bitwise_or(x, y, name=None):
     A `Tensor`. Has the same type as `x`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "BitwiseOr", x=x, y=y, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "BitwiseOr", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, _inputs_T = _execute.args_to_matching_eager([x, y], _ctx)
-    (x, y) = _inputs_T
-    _inputs_flat = [x, y]
-    _attrs = ("T", _attr_T)
-    _result = _execute.execute(b"BitwiseOr", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "BitwiseOr", name,
+        _ctx._post_execution_callbacks, x, y)
+      return _result
+    except _core._FallbackException:
+      return bitwise_or_eager_fallback(
+          x, y, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def bitwise_or_eager_fallback(x, y, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function bitwise_or
+  """
+  _ctx = _context.context()
+  _attr_T, _inputs_T = _execute.args_to_matching_eager([x, y], _ctx)
+  (x, y) = _inputs_T
+  _inputs_flat = [x, y]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"BitwiseOr", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "BitwiseOr", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -107,19 +162,45 @@ def bitwise_xor(x, y, name=None):
     A `Tensor`. Has the same type as `x`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "BitwiseXor", x=x, y=y, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "BitwiseXor", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, _inputs_T = _execute.args_to_matching_eager([x, y], _ctx)
-    (x, y) = _inputs_T
-    _inputs_flat = [x, y]
-    _attrs = ("T", _attr_T)
-    _result = _execute.execute(b"BitwiseXor", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "BitwiseXor", name,
+        _ctx._post_execution_callbacks, x, y)
+      return _result
+    except _core._FallbackException:
+      return bitwise_xor_eager_fallback(
+          x, y, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def bitwise_xor_eager_fallback(x, y, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function bitwise_xor
+  """
+  _ctx = _context.context()
+  _attr_T, _inputs_T = _execute.args_to_matching_eager([x, y], _ctx)
+  (x, y) = _inputs_T
+  _inputs_flat = [x, y]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"BitwiseXor", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "BitwiseXor", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -141,18 +222,44 @@ def invert(x, name=None):
     A `Tensor`. Has the same type as `x`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "Invert", x=x, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "Invert", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (x,) = _execute.args_to_matching_eager([x], _ctx)
-    _inputs_flat = [x]
-    _attrs = ("T", _attr_T)
-    _result = _execute.execute(b"Invert", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "Invert", name,
+        _ctx._post_execution_callbacks, x)
+      return _result
+    except _core._FallbackException:
+      return invert_eager_fallback(
+          x, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def invert_eager_fallback(x, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function invert
+  """
+  _ctx = _context.context()
+  _attr_T, (x,) = _execute.args_to_matching_eager([x], _ctx)
+  _inputs_flat = [x]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"Invert", 1, inputs=_inputs_flat, attrs=_attrs,
+                             ctx=_ctx, name=name)
   _execute.record_gradient(
       "Invert", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -175,26 +282,51 @@ def left_shift(x, y, name=None):
     A `Tensor`. Has the same type as `x`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "LeftShift", x=x, y=y, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "LeftShift", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, _inputs_T = _execute.args_to_matching_eager([x, y], _ctx)
-    (x, y) = _inputs_T
-    _inputs_flat = [x, y]
-    _attrs = ("T", _attr_T)
-    _result = _execute.execute(b"LeftShift", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "LeftShift", name,
+        _ctx._post_execution_callbacks, x, y)
+      return _result
+    except _core._FallbackException:
+      return left_shift_eager_fallback(
+          x, y, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def left_shift_eager_fallback(x, y, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function left_shift
+  """
+  _ctx = _context.context()
+  _attr_T, _inputs_T = _execute.args_to_matching_eager([x, y], _ctx)
+  (x, y) = _inputs_T
+  _inputs_flat = [x, y]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"LeftShift", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "LeftShift", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('PopulationCount')
 def population_count(x, name=None):
   r"""Computes element-wise population count (a.k.a. popcount, bitsum, bitcount).
 
@@ -213,18 +345,44 @@ def population_count(x, name=None):
     A `Tensor` of type `uint8`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "PopulationCount", x=x, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "PopulationCount", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (x,) = _execute.args_to_matching_eager([x], _ctx)
-    _inputs_flat = [x]
-    _attrs = ("T", _attr_T)
-    _result = _execute.execute(b"PopulationCount", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "PopulationCount", name,
+        _ctx._post_execution_callbacks, x)
+      return _result
+    except _core._FallbackException:
+      return population_count_eager_fallback(
+          x, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def population_count_eager_fallback(x, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function population_count
+  """
+  _ctx = _context.context()
+  _attr_T, (x,) = _execute.args_to_matching_eager([x], _ctx)
+  _inputs_flat = [x]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"PopulationCount", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "PopulationCount", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -250,19 +408,45 @@ def right_shift(x, y, name=None):
     A `Tensor`. Has the same type as `x`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "RightShift", x=x, y=y, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "RightShift", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, _inputs_T = _execute.args_to_matching_eager([x, y], _ctx)
-    (x, y) = _inputs_T
-    _inputs_flat = [x, y]
-    _attrs = ("T", _attr_T)
-    _result = _execute.execute(b"RightShift", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "RightShift", name,
+        _ctx._post_execution_callbacks, x, y)
+      return _result
+    except _core._FallbackException:
+      return right_shift_eager_fallback(
+          x, y, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def right_shift_eager_fallback(x, y, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function right_shift
+  """
+  _ctx = _context.context()
+  _attr_T, _inputs_T = _execute.args_to_matching_eager([x, y], _ctx)
+  (x, y) = _inputs_T
+  _inputs_flat = [x, y]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"RightShift", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "RightShift", _inputs_flat, _attrs, _result, name)
   _result, = _result

@@ -5,11 +5,14 @@ Original C++ source file: gen_skip_gram_ops.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -26,7 +29,7 @@ _SkipGramGenerateCandidatesOutput = _collections.namedtuple(
     "SkipGramGenerateCandidates", _skip_gram_generate_candidates_outputs)
 
 
-@tf_export('SkipGramGenerateCandidates')
+@tf_export('skip_gram_generate_candidates')
 def skip_gram_generate_candidates(input_tensor, min_skips, max_skips, start, limit, emit_self_as_target, seed=0, seed2=0, name=None):
   r"""Generates skip-gram token and label paired Tensors from the input tensor.
 
@@ -49,14 +52,14 @@ def skip_gram_generate_candidates(input_tensor, min_skips, max_skips, start, lim
     tokens: A `Tensor`. Has the same type as `input_tensor`.
     labels: A `Tensor`. Has the same type as `input_tensor`.
   """
-  if seed is None:
-    seed = 0
-  seed = _execute.make_int(seed, "seed")
-  if seed2 is None:
-    seed2 = 0
-  seed2 = _execute.make_int(seed2, "seed2")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if seed is None:
+      seed = 0
+    seed = _execute.make_int(seed, "seed")
+    if seed2 is None:
+      seed2 = 0
+    seed2 = _execute.make_int(seed2, "seed2")
     _, _, _op = _op_def_lib._apply_op_helper(
         "SkipGramGenerateCandidates", input_tensor=input_tensor,
         min_skips=min_skips, max_skips=max_skips, start=start, limit=limit,
@@ -66,18 +69,53 @@ def skip_gram_generate_candidates(input_tensor, min_skips, max_skips, start, lim
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"), "seed", _op.get_attr("seed"), "seed2",
               _op.get_attr("seed2"))
+    _execute.record_gradient(
+      "SkipGramGenerateCandidates", _inputs_flat, _attrs, _result, name)
+    _result = _SkipGramGenerateCandidatesOutput._make(_result)
+    return _result
+
   else:
-    _attr_T, (input_tensor,) = _execute.args_to_matching_eager([input_tensor], _ctx)
-    min_skips = _ops.convert_to_tensor(min_skips, _dtypes.int32)
-    max_skips = _ops.convert_to_tensor(max_skips, _dtypes.int32)
-    start = _ops.convert_to_tensor(start, _dtypes.int32)
-    limit = _ops.convert_to_tensor(limit, _dtypes.int32)
-    emit_self_as_target = _ops.convert_to_tensor(emit_self_as_target, _dtypes.bool)
-    _inputs_flat = [input_tensor, min_skips, max_skips, start, limit, emit_self_as_target]
-    _attrs = ("T", _attr_T, "seed", seed, "seed2", seed2)
-    _result = _execute.execute(b"SkipGramGenerateCandidates", 2,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "SkipGramGenerateCandidates", name,
+        _ctx._post_execution_callbacks, input_tensor, min_skips, max_skips,
+        start, limit, emit_self_as_target, "seed", seed, "seed2", seed2)
+      _result = _SkipGramGenerateCandidatesOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return skip_gram_generate_candidates_eager_fallback(
+          input_tensor, min_skips, max_skips, start, limit,
+          emit_self_as_target, seed=seed, seed2=seed2, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def skip_gram_generate_candidates_eager_fallback(input_tensor, min_skips, max_skips, start, limit, emit_self_as_target, seed=0, seed2=0, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function skip_gram_generate_candidates
+  """
+  _ctx = _context.context()
+  if seed is None:
+    seed = 0
+  seed = _execute.make_int(seed, "seed")
+  if seed2 is None:
+    seed2 = 0
+  seed2 = _execute.make_int(seed2, "seed2")
+  _attr_T, (input_tensor,) = _execute.args_to_matching_eager([input_tensor], _ctx)
+  min_skips = _ops.convert_to_tensor(min_skips, _dtypes.int32)
+  max_skips = _ops.convert_to_tensor(max_skips, _dtypes.int32)
+  start = _ops.convert_to_tensor(start, _dtypes.int32)
+  limit = _ops.convert_to_tensor(limit, _dtypes.int32)
+  emit_self_as_target = _ops.convert_to_tensor(emit_self_as_target, _dtypes.bool)
+  _inputs_flat = [input_tensor, min_skips, max_skips, start, limit, emit_self_as_target]
+  _attrs = ("T", _attr_T, "seed", seed, "seed2", seed2)
+  _result = _execute.execute(b"SkipGramGenerateCandidates", 2,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "SkipGramGenerateCandidates", _inputs_flat, _attrs, _result, name)
   _result = _SkipGramGenerateCandidatesOutput._make(_result)

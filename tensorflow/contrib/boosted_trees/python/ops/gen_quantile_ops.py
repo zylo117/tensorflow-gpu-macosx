@@ -5,11 +5,14 @@ Original C++ source file: gen_quantile_ops_py_wrap.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,7 +24,7 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('BucketizeWithInputBoundaries')
+@tf_export('bucketize_with_input_boundaries')
 def bucketize_with_input_boundaries(input, boundaries, name=None):
   r"""Bucketizes 'input' based on 'boundaries'. This function is similar to Bucketize
 
@@ -52,21 +55,47 @@ def bucketize_with_input_boundaries(input, boundaries, name=None):
     Same shape as 'input', where each value of input is replaced with its corresponding bucket index.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "BucketizeWithInputBoundaries", input=input, boundaries=boundaries,
         name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "BucketizeWithInputBoundaries", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
-    boundaries = _ops.convert_to_tensor(boundaries, _dtypes.float32)
-    _inputs_flat = [input, boundaries]
-    _attrs = ("T", _attr_T)
-    _result = _execute.execute(b"BucketizeWithInputBoundaries", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "BucketizeWithInputBoundaries", name,
+        _ctx._post_execution_callbacks, input, boundaries)
+      return _result
+    except _core._FallbackException:
+      return bucketize_with_input_boundaries_eager_fallback(
+          input, boundaries, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def bucketize_with_input_boundaries_eager_fallback(input, boundaries, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function bucketize_with_input_boundaries
+  """
+  _ctx = _context.context()
+  _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
+  boundaries = _ops.convert_to_tensor(boundaries, _dtypes.float32)
+  _inputs_flat = [input, boundaries]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"BucketizeWithInputBoundaries", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "BucketizeWithInputBoundaries", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -75,8 +104,8 @@ def bucketize_with_input_boundaries(input, boundaries, name=None):
 _ops.RegisterShape("BucketizeWithInputBoundaries")(None)
 
 
-@tf_export('CreateQuantileAccumulator')
-def create_quantile_accumulator(quantile_accumulator_handle, stamp_token, epsilon, num_quantiles, container="", shared_name="", max_elements=1099511627776, name=None):
+@tf_export('create_quantile_accumulator')
+def create_quantile_accumulator(quantile_accumulator_handle, stamp_token, epsilon, num_quantiles, container="", shared_name="", max_elements=1099511627776, generate_quantiles=False, name=None):
   r"""Creates a stateful accumulator for quantile summaries.
 
   Args:
@@ -89,11 +118,67 @@ def create_quantile_accumulator(quantile_accumulator_handle, stamp_token, epsilo
     container: An optional `string`. Defaults to `""`.
     shared_name: An optional `string`. Defaults to `""`.
     max_elements: An optional `int`. Defaults to `1099511627776`.
+    generate_quantiles: An optional `bool`. Defaults to `False`.
     name: A name for the operation (optional).
 
   Returns:
     The created Operation.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    epsilon = _execute.make_float(epsilon, "epsilon")
+    num_quantiles = _execute.make_int(num_quantiles, "num_quantiles")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    if max_elements is None:
+      max_elements = 1099511627776
+    max_elements = _execute.make_int(max_elements, "max_elements")
+    if generate_quantiles is None:
+      generate_quantiles = False
+    generate_quantiles = _execute.make_bool(generate_quantiles, "generate_quantiles")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "CreateQuantileAccumulator",
+        quantile_accumulator_handle=quantile_accumulator_handle,
+        stamp_token=stamp_token, epsilon=epsilon, num_quantiles=num_quantiles,
+        container=container, shared_name=shared_name,
+        max_elements=max_elements, generate_quantiles=generate_quantiles,
+        name=name)
+    return _op
+    _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "CreateQuantileAccumulator", name,
+        _ctx._post_execution_callbacks, quantile_accumulator_handle,
+        stamp_token, "container", container, "shared_name", shared_name,
+        "max_elements", max_elements, "epsilon", epsilon, "num_quantiles",
+        num_quantiles, "generate_quantiles", generate_quantiles)
+      return _result
+    except _core._FallbackException:
+      return create_quantile_accumulator_eager_fallback(
+          quantile_accumulator_handle, stamp_token, container=container,
+          shared_name=shared_name, max_elements=max_elements, epsilon=epsilon,
+          num_quantiles=num_quantiles, generate_quantiles=generate_quantiles,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def create_quantile_accumulator_eager_fallback(quantile_accumulator_handle, stamp_token, epsilon, num_quantiles, container="", shared_name="", max_elements=1099511627776, generate_quantiles=False, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function create_quantile_accumulator
+  """
+  _ctx = _context.context()
   epsilon = _execute.make_float(epsilon, "epsilon")
   num_quantiles = _execute.make_int(num_quantiles, "num_quantiles")
   if container is None:
@@ -105,26 +190,19 @@ def create_quantile_accumulator(quantile_accumulator_handle, stamp_token, epsilo
   if max_elements is None:
     max_elements = 1099511627776
   max_elements = _execute.make_int(max_elements, "max_elements")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "CreateQuantileAccumulator",
-        quantile_accumulator_handle=quantile_accumulator_handle,
-        stamp_token=stamp_token, epsilon=epsilon, num_quantiles=num_quantiles,
-        container=container, shared_name=shared_name,
-        max_elements=max_elements, name=name)
-    return _op
-  else:
-    quantile_accumulator_handle = _ops.convert_to_tensor(quantile_accumulator_handle, _dtypes.resource)
-    stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
-    _inputs_flat = [quantile_accumulator_handle, stamp_token]
-    _attrs = ("container", container, "shared_name", shared_name,
-              "max_elements", max_elements, "epsilon", epsilon,
-              "num_quantiles", num_quantiles)
-    _result = _execute.execute(b"CreateQuantileAccumulator", 0,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
-    _result = None
+  if generate_quantiles is None:
+    generate_quantiles = False
+  generate_quantiles = _execute.make_bool(generate_quantiles, "generate_quantiles")
+  quantile_accumulator_handle = _ops.convert_to_tensor(quantile_accumulator_handle, _dtypes.resource)
+  stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
+  _inputs_flat = [quantile_accumulator_handle, stamp_token]
+  _attrs = ("container", container, "shared_name", shared_name,
+  "max_elements", max_elements, "epsilon", epsilon, "num_quantiles",
+  num_quantiles, "generate_quantiles", generate_quantiles)
+  _result = _execute.execute(b"CreateQuantileAccumulator", 0,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("CreateQuantileAccumulator")(None)
@@ -135,7 +213,7 @@ _MakeQuantileSummariesOutput = _collections.namedtuple(
     "MakeQuantileSummaries", _make_quantile_summaries_outputs)
 
 
-@tf_export('MakeQuantileSummaries')
+@tf_export('make_quantile_summaries')
 def make_quantile_summaries(dense_float_features, sparse_float_feature_indices, sparse_float_feature_values, sparse_float_feature_shapes, example_weights, epsilon, name=None):
   r"""Creates a summary for the given features.
 
@@ -163,6 +241,82 @@ def make_quantile_summaries(dense_float_features, sparse_float_feature_indices, 
     dense_summaries: A list with the same length as `dense_float_features` of `Tensor` objects with type `string`. A list of serialized QuantileSummaryState for dense columns.
     sparse_summaries: A list with the same length as `sparse_float_feature_indices` of `Tensor` objects with type `string`. A list of serialized QuantileSummaryState for sparse columns.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(dense_float_features, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dense_float_features' argument to "
+          "'make_quantile_summaries' Op, not %r." % dense_float_features)
+    _attr_num_dense_features = len(dense_float_features)
+    if not isinstance(sparse_float_feature_indices, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'sparse_float_feature_indices' argument to "
+          "'make_quantile_summaries' Op, not %r." % sparse_float_feature_indices)
+    _attr_num_sparse_features = len(sparse_float_feature_indices)
+    if not isinstance(sparse_float_feature_values, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'sparse_float_feature_values' argument to "
+          "'make_quantile_summaries' Op, not %r." % sparse_float_feature_values)
+    if len(sparse_float_feature_values) != _attr_num_sparse_features:
+      raise ValueError(
+          "List argument 'sparse_float_feature_values' to 'make_quantile_summaries' Op with length %d "
+          "must match length %d of argument 'sparse_float_feature_indices'." %
+          (len(sparse_float_feature_values), _attr_num_sparse_features))
+    if not isinstance(sparse_float_feature_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'sparse_float_feature_shapes' argument to "
+          "'make_quantile_summaries' Op, not %r." % sparse_float_feature_shapes)
+    if len(sparse_float_feature_shapes) != _attr_num_sparse_features:
+      raise ValueError(
+          "List argument 'sparse_float_feature_shapes' to 'make_quantile_summaries' Op with length %d "
+          "must match length %d of argument 'sparse_float_feature_indices'." %
+          (len(sparse_float_feature_shapes), _attr_num_sparse_features))
+    epsilon = _execute.make_float(epsilon, "epsilon")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "MakeQuantileSummaries", dense_float_features=dense_float_features,
+        sparse_float_feature_indices=sparse_float_feature_indices,
+        sparse_float_feature_values=sparse_float_feature_values,
+        sparse_float_feature_shapes=sparse_float_feature_shapes,
+        example_weights=example_weights, epsilon=epsilon, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("num_dense_features", _op.get_attr("num_dense_features"),
+              "num_sparse_features", _op.get_attr("num_sparse_features"),
+              "epsilon", _op.get_attr("epsilon"))
+    _execute.record_gradient(
+      "MakeQuantileSummaries", _inputs_flat, _attrs, _result, name)
+    _result = [_result[:_attr_num_dense_features]] + _result[_attr_num_dense_features:]
+    _result = _result[:1] + [_result[1:]]
+    _result = _MakeQuantileSummariesOutput._make(_result)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "MakeQuantileSummaries", name,
+        _ctx._post_execution_callbacks, dense_float_features,
+        sparse_float_feature_indices, sparse_float_feature_values,
+        sparse_float_feature_shapes, example_weights, "epsilon", epsilon)
+      _result = _MakeQuantileSummariesOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return make_quantile_summaries_eager_fallback(
+          dense_float_features, sparse_float_feature_indices,
+          sparse_float_feature_values, sparse_float_feature_shapes,
+          example_weights, epsilon=epsilon, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def make_quantile_summaries_eager_fallback(dense_float_features, sparse_float_feature_indices, sparse_float_feature_values, sparse_float_feature_shapes, example_weights, epsilon, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function make_quantile_summaries
+  """
+  _ctx = _context.context()
   if not isinstance(dense_float_features, (list, tuple)):
     raise TypeError(
         "Expected list for 'dense_float_features' argument to "
@@ -192,33 +346,18 @@ def make_quantile_summaries(dense_float_features, sparse_float_feature_indices, 
         "must match length %d of argument 'sparse_float_feature_indices'." %
         (len(sparse_float_feature_shapes), _attr_num_sparse_features))
   epsilon = _execute.make_float(epsilon, "epsilon")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "MakeQuantileSummaries", dense_float_features=dense_float_features,
-        sparse_float_feature_indices=sparse_float_feature_indices,
-        sparse_float_feature_values=sparse_float_feature_values,
-        sparse_float_feature_shapes=sparse_float_feature_shapes,
-        example_weights=example_weights, epsilon=epsilon, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("num_dense_features", _op.get_attr("num_dense_features"),
-              "num_sparse_features", _op.get_attr("num_sparse_features"),
-              "epsilon", _op.get_attr("epsilon"))
-  else:
-    dense_float_features = _ops.convert_n_to_tensor(dense_float_features, _dtypes.float32)
-    sparse_float_feature_indices = _ops.convert_n_to_tensor(sparse_float_feature_indices, _dtypes.int64)
-    sparse_float_feature_values = _ops.convert_n_to_tensor(sparse_float_feature_values, _dtypes.float32)
-    sparse_float_feature_shapes = _ops.convert_n_to_tensor(sparse_float_feature_shapes, _dtypes.int64)
-    example_weights = _ops.convert_to_tensor(example_weights, _dtypes.float32)
-    _inputs_flat = list(dense_float_features) + list(sparse_float_feature_indices) + list(sparse_float_feature_values) + list(sparse_float_feature_shapes) + [example_weights]
-    _attrs = ("num_dense_features", _attr_num_dense_features,
-              "num_sparse_features", _attr_num_sparse_features, "epsilon",
-              epsilon)
-    _result = _execute.execute(b"MakeQuantileSummaries",
-                               _attr_num_dense_features +
-                               _attr_num_sparse_features, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  dense_float_features = _ops.convert_n_to_tensor(dense_float_features, _dtypes.float32)
+  sparse_float_feature_indices = _ops.convert_n_to_tensor(sparse_float_feature_indices, _dtypes.int64)
+  sparse_float_feature_values = _ops.convert_n_to_tensor(sparse_float_feature_values, _dtypes.float32)
+  sparse_float_feature_shapes = _ops.convert_n_to_tensor(sparse_float_feature_shapes, _dtypes.int64)
+  example_weights = _ops.convert_to_tensor(example_weights, _dtypes.float32)
+  _inputs_flat = list(dense_float_features) + list(sparse_float_feature_indices) + list(sparse_float_feature_values) + list(sparse_float_feature_shapes) + [example_weights]
+  _attrs = ("num_dense_features", _attr_num_dense_features,
+  "num_sparse_features", _attr_num_sparse_features, "epsilon", epsilon)
+  _result = _execute.execute(b"MakeQuantileSummaries",
+                             _attr_num_dense_features +
+                             _attr_num_sparse_features, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "MakeQuantileSummaries", _inputs_flat, _attrs, _result, name)
   _result = [_result[:_attr_num_dense_features]] + _result[_attr_num_dense_features:]
@@ -229,7 +368,7 @@ def make_quantile_summaries(dense_float_features, sparse_float_feature_indices, 
 _ops.RegisterShape("MakeQuantileSummaries")(None)
 
 
-@tf_export('QuantileAccumulatorAddSummaries')
+@tf_export('quantile_accumulator_add_summaries')
 def quantile_accumulator_add_summaries(quantile_accumulator_handles, stamp_token, summaries, name=None):
   r"""Adds each quantile summary to its stream.
 
@@ -245,6 +384,53 @@ def quantile_accumulator_add_summaries(quantile_accumulator_handles, stamp_token
   Returns:
     The created Operation.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(quantile_accumulator_handles, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'quantile_accumulator_handles' argument to "
+          "'quantile_accumulator_add_summaries' Op, not %r." % quantile_accumulator_handles)
+    _attr_num_resource_handles = len(quantile_accumulator_handles)
+    if not isinstance(summaries, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'summaries' argument to "
+          "'quantile_accumulator_add_summaries' Op, not %r." % summaries)
+    if len(summaries) != _attr_num_resource_handles:
+      raise ValueError(
+          "List argument 'summaries' to 'quantile_accumulator_add_summaries' Op with length %d "
+          "must match length %d of argument 'quantile_accumulator_handles'." %
+          (len(summaries), _attr_num_resource_handles))
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "QuantileAccumulatorAddSummaries",
+        quantile_accumulator_handles=quantile_accumulator_handles,
+        stamp_token=stamp_token, summaries=summaries, name=name)
+    return _op
+    _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "QuantileAccumulatorAddSummaries",
+        name, _ctx._post_execution_callbacks, quantile_accumulator_handles,
+        stamp_token, summaries)
+      return _result
+    except _core._FallbackException:
+      return quantile_accumulator_add_summaries_eager_fallback(
+          quantile_accumulator_handles, stamp_token, summaries, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def quantile_accumulator_add_summaries_eager_fallback(quantile_accumulator_handles, stamp_token, summaries, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function quantile_accumulator_add_summaries
+  """
+  _ctx = _context.context()
   if not isinstance(quantile_accumulator_handles, (list, tuple)):
     raise TypeError(
         "Expected list for 'quantile_accumulator_handles' argument to "
@@ -259,29 +445,21 @@ def quantile_accumulator_add_summaries(quantile_accumulator_handles, stamp_token
         "List argument 'summaries' to 'quantile_accumulator_add_summaries' Op with length %d "
         "must match length %d of argument 'quantile_accumulator_handles'." %
         (len(summaries), _attr_num_resource_handles))
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "QuantileAccumulatorAddSummaries",
-        quantile_accumulator_handles=quantile_accumulator_handles,
-        stamp_token=stamp_token, summaries=summaries, name=name)
-    return _op
-  else:
-    quantile_accumulator_handles = _ops.convert_n_to_tensor(quantile_accumulator_handles, _dtypes.resource)
-    stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
-    summaries = _ops.convert_n_to_tensor(summaries, _dtypes.string)
-    _inputs_flat = list(quantile_accumulator_handles) + [stamp_token] + list(summaries)
-    _attrs = ("num_resource_handles", _attr_num_resource_handles)
-    _result = _execute.execute(b"QuantileAccumulatorAddSummaries", 0,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
-    _result = None
+  quantile_accumulator_handles = _ops.convert_n_to_tensor(quantile_accumulator_handles, _dtypes.resource)
+  stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
+  summaries = _ops.convert_n_to_tensor(summaries, _dtypes.string)
+  _inputs_flat = list(quantile_accumulator_handles) + [stamp_token] + list(summaries)
+  _attrs = ("num_resource_handles", _attr_num_resource_handles)
+  _result = _execute.execute(b"QuantileAccumulatorAddSummaries", 0,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("QuantileAccumulatorAddSummaries")(None)
 
 
-@tf_export('QuantileAccumulatorDeserialize')
+@tf_export('quantile_accumulator_deserialize')
 def quantile_accumulator_deserialize(quantile_accumulator_handle, stamp_token, stream_state, are_buckets_ready, buckets, name=None):
   r"""Serializes the state of the given resource.
 
@@ -304,31 +482,57 @@ def quantile_accumulator_deserialize(quantile_accumulator_handle, stamp_token, s
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "QuantileAccumulatorDeserialize",
         quantile_accumulator_handle=quantile_accumulator_handle,
         stamp_token=stamp_token, stream_state=stream_state,
         are_buckets_ready=are_buckets_ready, buckets=buckets, name=name)
     return _op
-  else:
-    quantile_accumulator_handle = _ops.convert_to_tensor(quantile_accumulator_handle, _dtypes.resource)
-    stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
-    stream_state = _ops.convert_to_tensor(stream_state, _dtypes.string)
-    are_buckets_ready = _ops.convert_to_tensor(are_buckets_ready, _dtypes.bool)
-    buckets = _ops.convert_to_tensor(buckets, _dtypes.float32)
-    _inputs_flat = [quantile_accumulator_handle, stamp_token, stream_state, are_buckets_ready, buckets]
-    _attrs = None
-    _result = _execute.execute(b"QuantileAccumulatorDeserialize", 0,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "QuantileAccumulatorDeserialize",
+        name, _ctx._post_execution_callbacks, quantile_accumulator_handle,
+        stamp_token, stream_state, are_buckets_ready, buckets)
+      return _result
+    except _core._FallbackException:
+      return quantile_accumulator_deserialize_eager_fallback(
+          quantile_accumulator_handle, stamp_token, stream_state,
+          are_buckets_ready, buckets, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def quantile_accumulator_deserialize_eager_fallback(quantile_accumulator_handle, stamp_token, stream_state, are_buckets_ready, buckets, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function quantile_accumulator_deserialize
+  """
+  _ctx = _context.context()
+  quantile_accumulator_handle = _ops.convert_to_tensor(quantile_accumulator_handle, _dtypes.resource)
+  stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
+  stream_state = _ops.convert_to_tensor(stream_state, _dtypes.string)
+  are_buckets_ready = _ops.convert_to_tensor(are_buckets_ready, _dtypes.bool)
+  buckets = _ops.convert_to_tensor(buckets, _dtypes.float32)
+  _inputs_flat = [quantile_accumulator_handle, stamp_token, stream_state, are_buckets_ready, buckets]
+  _attrs = None
+  _result = _execute.execute(b"QuantileAccumulatorDeserialize", 0,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("QuantileAccumulatorDeserialize")(None)
 
 
-@tf_export('QuantileAccumulatorFlush')
+@tf_export('quantile_accumulator_flush')
 def quantile_accumulator_flush(quantile_accumulator_handle, stamp_token, next_stamp_token, name=None):
   r"""Resets quantile summary streams for each column with a new token.
 
@@ -346,28 +550,54 @@ def quantile_accumulator_flush(quantile_accumulator_handle, stamp_token, next_st
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "QuantileAccumulatorFlush",
         quantile_accumulator_handle=quantile_accumulator_handle,
         stamp_token=stamp_token, next_stamp_token=next_stamp_token, name=name)
     return _op
-  else:
-    quantile_accumulator_handle = _ops.convert_to_tensor(quantile_accumulator_handle, _dtypes.resource)
-    stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
-    next_stamp_token = _ops.convert_to_tensor(next_stamp_token, _dtypes.int64)
-    _inputs_flat = [quantile_accumulator_handle, stamp_token, next_stamp_token]
-    _attrs = None
-    _result = _execute.execute(b"QuantileAccumulatorFlush", 0,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "QuantileAccumulatorFlush", name,
+        _ctx._post_execution_callbacks, quantile_accumulator_handle,
+        stamp_token, next_stamp_token)
+      return _result
+    except _core._FallbackException:
+      return quantile_accumulator_flush_eager_fallback(
+          quantile_accumulator_handle, stamp_token, next_stamp_token,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def quantile_accumulator_flush_eager_fallback(quantile_accumulator_handle, stamp_token, next_stamp_token, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function quantile_accumulator_flush
+  """
+  _ctx = _context.context()
+  quantile_accumulator_handle = _ops.convert_to_tensor(quantile_accumulator_handle, _dtypes.resource)
+  stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
+  next_stamp_token = _ops.convert_to_tensor(next_stamp_token, _dtypes.int64)
+  _inputs_flat = [quantile_accumulator_handle, stamp_token, next_stamp_token]
+  _attrs = None
+  _result = _execute.execute(b"QuantileAccumulatorFlush", 0,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("QuantileAccumulatorFlush")(None)
 
 
-@tf_export('QuantileAccumulatorFlushSummary')
+@tf_export('quantile_accumulator_flush_summary')
 def quantile_accumulator_flush_summary(quantile_accumulator_handle, stamp_token, next_stamp_token, name=None):
   r"""Resets quantile summary stream and returns the summary.
 
@@ -386,7 +616,7 @@ def quantile_accumulator_flush_summary(quantile_accumulator_handle, stamp_token,
     A scalar string that is the a summary of the accumulator.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "QuantileAccumulatorFlushSummary",
         quantile_accumulator_handle=quantile_accumulator_handle,
@@ -394,15 +624,43 @@ def quantile_accumulator_flush_summary(quantile_accumulator_handle, stamp_token,
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "QuantileAccumulatorFlushSummary", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    quantile_accumulator_handle = _ops.convert_to_tensor(quantile_accumulator_handle, _dtypes.resource)
-    stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
-    next_stamp_token = _ops.convert_to_tensor(next_stamp_token, _dtypes.int64)
-    _inputs_flat = [quantile_accumulator_handle, stamp_token, next_stamp_token]
-    _attrs = None
-    _result = _execute.execute(b"QuantileAccumulatorFlushSummary", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "QuantileAccumulatorFlushSummary",
+        name, _ctx._post_execution_callbacks, quantile_accumulator_handle,
+        stamp_token, next_stamp_token)
+      return _result
+    except _core._FallbackException:
+      return quantile_accumulator_flush_summary_eager_fallback(
+          quantile_accumulator_handle, stamp_token, next_stamp_token,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def quantile_accumulator_flush_summary_eager_fallback(quantile_accumulator_handle, stamp_token, next_stamp_token, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function quantile_accumulator_flush_summary
+  """
+  _ctx = _context.context()
+  quantile_accumulator_handle = _ops.convert_to_tensor(quantile_accumulator_handle, _dtypes.resource)
+  stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
+  next_stamp_token = _ops.convert_to_tensor(next_stamp_token, _dtypes.int64)
+  _inputs_flat = [quantile_accumulator_handle, stamp_token, next_stamp_token]
+  _attrs = None
+  _result = _execute.execute(b"QuantileAccumulatorFlushSummary", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "QuantileAccumulatorFlushSummary", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -417,7 +675,7 @@ _QuantileAccumulatorGetBucketsOutput = _collections.namedtuple(
     _quantile_accumulator_get_buckets_outputs)
 
 
-@tf_export('QuantileAccumulatorGetBuckets')
+@tf_export('quantile_accumulator_get_buckets')
 def quantile_accumulator_get_buckets(quantile_accumulator_handles, stamp_token, name=None):
   r"""Returns quantile buckets created during previous flush of the accumulator.
 
@@ -435,13 +693,13 @@ def quantile_accumulator_get_buckets(quantile_accumulator_handles, stamp_token, 
     buckets: A list with the same length as `quantile_accumulator_handles` of `Tensor` objects with type `float32`. Output quantile summary representing boundaries with "num_quantile"
       elements.
   """
-  if not isinstance(quantile_accumulator_handles, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'quantile_accumulator_handles' argument to "
-        "'quantile_accumulator_get_buckets' Op, not %r." % quantile_accumulator_handles)
-  _attr_num_resource_handles = len(quantile_accumulator_handles)
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(quantile_accumulator_handles, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'quantile_accumulator_handles' argument to "
+          "'quantile_accumulator_get_buckets' Op, not %r." % quantile_accumulator_handles)
+    _attr_num_resource_handles = len(quantile_accumulator_handles)
     _, _, _op = _op_def_lib._apply_op_helper(
         "QuantileAccumulatorGetBuckets",
         quantile_accumulator_handles=quantile_accumulator_handles,
@@ -449,16 +707,50 @@ def quantile_accumulator_get_buckets(quantile_accumulator_handles, stamp_token, 
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("num_resource_handles", _op.get_attr("num_resource_handles"))
+    _execute.record_gradient(
+      "QuantileAccumulatorGetBuckets", _inputs_flat, _attrs, _result, name)
+    _result = [_result[:_attr_num_resource_handles]] + _result[_attr_num_resource_handles:]
+    _result = _result[:1] + [_result[1:]]
+    _result = _QuantileAccumulatorGetBucketsOutput._make(_result)
+    return _result
+
   else:
-    quantile_accumulator_handles = _ops.convert_n_to_tensor(quantile_accumulator_handles, _dtypes.resource)
-    stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
-    _inputs_flat = list(quantile_accumulator_handles) + [stamp_token]
-    _attrs = ("num_resource_handles", _attr_num_resource_handles)
-    _result = _execute.execute(b"QuantileAccumulatorGetBuckets",
-                               _attr_num_resource_handles +
-                               _attr_num_resource_handles,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "QuantileAccumulatorGetBuckets", name,
+        _ctx._post_execution_callbacks, quantile_accumulator_handles,
+        stamp_token)
+      _result = _QuantileAccumulatorGetBucketsOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return quantile_accumulator_get_buckets_eager_fallback(
+          quantile_accumulator_handles, stamp_token, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def quantile_accumulator_get_buckets_eager_fallback(quantile_accumulator_handles, stamp_token, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function quantile_accumulator_get_buckets
+  """
+  _ctx = _context.context()
+  if not isinstance(quantile_accumulator_handles, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'quantile_accumulator_handles' argument to "
+        "'quantile_accumulator_get_buckets' Op, not %r." % quantile_accumulator_handles)
+  _attr_num_resource_handles = len(quantile_accumulator_handles)
+  quantile_accumulator_handles = _ops.convert_n_to_tensor(quantile_accumulator_handles, _dtypes.resource)
+  stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
+  _inputs_flat = list(quantile_accumulator_handles) + [stamp_token]
+  _attrs = ("num_resource_handles", _attr_num_resource_handles)
+  _result = _execute.execute(b"QuantileAccumulatorGetBuckets",
+                             _attr_num_resource_handles +
+                             _attr_num_resource_handles, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "QuantileAccumulatorGetBuckets", _inputs_flat, _attrs, _result, name)
   _result = [_result[:_attr_num_resource_handles]] + _result[_attr_num_resource_handles:]
@@ -469,7 +761,7 @@ def quantile_accumulator_get_buckets(quantile_accumulator_handles, stamp_token, 
 _ops.RegisterShape("QuantileAccumulatorGetBuckets")(None)
 
 
-@tf_export('QuantileAccumulatorIsInitialized')
+@tf_export('quantile_accumulator_is_initialized')
 def quantile_accumulator_is_initialized(quantile_accumulator_handle, name=None):
   r"""Checks whether a quantile accumulator has been initialized.
 
@@ -481,20 +773,46 @@ def quantile_accumulator_is_initialized(quantile_accumulator_handle, name=None):
     A `Tensor` of type `bool`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "QuantileAccumulatorIsInitialized",
         quantile_accumulator_handle=quantile_accumulator_handle, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "QuantileAccumulatorIsInitialized", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    quantile_accumulator_handle = _ops.convert_to_tensor(quantile_accumulator_handle, _dtypes.resource)
-    _inputs_flat = [quantile_accumulator_handle]
-    _attrs = None
-    _result = _execute.execute(b"QuantileAccumulatorIsInitialized", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "QuantileAccumulatorIsInitialized",
+        name, _ctx._post_execution_callbacks, quantile_accumulator_handle)
+      return _result
+    except _core._FallbackException:
+      return quantile_accumulator_is_initialized_eager_fallback(
+          quantile_accumulator_handle, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def quantile_accumulator_is_initialized_eager_fallback(quantile_accumulator_handle, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function quantile_accumulator_is_initialized
+  """
+  _ctx = _context.context()
+  quantile_accumulator_handle = _ops.convert_to_tensor(quantile_accumulator_handle, _dtypes.resource)
+  _inputs_flat = [quantile_accumulator_handle]
+  _attrs = None
+  _result = _execute.execute(b"QuantileAccumulatorIsInitialized", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "QuantileAccumulatorIsInitialized", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -509,7 +827,7 @@ _QuantileAccumulatorSerializeOutput = _collections.namedtuple(
     "QuantileAccumulatorSerialize", _quantile_accumulator_serialize_outputs)
 
 
-@tf_export('QuantileAccumulatorSerialize')
+@tf_export('quantile_accumulator_serialize')
 def quantile_accumulator_serialize(quantile_accumulator_handle, name=None):
   r"""Serializes the state of the given resource.
 
@@ -529,20 +847,47 @@ def quantile_accumulator_serialize(quantile_accumulator_handle, name=None):
       elements.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "QuantileAccumulatorSerialize",
         quantile_accumulator_handle=quantile_accumulator_handle, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "QuantileAccumulatorSerialize", _inputs_flat, _attrs, _result, name)
+    _result = _QuantileAccumulatorSerializeOutput._make(_result)
+    return _result
+
   else:
-    quantile_accumulator_handle = _ops.convert_to_tensor(quantile_accumulator_handle, _dtypes.resource)
-    _inputs_flat = [quantile_accumulator_handle]
-    _attrs = None
-    _result = _execute.execute(b"QuantileAccumulatorSerialize", 4,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "QuantileAccumulatorSerialize", name,
+        _ctx._post_execution_callbacks, quantile_accumulator_handle)
+      _result = _QuantileAccumulatorSerializeOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return quantile_accumulator_serialize_eager_fallback(
+          quantile_accumulator_handle, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def quantile_accumulator_serialize_eager_fallback(quantile_accumulator_handle, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function quantile_accumulator_serialize
+  """
+  _ctx = _context.context()
+  quantile_accumulator_handle = _ops.convert_to_tensor(quantile_accumulator_handle, _dtypes.resource)
+  _inputs_flat = [quantile_accumulator_handle]
+  _attrs = None
+  _result = _execute.execute(b"QuantileAccumulatorSerialize", 4,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "QuantileAccumulatorSerialize", _inputs_flat, _attrs, _result, name)
   _result = _QuantileAccumulatorSerializeOutput._make(_result)
@@ -556,7 +901,7 @@ _QuantileBucketsOutput = _collections.namedtuple(
     "QuantileBuckets", _quantile_buckets_outputs)
 
 
-@tf_export('QuantileBuckets')
+@tf_export('quantile_buckets')
 def quantile_buckets(dense_float_features, sparse_float_feature_indices, sparse_float_feature_values, sparse_float_feature_shapes, example_weights, dense_config, sparse_config, name=None):
   r"""Computes quantile buckets for a given list of dense and sparse features with
 
@@ -592,6 +937,95 @@ def quantile_buckets(dense_float_features, sparse_float_feature_indices, sparse_
     sparse_buckets: A list with the same length as `sparse_float_feature_indices` of `Tensor` objects with type `float32`. Output quantile summary for each sparse float value tensor
       representing boundaries each with "num_quantile" elements.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(dense_float_features, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dense_float_features' argument to "
+          "'quantile_buckets' Op, not %r." % dense_float_features)
+    _attr_num_dense_features = len(dense_float_features)
+    if not isinstance(sparse_float_feature_indices, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'sparse_float_feature_indices' argument to "
+          "'quantile_buckets' Op, not %r." % sparse_float_feature_indices)
+    _attr_num_sparse_features = len(sparse_float_feature_indices)
+    if not isinstance(sparse_float_feature_values, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'sparse_float_feature_values' argument to "
+          "'quantile_buckets' Op, not %r." % sparse_float_feature_values)
+    if len(sparse_float_feature_values) != _attr_num_sparse_features:
+      raise ValueError(
+          "List argument 'sparse_float_feature_values' to 'quantile_buckets' Op with length %d "
+          "must match length %d of argument 'sparse_float_feature_indices'." %
+          (len(sparse_float_feature_values), _attr_num_sparse_features))
+    if not isinstance(sparse_float_feature_shapes, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'sparse_float_feature_shapes' argument to "
+          "'quantile_buckets' Op, not %r." % sparse_float_feature_shapes)
+    if len(sparse_float_feature_shapes) != _attr_num_sparse_features:
+      raise ValueError(
+          "List argument 'sparse_float_feature_shapes' to 'quantile_buckets' Op with length %d "
+          "must match length %d of argument 'sparse_float_feature_indices'." %
+          (len(sparse_float_feature_shapes), _attr_num_sparse_features))
+    if not isinstance(dense_config, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dense_config' argument to "
+          "'quantile_buckets' Op, not %r." % dense_config)
+    dense_config = [_execute.make_str(_s, "dense_config") for _s in dense_config]
+    if not isinstance(sparse_config, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'sparse_config' argument to "
+          "'quantile_buckets' Op, not %r." % sparse_config)
+    sparse_config = [_execute.make_str(_s, "sparse_config") for _s in sparse_config]
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "QuantileBuckets", dense_float_features=dense_float_features,
+        sparse_float_feature_indices=sparse_float_feature_indices,
+        sparse_float_feature_values=sparse_float_feature_values,
+        sparse_float_feature_shapes=sparse_float_feature_shapes,
+        example_weights=example_weights, dense_config=dense_config,
+        sparse_config=sparse_config, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("num_dense_features", _op.get_attr("num_dense_features"),
+              "num_sparse_features", _op.get_attr("num_sparse_features"),
+              "dense_config", _op.get_attr("dense_config"), "sparse_config",
+              _op.get_attr("sparse_config"))
+    _execute.record_gradient(
+      "QuantileBuckets", _inputs_flat, _attrs, _result, name)
+    _result = [_result[:_attr_num_dense_features]] + _result[_attr_num_dense_features:]
+    _result = _result[:1] + [_result[1:]]
+    _result = _QuantileBucketsOutput._make(_result)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "QuantileBuckets", name,
+        _ctx._post_execution_callbacks, dense_float_features,
+        sparse_float_feature_indices, sparse_float_feature_values,
+        sparse_float_feature_shapes, example_weights, "dense_config",
+        dense_config, "sparse_config", sparse_config)
+      _result = _QuantileBucketsOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return quantile_buckets_eager_fallback(
+          dense_float_features, sparse_float_feature_indices,
+          sparse_float_feature_values, sparse_float_feature_shapes,
+          example_weights, dense_config=dense_config,
+          sparse_config=sparse_config, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def quantile_buckets_eager_fallback(dense_float_features, sparse_float_feature_indices, sparse_float_feature_values, sparse_float_feature_shapes, example_weights, dense_config, sparse_config, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function quantile_buckets
+  """
+  _ctx = _context.context()
   if not isinstance(dense_float_features, (list, tuple)):
     raise TypeError(
         "Expected list for 'dense_float_features' argument to "
@@ -630,34 +1064,18 @@ def quantile_buckets(dense_float_features, sparse_float_feature_indices, sparse_
         "Expected list for 'sparse_config' argument to "
         "'quantile_buckets' Op, not %r." % sparse_config)
   sparse_config = [_execute.make_str(_s, "sparse_config") for _s in sparse_config]
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "QuantileBuckets", dense_float_features=dense_float_features,
-        sparse_float_feature_indices=sparse_float_feature_indices,
-        sparse_float_feature_values=sparse_float_feature_values,
-        sparse_float_feature_shapes=sparse_float_feature_shapes,
-        example_weights=example_weights, dense_config=dense_config,
-        sparse_config=sparse_config, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("num_dense_features", _op.get_attr("num_dense_features"),
-              "num_sparse_features", _op.get_attr("num_sparse_features"),
-              "dense_config", _op.get_attr("dense_config"), "sparse_config",
-              _op.get_attr("sparse_config"))
-  else:
-    dense_float_features = _ops.convert_n_to_tensor(dense_float_features, _dtypes.float32)
-    sparse_float_feature_indices = _ops.convert_n_to_tensor(sparse_float_feature_indices, _dtypes.int64)
-    sparse_float_feature_values = _ops.convert_n_to_tensor(sparse_float_feature_values, _dtypes.float32)
-    sparse_float_feature_shapes = _ops.convert_n_to_tensor(sparse_float_feature_shapes, _dtypes.int64)
-    example_weights = _ops.convert_to_tensor(example_weights, _dtypes.float32)
-    _inputs_flat = list(dense_float_features) + list(sparse_float_feature_indices) + list(sparse_float_feature_values) + list(sparse_float_feature_shapes) + [example_weights]
-    _attrs = ("num_dense_features", _attr_num_dense_features,
-              "num_sparse_features", _attr_num_sparse_features,
-              "dense_config", dense_config, "sparse_config", sparse_config)
-    _result = _execute.execute(b"QuantileBuckets", _attr_num_dense_features +
-                               _attr_num_sparse_features, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  dense_float_features = _ops.convert_n_to_tensor(dense_float_features, _dtypes.float32)
+  sparse_float_feature_indices = _ops.convert_n_to_tensor(sparse_float_feature_indices, _dtypes.int64)
+  sparse_float_feature_values = _ops.convert_n_to_tensor(sparse_float_feature_values, _dtypes.float32)
+  sparse_float_feature_shapes = _ops.convert_n_to_tensor(sparse_float_feature_shapes, _dtypes.int64)
+  example_weights = _ops.convert_to_tensor(example_weights, _dtypes.float32)
+  _inputs_flat = list(dense_float_features) + list(sparse_float_feature_indices) + list(sparse_float_feature_values) + list(sparse_float_feature_shapes) + [example_weights]
+  _attrs = ("num_dense_features", _attr_num_dense_features,
+  "num_sparse_features", _attr_num_sparse_features, "dense_config",
+  dense_config, "sparse_config", sparse_config)
+  _result = _execute.execute(b"QuantileBuckets", _attr_num_dense_features +
+                             _attr_num_sparse_features, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "QuantileBuckets", _inputs_flat, _attrs, _result, name)
   _result = [_result[:_attr_num_dense_features]] + _result[_attr_num_dense_features:]
@@ -668,7 +1086,7 @@ def quantile_buckets(dense_float_features, sparse_float_feature_indices, sparse_
 _ops.RegisterShape("QuantileBuckets")(None)
 
 
-@tf_export('QuantileStreamResourceHandleOp')
+@tf_export('quantile_stream_resource_handle_op')
 def quantile_stream_resource_handle_op(container="", shared_name="", name=None):
   r"""Creates a handle to a QuantileStreamResource
 
@@ -680,14 +1098,14 @@ def quantile_stream_resource_handle_op(container="", shared_name="", name=None):
   Returns:
     A `Tensor` of type `resource`.
   """
-  if container is None:
-    container = ""
-  container = _execute.make_str(container, "container")
-  if shared_name is None:
-    shared_name = ""
-  shared_name = _execute.make_str(shared_name, "shared_name")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
     _, _, _op = _op_def_lib._apply_op_helper(
         "QuantileStreamResourceHandleOp", container=container,
         shared_name=shared_name, name=name)
@@ -695,12 +1113,45 @@ def quantile_stream_resource_handle_op(container="", shared_name="", name=None):
     _inputs_flat = _op.inputs
     _attrs = ("container", _op.get_attr("container"), "shared_name",
               _op.get_attr("shared_name"))
+    _execute.record_gradient(
+      "QuantileStreamResourceHandleOp", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _inputs_flat = []
-    _attrs = ("container", container, "shared_name", shared_name)
-    _result = _execute.execute(b"QuantileStreamResourceHandleOp", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "QuantileStreamResourceHandleOp",
+        name, _ctx._post_execution_callbacks, "container", container,
+        "shared_name", shared_name)
+      return _result
+    except _core._FallbackException:
+      return quantile_stream_resource_handle_op_eager_fallback(
+          container=container, shared_name=shared_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def quantile_stream_resource_handle_op_eager_fallback(container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function quantile_stream_resource_handle_op
+  """
+  _ctx = _context.context()
+  if container is None:
+    container = ""
+  container = _execute.make_str(container, "container")
+  if shared_name is None:
+    shared_name = ""
+  shared_name = _execute.make_str(shared_name, "shared_name")
+  _inputs_flat = []
+  _attrs = ("container", container, "shared_name", shared_name)
+  _result = _execute.execute(b"QuantileStreamResourceHandleOp", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "QuantileStreamResourceHandleOp", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -714,7 +1165,7 @@ _QuantilesOutput = _collections.namedtuple(
     "Quantiles", _quantiles_outputs)
 
 
-@tf_export('Quantiles')
+@tf_export('quantiles')
 def quantiles(dense_values, sparse_values, dense_buckets, sparse_buckets, sparse_indices, name=None):
   r"""Computes quantile for each a given list of dense and sparse feature values using
 
@@ -743,6 +1194,85 @@ def quantiles(dense_values, sparse_values, dense_buckets, sparse_buckets, sparse
       the sparse feature tensors for each of sparse feature dimensions:
       [quantile id, dimension id].
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(dense_values, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dense_values' argument to "
+          "'quantiles' Op, not %r." % dense_values)
+    _attr_num_dense_features = len(dense_values)
+    if not isinstance(dense_buckets, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dense_buckets' argument to "
+          "'quantiles' Op, not %r." % dense_buckets)
+    if len(dense_buckets) != _attr_num_dense_features:
+      raise ValueError(
+          "List argument 'dense_buckets' to 'quantiles' Op with length %d "
+          "must match length %d of argument 'dense_values'." %
+          (len(dense_buckets), _attr_num_dense_features))
+    if not isinstance(sparse_values, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'sparse_values' argument to "
+          "'quantiles' Op, not %r." % sparse_values)
+    _attr_num_sparse_features = len(sparse_values)
+    if not isinstance(sparse_buckets, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'sparse_buckets' argument to "
+          "'quantiles' Op, not %r." % sparse_buckets)
+    if len(sparse_buckets) != _attr_num_sparse_features:
+      raise ValueError(
+          "List argument 'sparse_buckets' to 'quantiles' Op with length %d "
+          "must match length %d of argument 'sparse_values'." %
+          (len(sparse_buckets), _attr_num_sparse_features))
+    if not isinstance(sparse_indices, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'sparse_indices' argument to "
+          "'quantiles' Op, not %r." % sparse_indices)
+    if len(sparse_indices) != _attr_num_sparse_features:
+      raise ValueError(
+          "List argument 'sparse_indices' to 'quantiles' Op with length %d "
+          "must match length %d of argument 'sparse_values'." %
+          (len(sparse_indices), _attr_num_sparse_features))
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "Quantiles", dense_values=dense_values, sparse_values=sparse_values,
+        dense_buckets=dense_buckets, sparse_buckets=sparse_buckets,
+        sparse_indices=sparse_indices, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("num_dense_features", _op.get_attr("num_dense_features"),
+              "num_sparse_features", _op.get_attr("num_sparse_features"))
+    _execute.record_gradient(
+      "Quantiles", _inputs_flat, _attrs, _result, name)
+    _result = [_result[:_attr_num_dense_features]] + _result[_attr_num_dense_features:]
+    _result = _result[:1] + [_result[1:]]
+    _result = _QuantilesOutput._make(_result)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "Quantiles", name,
+        _ctx._post_execution_callbacks, dense_values, sparse_values,
+        dense_buckets, sparse_buckets, sparse_indices)
+      _result = _QuantilesOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return quantiles_eager_fallback(
+          dense_values, sparse_values, dense_buckets, sparse_buckets,
+          sparse_indices, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def quantiles_eager_fallback(dense_values, sparse_values, dense_buckets, sparse_buckets, sparse_indices, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function quantiles
+  """
+  _ctx = _context.context()
   if not isinstance(dense_values, (list, tuple)):
     raise TypeError(
         "Expected list for 'dense_values' argument to "
@@ -780,28 +1310,17 @@ def quantiles(dense_values, sparse_values, dense_buckets, sparse_buckets, sparse
         "List argument 'sparse_indices' to 'quantiles' Op with length %d "
         "must match length %d of argument 'sparse_values'." %
         (len(sparse_indices), _attr_num_sparse_features))
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "Quantiles", dense_values=dense_values, sparse_values=sparse_values,
-        dense_buckets=dense_buckets, sparse_buckets=sparse_buckets,
-        sparse_indices=sparse_indices, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("num_dense_features", _op.get_attr("num_dense_features"),
-              "num_sparse_features", _op.get_attr("num_sparse_features"))
-  else:
-    dense_values = _ops.convert_n_to_tensor(dense_values, _dtypes.float32)
-    sparse_values = _ops.convert_n_to_tensor(sparse_values, _dtypes.float32)
-    dense_buckets = _ops.convert_n_to_tensor(dense_buckets, _dtypes.float32)
-    sparse_buckets = _ops.convert_n_to_tensor(sparse_buckets, _dtypes.float32)
-    sparse_indices = _ops.convert_n_to_tensor(sparse_indices, _dtypes.int64)
-    _inputs_flat = list(dense_values) + list(sparse_values) + list(dense_buckets) + list(sparse_buckets) + list(sparse_indices)
-    _attrs = ("num_dense_features", _attr_num_dense_features,
-              "num_sparse_features", _attr_num_sparse_features)
-    _result = _execute.execute(b"Quantiles", _attr_num_dense_features +
-                               _attr_num_sparse_features, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  dense_values = _ops.convert_n_to_tensor(dense_values, _dtypes.float32)
+  sparse_values = _ops.convert_n_to_tensor(sparse_values, _dtypes.float32)
+  dense_buckets = _ops.convert_n_to_tensor(dense_buckets, _dtypes.float32)
+  sparse_buckets = _ops.convert_n_to_tensor(sparse_buckets, _dtypes.float32)
+  sparse_indices = _ops.convert_n_to_tensor(sparse_indices, _dtypes.int64)
+  _inputs_flat = list(dense_values) + list(sparse_values) + list(dense_buckets) + list(sparse_buckets) + list(sparse_indices)
+  _attrs = ("num_dense_features", _attr_num_dense_features,
+  "num_sparse_features", _attr_num_sparse_features)
+  _result = _execute.execute(b"Quantiles", _attr_num_dense_features +
+                             _attr_num_sparse_features, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "Quantiles", _inputs_flat, _attrs, _result, name)
   _result = [_result[:_attr_num_dense_features]] + _result[_attr_num_dense_features:]
@@ -883,6 +1402,13 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #   attr {
 #     name: "num_quantiles"
 #     type: "int"
+#   }
+#   attr {
+#     name: "generate_quantiles"
+#     type: "bool"
+#     default_value {
+#       b: false
+#     }
 #   }
 #   is_stateful: true
 # }
@@ -1211,4 +1737,4 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     has_minimum: true
 #   }
 # }
-_op_def_lib = _InitOpDefLibrary(b"\n[\n\034BucketizeWithInputBoundaries\022\n\n\005input\"\001T\022\016\n\nboundaries\030\001\032\n\n\006output\030\003\"\023\n\001T\022\004type:\010\n\0062\004\003\t\001\002\n\312\001\n\031CreateQuantileAccumulator\022\037\n\033quantile_accumulator_handle\030\024\022\017\n\013stamp_token\030\t\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\"\034\n\014max_elements\022\003int\032\007\030\200\200\200\200\200 \"\020\n\007epsilon\022\005float\"\024\n\rnum_quantiles\022\003int\210\001\001\n\236\003\n\025MakeQuantileSummaries\022,\n\024dense_float_features\030\001*\022num_dense_features\0225\n\034sparse_float_feature_indices\030\t*\023num_sparse_features\0224\n\033sparse_float_feature_values\030\001*\023num_sparse_features\0224\n\033sparse_float_feature_shapes\030\t*\023num_sparse_features\022\023\n\017example_weights\030\001\032\'\n\017dense_summaries\030\007*\022num_dense_features\032)\n\020sparse_summaries\030\007*\023num_sparse_features\"\033\n\022num_dense_features\022\003int(\001\"\034\n\023num_sparse_features\022\003int(\001\"\020\n\007epsilon\022\005float\n\263\001\n\037QuantileAccumulatorAddSummaries\0226\n\034quantile_accumulator_handles\030\024*\024num_resource_handles\022\017\n\013stamp_token\030\t\022#\n\tsummaries\030\007*\024num_resource_handles\"\037\n\024num_resource_handles\022\003int(\0010\001\210\001\001\n\213\001\n\036QuantileAccumulatorDeserialize\022\037\n\033quantile_accumulator_handle\030\024\022\017\n\013stamp_token\030\t\022\020\n\014stream_state\030\007\022\025\n\021are_buckets_ready\030\n\022\013\n\007buckets\030\001\210\001\001\ne\n\030QuantileAccumulatorFlush\022\037\n\033quantile_accumulator_handle\030\024\022\017\n\013stamp_token\030\t\022\024\n\020next_stamp_token\030\t\210\001\001\nx\n\037QuantileAccumulatorFlushSummary\022\037\n\033quantile_accumulator_handle\030\024\022\017\n\013stamp_token\030\t\022\024\n\020next_stamp_token\030\t\032\n\n\006output\030\007\210\001\001\n\334\001\n\035QuantileAccumulatorGetBuckets\0226\n\034quantile_accumulator_handles\030\024*\024num_resource_handles\022\017\n\013stamp_token\030\t\032+\n\021are_buckets_ready\030\n*\024num_resource_handles\032!\n\007buckets\030\001*\024num_resource_handles\"\037\n\024num_resource_handles\022\003int(\0010\001\210\001\001\nZ\n QuantileAccumulatorIsInitialized\022\037\n\033quantile_accumulator_handle\030\024\032\022\n\016is_initialized\030\n\210\001\001\n\211\001\n\034QuantileAccumulatorSerialize\022\037\n\033quantile_accumulator_handle\030\024\032\017\n\013stamp_token\030\t\032\020\n\014stream_state\030\007\032\025\n\021are_buckets_ready\030\n\032\013\n\007buckets\030\001\210\001\001\n\277\003\n\017QuantileBuckets\022,\n\024dense_float_features\030\001*\022num_dense_features\0225\n\034sparse_float_feature_indices\030\t*\023num_sparse_features\0224\n\033sparse_float_feature_values\030\001*\023num_sparse_features\0224\n\033sparse_float_feature_shapes\030\t*\023num_sparse_features\022\023\n\017example_weights\030\001\032%\n\rdense_buckets\030\001*\022num_dense_features\032\'\n\016sparse_buckets\030\001*\023num_sparse_features\"\033\n\022num_dense_features\022\003int(\001\"\034\n\023num_sparse_features\022\003int(\001\"\034\n\014dense_config\022\014list(string)\"\035\n\rsparse_config\022\014list(string)\ne\n\036QuantileStreamResourceHandleOp\032\014\n\010resource\030\024\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\341\002\n\tQuantiles\022$\n\014dense_values\030\001*\022num_dense_features\022&\n\rsparse_values\030\001*\023num_sparse_features\022%\n\rdense_buckets\030\001*\022num_dense_features\022\'\n\016sparse_buckets\030\001*\023num_sparse_features\022\'\n\016sparse_indices\030\t*\023num_sparse_features\032\'\n\017dense_quantiles\030\003*\022num_dense_features\032)\n\020sparse_quantiles\030\003*\023num_sparse_features\"\033\n\022num_dense_features\022\003int(\001\"\034\n\023num_sparse_features\022\003int(\001")
+_op_def_lib = _InitOpDefLibrary(b"\n[\n\034BucketizeWithInputBoundaries\022\n\n\005input\"\001T\022\016\n\nboundaries\030\001\032\n\n\006output\030\003\"\023\n\001T\022\004type:\010\n\0062\004\003\t\001\002\n\352\001\n\031CreateQuantileAccumulator\022\037\n\033quantile_accumulator_handle\030\024\022\017\n\013stamp_token\030\t\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\"\034\n\014max_elements\022\003int\032\007\030\200\200\200\200\200 \"\020\n\007epsilon\022\005float\"\024\n\rnum_quantiles\022\003int\"\036\n\022generate_quantiles\022\004bool\032\002(\000\210\001\001\n\236\003\n\025MakeQuantileSummaries\022,\n\024dense_float_features\030\001*\022num_dense_features\0225\n\034sparse_float_feature_indices\030\t*\023num_sparse_features\0224\n\033sparse_float_feature_values\030\001*\023num_sparse_features\0224\n\033sparse_float_feature_shapes\030\t*\023num_sparse_features\022\023\n\017example_weights\030\001\032\'\n\017dense_summaries\030\007*\022num_dense_features\032)\n\020sparse_summaries\030\007*\023num_sparse_features\"\033\n\022num_dense_features\022\003int(\001\"\034\n\023num_sparse_features\022\003int(\001\"\020\n\007epsilon\022\005float\n\263\001\n\037QuantileAccumulatorAddSummaries\0226\n\034quantile_accumulator_handles\030\024*\024num_resource_handles\022\017\n\013stamp_token\030\t\022#\n\tsummaries\030\007*\024num_resource_handles\"\037\n\024num_resource_handles\022\003int(\0010\001\210\001\001\n\213\001\n\036QuantileAccumulatorDeserialize\022\037\n\033quantile_accumulator_handle\030\024\022\017\n\013stamp_token\030\t\022\020\n\014stream_state\030\007\022\025\n\021are_buckets_ready\030\n\022\013\n\007buckets\030\001\210\001\001\ne\n\030QuantileAccumulatorFlush\022\037\n\033quantile_accumulator_handle\030\024\022\017\n\013stamp_token\030\t\022\024\n\020next_stamp_token\030\t\210\001\001\nx\n\037QuantileAccumulatorFlushSummary\022\037\n\033quantile_accumulator_handle\030\024\022\017\n\013stamp_token\030\t\022\024\n\020next_stamp_token\030\t\032\n\n\006output\030\007\210\001\001\n\334\001\n\035QuantileAccumulatorGetBuckets\0226\n\034quantile_accumulator_handles\030\024*\024num_resource_handles\022\017\n\013stamp_token\030\t\032+\n\021are_buckets_ready\030\n*\024num_resource_handles\032!\n\007buckets\030\001*\024num_resource_handles\"\037\n\024num_resource_handles\022\003int(\0010\001\210\001\001\nZ\n QuantileAccumulatorIsInitialized\022\037\n\033quantile_accumulator_handle\030\024\032\022\n\016is_initialized\030\n\210\001\001\n\211\001\n\034QuantileAccumulatorSerialize\022\037\n\033quantile_accumulator_handle\030\024\032\017\n\013stamp_token\030\t\032\020\n\014stream_state\030\007\032\025\n\021are_buckets_ready\030\n\032\013\n\007buckets\030\001\210\001\001\n\277\003\n\017QuantileBuckets\022,\n\024dense_float_features\030\001*\022num_dense_features\0225\n\034sparse_float_feature_indices\030\t*\023num_sparse_features\0224\n\033sparse_float_feature_values\030\001*\023num_sparse_features\0224\n\033sparse_float_feature_shapes\030\t*\023num_sparse_features\022\023\n\017example_weights\030\001\032%\n\rdense_buckets\030\001*\022num_dense_features\032\'\n\016sparse_buckets\030\001*\023num_sparse_features\"\033\n\022num_dense_features\022\003int(\001\"\034\n\023num_sparse_features\022\003int(\001\"\034\n\014dense_config\022\014list(string)\"\035\n\rsparse_config\022\014list(string)\ne\n\036QuantileStreamResourceHandleOp\032\014\n\010resource\030\024\"\027\n\tcontainer\022\006string\032\002\022\000\"\031\n\013shared_name\022\006string\032\002\022\000\210\001\001\n\341\002\n\tQuantiles\022$\n\014dense_values\030\001*\022num_dense_features\022&\n\rsparse_values\030\001*\023num_sparse_features\022%\n\rdense_buckets\030\001*\022num_dense_features\022\'\n\016sparse_buckets\030\001*\023num_sparse_features\022\'\n\016sparse_indices\030\t*\023num_sparse_features\032\'\n\017dense_quantiles\030\003*\022num_dense_features\032)\n\020sparse_quantiles\030\003*\023num_sparse_features\"\033\n\022num_dense_features\022\003int(\001\"\034\n\023num_sparse_features\022\003int(\001")

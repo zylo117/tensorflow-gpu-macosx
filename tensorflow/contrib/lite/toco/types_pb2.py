@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='tensorflow/contrib/lite/toco/types.proto',
   package='toco',
   syntax='proto2',
-  serialized_pb=_b('\n(tensorflow/contrib/lite/toco/types.proto\x12\x04toco*h\n\nIODataType\x12\x18\n\x14IO_DATA_TYPE_UNKNOWN\x10\x00\x12\t\n\x05\x46LOAT\x10\x01\x12\x13\n\x0fQUANTIZED_UINT8\x10\x02\x12\t\n\x05INT32\x10\x03\x12\t\n\x05INT64\x10\x04\x12\n\n\x06STRING\x10\x05')
+  serialized_pb=_b('\n(tensorflow/contrib/lite/toco/types.proto\x12\x04toco*}\n\nIODataType\x12\x18\n\x14IO_DATA_TYPE_UNKNOWN\x10\x00\x12\t\n\x05\x46LOAT\x10\x01\x12\x13\n\x0fQUANTIZED_UINT8\x10\x02\x12\t\n\x05INT32\x10\x03\x12\t\n\x05INT64\x10\x04\x12\n\n\x06STRING\x10\x05\x12\x13\n\x0fQUANTIZED_INT16\x10\x06')
 )
 
 _IODATATYPE = _descriptor.EnumDescriptor(
@@ -53,11 +53,15 @@ _IODATATYPE = _descriptor.EnumDescriptor(
       name='STRING', index=5, number=5,
       options=None,
       type=None),
+    _descriptor.EnumValueDescriptor(
+      name='QUANTIZED_INT16', index=6, number=6,
+      options=None,
+      type=None),
   ],
   containing_type=None,
   options=None,
   serialized_start=50,
-  serialized_end=154,
+  serialized_end=175,
 )
 _sym_db.RegisterEnumDescriptor(_IODATATYPE)
 
@@ -68,6 +72,7 @@ QUANTIZED_UINT8 = 2
 INT32 = 3
 INT64 = 4
 STRING = 5
+QUANTIZED_INT16 = 6
 
 
 DESCRIPTOR.enum_types_by_name['IODataType'] = _IODATATYPE

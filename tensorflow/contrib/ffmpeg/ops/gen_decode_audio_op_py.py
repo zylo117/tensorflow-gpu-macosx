@@ -5,11 +5,14 @@ Original C++ source file: decode_audio_op_py.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,7 +24,7 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('DecodeAudio')
+@tf_export('decode_audio')
 def decode_audio(contents, file_format, samples_per_second, channel_count, name=None):
   r"""Processes the contents of an audio file into a tensor using FFmpeg to decode
 
@@ -47,11 +50,11 @@ def decode_audio(contents, file_format, samples_per_second, channel_count, name=
     is time and dimension 1 is the channel. If ffmpeg fails to decode the audio
     then an empty tensor will be returned.
   """
-  file_format = _execute.make_str(file_format, "file_format")
-  samples_per_second = _execute.make_int(samples_per_second, "samples_per_second")
-  channel_count = _execute.make_int(channel_count, "channel_count")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    file_format = _execute.make_str(file_format, "file_format")
+    samples_per_second = _execute.make_int(samples_per_second, "samples_per_second")
+    channel_count = _execute.make_int(channel_count, "channel_count")
     _, _, _op = _op_def_lib._apply_op_helper(
         "DecodeAudio", contents=contents, file_format=file_format,
         samples_per_second=samples_per_second, channel_count=channel_count,
@@ -61,21 +64,54 @@ def decode_audio(contents, file_format, samples_per_second, channel_count, name=
     _attrs = ("file_format", _op.get_attr("file_format"),
               "samples_per_second", _op.get_attr("samples_per_second"),
               "channel_count", _op.get_attr("channel_count"))
+    _execute.record_gradient(
+      "DecodeAudio", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    contents = _ops.convert_to_tensor(contents, _dtypes.string)
-    _inputs_flat = [contents]
-    _attrs = ("file_format", file_format, "samples_per_second",
-              samples_per_second, "channel_count", channel_count)
-    _result = _execute.execute(b"DecodeAudio", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "DecodeAudio", name,
+        _ctx._post_execution_callbacks, contents, "file_format", file_format,
+        "samples_per_second", samples_per_second, "channel_count",
+        channel_count)
+      return _result
+    except _core._FallbackException:
+      return decode_audio_eager_fallback(
+          contents, file_format=file_format,
+          samples_per_second=samples_per_second, channel_count=channel_count,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def decode_audio_eager_fallback(contents, file_format, samples_per_second, channel_count, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function decode_audio
+  """
+  _ctx = _context.context()
+  file_format = _execute.make_str(file_format, "file_format")
+  samples_per_second = _execute.make_int(samples_per_second, "samples_per_second")
+  channel_count = _execute.make_int(channel_count, "channel_count")
+  contents = _ops.convert_to_tensor(contents, _dtypes.string)
+  _inputs_flat = [contents]
+  _attrs = ("file_format", file_format, "samples_per_second",
+  samples_per_second, "channel_count", channel_count)
+  _result = _execute.execute(b"DecodeAudio", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "DecodeAudio", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('DecodeAudioV2')
-def decode_audio_v2(contents, file_format, samples_per_second, channel_count, name=None):
+@tf_export('decode_audio_v2')
+def decode_audio_v2(contents, file_format, samples_per_second, channel_count, stream="", name=None):
   r"""Processes the contents of an audio file into a tensor using FFmpeg to decode
 
   the file.
@@ -99,6 +135,7 @@ def decode_audio_v2(contents, file_format, samples_per_second, channel_count, na
     channel_count: A `Tensor` of type `int32`.
       The number of channels of audio to read, as an int rank-0
       int32 tensor. Must be a positive integer.
+    stream: An optional `string`. Defaults to `""`.
     name: A name for the operation (optional).
 
   Returns:
@@ -108,23 +145,57 @@ def decode_audio_v2(contents, file_format, samples_per_second, channel_count, na
     to decode the audio then an empty tensor will be returned.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if stream is None:
+      stream = ""
+    stream = _execute.make_str(stream, "stream")
     _, _, _op = _op_def_lib._apply_op_helper(
         "DecodeAudioV2", contents=contents, file_format=file_format,
         samples_per_second=samples_per_second, channel_count=channel_count,
-        name=name)
+        stream=stream, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
-    _attrs = None
+    _attrs = ("stream", _op.get_attr("stream"))
+    _execute.record_gradient(
+      "DecodeAudioV2", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    contents = _ops.convert_to_tensor(contents, _dtypes.string)
-    file_format = _ops.convert_to_tensor(file_format, _dtypes.string)
-    samples_per_second = _ops.convert_to_tensor(samples_per_second, _dtypes.int32)
-    channel_count = _ops.convert_to_tensor(channel_count, _dtypes.int32)
-    _inputs_flat = [contents, file_format, samples_per_second, channel_count]
-    _attrs = None
-    _result = _execute.execute(b"DecodeAudioV2", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "DecodeAudioV2", name,
+        _ctx._post_execution_callbacks, contents, file_format,
+        samples_per_second, channel_count, "stream", stream)
+      return _result
+    except _core._FallbackException:
+      return decode_audio_v2_eager_fallback(
+          contents, file_format, samples_per_second, channel_count,
+          stream=stream, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def decode_audio_v2_eager_fallback(contents, file_format, samples_per_second, channel_count, stream="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function decode_audio_v2
+  """
+  _ctx = _context.context()
+  if stream is None:
+    stream = ""
+  stream = _execute.make_str(stream, "stream")
+  contents = _ops.convert_to_tensor(contents, _dtypes.string)
+  file_format = _ops.convert_to_tensor(file_format, _dtypes.string)
+  samples_per_second = _ops.convert_to_tensor(samples_per_second, _dtypes.int32)
+  channel_count = _ops.convert_to_tensor(channel_count, _dtypes.int32)
+  _inputs_flat = [contents, file_format, samples_per_second, channel_count]
+  _attrs = ("stream", stream)
+  _result = _execute.execute(b"DecodeAudioV2", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "DecodeAudioV2", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -182,5 +253,12 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     name: "sampled_audio"
 #     type: DT_FLOAT
 #   }
+#   attr {
+#     name: "stream"
+#     type: "string"
+#     default_value {
+#       s: ""
+#     }
+#   }
 # }
-_op_def_lib = _InitOpDefLibrary(b"\nv\n\013DecodeAudio\022\014\n\010contents\030\007\032\021\n\rsampled_audio\030\001\"\025\n\013file_format\022\006string\"\031\n\022samples_per_second\022\003int\"\024\n\rchannel_count\022\003int\nl\n\rDecodeAudioV2\022\014\n\010contents\030\007\022\017\n\013file_format\030\007\022\026\n\022samples_per_second\030\003\022\021\n\rchannel_count\030\003\032\021\n\rsampled_audio\030\001")
+_op_def_lib = _InitOpDefLibrary(b"\nv\n\013DecodeAudio\022\014\n\010contents\030\007\032\021\n\rsampled_audio\030\001\"\025\n\013file_format\022\006string\"\031\n\022samples_per_second\022\003int\"\024\n\rchannel_count\022\003int\n\202\001\n\rDecodeAudioV2\022\014\n\010contents\030\007\022\017\n\013file_format\030\007\022\026\n\022samples_per_second\030\003\022\021\n\rchannel_count\030\003\032\021\n\rsampled_audio\030\001\"\024\n\006stream\022\006string\032\002\022\000")

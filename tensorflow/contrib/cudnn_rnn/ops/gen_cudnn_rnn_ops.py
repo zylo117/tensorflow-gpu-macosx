@@ -5,11 +5,14 @@ Original C++ source file: cudnn_rnn_ops.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -26,7 +29,7 @@ _CudnnRNNOutput = _collections.namedtuple(
     "CudnnRNN", _cudnn_rnn_outputs)
 
 
-@tf_export('CudnnRNN')
+@tf_export('cudnn_rnn')
 def cudnn_rnn(input, input_h, input_c, params, rnn_mode="lstm", input_mode="linear_input", direction="unidirectional", dropout=0, seed=0, seed2=0, is_training=True, name=None):
   r"""Computes the RNN from the input and initial states, with respect to the params
 
@@ -77,6 +80,74 @@ def cudnn_rnn(input, input_h, input_c, params, rnn_mode="lstm", input_mode="line
     reserve_space: A `Tensor`. Has the same type as `input`. an opaque tensor that can be used in backprop calculation. It
       is only produced if is_training is false.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if rnn_mode is None:
+      rnn_mode = "lstm"
+    rnn_mode = _execute.make_str(rnn_mode, "rnn_mode")
+    if input_mode is None:
+      input_mode = "linear_input"
+    input_mode = _execute.make_str(input_mode, "input_mode")
+    if direction is None:
+      direction = "unidirectional"
+    direction = _execute.make_str(direction, "direction")
+    if dropout is None:
+      dropout = 0
+    dropout = _execute.make_float(dropout, "dropout")
+    if seed is None:
+      seed = 0
+    seed = _execute.make_int(seed, "seed")
+    if seed2 is None:
+      seed2 = 0
+    seed2 = _execute.make_int(seed2, "seed2")
+    if is_training is None:
+      is_training = True
+    is_training = _execute.make_bool(is_training, "is_training")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "CudnnRNN", input=input, input_h=input_h, input_c=input_c,
+        params=params, rnn_mode=rnn_mode, input_mode=input_mode,
+        direction=direction, dropout=dropout, seed=seed, seed2=seed2,
+        is_training=is_training, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("T", _op.get_attr("T"), "rnn_mode", _op.get_attr("rnn_mode"),
+              "input_mode", _op.get_attr("input_mode"), "direction",
+              _op.get_attr("direction"), "dropout", _op.get_attr("dropout"),
+              "seed", _op.get_attr("seed"), "seed2", _op.get_attr("seed2"),
+              "is_training", _op.get_attr("is_training"))
+    _execute.record_gradient(
+      "CudnnRNN", _inputs_flat, _attrs, _result, name)
+    _result = _CudnnRNNOutput._make(_result)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "CudnnRNN", name,
+        _ctx._post_execution_callbacks, input, input_h, input_c, params,
+        "rnn_mode", rnn_mode, "input_mode", input_mode, "direction",
+        direction, "dropout", dropout, "seed", seed, "seed2", seed2,
+        "is_training", is_training)
+      _result = _CudnnRNNOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return cudnn_rnn_eager_fallback(
+          input, input_h, input_c, params, rnn_mode=rnn_mode,
+          input_mode=input_mode, direction=direction, dropout=dropout,
+          seed=seed, seed2=seed2, is_training=is_training, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def cudnn_rnn_eager_fallback(input, input_h, input_c, params, rnn_mode="lstm", input_mode="linear_input", direction="unidirectional", dropout=0, seed=0, seed2=0, is_training=True, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function cudnn_rnn
+  """
+  _ctx = _context.context()
   if rnn_mode is None:
     rnn_mode = "lstm"
   rnn_mode = _execute.make_str(rnn_mode, "rnn_mode")
@@ -98,29 +169,14 @@ def cudnn_rnn(input, input_h, input_c, params, rnn_mode="lstm", input_mode="line
   if is_training is None:
     is_training = True
   is_training = _execute.make_bool(is_training, "is_training")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "CudnnRNN", input=input, input_h=input_h, input_c=input_c,
-        params=params, rnn_mode=rnn_mode, input_mode=input_mode,
-        direction=direction, dropout=dropout, seed=seed, seed2=seed2,
-        is_training=is_training, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("T", _op.get_attr("T"), "rnn_mode", _op.get_attr("rnn_mode"),
-              "input_mode", _op.get_attr("input_mode"), "direction",
-              _op.get_attr("direction"), "dropout", _op.get_attr("dropout"),
-              "seed", _op.get_attr("seed"), "seed2", _op.get_attr("seed2"),
-              "is_training", _op.get_attr("is_training"))
-  else:
-    _attr_T, _inputs_T = _execute.args_to_matching_eager([input, input_h, input_c, params], _ctx)
-    (input, input_h, input_c, params) = _inputs_T
-    _inputs_flat = [input, input_h, input_c, params]
-    _attrs = ("T", _attr_T, "rnn_mode", rnn_mode, "input_mode", input_mode,
-              "direction", direction, "dropout", dropout, "seed", seed,
-              "seed2", seed2, "is_training", is_training)
-    _result = _execute.execute(b"CudnnRNN", 4, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  _attr_T, _inputs_T = _execute.args_to_matching_eager([input, input_h, input_c, params], _ctx)
+  (input, input_h, input_c, params) = _inputs_T
+  _inputs_flat = [input, input_h, input_c, params]
+  _attrs = ("T", _attr_T, "rnn_mode", rnn_mode, "input_mode", input_mode,
+  "direction", direction, "dropout", dropout, "seed", seed, "seed2", seed2,
+  "is_training", is_training)
+  _result = _execute.execute(b"CudnnRNN", 4, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "CudnnRNN", _inputs_flat, _attrs, _result, name)
   _result = _CudnnRNNOutput._make(_result)
@@ -135,7 +191,7 @@ _CudnnRNNBackpropOutput = _collections.namedtuple(
     "CudnnRNNBackprop", _cudnn_rnn_backprop_outputs)
 
 
-@tf_export('CudnnRNNBackprop')
+@tf_export('cudnn_rnn_backprop')
 def cudnn_rnn_backprop(input, input_h, input_c, params, output, output_h, output_c, output_backprop, output_h_backprop, output_c_backprop, reserve_space, rnn_mode="lstm", input_mode="linear_input", direction="unidirectional", dropout=0, seed=0, seed2=0, name=None):
   r"""Compute the backprop of both data and weights in a RNN.
 
@@ -200,6 +256,75 @@ def cudnn_rnn_backprop(input, input_h, input_c, params, output, output_h, output
     params_backprop: A `Tensor`. Has the same type as `input`. The backprop to the params buffer in the forward pass. Has the
       same shape as params.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if rnn_mode is None:
+      rnn_mode = "lstm"
+    rnn_mode = _execute.make_str(rnn_mode, "rnn_mode")
+    if input_mode is None:
+      input_mode = "linear_input"
+    input_mode = _execute.make_str(input_mode, "input_mode")
+    if direction is None:
+      direction = "unidirectional"
+    direction = _execute.make_str(direction, "direction")
+    if dropout is None:
+      dropout = 0
+    dropout = _execute.make_float(dropout, "dropout")
+    if seed is None:
+      seed = 0
+    seed = _execute.make_int(seed, "seed")
+    if seed2 is None:
+      seed2 = 0
+    seed2 = _execute.make_int(seed2, "seed2")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "CudnnRNNBackprop", input=input, input_h=input_h, input_c=input_c,
+        params=params, output=output, output_h=output_h, output_c=output_c,
+        output_backprop=output_backprop, output_h_backprop=output_h_backprop,
+        output_c_backprop=output_c_backprop, reserve_space=reserve_space,
+        rnn_mode=rnn_mode, input_mode=input_mode, direction=direction,
+        dropout=dropout, seed=seed, seed2=seed2, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("T", _op.get_attr("T"), "rnn_mode", _op.get_attr("rnn_mode"),
+              "input_mode", _op.get_attr("input_mode"), "direction",
+              _op.get_attr("direction"), "dropout", _op.get_attr("dropout"),
+              "seed", _op.get_attr("seed"), "seed2", _op.get_attr("seed2"))
+    _execute.record_gradient(
+      "CudnnRNNBackprop", _inputs_flat, _attrs, _result, name)
+    _result = _CudnnRNNBackpropOutput._make(_result)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "CudnnRNNBackprop", name,
+        _ctx._post_execution_callbacks, input, input_h, input_c, params,
+        output, output_h, output_c, output_backprop, output_h_backprop,
+        output_c_backprop, reserve_space, "rnn_mode", rnn_mode, "input_mode",
+        input_mode, "direction", direction, "dropout", dropout, "seed", seed,
+        "seed2", seed2)
+      _result = _CudnnRNNBackpropOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return cudnn_rnn_backprop_eager_fallback(
+          input, input_h, input_c, params, output, output_h, output_c,
+          output_backprop, output_h_backprop, output_c_backprop,
+          reserve_space, rnn_mode=rnn_mode, input_mode=input_mode,
+          direction=direction, dropout=dropout, seed=seed, seed2=seed2,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def cudnn_rnn_backprop_eager_fallback(input, input_h, input_c, params, output, output_h, output_c, output_backprop, output_h_backprop, output_c_backprop, reserve_space, rnn_mode="lstm", input_mode="linear_input", direction="unidirectional", dropout=0, seed=0, seed2=0, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function cudnn_rnn_backprop
+  """
+  _ctx = _context.context()
   if rnn_mode is None:
     rnn_mode = "lstm"
   rnn_mode = _execute.make_str(rnn_mode, "rnn_mode")
@@ -218,30 +343,13 @@ def cudnn_rnn_backprop(input, input_h, input_c, params, output, output_h, output
   if seed2 is None:
     seed2 = 0
   seed2 = _execute.make_int(seed2, "seed2")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "CudnnRNNBackprop", input=input, input_h=input_h, input_c=input_c,
-        params=params, output=output, output_h=output_h, output_c=output_c,
-        output_backprop=output_backprop, output_h_backprop=output_h_backprop,
-        output_c_backprop=output_c_backprop, reserve_space=reserve_space,
-        rnn_mode=rnn_mode, input_mode=input_mode, direction=direction,
-        dropout=dropout, seed=seed, seed2=seed2, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("T", _op.get_attr("T"), "rnn_mode", _op.get_attr("rnn_mode"),
-              "input_mode", _op.get_attr("input_mode"), "direction",
-              _op.get_attr("direction"), "dropout", _op.get_attr("dropout"),
-              "seed", _op.get_attr("seed"), "seed2", _op.get_attr("seed2"))
-  else:
-    _attr_T, _inputs_T = _execute.args_to_matching_eager([input, input_h, input_c, params, output, output_h, output_c, output_backprop, output_h_backprop, output_c_backprop, reserve_space], _ctx)
-    (input, input_h, input_c, params, output, output_h, output_c, output_backprop, output_h_backprop, output_c_backprop, reserve_space) = _inputs_T
-    _inputs_flat = [input, input_h, input_c, params, output, output_h, output_c, output_backprop, output_h_backprop, output_c_backprop, reserve_space]
-    _attrs = ("T", _attr_T, "rnn_mode", rnn_mode, "input_mode", input_mode,
-              "direction", direction, "dropout", dropout, "seed", seed,
-              "seed2", seed2)
-    _result = _execute.execute(b"CudnnRNNBackprop", 4, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  _attr_T, _inputs_T = _execute.args_to_matching_eager([input, input_h, input_c, params, output, output_h, output_c, output_backprop, output_h_backprop, output_c_backprop, reserve_space], _ctx)
+  (input, input_h, input_c, params, output, output_h, output_c, output_backprop, output_h_backprop, output_c_backprop, reserve_space) = _inputs_T
+  _inputs_flat = [input, input_h, input_c, params, output, output_h, output_c, output_backprop, output_h_backprop, output_c_backprop, reserve_space]
+  _attrs = ("T", _attr_T, "rnn_mode", rnn_mode, "input_mode", input_mode,
+  "direction", direction, "dropout", dropout, "seed", seed, "seed2", seed2)
+  _result = _execute.execute(b"CudnnRNNBackprop", 4, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "CudnnRNNBackprop", _inputs_flat, _attrs, _result, name)
   _result = _CudnnRNNBackpropOutput._make(_result)
@@ -250,7 +358,7 @@ def cudnn_rnn_backprop(input, input_h, input_c, params, output, output_h, output
 _ops.RegisterShape("CudnnRNNBackprop")(None)
 
 
-@tf_export('CudnnRNNCanonicalToParams')
+@tf_export('cudnn_rnn_canonical_to_params')
 def cudnn_rnn_canonical_to_params(num_layers, num_units, input_size, weights, biases, rnn_mode="lstm", input_mode="linear_input", direction="unidirectional", dropout=0, seed=0, seed2=0, name=None):
   r"""Writes a set of weights into the opaque params buffer so they can be used in
 
@@ -296,6 +404,86 @@ def cudnn_rnn_canonical_to_params(num_layers, num_units, input_size, weights, bi
   Returns:
     A `Tensor`. Has the same type as `weights`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(weights, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'weights' argument to "
+          "'cudnn_rnn_canonical_to_params' Op, not %r." % weights)
+    _attr_num_params = len(weights)
+    if not isinstance(biases, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'biases' argument to "
+          "'cudnn_rnn_canonical_to_params' Op, not %r." % biases)
+    if len(biases) != _attr_num_params:
+      raise ValueError(
+          "List argument 'biases' to 'cudnn_rnn_canonical_to_params' Op with length %d "
+          "must match length %d of argument 'weights'." %
+          (len(biases), _attr_num_params))
+    if rnn_mode is None:
+      rnn_mode = "lstm"
+    rnn_mode = _execute.make_str(rnn_mode, "rnn_mode")
+    if input_mode is None:
+      input_mode = "linear_input"
+    input_mode = _execute.make_str(input_mode, "input_mode")
+    if direction is None:
+      direction = "unidirectional"
+    direction = _execute.make_str(direction, "direction")
+    if dropout is None:
+      dropout = 0
+    dropout = _execute.make_float(dropout, "dropout")
+    if seed is None:
+      seed = 0
+    seed = _execute.make_int(seed, "seed")
+    if seed2 is None:
+      seed2 = 0
+    seed2 = _execute.make_int(seed2, "seed2")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "CudnnRNNCanonicalToParams", num_layers=num_layers,
+        num_units=num_units, input_size=input_size, weights=weights,
+        biases=biases, rnn_mode=rnn_mode, input_mode=input_mode,
+        direction=direction, dropout=dropout, seed=seed, seed2=seed2,
+        name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("T", _op.get_attr("T"), "num_params",
+              _op.get_attr("num_params"), "rnn_mode",
+              _op.get_attr("rnn_mode"), "input_mode",
+              _op.get_attr("input_mode"), "direction",
+              _op.get_attr("direction"), "dropout", _op.get_attr("dropout"),
+              "seed", _op.get_attr("seed"), "seed2", _op.get_attr("seed2"))
+    _execute.record_gradient(
+      "CudnnRNNCanonicalToParams", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "CudnnRNNCanonicalToParams", name,
+        _ctx._post_execution_callbacks, num_layers, num_units, input_size,
+        weights, biases, "rnn_mode", rnn_mode, "input_mode", input_mode,
+        "direction", direction, "dropout", dropout, "seed", seed, "seed2",
+        seed2)
+      return _result
+    except _core._FallbackException:
+      return cudnn_rnn_canonical_to_params_eager_fallback(
+          num_layers, num_units, input_size, weights, biases,
+          rnn_mode=rnn_mode, input_mode=input_mode, direction=direction,
+          dropout=dropout, seed=seed, seed2=seed2, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def cudnn_rnn_canonical_to_params_eager_fallback(num_layers, num_units, input_size, weights, biases, rnn_mode="lstm", input_mode="linear_input", direction="unidirectional", dropout=0, seed=0, seed2=0, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function cudnn_rnn_canonical_to_params
+  """
+  _ctx = _context.context()
   if not isinstance(weights, (list, tuple)):
     raise TypeError(
         "Expected list for 'weights' argument to "
@@ -328,37 +516,20 @@ def cudnn_rnn_canonical_to_params(num_layers, num_units, input_size, weights, bi
   if seed2 is None:
     seed2 = 0
   seed2 = _execute.make_int(seed2, "seed2")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "CudnnRNNCanonicalToParams", num_layers=num_layers,
-        num_units=num_units, input_size=input_size, weights=weights,
-        biases=biases, rnn_mode=rnn_mode, input_mode=input_mode,
-        direction=direction, dropout=dropout, seed=seed, seed2=seed2,
-        name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("T", _op.get_attr("T"), "num_params",
-              _op.get_attr("num_params"), "rnn_mode",
-              _op.get_attr("rnn_mode"), "input_mode",
-              _op.get_attr("input_mode"), "direction",
-              _op.get_attr("direction"), "dropout", _op.get_attr("dropout"),
-              "seed", _op.get_attr("seed"), "seed2", _op.get_attr("seed2"))
-  else:
-    _attr_T, _inputs_T = _execute.args_to_matching_eager(list(weights) + list(biases), _ctx)
-    _inputs_T = [_inputs_T[:_attr_num_params]] + _inputs_T[_attr_num_params:]
-    _inputs_T = _inputs_T[:1] + [_inputs_T[1:]]
-    (weights, biases) = _inputs_T
-    num_layers = _ops.convert_to_tensor(num_layers, _dtypes.int32)
-    num_units = _ops.convert_to_tensor(num_units, _dtypes.int32)
-    input_size = _ops.convert_to_tensor(input_size, _dtypes.int32)
-    _inputs_flat = [num_layers, num_units, input_size] + list(weights) + list(biases)
-    _attrs = ("T", _attr_T, "num_params", _attr_num_params, "rnn_mode",
-              rnn_mode, "input_mode", input_mode, "direction", direction,
-              "dropout", dropout, "seed", seed, "seed2", seed2)
-    _result = _execute.execute(b"CudnnRNNCanonicalToParams", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+  _attr_T, _inputs_T = _execute.args_to_matching_eager(list(weights) + list(biases), _ctx)
+  _inputs_T = [_inputs_T[:_attr_num_params]] + _inputs_T[_attr_num_params:]
+  _inputs_T = _inputs_T[:1] + [_inputs_T[1:]]
+  (weights, biases) = _inputs_T
+  num_layers = _ops.convert_to_tensor(num_layers, _dtypes.int32)
+  num_units = _ops.convert_to_tensor(num_units, _dtypes.int32)
+  input_size = _ops.convert_to_tensor(input_size, _dtypes.int32)
+  _inputs_flat = [num_layers, num_units, input_size] + list(weights) + list(biases)
+  _attrs = ("T", _attr_T, "num_params", _attr_num_params, "rnn_mode",
+  rnn_mode, "input_mode", input_mode, "direction", direction, "dropout",
+  dropout, "seed", seed, "seed2", seed2)
+  _result = _execute.execute(b"CudnnRNNCanonicalToParams", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "CudnnRNNCanonicalToParams", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -367,7 +538,7 @@ def cudnn_rnn_canonical_to_params(num_layers, num_units, input_size, weights, bi
 _ops.RegisterShape("CudnnRNNCanonicalToParams")(None)
 
 
-@tf_export('CudnnRNNParamsSize')
+@tf_export('cudnn_rnn_params_size')
 def cudnn_rnn_params_size(num_layers, num_units, input_size, T, S, rnn_mode="lstm", input_mode="linear_input", direction="unidirectional", dropout=0, seed=0, seed2=0, name=None):
   r"""Return the params size that can be used by the Cudnn RNN model. Subsequent
 
@@ -412,6 +583,72 @@ def cudnn_rnn_params_size(num_layers, num_units, input_size, T, S, rnn_mode="lst
     save and restoration should be converted to and from the canonical weights and
     biases.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    T = _execute.make_type(T, "T")
+    S = _execute.make_type(S, "S")
+    if rnn_mode is None:
+      rnn_mode = "lstm"
+    rnn_mode = _execute.make_str(rnn_mode, "rnn_mode")
+    if input_mode is None:
+      input_mode = "linear_input"
+    input_mode = _execute.make_str(input_mode, "input_mode")
+    if direction is None:
+      direction = "unidirectional"
+    direction = _execute.make_str(direction, "direction")
+    if dropout is None:
+      dropout = 0
+    dropout = _execute.make_float(dropout, "dropout")
+    if seed is None:
+      seed = 0
+    seed = _execute.make_int(seed, "seed")
+    if seed2 is None:
+      seed2 = 0
+    seed2 = _execute.make_int(seed2, "seed2")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "CudnnRNNParamsSize", num_layers=num_layers, num_units=num_units,
+        input_size=input_size, T=T, S=S, rnn_mode=rnn_mode,
+        input_mode=input_mode, direction=direction, dropout=dropout,
+        seed=seed, seed2=seed2, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("T", _op.get_attr("T"), "S", _op.get_attr("S"), "rnn_mode",
+              _op.get_attr("rnn_mode"), "input_mode",
+              _op.get_attr("input_mode"), "direction",
+              _op.get_attr("direction"), "dropout", _op.get_attr("dropout"),
+              "seed", _op.get_attr("seed"), "seed2", _op.get_attr("seed2"))
+    _execute.record_gradient(
+      "CudnnRNNParamsSize", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "CudnnRNNParamsSize", name,
+        _ctx._post_execution_callbacks, num_layers, num_units, input_size,
+        "T", T, "S", S, "rnn_mode", rnn_mode, "input_mode", input_mode,
+        "direction", direction, "dropout", dropout, "seed", seed, "seed2",
+        seed2)
+      return _result
+    except _core._FallbackException:
+      return cudnn_rnn_params_size_eager_fallback(
+          num_layers, num_units, input_size, T=T, S=S, rnn_mode=rnn_mode,
+          input_mode=input_mode, direction=direction, dropout=dropout,
+          seed=seed, seed2=seed2, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def cudnn_rnn_params_size_eager_fallback(num_layers, num_units, input_size, T, S, rnn_mode="lstm", input_mode="linear_input", direction="unidirectional", dropout=0, seed=0, seed2=0, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function cudnn_rnn_params_size
+  """
+  _ctx = _context.context()
   T = _execute.make_type(T, "T")
   S = _execute.make_type(S, "S")
   if rnn_mode is None:
@@ -432,30 +669,14 @@ def cudnn_rnn_params_size(num_layers, num_units, input_size, T, S, rnn_mode="lst
   if seed2 is None:
     seed2 = 0
   seed2 = _execute.make_int(seed2, "seed2")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "CudnnRNNParamsSize", num_layers=num_layers, num_units=num_units,
-        input_size=input_size, T=T, S=S, rnn_mode=rnn_mode,
-        input_mode=input_mode, direction=direction, dropout=dropout,
-        seed=seed, seed2=seed2, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("T", _op.get_attr("T"), "S", _op.get_attr("S"), "rnn_mode",
-              _op.get_attr("rnn_mode"), "input_mode",
-              _op.get_attr("input_mode"), "direction",
-              _op.get_attr("direction"), "dropout", _op.get_attr("dropout"),
-              "seed", _op.get_attr("seed"), "seed2", _op.get_attr("seed2"))
-  else:
-    num_layers = _ops.convert_to_tensor(num_layers, _dtypes.int32)
-    num_units = _ops.convert_to_tensor(num_units, _dtypes.int32)
-    input_size = _ops.convert_to_tensor(input_size, _dtypes.int32)
-    _inputs_flat = [num_layers, num_units, input_size]
-    _attrs = ("T", T, "S", S, "rnn_mode", rnn_mode, "input_mode", input_mode,
-              "direction", direction, "dropout", dropout, "seed", seed,
-              "seed2", seed2)
-    _result = _execute.execute(b"CudnnRNNParamsSize", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  num_layers = _ops.convert_to_tensor(num_layers, _dtypes.int32)
+  num_units = _ops.convert_to_tensor(num_units, _dtypes.int32)
+  input_size = _ops.convert_to_tensor(input_size, _dtypes.int32)
+  _inputs_flat = [num_layers, num_units, input_size]
+  _attrs = ("T", T, "S", S, "rnn_mode", rnn_mode, "input_mode", input_mode,
+  "direction", direction, "dropout", dropout, "seed", seed, "seed2", seed2)
+  _result = _execute.execute(b"CudnnRNNParamsSize", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "CudnnRNNParamsSize", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -469,7 +690,7 @@ _CudnnRNNParamsToCanonicalOutput = _collections.namedtuple(
     "CudnnRNNParamsToCanonical", _cudnn_rnn_params_to_canonical_outputs)
 
 
-@tf_export('CudnnRNNParamsToCanonical')
+@tf_export('cudnn_rnn_params_to_canonical')
 def cudnn_rnn_params_to_canonical(num_layers, num_units, input_size, params, num_params, rnn_mode="lstm", input_mode="linear_input", direction="unidirectional", dropout=0, seed=0, seed2=0, name=None):
   r"""Retrieves a set of weights from the opaque params buffer that can be saved and
 
@@ -519,6 +740,76 @@ def cudnn_rnn_params_to_canonical(num_layers, num_units, input_size, params, num
       and restoration. They are more likely to be compatible across different
       generations.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    num_params = _execute.make_int(num_params, "num_params")
+    if rnn_mode is None:
+      rnn_mode = "lstm"
+    rnn_mode = _execute.make_str(rnn_mode, "rnn_mode")
+    if input_mode is None:
+      input_mode = "linear_input"
+    input_mode = _execute.make_str(input_mode, "input_mode")
+    if direction is None:
+      direction = "unidirectional"
+    direction = _execute.make_str(direction, "direction")
+    if dropout is None:
+      dropout = 0
+    dropout = _execute.make_float(dropout, "dropout")
+    if seed is None:
+      seed = 0
+    seed = _execute.make_int(seed, "seed")
+    if seed2 is None:
+      seed2 = 0
+    seed2 = _execute.make_int(seed2, "seed2")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "CudnnRNNParamsToCanonical", num_layers=num_layers,
+        num_units=num_units, input_size=input_size, params=params,
+        num_params=num_params, rnn_mode=rnn_mode, input_mode=input_mode,
+        direction=direction, dropout=dropout, seed=seed, seed2=seed2,
+        name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("T", _op.get_attr("T"), "num_params",
+              _op.get_attr("num_params"), "rnn_mode",
+              _op.get_attr("rnn_mode"), "input_mode",
+              _op.get_attr("input_mode"), "direction",
+              _op.get_attr("direction"), "dropout", _op.get_attr("dropout"),
+              "seed", _op.get_attr("seed"), "seed2", _op.get_attr("seed2"))
+    _execute.record_gradient(
+      "CudnnRNNParamsToCanonical", _inputs_flat, _attrs, _result, name)
+    _result = [_result[:num_params]] + _result[num_params:]
+    _result = _result[:1] + [_result[1:]]
+    _result = _CudnnRNNParamsToCanonicalOutput._make(_result)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "CudnnRNNParamsToCanonical", name,
+        _ctx._post_execution_callbacks, num_layers, num_units, input_size,
+        params, "num_params", num_params, "rnn_mode", rnn_mode, "input_mode",
+        input_mode, "direction", direction, "dropout", dropout, "seed", seed,
+        "seed2", seed2)
+      _result = _CudnnRNNParamsToCanonicalOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return cudnn_rnn_params_to_canonical_eager_fallback(
+          num_layers, num_units, input_size, params, num_params=num_params,
+          rnn_mode=rnn_mode, input_mode=input_mode, direction=direction,
+          dropout=dropout, seed=seed, seed2=seed2, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def cudnn_rnn_params_to_canonical_eager_fallback(num_layers, num_units, input_size, params, num_params, rnn_mode="lstm", input_mode="linear_input", direction="unidirectional", dropout=0, seed=0, seed2=0, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function cudnn_rnn_params_to_canonical
+  """
+  _ctx = _context.context()
   num_params = _execute.make_int(num_params, "num_params")
   if rnn_mode is None:
     rnn_mode = "lstm"
@@ -538,34 +829,17 @@ def cudnn_rnn_params_to_canonical(num_layers, num_units, input_size, params, num
   if seed2 is None:
     seed2 = 0
   seed2 = _execute.make_int(seed2, "seed2")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "CudnnRNNParamsToCanonical", num_layers=num_layers,
-        num_units=num_units, input_size=input_size, params=params,
-        num_params=num_params, rnn_mode=rnn_mode, input_mode=input_mode,
-        direction=direction, dropout=dropout, seed=seed, seed2=seed2,
-        name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("T", _op.get_attr("T"), "num_params",
-              _op.get_attr("num_params"), "rnn_mode",
-              _op.get_attr("rnn_mode"), "input_mode",
-              _op.get_attr("input_mode"), "direction",
-              _op.get_attr("direction"), "dropout", _op.get_attr("dropout"),
-              "seed", _op.get_attr("seed"), "seed2", _op.get_attr("seed2"))
-  else:
-    _attr_T, (params,) = _execute.args_to_matching_eager([params], _ctx)
-    num_layers = _ops.convert_to_tensor(num_layers, _dtypes.int32)
-    num_units = _ops.convert_to_tensor(num_units, _dtypes.int32)
-    input_size = _ops.convert_to_tensor(input_size, _dtypes.int32)
-    _inputs_flat = [num_layers, num_units, input_size, params]
-    _attrs = ("T", _attr_T, "num_params", num_params, "rnn_mode", rnn_mode,
-              "input_mode", input_mode, "direction", direction, "dropout",
-              dropout, "seed", seed, "seed2", seed2)
-    _result = _execute.execute(b"CudnnRNNParamsToCanonical", num_params +
-                               num_params, inputs=_inputs_flat, attrs=_attrs,
-                               ctx=_ctx, name=name)
+  _attr_T, (params,) = _execute.args_to_matching_eager([params], _ctx)
+  num_layers = _ops.convert_to_tensor(num_layers, _dtypes.int32)
+  num_units = _ops.convert_to_tensor(num_units, _dtypes.int32)
+  input_size = _ops.convert_to_tensor(input_size, _dtypes.int32)
+  _inputs_flat = [num_layers, num_units, input_size, params]
+  _attrs = ("T", _attr_T, "num_params", num_params, "rnn_mode", rnn_mode,
+  "input_mode", input_mode, "direction", direction, "dropout", dropout,
+  "seed", seed, "seed2", seed2)
+  _result = _execute.execute(b"CudnnRNNParamsToCanonical", num_params +
+                             num_params, inputs=_inputs_flat, attrs=_attrs,
+                             ctx=_ctx, name=name)
   _execute.record_gradient(
       "CudnnRNNParamsToCanonical", _inputs_flat, _attrs, _result, name)
   _result = [_result[:num_params]] + _result[num_params:]

@@ -5,11 +5,14 @@ Original C++ source file: gen_summary_ops.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,7 +24,7 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('CloseSummaryWriter')
+@tf_export('close_summary_writer')
 def close_summary_writer(writer, name=None):
   r"""Flushes and closes the summary writer.
 
@@ -37,23 +40,47 @@ def close_summary_writer(writer, name=None):
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "CloseSummaryWriter", writer=writer, name=name)
     return _op
-  else:
-    writer = _ops.convert_to_tensor(writer, _dtypes.resource)
-    _inputs_flat = [writer]
-    _attrs = None
-    _result = _execute.execute(b"CloseSummaryWriter", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "CloseSummaryWriter", name,
+        _ctx._post_execution_callbacks, writer)
+      return _result
+    except _core._FallbackException:
+      return close_summary_writer_eager_fallback(
+          writer, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def close_summary_writer_eager_fallback(writer, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function close_summary_writer
+  """
+  _ctx = _context.context()
+  writer = _ops.convert_to_tensor(writer, _dtypes.resource)
+  _inputs_flat = [writer]
+  _attrs = None
+  _result = _execute.execute(b"CloseSummaryWriter", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("CloseSummaryWriter")(None)
 
 
-@tf_export('CreateSummaryDbWriter')
+@tf_export('create_summary_db_writer')
 def create_summary_db_writer(writer, db_uri, experiment_name, run_name, user_name, name=None):
   r"""Creates summary database writer accessible by given resource handle.
 
@@ -83,30 +110,54 @@ def create_summary_db_writer(writer, db_uri, experiment_name, run_name, user_nam
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "CreateSummaryDbWriter", writer=writer, db_uri=db_uri,
         experiment_name=experiment_name, run_name=run_name,
         user_name=user_name, name=name)
     return _op
-  else:
-    writer = _ops.convert_to_tensor(writer, _dtypes.resource)
-    db_uri = _ops.convert_to_tensor(db_uri, _dtypes.string)
-    experiment_name = _ops.convert_to_tensor(experiment_name, _dtypes.string)
-    run_name = _ops.convert_to_tensor(run_name, _dtypes.string)
-    user_name = _ops.convert_to_tensor(user_name, _dtypes.string)
-    _inputs_flat = [writer, db_uri, experiment_name, run_name, user_name]
-    _attrs = None
-    _result = _execute.execute(b"CreateSummaryDbWriter", 0,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "CreateSummaryDbWriter", name,
+        _ctx._post_execution_callbacks, writer, db_uri, experiment_name,
+        run_name, user_name)
+      return _result
+    except _core._FallbackException:
+      return create_summary_db_writer_eager_fallback(
+          writer, db_uri, experiment_name, run_name, user_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def create_summary_db_writer_eager_fallback(writer, db_uri, experiment_name, run_name, user_name, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function create_summary_db_writer
+  """
+  _ctx = _context.context()
+  writer = _ops.convert_to_tensor(writer, _dtypes.resource)
+  db_uri = _ops.convert_to_tensor(db_uri, _dtypes.string)
+  experiment_name = _ops.convert_to_tensor(experiment_name, _dtypes.string)
+  run_name = _ops.convert_to_tensor(run_name, _dtypes.string)
+  user_name = _ops.convert_to_tensor(user_name, _dtypes.string)
+  _inputs_flat = [writer, db_uri, experiment_name, run_name, user_name]
+  _attrs = None
+  _result = _execute.execute(b"CreateSummaryDbWriter", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("CreateSummaryDbWriter")(None)
 
 
-@tf_export('CreateSummaryFileWriter')
+@tf_export('create_summary_file_writer')
 def create_summary_file_writer(writer, logdir, max_queue, flush_millis, filename_suffix, name=None):
   r"""Creates a summary file writer accessible by the given resource handle.
 
@@ -128,30 +179,55 @@ def create_summary_file_writer(writer, logdir, max_queue, flush_millis, filename
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "CreateSummaryFileWriter", writer=writer, logdir=logdir,
         max_queue=max_queue, flush_millis=flush_millis,
         filename_suffix=filename_suffix, name=name)
     return _op
-  else:
-    writer = _ops.convert_to_tensor(writer, _dtypes.resource)
-    logdir = _ops.convert_to_tensor(logdir, _dtypes.string)
-    max_queue = _ops.convert_to_tensor(max_queue, _dtypes.int32)
-    flush_millis = _ops.convert_to_tensor(flush_millis, _dtypes.int32)
-    filename_suffix = _ops.convert_to_tensor(filename_suffix, _dtypes.string)
-    _inputs_flat = [writer, logdir, max_queue, flush_millis, filename_suffix]
-    _attrs = None
-    _result = _execute.execute(b"CreateSummaryFileWriter", 0,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "CreateSummaryFileWriter", name,
+        _ctx._post_execution_callbacks, writer, logdir, max_queue,
+        flush_millis, filename_suffix)
+      return _result
+    except _core._FallbackException:
+      return create_summary_file_writer_eager_fallback(
+          writer, logdir, max_queue, flush_millis, filename_suffix, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def create_summary_file_writer_eager_fallback(writer, logdir, max_queue, flush_millis, filename_suffix, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function create_summary_file_writer
+  """
+  _ctx = _context.context()
+  writer = _ops.convert_to_tensor(writer, _dtypes.resource)
+  logdir = _ops.convert_to_tensor(logdir, _dtypes.string)
+  max_queue = _ops.convert_to_tensor(max_queue, _dtypes.int32)
+  flush_millis = _ops.convert_to_tensor(flush_millis, _dtypes.int32)
+  filename_suffix = _ops.convert_to_tensor(filename_suffix, _dtypes.string)
+  _inputs_flat = [writer, logdir, max_queue, flush_millis, filename_suffix]
+  _attrs = None
+  _result = _execute.execute(b"CreateSummaryFileWriter", 0,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("CreateSummaryFileWriter")(None)
 
 
-@tf_export('FlushSummaryWriter')
+@tf_export('flush_summary_writer')
 def flush_summary_writer(writer, name=None):
   r"""Flushes the writer's unwritten events.
 
@@ -164,23 +240,47 @@ def flush_summary_writer(writer, name=None):
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "FlushSummaryWriter", writer=writer, name=name)
     return _op
-  else:
-    writer = _ops.convert_to_tensor(writer, _dtypes.resource)
-    _inputs_flat = [writer]
-    _attrs = None
-    _result = _execute.execute(b"FlushSummaryWriter", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "FlushSummaryWriter", name,
+        _ctx._post_execution_callbacks, writer)
+      return _result
+    except _core._FallbackException:
+      return flush_summary_writer_eager_fallback(
+          writer, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def flush_summary_writer_eager_fallback(writer, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function flush_summary_writer
+  """
+  _ctx = _context.context()
+  writer = _ops.convert_to_tensor(writer, _dtypes.resource)
+  _inputs_flat = [writer]
+  _attrs = None
+  _result = _execute.execute(b"FlushSummaryWriter", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("FlushSummaryWriter")(None)
 
 
-@tf_export('ImportEvent')
+@tf_export('import_event')
 def import_event(writer, event, name=None):
   r"""Outputs a `tf.Event` protocol buffer.
 
@@ -197,24 +297,48 @@ def import_event(writer, event, name=None):
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "ImportEvent", writer=writer, event=event, name=name)
     return _op
-  else:
-    writer = _ops.convert_to_tensor(writer, _dtypes.resource)
-    event = _ops.convert_to_tensor(event, _dtypes.string)
-    _inputs_flat = [writer, event]
-    _attrs = None
-    _result = _execute.execute(b"ImportEvent", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "ImportEvent", name,
+        _ctx._post_execution_callbacks, writer, event)
+      return _result
+    except _core._FallbackException:
+      return import_event_eager_fallback(
+          writer, event, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def import_event_eager_fallback(writer, event, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function import_event
+  """
+  _ctx = _context.context()
+  writer = _ops.convert_to_tensor(writer, _dtypes.resource)
+  event = _ops.convert_to_tensor(event, _dtypes.string)
+  _inputs_flat = [writer, event]
+  _attrs = None
+  _result = _execute.execute(b"ImportEvent", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("ImportEvent")(None)
 
 
-@tf_export('SummaryWriter')
+@tf_export('summary_writer')
 def summary_writer(shared_name="", container="", name=None):
   r"""Returns a handle to be used to access a summary writer.
 
@@ -229,14 +353,14 @@ def summary_writer(shared_name="", container="", name=None):
   Returns:
     A `Tensor` of type `resource`. the summary writer resource. Scalar handle.
   """
-  if shared_name is None:
-    shared_name = ""
-  shared_name = _execute.make_str(shared_name, "shared_name")
-  if container is None:
-    container = ""
-  container = _execute.make_str(container, "container")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
     _, _, _op = _op_def_lib._apply_op_helper(
         "SummaryWriter", shared_name=shared_name, container=container,
         name=name)
@@ -244,11 +368,44 @@ def summary_writer(shared_name="", container="", name=None):
     _inputs_flat = _op.inputs
     _attrs = ("shared_name", _op.get_attr("shared_name"), "container",
               _op.get_attr("container"))
+    _execute.record_gradient(
+      "SummaryWriter", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _inputs_flat = []
-    _attrs = ("shared_name", shared_name, "container", container)
-    _result = _execute.execute(b"SummaryWriter", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "SummaryWriter", name,
+        _ctx._post_execution_callbacks, "shared_name", shared_name,
+        "container", container)
+      return _result
+    except _core._FallbackException:
+      return summary_writer_eager_fallback(
+          shared_name=shared_name, container=container, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def summary_writer_eager_fallback(shared_name="", container="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function summary_writer
+  """
+  _ctx = _context.context()
+  if shared_name is None:
+    shared_name = ""
+  shared_name = _execute.make_str(shared_name, "shared_name")
+  if container is None:
+    container = ""
+  container = _execute.make_str(container, "container")
+  _inputs_flat = []
+  _attrs = ("shared_name", shared_name, "container", container)
+  _result = _execute.execute(b"SummaryWriter", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "SummaryWriter", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -257,7 +414,7 @@ def summary_writer(shared_name="", container="", name=None):
 _ops.RegisterShape("SummaryWriter")(None)
 
 
-@tf_export('WriteAudioSummary')
+@tf_export('write_audio_summary')
 def write_audio_summary(writer, step, tag, tensor, sample_rate, max_outputs=3, name=None):
   r"""Writes a `Summary` protocol buffer with audio.
 
@@ -288,32 +445,61 @@ def write_audio_summary(writer, step, tag, tensor, sample_rate, max_outputs=3, n
   Returns:
     The created Operation.
   """
-  if max_outputs is None:
-    max_outputs = 3
-  max_outputs = _execute.make_int(max_outputs, "max_outputs")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if max_outputs is None:
+      max_outputs = 3
+    max_outputs = _execute.make_int(max_outputs, "max_outputs")
     _, _, _op = _op_def_lib._apply_op_helper(
         "WriteAudioSummary", writer=writer, step=step, tag=tag, tensor=tensor,
         sample_rate=sample_rate, max_outputs=max_outputs, name=name)
     return _op
-  else:
-    writer = _ops.convert_to_tensor(writer, _dtypes.resource)
-    step = _ops.convert_to_tensor(step, _dtypes.int64)
-    tag = _ops.convert_to_tensor(tag, _dtypes.string)
-    tensor = _ops.convert_to_tensor(tensor, _dtypes.float32)
-    sample_rate = _ops.convert_to_tensor(sample_rate, _dtypes.float32)
-    _inputs_flat = [writer, step, tag, tensor, sample_rate]
-    _attrs = ("max_outputs", max_outputs)
-    _result = _execute.execute(b"WriteAudioSummary", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "WriteAudioSummary", name,
+        _ctx._post_execution_callbacks, writer, step, tag, tensor,
+        sample_rate, "max_outputs", max_outputs)
+      return _result
+    except _core._FallbackException:
+      return write_audio_summary_eager_fallback(
+          writer, step, tag, tensor, sample_rate, max_outputs=max_outputs,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def write_audio_summary_eager_fallback(writer, step, tag, tensor, sample_rate, max_outputs=3, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function write_audio_summary
+  """
+  _ctx = _context.context()
+  if max_outputs is None:
+    max_outputs = 3
+  max_outputs = _execute.make_int(max_outputs, "max_outputs")
+  writer = _ops.convert_to_tensor(writer, _dtypes.resource)
+  step = _ops.convert_to_tensor(step, _dtypes.int64)
+  tag = _ops.convert_to_tensor(tag, _dtypes.string)
+  tensor = _ops.convert_to_tensor(tensor, _dtypes.float32)
+  sample_rate = _ops.convert_to_tensor(sample_rate, _dtypes.float32)
+  _inputs_flat = [writer, step, tag, tensor, sample_rate]
+  _attrs = ("max_outputs", max_outputs)
+  _result = _execute.execute(b"WriteAudioSummary", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("WriteAudioSummary")(None)
 
 
-@tf_export('WriteGraphSummary')
+@tf_export('write_graph_summary')
 def write_graph_summary(writer, step, tensor, name=None):
   r"""Writes a `GraphDef` protocol buffer to a `SummaryWriter`.
 
@@ -328,26 +514,50 @@ def write_graph_summary(writer, step, tensor, name=None):
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "WriteGraphSummary", writer=writer, step=step, tensor=tensor,
         name=name)
     return _op
-  else:
-    writer = _ops.convert_to_tensor(writer, _dtypes.resource)
-    step = _ops.convert_to_tensor(step, _dtypes.int64)
-    tensor = _ops.convert_to_tensor(tensor, _dtypes.string)
-    _inputs_flat = [writer, step, tensor]
-    _attrs = None
-    _result = _execute.execute(b"WriteGraphSummary", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "WriteGraphSummary", name,
+        _ctx._post_execution_callbacks, writer, step, tensor)
+      return _result
+    except _core._FallbackException:
+      return write_graph_summary_eager_fallback(
+          writer, step, tensor, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def write_graph_summary_eager_fallback(writer, step, tensor, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function write_graph_summary
+  """
+  _ctx = _context.context()
+  writer = _ops.convert_to_tensor(writer, _dtypes.resource)
+  step = _ops.convert_to_tensor(step, _dtypes.int64)
+  tensor = _ops.convert_to_tensor(tensor, _dtypes.string)
+  _inputs_flat = [writer, step, tensor]
+  _attrs = None
+  _result = _execute.execute(b"WriteGraphSummary", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("WriteGraphSummary")(None)
 
 
-@tf_export('WriteHistogramSummary')
+@tf_export('write_histogram_summary')
 def write_histogram_summary(writer, step, tag, values, name=None):
   r"""Writes a `Summary` protocol buffer with a histogram.
 
@@ -362,7 +572,7 @@ def write_histogram_summary(writer, step, tag, values, name=None):
     step: A `Tensor` of type `int64`. The step to write the summary for.
     tag: A `Tensor` of type `string`.
       Scalar.  Tag to use for the `Summary.Value`.
-    values: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `int64`, `uint8`, `int16`, `int8`, `uint16`, `half`, `uint32`, `uint64`, `bfloat16`.
+    values: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `int64`, `bfloat16`, `uint16`, `half`, `uint32`, `uint64`.
       Any shape. Values to use to build the histogram.
     name: A name for the operation (optional).
 
@@ -370,28 +580,51 @@ def write_histogram_summary(writer, step, tag, values, name=None):
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "WriteHistogramSummary", writer=writer, step=step, tag=tag,
         values=values, name=name)
     return _op
-  else:
-    _attr_T, (values,) = _execute.args_to_matching_eager([values], _ctx, _dtypes.float32)
-    writer = _ops.convert_to_tensor(writer, _dtypes.resource)
-    step = _ops.convert_to_tensor(step, _dtypes.int64)
-    tag = _ops.convert_to_tensor(tag, _dtypes.string)
-    _inputs_flat = [writer, step, tag, values]
-    _attrs = ("T", _attr_T)
-    _result = _execute.execute(b"WriteHistogramSummary", 0,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "WriteHistogramSummary", name,
+        _ctx._post_execution_callbacks, writer, step, tag, values)
+      return _result
+    except _core._FallbackException:
+      return write_histogram_summary_eager_fallback(
+          writer, step, tag, values, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def write_histogram_summary_eager_fallback(writer, step, tag, values, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function write_histogram_summary
+  """
+  _ctx = _context.context()
+  _attr_T, (values,) = _execute.args_to_matching_eager([values], _ctx, _dtypes.float32)
+  writer = _ops.convert_to_tensor(writer, _dtypes.resource)
+  step = _ops.convert_to_tensor(step, _dtypes.int64)
+  tag = _ops.convert_to_tensor(tag, _dtypes.string)
+  _inputs_flat = [writer, step, tag, values]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"WriteHistogramSummary", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("WriteHistogramSummary")(None)
 
 
-@tf_export('WriteImageSummary')
+@tf_export('write_image_summary')
 def write_image_summary(writer, step, tag, tensor, bad_color, max_images=3, name=None):
   r"""Writes a `Summary` protocol buffer with images.
 
@@ -446,32 +679,61 @@ def write_image_summary(writer, step, tag, tensor, bad_color, max_images=3, name
   Returns:
     The created Operation.
   """
-  if max_images is None:
-    max_images = 3
-  max_images = _execute.make_int(max_images, "max_images")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if max_images is None:
+      max_images = 3
+    max_images = _execute.make_int(max_images, "max_images")
     _, _, _op = _op_def_lib._apply_op_helper(
         "WriteImageSummary", writer=writer, step=step, tag=tag, tensor=tensor,
         bad_color=bad_color, max_images=max_images, name=name)
     return _op
-  else:
-    _attr_T, (tensor,) = _execute.args_to_matching_eager([tensor], _ctx, _dtypes.float32)
-    writer = _ops.convert_to_tensor(writer, _dtypes.resource)
-    step = _ops.convert_to_tensor(step, _dtypes.int64)
-    tag = _ops.convert_to_tensor(tag, _dtypes.string)
-    bad_color = _ops.convert_to_tensor(bad_color, _dtypes.uint8)
-    _inputs_flat = [writer, step, tag, tensor, bad_color]
-    _attrs = ("max_images", max_images, "T", _attr_T)
-    _result = _execute.execute(b"WriteImageSummary", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "WriteImageSummary", name,
+        _ctx._post_execution_callbacks, writer, step, tag, tensor, bad_color,
+        "max_images", max_images)
+      return _result
+    except _core._FallbackException:
+      return write_image_summary_eager_fallback(
+          writer, step, tag, tensor, bad_color, max_images=max_images,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def write_image_summary_eager_fallback(writer, step, tag, tensor, bad_color, max_images=3, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function write_image_summary
+  """
+  _ctx = _context.context()
+  if max_images is None:
+    max_images = 3
+  max_images = _execute.make_int(max_images, "max_images")
+  _attr_T, (tensor,) = _execute.args_to_matching_eager([tensor], _ctx, _dtypes.float32)
+  writer = _ops.convert_to_tensor(writer, _dtypes.resource)
+  step = _ops.convert_to_tensor(step, _dtypes.int64)
+  tag = _ops.convert_to_tensor(tag, _dtypes.string)
+  bad_color = _ops.convert_to_tensor(bad_color, _dtypes.uint8)
+  _inputs_flat = [writer, step, tag, tensor, bad_color]
+  _attrs = ("max_images", max_images, "T", _attr_T)
+  _result = _execute.execute(b"WriteImageSummary", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("WriteImageSummary")(None)
 
 
-@tf_export('WriteScalarSummary')
+@tf_export('write_scalar_summary')
 def write_scalar_summary(writer, step, tag, value, name=None):
   r"""Writes a `Summary` protocol buffer with scalar values.
 
@@ -481,7 +743,7 @@ def write_scalar_summary(writer, step, tag, value, name=None):
     writer: A `Tensor` of type `resource`. A handle to a summary writer.
     step: A `Tensor` of type `int64`. The step to write the summary for.
     tag: A `Tensor` of type `string`. Tag for the summary.
-    value: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `int64`, `uint8`, `int16`, `int8`, `uint16`, `half`, `uint32`, `uint64`, `bfloat16`.
+    value: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `int64`, `bfloat16`, `uint16`, `half`, `uint32`, `uint64`.
       Value for the summary.
     name: A name for the operation (optional).
 
@@ -489,27 +751,51 @@ def write_scalar_summary(writer, step, tag, value, name=None):
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "WriteScalarSummary", writer=writer, step=step, tag=tag, value=value,
         name=name)
     return _op
-  else:
-    _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
-    writer = _ops.convert_to_tensor(writer, _dtypes.resource)
-    step = _ops.convert_to_tensor(step, _dtypes.int64)
-    tag = _ops.convert_to_tensor(tag, _dtypes.string)
-    _inputs_flat = [writer, step, tag, value]
-    _attrs = ("T", _attr_T)
-    _result = _execute.execute(b"WriteScalarSummary", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "WriteScalarSummary", name,
+        _ctx._post_execution_callbacks, writer, step, tag, value)
+      return _result
+    except _core._FallbackException:
+      return write_scalar_summary_eager_fallback(
+          writer, step, tag, value, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def write_scalar_summary_eager_fallback(writer, step, tag, value, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function write_scalar_summary
+  """
+  _ctx = _context.context()
+  _attr_T, (value,) = _execute.args_to_matching_eager([value], _ctx)
+  writer = _ops.convert_to_tensor(writer, _dtypes.resource)
+  step = _ops.convert_to_tensor(step, _dtypes.int64)
+  tag = _ops.convert_to_tensor(tag, _dtypes.string)
+  _inputs_flat = [writer, step, tag, value]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"WriteScalarSummary", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("WriteScalarSummary")(None)
 
 
-@tf_export('WriteSummary')
+@tf_export('write_summary')
 def write_summary(writer, step, tensor, tag, summary_metadata, name=None):
   r"""Outputs a `Summary` protocol buffer with a tensor.
 
@@ -527,22 +813,47 @@ def write_summary(writer, step, tensor, tag, summary_metadata, name=None):
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "WriteSummary", writer=writer, step=step, tensor=tensor, tag=tag,
         summary_metadata=summary_metadata, name=name)
     return _op
-  else:
-    _attr_T, (tensor,) = _execute.args_to_matching_eager([tensor], _ctx)
-    writer = _ops.convert_to_tensor(writer, _dtypes.resource)
-    step = _ops.convert_to_tensor(step, _dtypes.int64)
-    tag = _ops.convert_to_tensor(tag, _dtypes.string)
-    summary_metadata = _ops.convert_to_tensor(summary_metadata, _dtypes.string)
-    _inputs_flat = [writer, step, tensor, tag, summary_metadata]
-    _attrs = ("T", _attr_T)
-    _result = _execute.execute(b"WriteSummary", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "WriteSummary", name,
+        _ctx._post_execution_callbacks, writer, step, tensor, tag,
+        summary_metadata)
+      return _result
+    except _core._FallbackException:
+      return write_summary_eager_fallback(
+          writer, step, tensor, tag, summary_metadata, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def write_summary_eager_fallback(writer, step, tensor, tag, summary_metadata, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function write_summary
+  """
+  _ctx = _context.context()
+  _attr_T, (tensor,) = _execute.args_to_matching_eager([tensor], _ctx)
+  writer = _ops.convert_to_tensor(writer, _dtypes.resource)
+  step = _ops.convert_to_tensor(step, _dtypes.int64)
+  tag = _ops.convert_to_tensor(tag, _dtypes.string)
+  summary_metadata = _ops.convert_to_tensor(summary_metadata, _dtypes.string)
+  _inputs_flat = [writer, step, tensor, tag, summary_metadata]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"WriteSummary", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("WriteSummary")(None)
@@ -730,15 +1041,15 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
 #         type: DT_INT32
-#         type: DT_INT64
 #         type: DT_UINT8
 #         type: DT_INT16
 #         type: DT_INT8
+#         type: DT_INT64
+#         type: DT_BFLOAT16
 #         type: DT_UINT16
 #         type: DT_HALF
 #         type: DT_UINT32
 #         type: DT_UINT64
-#         type: DT_BFLOAT16
 #       }
 #     }
 #   }
@@ -817,15 +1128,15 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
 #         type: DT_INT32
-#         type: DT_INT64
 #         type: DT_UINT8
 #         type: DT_INT16
 #         type: DT_INT8
+#         type: DT_INT64
+#         type: DT_BFLOAT16
 #         type: DT_UINT16
 #         type: DT_HALF
 #         type: DT_UINT32
 #         type: DT_UINT64
-#         type: DT_BFLOAT16
 #       }
 #     }
 #   }
@@ -859,4 +1170,4 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #   }
 #   is_stateful: true
 # }
-_op_def_lib = _InitOpDefLibrary(b"\n#\n\022CloseSummaryWriter\022\n\n\006writer\030\024\210\001\001\nd\n\025CreateSummaryDbWriter\022\n\n\006writer\030\024\022\n\n\006db_uri\030\007\022\023\n\017experiment_name\030\007\022\014\n\010run_name\030\007\022\r\n\tuser_name\030\007\210\001\001\nj\n\027CreateSummaryFileWriter\022\n\n\006writer\030\024\022\n\n\006logdir\030\007\022\r\n\tmax_queue\030\003\022\020\n\014flush_millis\030\003\022\023\n\017filename_suffix\030\007\210\001\001\n#\n\022FlushSummaryWriter\022\n\n\006writer\030\024\210\001\001\n\'\n\013ImportEvent\022\n\n\006writer\030\024\022\t\n\005event\030\007\210\001\001\nR\n\rSummaryWriter\032\n\n\006writer\030\024\"\031\n\013shared_name\022\006string\032\002\022\000\"\027\n\tcontainer\022\006string\032\002\022\000\210\001\001\nn\n\021WriteAudioSummary\022\n\n\006writer\030\024\022\010\n\004step\030\t\022\007\n\003tag\030\007\022\n\n\006tensor\030\001\022\017\n\013sample_rate\030\001\"\032\n\013max_outputs\022\003int\032\002\030\003(\0010\001\210\001\001\n8\n\021WriteGraphSummary\022\n\n\006writer\030\024\022\010\n\004step\030\t\022\n\n\006tensor\030\007\210\001\001\ng\n\025WriteHistogramSummary\022\n\n\006writer\030\024\022\010\n\004step\030\t\022\007\n\003tag\030\007\022\013\n\006values\"\001T\"\037\n\001T\022\004type\032\0020\001:\020\n\0162\014\001\002\003\t\004\005\006\021\023\026\027\016\210\001\001\n\204\001\n\021WriteImageSummary\022\n\n\006writer\030\024\022\010\n\004step\030\t\022\007\n\003tag\030\007\022\013\n\006tensor\"\001T\022\r\n\tbad_color\030\004\"\031\n\nmax_images\022\003int\032\002\030\003(\0010\001\"\026\n\001T\022\004type\032\0020\001:\007\n\0052\003\004\001\023\210\001\001\n_\n\022WriteScalarSummary\022\n\n\006writer\030\024\022\010\n\004step\030\t\022\007\n\003tag\030\007\022\n\n\005value\"\001T\"\033\n\001T\022\004type:\020\n\0162\014\001\002\003\t\004\005\006\021\023\026\027\016\210\001\001\n^\n\014WriteSummary\022\n\n\006writer\030\024\022\010\n\004step\030\t\022\013\n\006tensor\"\001T\022\007\n\003tag\030\007\022\024\n\020summary_metadata\030\007\"\t\n\001T\022\004type\210\001\001")
+_op_def_lib = _InitOpDefLibrary(b"\n#\n\022CloseSummaryWriter\022\n\n\006writer\030\024\210\001\001\nd\n\025CreateSummaryDbWriter\022\n\n\006writer\030\024\022\n\n\006db_uri\030\007\022\023\n\017experiment_name\030\007\022\014\n\010run_name\030\007\022\r\n\tuser_name\030\007\210\001\001\nj\n\027CreateSummaryFileWriter\022\n\n\006writer\030\024\022\n\n\006logdir\030\007\022\r\n\tmax_queue\030\003\022\020\n\014flush_millis\030\003\022\023\n\017filename_suffix\030\007\210\001\001\n#\n\022FlushSummaryWriter\022\n\n\006writer\030\024\210\001\001\n\'\n\013ImportEvent\022\n\n\006writer\030\024\022\t\n\005event\030\007\210\001\001\nR\n\rSummaryWriter\032\n\n\006writer\030\024\"\031\n\013shared_name\022\006string\032\002\022\000\"\027\n\tcontainer\022\006string\032\002\022\000\210\001\001\nn\n\021WriteAudioSummary\022\n\n\006writer\030\024\022\010\n\004step\030\t\022\007\n\003tag\030\007\022\n\n\006tensor\030\001\022\017\n\013sample_rate\030\001\"\032\n\013max_outputs\022\003int\032\002\030\003(\0010\001\210\001\001\n8\n\021WriteGraphSummary\022\n\n\006writer\030\024\022\010\n\004step\030\t\022\n\n\006tensor\030\007\210\001\001\ng\n\025WriteHistogramSummary\022\n\n\006writer\030\024\022\010\n\004step\030\t\022\007\n\003tag\030\007\022\013\n\006values\"\001T\"\037\n\001T\022\004type\032\0020\001:\020\n\0162\014\001\002\003\004\005\006\t\016\021\023\026\027\210\001\001\n\204\001\n\021WriteImageSummary\022\n\n\006writer\030\024\022\010\n\004step\030\t\022\007\n\003tag\030\007\022\013\n\006tensor\"\001T\022\r\n\tbad_color\030\004\"\031\n\nmax_images\022\003int\032\002\030\003(\0010\001\"\026\n\001T\022\004type\032\0020\001:\007\n\0052\003\004\001\023\210\001\001\n_\n\022WriteScalarSummary\022\n\n\006writer\030\024\022\010\n\004step\030\t\022\007\n\003tag\030\007\022\n\n\005value\"\001T\"\033\n\001T\022\004type:\020\n\0162\014\001\002\003\004\005\006\t\016\021\023\026\027\210\001\001\n^\n\014WriteSummary\022\n\n\006writer\030\024\022\010\n\004step\030\t\022\013\n\006tensor\"\001T\022\007\n\003tag\030\007\022\024\n\020summary_metadata\030\007\"\t\n\001T\022\004type\210\001\001")

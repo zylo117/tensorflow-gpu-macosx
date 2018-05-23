@@ -24,7 +24,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='tensorflow/core/grappler/costs/op_performance_data.proto',
   package='tensorflow',
   syntax='proto3',
-  serialized_pb=_b('\n8tensorflow/core/grappler/costs/op_performance_data.proto\x12\ntensorflow\x1a&tensorflow/core/framework/tensor.proto\x1a,tensorflow/core/framework/tensor_shape.proto\x1a%tensorflow/core/framework/types.proto\x1a*tensorflow/core/framework/attr_value.proto\x1a\x30tensorflow/core/protobuf/device_properties.proto\"\xac\x03\n\x06OpInfo\x12\n\n\x02op\x18\x01 \x01(\t\x12*\n\x04\x61ttr\x18\x02 \x03(\x0b\x32\x1c.tensorflow.OpInfo.AttrEntry\x12\x33\n\x06inputs\x18\x03 \x03(\x0b\x32#.tensorflow.OpInfo.TensorProperties\x12\x34\n\x07outputs\x18\x05 \x03(\x0b\x32#.tensorflow.OpInfo.TensorProperties\x12,\n\x06\x64\x65vice\x18\x04 \x01(\x0b\x32\x1c.tensorflow.DeviceProperties\x1a\x42\n\tAttrEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12$\n\x05value\x18\x02 \x01(\x0b\x32\x15.tensorflow.AttrValue:\x02\x38\x01\x1a\x8c\x01\n\x10TensorProperties\x12#\n\x05\x64type\x18\x01 \x01(\x0e\x32\x14.tensorflow.DataType\x12+\n\x05shape\x18\x02 \x01(\x0b\x32\x1c.tensorflow.TensorShapeProto\x12&\n\x05value\x18\x03 \x01(\x0b\x32\x17.tensorflow.TensorProto\"/\n\x12NormalDistribution\x12\n\n\x02mu\x18\x01 \x01(\x01\x12\r\n\x05sigma\x18\x02 \x01(\x01\"2\n\x15LogNormalDistribution\x12\n\n\x02mu\x18\x01 \x01(\x01\x12\r\n\x05sigma\x18\x02 \x01(\x01\"\xc2\x04\n\rOpPerformance\x12\x1e\n\x02op\x18\x01 \x01(\x0b\x32\x12.tensorflow.OpInfo\x12\x0c\n\x04node\x18\x05 \x01(\t\x12\x1d\n\x15temporary_memory_size\x18\x02 \x01(\x03\x12\x14\n\x0c\x63ompute_cost\x18\x03 \x01(\x03\x12\x14\n\x0c\x63ompute_time\x18\x06 \x01(\x03\x12\x13\n\x0bmemory_time\x18\x07 \x01(\x03\x12\x1a\n\x12\x63ompute_efficiency\x18\x04 \x01(\x01\x12\x19\n\x11memory_efficiency\x18\x08 \x01(\x01\x12?\n\x15\x65xecution_time_normal\x18\n \x01(\x0b\x32\x1e.tensorflow.NormalDistributionH\x00\x12\x46\n\x19\x65xecution_time_log_normal\x18\x0b \x01(\x0b\x32!.tensorflow.LogNormalDistributionH\x00\x12\x35\n\top_memory\x18\t \x01(\x0b\x32\".tensorflow.OpPerformance.OpMemory\x1a\x99\x01\n\x08OpMemory\x12\x15\n\routput_memory\x18\x01 \x03(\x03\x12\x18\n\x10host_temp_memory\x18\x02 \x01(\x03\x12\x1a\n\x12\x64\x65vice_temp_memory\x18\x03 \x01(\x03\x12\x1e\n\x16host_persistent_memory\x18\x04 \x01(\x03\x12 \n\x18\x64\x65vice_persistent_memory\x18\x05 \x01(\x03\x42\x10\n\x0e\x65xecution_time\"F\n\x11OpPerformanceList\x12\x31\n\x0eop_performance\x18\x01 \x03(\x0b\x32\x19.tensorflow.OpPerformanceB\x03\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n8tensorflow/core/grappler/costs/op_performance_data.proto\x12\ntensorflow\x1a&tensorflow/core/framework/tensor.proto\x1a,tensorflow/core/framework/tensor_shape.proto\x1a%tensorflow/core/framework/types.proto\x1a*tensorflow/core/framework/attr_value.proto\x1a\x30tensorflow/core/protobuf/device_properties.proto\"\xac\x03\n\x06OpInfo\x12\n\n\x02op\x18\x01 \x01(\t\x12*\n\x04\x61ttr\x18\x02 \x03(\x0b\x32\x1c.tensorflow.OpInfo.AttrEntry\x12\x33\n\x06inputs\x18\x03 \x03(\x0b\x32#.tensorflow.OpInfo.TensorProperties\x12\x34\n\x07outputs\x18\x05 \x03(\x0b\x32#.tensorflow.OpInfo.TensorProperties\x12,\n\x06\x64\x65vice\x18\x04 \x01(\x0b\x32\x1c.tensorflow.DeviceProperties\x1a\x42\n\tAttrEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12$\n\x05value\x18\x02 \x01(\x0b\x32\x15.tensorflow.AttrValue:\x02\x38\x01\x1a\x8c\x01\n\x10TensorProperties\x12#\n\x05\x64type\x18\x01 \x01(\x0e\x32\x14.tensorflow.DataType\x12+\n\x05shape\x18\x02 \x01(\x0b\x32\x1c.tensorflow.TensorShapeProto\x12&\n\x05value\x18\x03 \x01(\x0b\x32\x17.tensorflow.TensorProto\"/\n\x12NormalDistribution\x12\n\n\x02mu\x18\x01 \x01(\x01\x12\r\n\x05sigma\x18\x02 \x01(\x01\"2\n\x15LogNormalDistribution\x12\n\n\x02mu\x18\x01 \x01(\x01\x12\r\n\x05sigma\x18\x02 \x01(\x01\"+\n\x0bSessionInfo\x12\x1c\n\x14intra_op_parallelism\x18\x01 \x01(\x03\"\xef\x04\n\rOpPerformance\x12\x1e\n\x02op\x18\x01 \x01(\x0b\x32\x12.tensorflow.OpInfo\x12-\n\x0csession_info\x18\x0c \x01(\x0b\x32\x17.tensorflow.SessionInfo\x12\x0c\n\x04node\x18\x05 \x01(\t\x12\x1d\n\x15temporary_memory_size\x18\x02 \x01(\x03\x12\x14\n\x0c\x63ompute_cost\x18\x03 \x01(\x03\x12\x14\n\x0c\x63ompute_time\x18\x06 \x01(\x03\x12\x13\n\x0bmemory_time\x18\x07 \x01(\x03\x12\x1a\n\x12\x63ompute_efficiency\x18\x04 \x01(\x01\x12\x19\n\x11memory_efficiency\x18\x08 \x01(\x01\x12?\n\x15\x65xecution_time_normal\x18\n \x01(\x0b\x32\x1e.tensorflow.NormalDistributionH\x00\x12\x46\n\x19\x65xecution_time_log_normal\x18\x0b \x01(\x0b\x32!.tensorflow.LogNormalDistributionH\x00\x12\x35\n\top_memory\x18\t \x01(\x0b\x32\".tensorflow.OpPerformance.OpMemory\x1a\x97\x01\n\x08OpMemory\x12\x15\n\routput_memory\x18\x01 \x03(\x03\x12\x13\n\x0btemp_memory\x18\x02 \x01(\x03\x12\x19\n\x11persistent_memory\x18\x04 \x01(\x03\x12\x1e\n\x12\x64\x65vice_temp_memory\x18\x03 \x01(\x03\x42\x02\x18\x01\x12$\n\x18\x64\x65vice_persistent_memory\x18\x05 \x01(\x03\x42\x02\x18\x01\x42\x10\n\x0e\x65xecution_time\"F\n\x11OpPerformanceList\x12\x31\n\x0eop_performance\x18\x01 \x03(\x0b\x32\x19.tensorflow.OpPerformanceB\x03\xf8\x01\x01\x62\x06proto3')
   ,
   dependencies=[tensorflow_dot_core_dot_framework_dot_tensor__pb2.DESCRIPTOR,tensorflow_dot_core_dot_framework_dot_tensor__shape__pb2.DESCRIPTOR,tensorflow_dot_core_dot_framework_dot_types__pb2.DESCRIPTOR,tensorflow_dot_core_dot_framework_dot_attr__value__pb2.DESCRIPTOR,tensorflow_dot_core_dot_protobuf_dot_device__properties__pb2.DESCRIPTOR,])
 
@@ -44,14 +44,14 @@ _OPINFO_ATTRENTRY = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='value', full_name='tensorflow.OpInfo.AttrEntry.value', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -81,21 +81,21 @@ _OPINFO_TENSORPROPERTIES = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='shape', full_name='tensorflow.OpInfo.TensorProperties.shape', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='value', full_name='tensorflow.OpInfo.TensorProperties.value', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -125,35 +125,35 @@ _OPINFO = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='attr', full_name='tensorflow.OpInfo.attr', index=1,
       number=2, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='inputs', full_name='tensorflow.OpInfo.inputs', index=2,
       number=3, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='outputs', full_name='tensorflow.OpInfo.outputs', index=3,
       number=5, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='device', full_name='tensorflow.OpInfo.device', index=4,
       number=4, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -184,14 +184,14 @@ _NORMALDISTRIBUTION = _descriptor.Descriptor(
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='sigma', full_name='tensorflow.NormalDistribution.sigma', index=1,
       number=2, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -222,14 +222,14 @@ _LOGNORMALDISTRIBUTION = _descriptor.Descriptor(
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='sigma', full_name='tensorflow.LogNormalDistribution.sigma', index=1,
       number=2, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -247,6 +247,37 @@ _LOGNORMALDISTRIBUTION = _descriptor.Descriptor(
 )
 
 
+_SESSIONINFO = _descriptor.Descriptor(
+  name='SessionInfo',
+  full_name='tensorflow.SessionInfo',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='intra_op_parallelism', full_name='tensorflow.SessionInfo.intra_op_parallelism', index=0,
+      number=1, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=823,
+  serialized_end=866,
+)
+
+
 _OPPERFORMANCE_OPMEMORY = _descriptor.Descriptor(
   name='OpMemory',
   full_name='tensorflow.OpPerformance.OpMemory',
@@ -260,35 +291,35 @@ _OPPERFORMANCE_OPMEMORY = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='host_temp_memory', full_name='tensorflow.OpPerformance.OpMemory.host_temp_memory', index=1,
+      name='temp_memory', full_name='tensorflow.OpPerformance.OpMemory.temp_memory', index=1,
       number=2, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='device_temp_memory', full_name='tensorflow.OpPerformance.OpMemory.device_temp_memory', index=2,
-      number=3, type=3, cpp_type=2, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='host_persistent_memory', full_name='tensorflow.OpPerformance.OpMemory.host_persistent_memory', index=3,
+      name='persistent_memory', full_name='tensorflow.OpPerformance.OpMemory.persistent_memory', index=2,
       number=4, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='device_temp_memory', full_name='tensorflow.OpPerformance.OpMemory.device_temp_memory', index=3,
+      number=3, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\030\001')), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='device_persistent_memory', full_name='tensorflow.OpPerformance.OpMemory.device_persistent_memory', index=4,
       number=5, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\030\001')), file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -301,8 +332,8 @@ _OPPERFORMANCE_OPMEMORY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1231,
-  serialized_end=1384,
+  serialized_start=1323,
+  serialized_end=1474,
 )
 
 _OPPERFORMANCE = _descriptor.Descriptor(
@@ -318,77 +349,84 @@ _OPPERFORMANCE = _descriptor.Descriptor(
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='node', full_name='tensorflow.OpPerformance.node', index=1,
+      name='session_info', full_name='tensorflow.OpPerformance.session_info', index=1,
+      number=12, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='node', full_name='tensorflow.OpPerformance.node', index=2,
       number=5, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='temporary_memory_size', full_name='tensorflow.OpPerformance.temporary_memory_size', index=2,
+      name='temporary_memory_size', full_name='tensorflow.OpPerformance.temporary_memory_size', index=3,
       number=2, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='compute_cost', full_name='tensorflow.OpPerformance.compute_cost', index=3,
+      name='compute_cost', full_name='tensorflow.OpPerformance.compute_cost', index=4,
       number=3, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='compute_time', full_name='tensorflow.OpPerformance.compute_time', index=4,
+      name='compute_time', full_name='tensorflow.OpPerformance.compute_time', index=5,
       number=6, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='memory_time', full_name='tensorflow.OpPerformance.memory_time', index=5,
+      name='memory_time', full_name='tensorflow.OpPerformance.memory_time', index=6,
       number=7, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='compute_efficiency', full_name='tensorflow.OpPerformance.compute_efficiency', index=6,
+      name='compute_efficiency', full_name='tensorflow.OpPerformance.compute_efficiency', index=7,
       number=4, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='memory_efficiency', full_name='tensorflow.OpPerformance.memory_efficiency', index=7,
+      name='memory_efficiency', full_name='tensorflow.OpPerformance.memory_efficiency', index=8,
       number=8, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='execution_time_normal', full_name='tensorflow.OpPerformance.execution_time_normal', index=8,
+      name='execution_time_normal', full_name='tensorflow.OpPerformance.execution_time_normal', index=9,
       number=10, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='execution_time_log_normal', full_name='tensorflow.OpPerformance.execution_time_log_normal', index=9,
+      name='execution_time_log_normal', full_name='tensorflow.OpPerformance.execution_time_log_normal', index=10,
       number=11, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='op_memory', full_name='tensorflow.OpPerformance.op_memory', index=10,
+      name='op_memory', full_name='tensorflow.OpPerformance.op_memory', index=11,
       number=9, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -404,8 +442,8 @@ _OPPERFORMANCE = _descriptor.Descriptor(
       name='execution_time', full_name='tensorflow.OpPerformance.execution_time',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=824,
-  serialized_end=1402,
+  serialized_start=869,
+  serialized_end=1492,
 )
 
 
@@ -422,7 +460,7 @@ _OPPERFORMANCELIST = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -435,8 +473,8 @@ _OPPERFORMANCELIST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1404,
-  serialized_end=1474,
+  serialized_start=1494,
+  serialized_end=1564,
 )
 
 _OPINFO_ATTRENTRY.fields_by_name['value'].message_type = tensorflow_dot_core_dot_framework_dot_attr__value__pb2._ATTRVALUE
@@ -451,6 +489,7 @@ _OPINFO.fields_by_name['outputs'].message_type = _OPINFO_TENSORPROPERTIES
 _OPINFO.fields_by_name['device'].message_type = tensorflow_dot_core_dot_protobuf_dot_device__properties__pb2._DEVICEPROPERTIES
 _OPPERFORMANCE_OPMEMORY.containing_type = _OPPERFORMANCE
 _OPPERFORMANCE.fields_by_name['op'].message_type = _OPINFO
+_OPPERFORMANCE.fields_by_name['session_info'].message_type = _SESSIONINFO
 _OPPERFORMANCE.fields_by_name['execution_time_normal'].message_type = _NORMALDISTRIBUTION
 _OPPERFORMANCE.fields_by_name['execution_time_log_normal'].message_type = _LOGNORMALDISTRIBUTION
 _OPPERFORMANCE.fields_by_name['op_memory'].message_type = _OPPERFORMANCE_OPMEMORY
@@ -464,6 +503,7 @@ _OPPERFORMANCELIST.fields_by_name['op_performance'].message_type = _OPPERFORMANC
 DESCRIPTOR.message_types_by_name['OpInfo'] = _OPINFO
 DESCRIPTOR.message_types_by_name['NormalDistribution'] = _NORMALDISTRIBUTION
 DESCRIPTOR.message_types_by_name['LogNormalDistribution'] = _LOGNORMALDISTRIBUTION
+DESCRIPTOR.message_types_by_name['SessionInfo'] = _SESSIONINFO
 DESCRIPTOR.message_types_by_name['OpPerformance'] = _OPPERFORMANCE
 DESCRIPTOR.message_types_by_name['OpPerformanceList'] = _OPPERFORMANCELIST
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -505,6 +545,13 @@ LogNormalDistribution = _reflection.GeneratedProtocolMessageType('LogNormalDistr
   ))
 _sym_db.RegisterMessage(LogNormalDistribution)
 
+SessionInfo = _reflection.GeneratedProtocolMessageType('SessionInfo', (_message.Message,), dict(
+  DESCRIPTOR = _SESSIONINFO,
+  __module__ = 'tensorflow.core.grappler.costs.op_performance_data_pb2'
+  # @@protoc_insertion_point(class_scope:tensorflow.SessionInfo)
+  ))
+_sym_db.RegisterMessage(SessionInfo)
+
 OpPerformance = _reflection.GeneratedProtocolMessageType('OpPerformance', (_message.Message,), dict(
 
   OpMemory = _reflection.GeneratedProtocolMessageType('OpMemory', (_message.Message,), dict(
@@ -532,4 +579,8 @@ DESCRIPTOR.has_options = True
 DESCRIPTOR._options = _descriptor._ParseOptions(descriptor_pb2.FileOptions(), _b('\370\001\001'))
 _OPINFO_ATTRENTRY.has_options = True
 _OPINFO_ATTRENTRY._options = _descriptor._ParseOptions(descriptor_pb2.MessageOptions(), _b('8\001'))
+_OPPERFORMANCE_OPMEMORY.fields_by_name['device_temp_memory'].has_options = True
+_OPPERFORMANCE_OPMEMORY.fields_by_name['device_temp_memory']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\030\001'))
+_OPPERFORMANCE_OPMEMORY.fields_by_name['device_persistent_memory'].has_options = True
+_OPPERFORMANCE_OPMEMORY.fields_by_name['device_persistent_memory']._options = _descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\030\001'))
 # @@protoc_insertion_point(module_scope)

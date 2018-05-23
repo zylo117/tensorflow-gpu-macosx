@@ -5,11 +5,14 @@ Original C++ source file: candidate_sampling_ops.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,14 +24,13 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-__all_candidate_sampler_outputs = ["sampled_candidates",
-                                  "true_expected_count",
-                                  "sampled_expected_count"]
+_all_candidate_sampler_outputs = ["sampled_candidates", "true_expected_count",
+                                 "sampled_expected_count"]
 _AllCandidateSamplerOutput = _collections.namedtuple(
-    "AllCandidateSampler", __all_candidate_sampler_outputs)
+    "AllCandidateSampler", _all_candidate_sampler_outputs)
 
 
-def _all_candidate_sampler(true_classes, num_true, num_sampled, unique, seed=0, seed2=0, name=None):
+def all_candidate_sampler(true_classes, num_true, num_sampled, unique, seed=0, seed2=0, name=None):
   r"""Generates labels for candidate sampling with a learned unigram distribution.
 
   See explanations of candidate sampling and the data formats at
@@ -62,27 +64,21 @@ def _all_candidate_sampler(true_classes, num_true, num_sampled, unique, seed=0, 
   Returns:
     A tuple of `Tensor` objects (sampled_candidates, true_expected_count, sampled_expected_count).
 
-    sampled_candidates: A `Tensor` of type `int64`. A vector of length num_sampled, in which each element is
-      the ID of a sampled candidate.
-    true_expected_count: A `Tensor` of type `float32`. A batch_size * num_true matrix, representing
-      the number of times each candidate is expected to occur in a batch
-      of sampled candidates. If unique=true, then this is a probability.
-    sampled_expected_count: A `Tensor` of type `float32`. A vector of length num_sampled, for each sampled
-      candidate representing the number of times the candidate is expected
-      to occur in a batch of sampled candidates.  If unique=true, then this is a
-      probability.
+    sampled_candidates: A `Tensor` of type `int64`.
+    true_expected_count: A `Tensor` of type `float32`.
+    sampled_expected_count: A `Tensor` of type `float32`.
   """
-  num_true = _execute.make_int(num_true, "num_true")
-  num_sampled = _execute.make_int(num_sampled, "num_sampled")
-  unique = _execute.make_bool(unique, "unique")
-  if seed is None:
-    seed = 0
-  seed = _execute.make_int(seed, "seed")
-  if seed2 is None:
-    seed2 = 0
-  seed2 = _execute.make_int(seed2, "seed2")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    num_true = _execute.make_int(num_true, "num_true")
+    num_sampled = _execute.make_int(num_sampled, "num_sampled")
+    unique = _execute.make_bool(unique, "unique")
+    if seed is None:
+      seed = 0
+    seed = _execute.make_int(seed, "seed")
+    if seed2 is None:
+      seed2 = 0
+    seed2 = _execute.make_int(seed2, "seed2")
     _, _, _op = _op_def_lib._apply_op_helper(
         "AllCandidateSampler", true_classes=true_classes, num_true=num_true,
         num_sampled=num_sampled, unique=unique, seed=seed, seed2=seed2,
@@ -92,25 +88,64 @@ def _all_candidate_sampler(true_classes, num_true, num_sampled, unique, seed=0, 
     _attrs = ("num_true", _op.get_attr("num_true"), "num_sampled",
               _op.get_attr("num_sampled"), "unique", _op.get_attr("unique"),
               "seed", _op.get_attr("seed"), "seed2", _op.get_attr("seed2"))
+    _execute.record_gradient(
+      "AllCandidateSampler", _inputs_flat, _attrs, _result, name)
+    _result = _AllCandidateSamplerOutput._make(_result)
+    return _result
+
   else:
-    true_classes = _ops.convert_to_tensor(true_classes, _dtypes.int64)
-    _inputs_flat = [true_classes]
-    _attrs = ("num_true", num_true, "num_sampled", num_sampled, "unique",
-              unique, "seed", seed, "seed2", seed2)
-    _result = _execute.execute(b"AllCandidateSampler", 3, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "AllCandidateSampler", name,
+        _ctx._post_execution_callbacks, true_classes, "num_true", num_true,
+        "num_sampled", num_sampled, "unique", unique, "seed", seed, "seed2",
+        seed2)
+      _result = _AllCandidateSamplerOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return all_candidate_sampler_eager_fallback(
+          true_classes, num_true=num_true, num_sampled=num_sampled,
+          unique=unique, seed=seed, seed2=seed2, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def all_candidate_sampler_eager_fallback(true_classes, num_true, num_sampled, unique, seed=0, seed2=0, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function all_candidate_sampler
+  """
+  _ctx = _context.context()
+  num_true = _execute.make_int(num_true, "num_true")
+  num_sampled = _execute.make_int(num_sampled, "num_sampled")
+  unique = _execute.make_bool(unique, "unique")
+  if seed is None:
+    seed = 0
+  seed = _execute.make_int(seed, "seed")
+  if seed2 is None:
+    seed2 = 0
+  seed2 = _execute.make_int(seed2, "seed2")
+  true_classes = _ops.convert_to_tensor(true_classes, _dtypes.int64)
+  _inputs_flat = [true_classes]
+  _attrs = ("num_true", num_true, "num_sampled", num_sampled, "unique",
+  unique, "seed", seed, "seed2", seed2)
+  _result = _execute.execute(b"AllCandidateSampler", 3, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "AllCandidateSampler", _inputs_flat, _attrs, _result, name)
   _result = _AllCandidateSamplerOutput._make(_result)
   return _result
 
 
-__compute_accidental_hits_outputs = ["indices", "ids", "weights"]
+_compute_accidental_hits_outputs = ["indices", "ids", "weights"]
 _ComputeAccidentalHitsOutput = _collections.namedtuple(
-    "ComputeAccidentalHits", __compute_accidental_hits_outputs)
+    "ComputeAccidentalHits", _compute_accidental_hits_outputs)
 
 
-def _compute_accidental_hits(true_classes, sampled_candidates, num_true, seed=0, seed2=0, name=None):
+def compute_accidental_hits(true_classes, sampled_candidates, num_true, seed=0, seed2=0, name=None):
   r"""Computes the ids of the positions in sampled_candidates that match true_labels.
 
   When doing log-odds NCE, the result of this op should be passed through a
@@ -135,21 +170,19 @@ def _compute_accidental_hits(true_classes, sampled_candidates, num_true, seed=0,
   Returns:
     A tuple of `Tensor` objects (indices, ids, weights).
 
-    indices: A `Tensor` of type `int32`. A vector of indices corresponding to rows of true_candidates.
-    ids: A `Tensor` of type `int64`. A vector of IDs of positions in sampled_candidates that match a true_label
-      for the row with the corresponding index in indices.
-    weights: A `Tensor` of type `float32`. A vector of the same length as indices and ids, in which each element
-      is -FLOAT_MAX.
+    indices: A `Tensor` of type `int32`.
+    ids: A `Tensor` of type `int64`.
+    weights: A `Tensor` of type `float32`.
   """
-  num_true = _execute.make_int(num_true, "num_true")
-  if seed is None:
-    seed = 0
-  seed = _execute.make_int(seed, "seed")
-  if seed2 is None:
-    seed2 = 0
-  seed2 = _execute.make_int(seed2, "seed2")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    num_true = _execute.make_int(num_true, "num_true")
+    if seed is None:
+      seed = 0
+    seed = _execute.make_int(seed, "seed")
+    if seed2 is None:
+      seed2 = 0
+    seed2 = _execute.make_int(seed2, "seed2")
     _, _, _op = _op_def_lib._apply_op_helper(
         "ComputeAccidentalHits", true_classes=true_classes,
         sampled_candidates=sampled_candidates, num_true=num_true, seed=seed,
@@ -158,28 +191,63 @@ def _compute_accidental_hits(true_classes, sampled_candidates, num_true, seed=0,
     _inputs_flat = _op.inputs
     _attrs = ("num_true", _op.get_attr("num_true"), "seed",
               _op.get_attr("seed"), "seed2", _op.get_attr("seed2"))
+    _execute.record_gradient(
+      "ComputeAccidentalHits", _inputs_flat, _attrs, _result, name)
+    _result = _ComputeAccidentalHitsOutput._make(_result)
+    return _result
+
   else:
-    true_classes = _ops.convert_to_tensor(true_classes, _dtypes.int64)
-    sampled_candidates = _ops.convert_to_tensor(sampled_candidates, _dtypes.int64)
-    _inputs_flat = [true_classes, sampled_candidates]
-    _attrs = ("num_true", num_true, "seed", seed, "seed2", seed2)
-    _result = _execute.execute(b"ComputeAccidentalHits", 3,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "ComputeAccidentalHits", name,
+        _ctx._post_execution_callbacks, true_classes, sampled_candidates,
+        "num_true", num_true, "seed", seed, "seed2", seed2)
+      _result = _ComputeAccidentalHitsOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return compute_accidental_hits_eager_fallback(
+          true_classes, sampled_candidates, num_true=num_true, seed=seed,
+          seed2=seed2, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def compute_accidental_hits_eager_fallback(true_classes, sampled_candidates, num_true, seed=0, seed2=0, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function compute_accidental_hits
+  """
+  _ctx = _context.context()
+  num_true = _execute.make_int(num_true, "num_true")
+  if seed is None:
+    seed = 0
+  seed = _execute.make_int(seed, "seed")
+  if seed2 is None:
+    seed2 = 0
+  seed2 = _execute.make_int(seed2, "seed2")
+  true_classes = _ops.convert_to_tensor(true_classes, _dtypes.int64)
+  sampled_candidates = _ops.convert_to_tensor(sampled_candidates, _dtypes.int64)
+  _inputs_flat = [true_classes, sampled_candidates]
+  _attrs = ("num_true", num_true, "seed", seed, "seed2", seed2)
+  _result = _execute.execute(b"ComputeAccidentalHits", 3, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "ComputeAccidentalHits", _inputs_flat, _attrs, _result, name)
   _result = _ComputeAccidentalHitsOutput._make(_result)
   return _result
 
 
-__fixed_unigram_candidate_sampler_outputs = ["sampled_candidates",
-                                            "true_expected_count",
-                                            "sampled_expected_count"]
+_fixed_unigram_candidate_sampler_outputs = ["sampled_candidates",
+                                           "true_expected_count",
+                                           "sampled_expected_count"]
 _FixedUnigramCandidateSamplerOutput = _collections.namedtuple(
-    "FixedUnigramCandidateSampler", __fixed_unigram_candidate_sampler_outputs)
+    "FixedUnigramCandidateSampler", _fixed_unigram_candidate_sampler_outputs)
 
 
-def _fixed_unigram_candidate_sampler(true_classes, num_true, num_sampled, unique, range_max, vocab_file="", distortion=1, num_reserved_ids=0, num_shards=1, shard=0, unigrams=[], seed=0, seed2=0, name=None):
+def fixed_unigram_candidate_sampler(true_classes, num_true, num_sampled, unique, range_max, vocab_file="", distortion=1, num_reserved_ids=0, num_shards=1, shard=0, unigrams=[], seed=0, seed2=0, name=None):
   r"""Generates labels for candidate sampling with a learned unigram distribution.
 
   A unigram sampler could use a fixed unigram distribution read from a
@@ -250,16 +318,97 @@ def _fixed_unigram_candidate_sampler(true_classes, num_true, num_sampled, unique
   Returns:
     A tuple of `Tensor` objects (sampled_candidates, true_expected_count, sampled_expected_count).
 
-    sampled_candidates: A `Tensor` of type `int64`. A vector of length num_sampled, in which each element is
-      the ID of a sampled candidate.
-    true_expected_count: A `Tensor` of type `float32`. A batch_size * num_true matrix, representing
-      the number of times each candidate is expected to occur in a batch
-      of sampled candidates. If unique=true, then this is a probability.
-    sampled_expected_count: A `Tensor` of type `float32`. A vector of length num_sampled, for each sampled
-      candidate representing the number of times the candidate is expected
-      to occur in a batch of sampled candidates.  If unique=true, then this is a
-      probability.
+    sampled_candidates: A `Tensor` of type `int64`.
+    true_expected_count: A `Tensor` of type `float32`.
+    sampled_expected_count: A `Tensor` of type `float32`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    num_true = _execute.make_int(num_true, "num_true")
+    num_sampled = _execute.make_int(num_sampled, "num_sampled")
+    unique = _execute.make_bool(unique, "unique")
+    range_max = _execute.make_int(range_max, "range_max")
+    if vocab_file is None:
+      vocab_file = ""
+    vocab_file = _execute.make_str(vocab_file, "vocab_file")
+    if distortion is None:
+      distortion = 1
+    distortion = _execute.make_float(distortion, "distortion")
+    if num_reserved_ids is None:
+      num_reserved_ids = 0
+    num_reserved_ids = _execute.make_int(num_reserved_ids, "num_reserved_ids")
+    if num_shards is None:
+      num_shards = 1
+    num_shards = _execute.make_int(num_shards, "num_shards")
+    if shard is None:
+      shard = 0
+    shard = _execute.make_int(shard, "shard")
+    if unigrams is None:
+      unigrams = []
+    if not isinstance(unigrams, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'unigrams' argument to "
+          "'fixed_unigram_candidate_sampler' Op, not %r." % unigrams)
+    unigrams = [_execute.make_float(_f, "unigrams") for _f in unigrams]
+    if seed is None:
+      seed = 0
+    seed = _execute.make_int(seed, "seed")
+    if seed2 is None:
+      seed2 = 0
+    seed2 = _execute.make_int(seed2, "seed2")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "FixedUnigramCandidateSampler", true_classes=true_classes,
+        num_true=num_true, num_sampled=num_sampled, unique=unique,
+        range_max=range_max, vocab_file=vocab_file, distortion=distortion,
+        num_reserved_ids=num_reserved_ids, num_shards=num_shards, shard=shard,
+        unigrams=unigrams, seed=seed, seed2=seed2, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("num_true", _op.get_attr("num_true"), "num_sampled",
+              _op.get_attr("num_sampled"), "unique", _op.get_attr("unique"),
+              "range_max", _op.get_attr("range_max"), "vocab_file",
+              _op.get_attr("vocab_file"), "distortion",
+              _op.get_attr("distortion"), "num_reserved_ids",
+              _op.get_attr("num_reserved_ids"), "num_shards",
+              _op.get_attr("num_shards"), "shard", _op.get_attr("shard"),
+              "unigrams", _op.get_attr("unigrams"), "seed",
+              _op.get_attr("seed"), "seed2", _op.get_attr("seed2"))
+    _execute.record_gradient(
+      "FixedUnigramCandidateSampler", _inputs_flat, _attrs, _result, name)
+    _result = _FixedUnigramCandidateSamplerOutput._make(_result)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "FixedUnigramCandidateSampler", name,
+        _ctx._post_execution_callbacks, true_classes, "num_true", num_true,
+        "num_sampled", num_sampled, "unique", unique, "range_max", range_max,
+        "vocab_file", vocab_file, "distortion", distortion,
+        "num_reserved_ids", num_reserved_ids, "num_shards", num_shards,
+        "shard", shard, "unigrams", unigrams, "seed", seed, "seed2", seed2)
+      _result = _FixedUnigramCandidateSamplerOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return fixed_unigram_candidate_sampler_eager_fallback(
+          true_classes, num_true=num_true, num_sampled=num_sampled,
+          unique=unique, range_max=range_max, vocab_file=vocab_file,
+          distortion=distortion, num_reserved_ids=num_reserved_ids,
+          num_shards=num_shards, shard=shard, unigrams=unigrams, seed=seed,
+          seed2=seed2, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def fixed_unigram_candidate_sampler_eager_fallback(true_classes, num_true, num_sampled, unique, range_max, vocab_file="", distortion=1, num_reserved_ids=0, num_shards=1, shard=0, unigrams=[], seed=0, seed2=0, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function fixed_unigram_candidate_sampler
+  """
+  _ctx = _context.context()
   num_true = _execute.make_int(num_true, "num_true")
   num_sampled = _execute.make_int(num_sampled, "num_sampled")
   unique = _execute.make_bool(unique, "unique")
@@ -292,51 +441,30 @@ def _fixed_unigram_candidate_sampler(true_classes, num_true, num_sampled, unique
   if seed2 is None:
     seed2 = 0
   seed2 = _execute.make_int(seed2, "seed2")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "FixedUnigramCandidateSampler", true_classes=true_classes,
-        num_true=num_true, num_sampled=num_sampled, unique=unique,
-        range_max=range_max, vocab_file=vocab_file, distortion=distortion,
-        num_reserved_ids=num_reserved_ids, num_shards=num_shards, shard=shard,
-        unigrams=unigrams, seed=seed, seed2=seed2, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("num_true", _op.get_attr("num_true"), "num_sampled",
-              _op.get_attr("num_sampled"), "unique", _op.get_attr("unique"),
-              "range_max", _op.get_attr("range_max"), "vocab_file",
-              _op.get_attr("vocab_file"), "distortion",
-              _op.get_attr("distortion"), "num_reserved_ids",
-              _op.get_attr("num_reserved_ids"), "num_shards",
-              _op.get_attr("num_shards"), "shard", _op.get_attr("shard"),
-              "unigrams", _op.get_attr("unigrams"), "seed",
-              _op.get_attr("seed"), "seed2", _op.get_attr("seed2"))
-  else:
-    true_classes = _ops.convert_to_tensor(true_classes, _dtypes.int64)
-    _inputs_flat = [true_classes]
-    _attrs = ("num_true", num_true, "num_sampled", num_sampled, "unique",
-              unique, "range_max", range_max, "vocab_file", vocab_file,
-              "distortion", distortion, "num_reserved_ids", num_reserved_ids,
-              "num_shards", num_shards, "shard", shard, "unigrams", unigrams,
-              "seed", seed, "seed2", seed2)
-    _result = _execute.execute(b"FixedUnigramCandidateSampler", 3,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+  true_classes = _ops.convert_to_tensor(true_classes, _dtypes.int64)
+  _inputs_flat = [true_classes]
+  _attrs = ("num_true", num_true, "num_sampled", num_sampled, "unique",
+  unique, "range_max", range_max, "vocab_file", vocab_file, "distortion",
+  distortion, "num_reserved_ids", num_reserved_ids, "num_shards", num_shards,
+  "shard", shard, "unigrams", unigrams, "seed", seed, "seed2", seed2)
+  _result = _execute.execute(b"FixedUnigramCandidateSampler", 3,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "FixedUnigramCandidateSampler", _inputs_flat, _attrs, _result, name)
   _result = _FixedUnigramCandidateSamplerOutput._make(_result)
   return _result
 
 
-__learned_unigram_candidate_sampler_outputs = ["sampled_candidates",
-                                              "true_expected_count",
-                                              "sampled_expected_count"]
+_learned_unigram_candidate_sampler_outputs = ["sampled_candidates",
+                                             "true_expected_count",
+                                             "sampled_expected_count"]
 _LearnedUnigramCandidateSamplerOutput = _collections.namedtuple(
     "LearnedUnigramCandidateSampler",
-    __learned_unigram_candidate_sampler_outputs)
+    _learned_unigram_candidate_sampler_outputs)
 
 
-def _learned_unigram_candidate_sampler(true_classes, num_true, num_sampled, unique, range_max, seed=0, seed2=0, name=None):
+def learned_unigram_candidate_sampler(true_classes, num_true, num_sampled, unique, range_max, seed=0, seed2=0, name=None):
   r"""Generates labels for candidate sampling with a learned unigram distribution.
 
   See explanations of candidate sampling and the data formats at
@@ -373,28 +501,22 @@ def _learned_unigram_candidate_sampler(true_classes, num_true, num_sampled, uniq
   Returns:
     A tuple of `Tensor` objects (sampled_candidates, true_expected_count, sampled_expected_count).
 
-    sampled_candidates: A `Tensor` of type `int64`. A vector of length num_sampled, in which each element is
-      the ID of a sampled candidate.
-    true_expected_count: A `Tensor` of type `float32`. A batch_size * num_true matrix, representing
-      the number of times each candidate is expected to occur in a batch
-      of sampled candidates. If unique=true, then this is a probability.
-    sampled_expected_count: A `Tensor` of type `float32`. A vector of length num_sampled, for each sampled
-      candidate representing the number of times the candidate is expected
-      to occur in a batch of sampled candidates.  If unique=true, then this is a
-      probability.
+    sampled_candidates: A `Tensor` of type `int64`.
+    true_expected_count: A `Tensor` of type `float32`.
+    sampled_expected_count: A `Tensor` of type `float32`.
   """
-  num_true = _execute.make_int(num_true, "num_true")
-  num_sampled = _execute.make_int(num_sampled, "num_sampled")
-  unique = _execute.make_bool(unique, "unique")
-  range_max = _execute.make_int(range_max, "range_max")
-  if seed is None:
-    seed = 0
-  seed = _execute.make_int(seed, "seed")
-  if seed2 is None:
-    seed2 = 0
-  seed2 = _execute.make_int(seed2, "seed2")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    num_true = _execute.make_int(num_true, "num_true")
+    num_sampled = _execute.make_int(num_sampled, "num_sampled")
+    unique = _execute.make_bool(unique, "unique")
+    range_max = _execute.make_int(range_max, "range_max")
+    if seed is None:
+      seed = 0
+    seed = _execute.make_int(seed, "seed")
+    if seed2 is None:
+      seed2 = 0
+    seed2 = _execute.make_int(seed2, "seed2")
     _, _, _op = _op_def_lib._apply_op_helper(
         "LearnedUnigramCandidateSampler", true_classes=true_classes,
         num_true=num_true, num_sampled=num_sampled, unique=unique,
@@ -405,28 +527,69 @@ def _learned_unigram_candidate_sampler(true_classes, num_true, num_sampled, uniq
               _op.get_attr("num_sampled"), "unique", _op.get_attr("unique"),
               "range_max", _op.get_attr("range_max"), "seed",
               _op.get_attr("seed"), "seed2", _op.get_attr("seed2"))
+    _execute.record_gradient(
+      "LearnedUnigramCandidateSampler", _inputs_flat, _attrs, _result, name)
+    _result = _LearnedUnigramCandidateSamplerOutput._make(_result)
+    return _result
+
   else:
-    true_classes = _ops.convert_to_tensor(true_classes, _dtypes.int64)
-    _inputs_flat = [true_classes]
-    _attrs = ("num_true", num_true, "num_sampled", num_sampled, "unique",
-              unique, "range_max", range_max, "seed", seed, "seed2", seed2)
-    _result = _execute.execute(b"LearnedUnigramCandidateSampler", 3,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "LearnedUnigramCandidateSampler",
+        name, _ctx._post_execution_callbacks, true_classes, "num_true",
+        num_true, "num_sampled", num_sampled, "unique", unique, "range_max",
+        range_max, "seed", seed, "seed2", seed2)
+      _result = _LearnedUnigramCandidateSamplerOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return learned_unigram_candidate_sampler_eager_fallback(
+          true_classes, num_true=num_true, num_sampled=num_sampled,
+          unique=unique, range_max=range_max, seed=seed, seed2=seed2,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def learned_unigram_candidate_sampler_eager_fallback(true_classes, num_true, num_sampled, unique, range_max, seed=0, seed2=0, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function learned_unigram_candidate_sampler
+  """
+  _ctx = _context.context()
+  num_true = _execute.make_int(num_true, "num_true")
+  num_sampled = _execute.make_int(num_sampled, "num_sampled")
+  unique = _execute.make_bool(unique, "unique")
+  range_max = _execute.make_int(range_max, "range_max")
+  if seed is None:
+    seed = 0
+  seed = _execute.make_int(seed, "seed")
+  if seed2 is None:
+    seed2 = 0
+  seed2 = _execute.make_int(seed2, "seed2")
+  true_classes = _ops.convert_to_tensor(true_classes, _dtypes.int64)
+  _inputs_flat = [true_classes]
+  _attrs = ("num_true", num_true, "num_sampled", num_sampled, "unique",
+  unique, "range_max", range_max, "seed", seed, "seed2", seed2)
+  _result = _execute.execute(b"LearnedUnigramCandidateSampler", 3,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "LearnedUnigramCandidateSampler", _inputs_flat, _attrs, _result, name)
   _result = _LearnedUnigramCandidateSamplerOutput._make(_result)
   return _result
 
 
-__log_uniform_candidate_sampler_outputs = ["sampled_candidates",
-                                          "true_expected_count",
-                                          "sampled_expected_count"]
+_log_uniform_candidate_sampler_outputs = ["sampled_candidates",
+                                         "true_expected_count",
+                                         "sampled_expected_count"]
 _LogUniformCandidateSamplerOutput = _collections.namedtuple(
-    "LogUniformCandidateSampler", __log_uniform_candidate_sampler_outputs)
+    "LogUniformCandidateSampler", _log_uniform_candidate_sampler_outputs)
 
 
-def _log_uniform_candidate_sampler(true_classes, num_true, num_sampled, unique, range_max, seed=0, seed2=0, name=None):
+def log_uniform_candidate_sampler(true_classes, num_true, num_sampled, unique, range_max, seed=0, seed2=0, name=None):
   r"""Generates labels for candidate sampling with a log-uniform distribution.
 
   See explanations of candidate sampling and the data formats at
@@ -463,28 +626,22 @@ def _log_uniform_candidate_sampler(true_classes, num_true, num_sampled, unique, 
   Returns:
     A tuple of `Tensor` objects (sampled_candidates, true_expected_count, sampled_expected_count).
 
-    sampled_candidates: A `Tensor` of type `int64`. A vector of length num_sampled, in which each element is
-      the ID of a sampled candidate.
-    true_expected_count: A `Tensor` of type `float32`. A batch_size * num_true matrix, representing
-      the number of times each candidate is expected to occur in a batch
-      of sampled candidates. If unique=true, then this is a probability.
-    sampled_expected_count: A `Tensor` of type `float32`. A vector of length num_sampled, for each sampled
-      candidate representing the number of times the candidate is expected
-      to occur in a batch of sampled candidates.  If unique=true, then this is a
-      probability.
+    sampled_candidates: A `Tensor` of type `int64`.
+    true_expected_count: A `Tensor` of type `float32`.
+    sampled_expected_count: A `Tensor` of type `float32`.
   """
-  num_true = _execute.make_int(num_true, "num_true")
-  num_sampled = _execute.make_int(num_sampled, "num_sampled")
-  unique = _execute.make_bool(unique, "unique")
-  range_max = _execute.make_int(range_max, "range_max")
-  if seed is None:
-    seed = 0
-  seed = _execute.make_int(seed, "seed")
-  if seed2 is None:
-    seed2 = 0
-  seed2 = _execute.make_int(seed2, "seed2")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    num_true = _execute.make_int(num_true, "num_true")
+    num_sampled = _execute.make_int(num_sampled, "num_sampled")
+    unique = _execute.make_bool(unique, "unique")
+    range_max = _execute.make_int(range_max, "range_max")
+    if seed is None:
+      seed = 0
+    seed = _execute.make_int(seed, "seed")
+    if seed2 is None:
+      seed2 = 0
+    seed2 = _execute.make_int(seed2, "seed2")
     _, _, _op = _op_def_lib._apply_op_helper(
         "LogUniformCandidateSampler", true_classes=true_classes,
         num_true=num_true, num_sampled=num_sampled, unique=unique,
@@ -495,29 +652,70 @@ def _log_uniform_candidate_sampler(true_classes, num_true, num_sampled, unique, 
               _op.get_attr("num_sampled"), "unique", _op.get_attr("unique"),
               "range_max", _op.get_attr("range_max"), "seed",
               _op.get_attr("seed"), "seed2", _op.get_attr("seed2"))
+    _execute.record_gradient(
+      "LogUniformCandidateSampler", _inputs_flat, _attrs, _result, name)
+    _result = _LogUniformCandidateSamplerOutput._make(_result)
+    return _result
+
   else:
-    true_classes = _ops.convert_to_tensor(true_classes, _dtypes.int64)
-    _inputs_flat = [true_classes]
-    _attrs = ("num_true", num_true, "num_sampled", num_sampled, "unique",
-              unique, "range_max", range_max, "seed", seed, "seed2", seed2)
-    _result = _execute.execute(b"LogUniformCandidateSampler", 3,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "LogUniformCandidateSampler", name,
+        _ctx._post_execution_callbacks, true_classes, "num_true", num_true,
+        "num_sampled", num_sampled, "unique", unique, "range_max", range_max,
+        "seed", seed, "seed2", seed2)
+      _result = _LogUniformCandidateSamplerOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return log_uniform_candidate_sampler_eager_fallback(
+          true_classes, num_true=num_true, num_sampled=num_sampled,
+          unique=unique, range_max=range_max, seed=seed, seed2=seed2,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def log_uniform_candidate_sampler_eager_fallback(true_classes, num_true, num_sampled, unique, range_max, seed=0, seed2=0, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function log_uniform_candidate_sampler
+  """
+  _ctx = _context.context()
+  num_true = _execute.make_int(num_true, "num_true")
+  num_sampled = _execute.make_int(num_sampled, "num_sampled")
+  unique = _execute.make_bool(unique, "unique")
+  range_max = _execute.make_int(range_max, "range_max")
+  if seed is None:
+    seed = 0
+  seed = _execute.make_int(seed, "seed")
+  if seed2 is None:
+    seed2 = 0
+  seed2 = _execute.make_int(seed2, "seed2")
+  true_classes = _ops.convert_to_tensor(true_classes, _dtypes.int64)
+  _inputs_flat = [true_classes]
+  _attrs = ("num_true", num_true, "num_sampled", num_sampled, "unique",
+  unique, "range_max", range_max, "seed", seed, "seed2", seed2)
+  _result = _execute.execute(b"LogUniformCandidateSampler", 3,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "LogUniformCandidateSampler", _inputs_flat, _attrs, _result, name)
   _result = _LogUniformCandidateSamplerOutput._make(_result)
   return _result
 
 
-__thread_unsafe_unigram_candidate_sampler_outputs = ["sampled_candidates",
-                                                    "true_expected_count",
-                                                    "sampled_expected_count"]
+_thread_unsafe_unigram_candidate_sampler_outputs = ["sampled_candidates",
+                                                   "true_expected_count",
+                                                   "sampled_expected_count"]
 _ThreadUnsafeUnigramCandidateSamplerOutput = _collections.namedtuple(
     "ThreadUnsafeUnigramCandidateSampler",
-    __thread_unsafe_unigram_candidate_sampler_outputs)
+    _thread_unsafe_unigram_candidate_sampler_outputs)
 
 
-def _thread_unsafe_unigram_candidate_sampler(true_classes, num_true, num_sampled, unique, range_max, seed=0, seed2=0, name=None):
+def thread_unsafe_unigram_candidate_sampler(true_classes, num_true, num_sampled, unique, range_max, seed=0, seed2=0, name=None):
   r"""Generates labels for candidate sampling with a learned unigram distribution.
 
   See explanations of candidate sampling and the data formats at
@@ -554,28 +752,22 @@ def _thread_unsafe_unigram_candidate_sampler(true_classes, num_true, num_sampled
   Returns:
     A tuple of `Tensor` objects (sampled_candidates, true_expected_count, sampled_expected_count).
 
-    sampled_candidates: A `Tensor` of type `int64`. A vector of length num_sampled, in which each element is
-      the ID of a sampled candidate.
-    true_expected_count: A `Tensor` of type `float32`. A batch_size * num_true matrix, representing
-      the number of times each candidate is expected to occur in a batch
-      of sampled candidates. If unique=true, then this is a probability.
-    sampled_expected_count: A `Tensor` of type `float32`. A vector of length num_sampled, for each sampled
-      candidate representing the number of times the candidate is expected
-      to occur in a batch of sampled candidates.  If unique=true, then this is a
-      probability.
+    sampled_candidates: A `Tensor` of type `int64`.
+    true_expected_count: A `Tensor` of type `float32`.
+    sampled_expected_count: A `Tensor` of type `float32`.
   """
-  num_true = _execute.make_int(num_true, "num_true")
-  num_sampled = _execute.make_int(num_sampled, "num_sampled")
-  unique = _execute.make_bool(unique, "unique")
-  range_max = _execute.make_int(range_max, "range_max")
-  if seed is None:
-    seed = 0
-  seed = _execute.make_int(seed, "seed")
-  if seed2 is None:
-    seed2 = 0
-  seed2 = _execute.make_int(seed2, "seed2")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    num_true = _execute.make_int(num_true, "num_true")
+    num_sampled = _execute.make_int(num_sampled, "num_sampled")
+    unique = _execute.make_bool(unique, "unique")
+    range_max = _execute.make_int(range_max, "range_max")
+    if seed is None:
+      seed = 0
+    seed = _execute.make_int(seed, "seed")
+    if seed2 is None:
+      seed2 = 0
+    seed2 = _execute.make_int(seed2, "seed2")
     _, _, _op = _op_def_lib._apply_op_helper(
         "ThreadUnsafeUnigramCandidateSampler", true_classes=true_classes,
         num_true=num_true, num_sampled=num_sampled, unique=unique,
@@ -586,28 +778,69 @@ def _thread_unsafe_unigram_candidate_sampler(true_classes, num_true, num_sampled
               _op.get_attr("num_sampled"), "unique", _op.get_attr("unique"),
               "range_max", _op.get_attr("range_max"), "seed",
               _op.get_attr("seed"), "seed2", _op.get_attr("seed2"))
+    _execute.record_gradient(
+      "ThreadUnsafeUnigramCandidateSampler", _inputs_flat, _attrs, _result, name)
+    _result = _ThreadUnsafeUnigramCandidateSamplerOutput._make(_result)
+    return _result
+
   else:
-    true_classes = _ops.convert_to_tensor(true_classes, _dtypes.int64)
-    _inputs_flat = [true_classes]
-    _attrs = ("num_true", num_true, "num_sampled", num_sampled, "unique",
-              unique, "range_max", range_max, "seed", seed, "seed2", seed2)
-    _result = _execute.execute(b"ThreadUnsafeUnigramCandidateSampler", 3,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "ThreadUnsafeUnigramCandidateSampler",
+        name, _ctx._post_execution_callbacks, true_classes, "num_true",
+        num_true, "num_sampled", num_sampled, "unique", unique, "range_max",
+        range_max, "seed", seed, "seed2", seed2)
+      _result = _ThreadUnsafeUnigramCandidateSamplerOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return thread_unsafe_unigram_candidate_sampler_eager_fallback(
+          true_classes, num_true=num_true, num_sampled=num_sampled,
+          unique=unique, range_max=range_max, seed=seed, seed2=seed2,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def thread_unsafe_unigram_candidate_sampler_eager_fallback(true_classes, num_true, num_sampled, unique, range_max, seed=0, seed2=0, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function thread_unsafe_unigram_candidate_sampler
+  """
+  _ctx = _context.context()
+  num_true = _execute.make_int(num_true, "num_true")
+  num_sampled = _execute.make_int(num_sampled, "num_sampled")
+  unique = _execute.make_bool(unique, "unique")
+  range_max = _execute.make_int(range_max, "range_max")
+  if seed is None:
+    seed = 0
+  seed = _execute.make_int(seed, "seed")
+  if seed2 is None:
+    seed2 = 0
+  seed2 = _execute.make_int(seed2, "seed2")
+  true_classes = _ops.convert_to_tensor(true_classes, _dtypes.int64)
+  _inputs_flat = [true_classes]
+  _attrs = ("num_true", num_true, "num_sampled", num_sampled, "unique",
+  unique, "range_max", range_max, "seed", seed, "seed2", seed2)
+  _result = _execute.execute(b"ThreadUnsafeUnigramCandidateSampler", 3,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "ThreadUnsafeUnigramCandidateSampler", _inputs_flat, _attrs, _result, name)
   _result = _ThreadUnsafeUnigramCandidateSamplerOutput._make(_result)
   return _result
 
 
-__uniform_candidate_sampler_outputs = ["sampled_candidates",
-                                      "true_expected_count",
-                                      "sampled_expected_count"]
+_uniform_candidate_sampler_outputs = ["sampled_candidates",
+                                     "true_expected_count",
+                                     "sampled_expected_count"]
 _UniformCandidateSamplerOutput = _collections.namedtuple(
-    "UniformCandidateSampler", __uniform_candidate_sampler_outputs)
+    "UniformCandidateSampler", _uniform_candidate_sampler_outputs)
 
 
-def _uniform_candidate_sampler(true_classes, num_true, num_sampled, unique, range_max, seed=0, seed2=0, name=None):
+def uniform_candidate_sampler(true_classes, num_true, num_sampled, unique, range_max, seed=0, seed2=0, name=None):
   r"""Generates labels for candidate sampling with a uniform distribution.
 
   See explanations of candidate sampling and the data formats at
@@ -644,28 +877,22 @@ def _uniform_candidate_sampler(true_classes, num_true, num_sampled, unique, rang
   Returns:
     A tuple of `Tensor` objects (sampled_candidates, true_expected_count, sampled_expected_count).
 
-    sampled_candidates: A `Tensor` of type `int64`. A vector of length num_sampled, in which each element is
-      the ID of a sampled candidate.
-    true_expected_count: A `Tensor` of type `float32`. A batch_size * num_true matrix, representing
-      the number of times each candidate is expected to occur in a batch
-      of sampled candidates. If unique=true, then this is a probability.
-    sampled_expected_count: A `Tensor` of type `float32`. A vector of length num_sampled, for each sampled
-      candidate representing the number of times the candidate is expected
-      to occur in a batch of sampled candidates.  If unique=true, then this is a
-      probability.
+    sampled_candidates: A `Tensor` of type `int64`.
+    true_expected_count: A `Tensor` of type `float32`.
+    sampled_expected_count: A `Tensor` of type `float32`.
   """
-  num_true = _execute.make_int(num_true, "num_true")
-  num_sampled = _execute.make_int(num_sampled, "num_sampled")
-  unique = _execute.make_bool(unique, "unique")
-  range_max = _execute.make_int(range_max, "range_max")
-  if seed is None:
-    seed = 0
-  seed = _execute.make_int(seed, "seed")
-  if seed2 is None:
-    seed2 = 0
-  seed2 = _execute.make_int(seed2, "seed2")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    num_true = _execute.make_int(num_true, "num_true")
+    num_sampled = _execute.make_int(num_sampled, "num_sampled")
+    unique = _execute.make_bool(unique, "unique")
+    range_max = _execute.make_int(range_max, "range_max")
+    if seed is None:
+      seed = 0
+    seed = _execute.make_int(seed, "seed")
+    if seed2 is None:
+      seed2 = 0
+    seed2 = _execute.make_int(seed2, "seed2")
     _, _, _op = _op_def_lib._apply_op_helper(
         "UniformCandidateSampler", true_classes=true_classes,
         num_true=num_true, num_sampled=num_sampled, unique=unique,
@@ -676,14 +903,55 @@ def _uniform_candidate_sampler(true_classes, num_true, num_sampled, unique, rang
               _op.get_attr("num_sampled"), "unique", _op.get_attr("unique"),
               "range_max", _op.get_attr("range_max"), "seed",
               _op.get_attr("seed"), "seed2", _op.get_attr("seed2"))
+    _execute.record_gradient(
+      "UniformCandidateSampler", _inputs_flat, _attrs, _result, name)
+    _result = _UniformCandidateSamplerOutput._make(_result)
+    return _result
+
   else:
-    true_classes = _ops.convert_to_tensor(true_classes, _dtypes.int64)
-    _inputs_flat = [true_classes]
-    _attrs = ("num_true", num_true, "num_sampled", num_sampled, "unique",
-              unique, "range_max", range_max, "seed", seed, "seed2", seed2)
-    _result = _execute.execute(b"UniformCandidateSampler", 3,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "UniformCandidateSampler", name,
+        _ctx._post_execution_callbacks, true_classes, "num_true", num_true,
+        "num_sampled", num_sampled, "unique", unique, "range_max", range_max,
+        "seed", seed, "seed2", seed2)
+      _result = _UniformCandidateSamplerOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return uniform_candidate_sampler_eager_fallback(
+          true_classes, num_true=num_true, num_sampled=num_sampled,
+          unique=unique, range_max=range_max, seed=seed, seed2=seed2,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def uniform_candidate_sampler_eager_fallback(true_classes, num_true, num_sampled, unique, range_max, seed=0, seed2=0, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function uniform_candidate_sampler
+  """
+  _ctx = _context.context()
+  num_true = _execute.make_int(num_true, "num_true")
+  num_sampled = _execute.make_int(num_sampled, "num_sampled")
+  unique = _execute.make_bool(unique, "unique")
+  range_max = _execute.make_int(range_max, "range_max")
+  if seed is None:
+    seed = 0
+  seed = _execute.make_int(seed, "seed")
+  if seed2 is None:
+    seed2 = 0
+  seed2 = _execute.make_int(seed2, "seed2")
+  true_classes = _ops.convert_to_tensor(true_classes, _dtypes.int64)
+  _inputs_flat = [true_classes]
+  _attrs = ("num_true", num_true, "num_sampled", num_sampled, "unique",
+  unique, "range_max", range_max, "seed", seed, "seed2", seed2)
+  _result = _execute.execute(b"UniformCandidateSampler", 3,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "UniformCandidateSampler", _inputs_flat, _attrs, _result, name)
   _result = _UniformCandidateSamplerOutput._make(_result)

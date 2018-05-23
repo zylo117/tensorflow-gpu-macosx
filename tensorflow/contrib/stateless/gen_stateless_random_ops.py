@@ -5,11 +5,14 @@ Original C++ source file: stateless_random_ops.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,31 +24,24 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('StatelessRandomNormal')
+@tf_export('stateless_random_normal')
 def stateless_random_normal(shape, seed, dtype=_dtypes.float32, name=None):
-  r"""Outputs deterministic pseudorandom values from a normal distribution.
-
-  The generated values will have mean 0 and standard deviation 1.
-
-  The outputs are a deterministic function of `shape` and `seed`.
+  r"""TODO: add doc.
 
   Args:
     shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
-      The shape of the output tensor.
     seed: A `Tensor`. Must be one of the following types: `int32`, `int64`.
-      2 seeds (shape [2]).
     dtype: An optional `tf.DType` from: `tf.half, tf.float32, tf.float64`. Defaults to `tf.float32`.
-      The type of the output.
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type `dtype`. Random values with specified shape.
+    A `Tensor` of type `dtype`.
   """
-  if dtype is None:
-    dtype = _dtypes.float32
-  dtype = _execute.make_type(dtype, "dtype")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if dtype is None:
+      dtype = _dtypes.float32
+    dtype = _execute.make_type(dtype, "dtype")
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatelessRandomNormal", shape=shape, seed=seed, dtype=dtype,
         name=name)
@@ -53,14 +49,42 @@ def stateless_random_normal(shape, seed, dtype=_dtypes.float32, name=None):
     _inputs_flat = _op.inputs
     _attrs = ("dtype", _op.get_attr("dtype"), "T", _op.get_attr("T"), "Tseed",
               _op.get_attr("Tseed"))
+    _execute.record_gradient(
+      "StatelessRandomNormal", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (shape,) = _execute.args_to_matching_eager([shape], _ctx, _dtypes.int32)
-    _attr_Tseed, (seed,) = _execute.args_to_matching_eager([seed], _ctx, _dtypes.int64)
-    _inputs_flat = [shape, seed]
-    _attrs = ("dtype", dtype, "T", _attr_T, "Tseed", _attr_Tseed)
-    _result = _execute.execute(b"StatelessRandomNormal", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "StatelessRandomNormal", name,
+        _ctx._post_execution_callbacks, shape, seed, "dtype", dtype)
+      return _result
+    except _core._FallbackException:
+      return stateless_random_normal_eager_fallback(
+          shape, seed, dtype=dtype, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def stateless_random_normal_eager_fallback(shape, seed, dtype=_dtypes.float32, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function stateless_random_normal
+  """
+  _ctx = _context.context()
+  if dtype is None:
+    dtype = _dtypes.float32
+  dtype = _execute.make_type(dtype, "dtype")
+  _attr_T, (shape,) = _execute.args_to_matching_eager([shape], _ctx, _dtypes.int32)
+  _attr_Tseed, (seed,) = _execute.args_to_matching_eager([seed], _ctx, _dtypes.int64)
+  _inputs_flat = [shape, seed]
+  _attrs = ("dtype", dtype, "T", _attr_T, "Tseed", _attr_Tseed)
+  _result = _execute.execute(b"StatelessRandomNormal", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "StatelessRandomNormal", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -69,32 +93,24 @@ def stateless_random_normal(shape, seed, dtype=_dtypes.float32, name=None):
 _ops.RegisterShape("StatelessRandomNormal")(None)
 
 
-@tf_export('StatelessRandomUniform')
+@tf_export('stateless_random_uniform')
 def stateless_random_uniform(shape, seed, dtype=_dtypes.float32, name=None):
-  r"""Outputs deterministic pseudorandom random values from a uniform distribution.
-
-  The generated values follow a uniform distribution in the range `[0, 1)`. The
-  lower bound 0 is included in the range, while the upper bound 1 is excluded.
-
-  The outputs are a deterministic function of `shape` and `seed`.
+  r"""TODO: add doc.
 
   Args:
     shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
-      The shape of the output tensor.
     seed: A `Tensor`. Must be one of the following types: `int32`, `int64`.
-      2 seeds (shape [2]).
     dtype: An optional `tf.DType` from: `tf.half, tf.float32, tf.float64`. Defaults to `tf.float32`.
-      The type of the output.
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type `dtype`. Random values with specified shape.
+    A `Tensor` of type `dtype`.
   """
-  if dtype is None:
-    dtype = _dtypes.float32
-  dtype = _execute.make_type(dtype, "dtype")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if dtype is None:
+      dtype = _dtypes.float32
+    dtype = _execute.make_type(dtype, "dtype")
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatelessRandomUniform", shape=shape, seed=seed, dtype=dtype,
         name=name)
@@ -102,14 +118,43 @@ def stateless_random_uniform(shape, seed, dtype=_dtypes.float32, name=None):
     _inputs_flat = _op.inputs
     _attrs = ("dtype", _op.get_attr("dtype"), "T", _op.get_attr("T"), "Tseed",
               _op.get_attr("Tseed"))
+    _execute.record_gradient(
+      "StatelessRandomUniform", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (shape,) = _execute.args_to_matching_eager([shape], _ctx, _dtypes.int32)
-    _attr_Tseed, (seed,) = _execute.args_to_matching_eager([seed], _ctx, _dtypes.int64)
-    _inputs_flat = [shape, seed]
-    _attrs = ("dtype", dtype, "T", _attr_T, "Tseed", _attr_Tseed)
-    _result = _execute.execute(b"StatelessRandomUniform", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "StatelessRandomUniform", name,
+        _ctx._post_execution_callbacks, shape, seed, "dtype", dtype)
+      return _result
+    except _core._FallbackException:
+      return stateless_random_uniform_eager_fallback(
+          shape, seed, dtype=dtype, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def stateless_random_uniform_eager_fallback(shape, seed, dtype=_dtypes.float32, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function stateless_random_uniform
+  """
+  _ctx = _context.context()
+  if dtype is None:
+    dtype = _dtypes.float32
+  dtype = _execute.make_type(dtype, "dtype")
+  _attr_T, (shape,) = _execute.args_to_matching_eager([shape], _ctx, _dtypes.int32)
+  _attr_Tseed, (seed,) = _execute.args_to_matching_eager([seed], _ctx, _dtypes.int64)
+  _inputs_flat = [shape, seed]
+  _attrs = ("dtype", dtype, "T", _attr_T, "Tseed", _attr_Tseed)
+  _result = _execute.execute(b"StatelessRandomUniform", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "StatelessRandomUniform", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -118,33 +163,24 @@ def stateless_random_uniform(shape, seed, dtype=_dtypes.float32, name=None):
 _ops.RegisterShape("StatelessRandomUniform")(None)
 
 
-@tf_export('StatelessTruncatedNormal')
+@tf_export('stateless_truncated_normal')
 def stateless_truncated_normal(shape, seed, dtype=_dtypes.float32, name=None):
-  r"""Outputs deterministic pseudorandom values from a truncated normal distribution.
-
-  The generated values follow a normal distribution with mean 0 and standard
-  deviation 1, except that values whose magnitude is more than 2 standard
-  deviations from the mean are dropped and re-picked.
-
-  The outputs are a deterministic function of `shape` and `seed`.
+  r"""TODO: add doc.
 
   Args:
     shape: A `Tensor`. Must be one of the following types: `int32`, `int64`.
-      The shape of the output tensor.
     seed: A `Tensor`. Must be one of the following types: `int32`, `int64`.
-      2 seeds (shape [2]).
     dtype: An optional `tf.DType` from: `tf.half, tf.float32, tf.float64`. Defaults to `tf.float32`.
-      The type of the output.
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type `dtype`. Random values with specified shape.
+    A `Tensor` of type `dtype`.
   """
-  if dtype is None:
-    dtype = _dtypes.float32
-  dtype = _execute.make_type(dtype, "dtype")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if dtype is None:
+      dtype = _dtypes.float32
+    dtype = _execute.make_type(dtype, "dtype")
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatelessTruncatedNormal", shape=shape, seed=seed, dtype=dtype,
         name=name)
@@ -152,14 +188,43 @@ def stateless_truncated_normal(shape, seed, dtype=_dtypes.float32, name=None):
     _inputs_flat = _op.inputs
     _attrs = ("dtype", _op.get_attr("dtype"), "T", _op.get_attr("T"), "Tseed",
               _op.get_attr("Tseed"))
+    _execute.record_gradient(
+      "StatelessTruncatedNormal", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (shape,) = _execute.args_to_matching_eager([shape], _ctx, _dtypes.int32)
-    _attr_Tseed, (seed,) = _execute.args_to_matching_eager([seed], _ctx, _dtypes.int64)
-    _inputs_flat = [shape, seed]
-    _attrs = ("dtype", dtype, "T", _attr_T, "Tseed", _attr_Tseed)
-    _result = _execute.execute(b"StatelessTruncatedNormal", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "StatelessTruncatedNormal", name,
+        _ctx._post_execution_callbacks, shape, seed, "dtype", dtype)
+      return _result
+    except _core._FallbackException:
+      return stateless_truncated_normal_eager_fallback(
+          shape, seed, dtype=dtype, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def stateless_truncated_normal_eager_fallback(shape, seed, dtype=_dtypes.float32, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function stateless_truncated_normal
+  """
+  _ctx = _context.context()
+  if dtype is None:
+    dtype = _dtypes.float32
+  dtype = _execute.make_type(dtype, "dtype")
+  _attr_T, (shape,) = _execute.args_to_matching_eager([shape], _ctx, _dtypes.int32)
+  _attr_Tseed, (seed,) = _execute.args_to_matching_eager([seed], _ctx, _dtypes.int64)
+  _inputs_flat = [shape, seed]
+  _attrs = ("dtype", dtype, "T", _attr_T, "Tseed", _attr_Tseed)
+  _result = _execute.execute(b"StatelessTruncatedNormal", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "StatelessTruncatedNormal", _inputs_flat, _attrs, _result, name)
   _result, = _result

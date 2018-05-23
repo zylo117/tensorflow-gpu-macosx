@@ -5,11 +5,14 @@ Original C++ source file: gen_stats_accumulator_ops_py_wrap.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,7 +24,7 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('CreateStatsAccumulatorScalar')
+@tf_export('create_stats_accumulator_scalar')
 def create_stats_accumulator_scalar(stats_accumulator_handle, stamp_token, name=None):
   r"""Creates a scalar stats accumulator.
 
@@ -36,27 +39,51 @@ def create_stats_accumulator_scalar(stats_accumulator_handle, stamp_token, name=
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "CreateStatsAccumulatorScalar",
         stats_accumulator_handle=stats_accumulator_handle,
         stamp_token=stamp_token, name=name)
     return _op
-  else:
-    stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
-    stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
-    _inputs_flat = [stats_accumulator_handle, stamp_token]
-    _attrs = None
-    _result = _execute.execute(b"CreateStatsAccumulatorScalar", 0,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "CreateStatsAccumulatorScalar", name,
+        _ctx._post_execution_callbacks, stats_accumulator_handle, stamp_token)
+      return _result
+    except _core._FallbackException:
+      return create_stats_accumulator_scalar_eager_fallback(
+          stats_accumulator_handle, stamp_token, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def create_stats_accumulator_scalar_eager_fallback(stats_accumulator_handle, stamp_token, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function create_stats_accumulator_scalar
+  """
+  _ctx = _context.context()
+  stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
+  stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
+  _inputs_flat = [stats_accumulator_handle, stamp_token]
+  _attrs = None
+  _result = _execute.execute(b"CreateStatsAccumulatorScalar", 0,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("CreateStatsAccumulatorScalar")(None)
 
 
-@tf_export('CreateStatsAccumulatorTensor')
+@tf_export('create_stats_accumulator_tensor')
 def create_stats_accumulator_tensor(stats_accumulator_handle, stamp_token, per_slot_gradient_shape, per_slot_hessian_shape, name=None):
   r"""Creates a tensor stats accumulator.
 
@@ -75,7 +102,7 @@ def create_stats_accumulator_tensor(stats_accumulator_handle, stamp_token, per_s
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "CreateStatsAccumulatorTensor",
         stats_accumulator_handle=stats_accumulator_handle,
@@ -83,23 +110,49 @@ def create_stats_accumulator_tensor(stats_accumulator_handle, stamp_token, per_s
         per_slot_gradient_shape=per_slot_gradient_shape,
         per_slot_hessian_shape=per_slot_hessian_shape, name=name)
     return _op
-  else:
-    stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
-    stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
-    per_slot_gradient_shape = _ops.convert_to_tensor(per_slot_gradient_shape, _dtypes.int64)
-    per_slot_hessian_shape = _ops.convert_to_tensor(per_slot_hessian_shape, _dtypes.int64)
-    _inputs_flat = [stats_accumulator_handle, stamp_token, per_slot_gradient_shape, per_slot_hessian_shape]
-    _attrs = None
-    _result = _execute.execute(b"CreateStatsAccumulatorTensor", 0,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "CreateStatsAccumulatorTensor", name,
+        _ctx._post_execution_callbacks, stats_accumulator_handle, stamp_token,
+        per_slot_gradient_shape, per_slot_hessian_shape)
+      return _result
+    except _core._FallbackException:
+      return create_stats_accumulator_tensor_eager_fallback(
+          stats_accumulator_handle, stamp_token, per_slot_gradient_shape,
+          per_slot_hessian_shape, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def create_stats_accumulator_tensor_eager_fallback(stats_accumulator_handle, stamp_token, per_slot_gradient_shape, per_slot_hessian_shape, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function create_stats_accumulator_tensor
+  """
+  _ctx = _context.context()
+  stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
+  stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
+  per_slot_gradient_shape = _ops.convert_to_tensor(per_slot_gradient_shape, _dtypes.int64)
+  per_slot_hessian_shape = _ops.convert_to_tensor(per_slot_hessian_shape, _dtypes.int64)
+  _inputs_flat = [stats_accumulator_handle, stamp_token, per_slot_gradient_shape, per_slot_hessian_shape]
+  _attrs = None
+  _result = _execute.execute(b"CreateStatsAccumulatorTensor", 0,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("CreateStatsAccumulatorTensor")(None)
 
 
-@tf_export('StatsAccumulatorScalarAdd')
+@tf_export('stats_accumulator_scalar_add')
 def stats_accumulator_scalar_add(stats_accumulator_handles, stamp_token, partition_ids, feature_ids, gradients, hessians, name=None):
   r"""Updates the scalar stats accumulator.
 
@@ -124,6 +177,83 @@ def stats_accumulator_scalar_add(stats_accumulator_handles, stamp_token, partiti
   Returns:
     The created Operation.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(stats_accumulator_handles, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'stats_accumulator_handles' argument to "
+          "'stats_accumulator_scalar_add' Op, not %r." % stats_accumulator_handles)
+    _attr_num_resource_handles = len(stats_accumulator_handles)
+    if not isinstance(partition_ids, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'partition_ids' argument to "
+          "'stats_accumulator_scalar_add' Op, not %r." % partition_ids)
+    if len(partition_ids) != _attr_num_resource_handles:
+      raise ValueError(
+          "List argument 'partition_ids' to 'stats_accumulator_scalar_add' Op with length %d "
+          "must match length %d of argument 'stats_accumulator_handles'." %
+          (len(partition_ids), _attr_num_resource_handles))
+    if not isinstance(feature_ids, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'feature_ids' argument to "
+          "'stats_accumulator_scalar_add' Op, not %r." % feature_ids)
+    if len(feature_ids) != _attr_num_resource_handles:
+      raise ValueError(
+          "List argument 'feature_ids' to 'stats_accumulator_scalar_add' Op with length %d "
+          "must match length %d of argument 'stats_accumulator_handles'." %
+          (len(feature_ids), _attr_num_resource_handles))
+    if not isinstance(gradients, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'gradients' argument to "
+          "'stats_accumulator_scalar_add' Op, not %r." % gradients)
+    if len(gradients) != _attr_num_resource_handles:
+      raise ValueError(
+          "List argument 'gradients' to 'stats_accumulator_scalar_add' Op with length %d "
+          "must match length %d of argument 'stats_accumulator_handles'." %
+          (len(gradients), _attr_num_resource_handles))
+    if not isinstance(hessians, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'hessians' argument to "
+          "'stats_accumulator_scalar_add' Op, not %r." % hessians)
+    if len(hessians) != _attr_num_resource_handles:
+      raise ValueError(
+          "List argument 'hessians' to 'stats_accumulator_scalar_add' Op with length %d "
+          "must match length %d of argument 'stats_accumulator_handles'." %
+          (len(hessians), _attr_num_resource_handles))
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "StatsAccumulatorScalarAdd",
+        stats_accumulator_handles=stats_accumulator_handles,
+        stamp_token=stamp_token, partition_ids=partition_ids,
+        feature_ids=feature_ids, gradients=gradients, hessians=hessians,
+        name=name)
+    return _op
+    _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "StatsAccumulatorScalarAdd", name,
+        _ctx._post_execution_callbacks, stats_accumulator_handles,
+        stamp_token, partition_ids, feature_ids, gradients, hessians)
+      return _result
+    except _core._FallbackException:
+      return stats_accumulator_scalar_add_eager_fallback(
+          stats_accumulator_handles, stamp_token, partition_ids, feature_ids,
+          gradients, hessians, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def stats_accumulator_scalar_add_eager_fallback(stats_accumulator_handles, stamp_token, partition_ids, feature_ids, gradients, hessians, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function stats_accumulator_scalar_add
+  """
+  _ctx = _context.context()
   if not isinstance(stats_accumulator_handles, (list, tuple)):
     raise TypeError(
         "Expected list for 'stats_accumulator_handles' argument to "
@@ -165,34 +295,24 @@ def stats_accumulator_scalar_add(stats_accumulator_handles, stamp_token, partiti
         "List argument 'hessians' to 'stats_accumulator_scalar_add' Op with length %d "
         "must match length %d of argument 'stats_accumulator_handles'." %
         (len(hessians), _attr_num_resource_handles))
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "StatsAccumulatorScalarAdd",
-        stats_accumulator_handles=stats_accumulator_handles,
-        stamp_token=stamp_token, partition_ids=partition_ids,
-        feature_ids=feature_ids, gradients=gradients, hessians=hessians,
-        name=name)
-    return _op
-  else:
-    stats_accumulator_handles = _ops.convert_n_to_tensor(stats_accumulator_handles, _dtypes.resource)
-    stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
-    partition_ids = _ops.convert_n_to_tensor(partition_ids, _dtypes.int32)
-    feature_ids = _ops.convert_n_to_tensor(feature_ids, _dtypes.int64)
-    gradients = _ops.convert_n_to_tensor(gradients, _dtypes.float32)
-    hessians = _ops.convert_n_to_tensor(hessians, _dtypes.float32)
-    _inputs_flat = list(stats_accumulator_handles) + [stamp_token] + list(partition_ids) + list(feature_ids) + list(gradients) + list(hessians)
-    _attrs = ("num_resource_handles", _attr_num_resource_handles)
-    _result = _execute.execute(b"StatsAccumulatorScalarAdd", 0,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
-    _result = None
+  stats_accumulator_handles = _ops.convert_n_to_tensor(stats_accumulator_handles, _dtypes.resource)
+  stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
+  partition_ids = _ops.convert_n_to_tensor(partition_ids, _dtypes.int32)
+  feature_ids = _ops.convert_n_to_tensor(feature_ids, _dtypes.int64)
+  gradients = _ops.convert_n_to_tensor(gradients, _dtypes.float32)
+  hessians = _ops.convert_n_to_tensor(hessians, _dtypes.float32)
+  _inputs_flat = list(stats_accumulator_handles) + [stamp_token] + list(partition_ids) + list(feature_ids) + list(gradients) + list(hessians)
+  _attrs = ("num_resource_handles", _attr_num_resource_handles)
+  _result = _execute.execute(b"StatsAccumulatorScalarAdd", 0,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("StatsAccumulatorScalarAdd")(None)
 
 
-@tf_export('StatsAccumulatorScalarDeserialize')
+@tf_export('stats_accumulator_scalar_deserialize')
 def stats_accumulator_scalar_deserialize(stats_accumulator_handle, stamp_token, num_updates, partition_ids, feature_ids, gradients, hessians, name=None):
   r"""Resets the scalar stats accumulator with the serialized state.
 
@@ -220,7 +340,7 @@ def stats_accumulator_scalar_deserialize(stats_accumulator_handle, stamp_token, 
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatsAccumulatorScalarDeserialize",
         stats_accumulator_handle=stats_accumulator_handle,
@@ -228,20 +348,47 @@ def stats_accumulator_scalar_deserialize(stats_accumulator_handle, stamp_token, 
         partition_ids=partition_ids, feature_ids=feature_ids,
         gradients=gradients, hessians=hessians, name=name)
     return _op
-  else:
-    stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
-    stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
-    num_updates = _ops.convert_to_tensor(num_updates, _dtypes.int64)
-    partition_ids = _ops.convert_to_tensor(partition_ids, _dtypes.int32)
-    feature_ids = _ops.convert_to_tensor(feature_ids, _dtypes.int64)
-    gradients = _ops.convert_to_tensor(gradients, _dtypes.float32)
-    hessians = _ops.convert_to_tensor(hessians, _dtypes.float32)
-    _inputs_flat = [stats_accumulator_handle, stamp_token, num_updates, partition_ids, feature_ids, gradients, hessians]
-    _attrs = None
-    _result = _execute.execute(b"StatsAccumulatorScalarDeserialize", 0,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "StatsAccumulatorScalarDeserialize",
+        name, _ctx._post_execution_callbacks, stats_accumulator_handle,
+        stamp_token, num_updates, partition_ids, feature_ids, gradients,
+        hessians)
+      return _result
+    except _core._FallbackException:
+      return stats_accumulator_scalar_deserialize_eager_fallback(
+          stats_accumulator_handle, stamp_token, num_updates, partition_ids,
+          feature_ids, gradients, hessians, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def stats_accumulator_scalar_deserialize_eager_fallback(stats_accumulator_handle, stamp_token, num_updates, partition_ids, feature_ids, gradients, hessians, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function stats_accumulator_scalar_deserialize
+  """
+  _ctx = _context.context()
+  stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
+  stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
+  num_updates = _ops.convert_to_tensor(num_updates, _dtypes.int64)
+  partition_ids = _ops.convert_to_tensor(partition_ids, _dtypes.int32)
+  feature_ids = _ops.convert_to_tensor(feature_ids, _dtypes.int64)
+  gradients = _ops.convert_to_tensor(gradients, _dtypes.float32)
+  hessians = _ops.convert_to_tensor(hessians, _dtypes.float32)
+  _inputs_flat = [stats_accumulator_handle, stamp_token, num_updates, partition_ids, feature_ids, gradients, hessians]
+  _attrs = None
+  _result = _execute.execute(b"StatsAccumulatorScalarDeserialize", 0,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("StatsAccumulatorScalarDeserialize")(None)
@@ -256,7 +403,7 @@ _StatsAccumulatorScalarFlushOutput = _collections.namedtuple(
     "StatsAccumulatorScalarFlush", _stats_accumulator_scalar_flush_outputs)
 
 
-@tf_export('StatsAccumulatorScalarFlush')
+@tf_export('stats_accumulator_scalar_flush')
 def stats_accumulator_scalar_flush(stats_accumulator_handle, stamp_token, next_stamp_token, name=None):
   r"""Flushes the scalar stats accumulator to output and resets the internal state.
 
@@ -284,7 +431,7 @@ def stats_accumulator_scalar_flush(stats_accumulator_handle, stamp_token, next_s
       in <output_partition_id, output_feature_id>.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatsAccumulatorScalarFlush",
         stats_accumulator_handle=stats_accumulator_handle,
@@ -292,15 +439,43 @@ def stats_accumulator_scalar_flush(stats_accumulator_handle, stamp_token, next_s
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "StatsAccumulatorScalarFlush", _inputs_flat, _attrs, _result, name)
+    _result = _StatsAccumulatorScalarFlushOutput._make(_result)
+    return _result
+
   else:
-    stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
-    stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
-    next_stamp_token = _ops.convert_to_tensor(next_stamp_token, _dtypes.int64)
-    _inputs_flat = [stats_accumulator_handle, stamp_token, next_stamp_token]
-    _attrs = None
-    _result = _execute.execute(b"StatsAccumulatorScalarFlush", 5,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "StatsAccumulatorScalarFlush", name,
+        _ctx._post_execution_callbacks, stats_accumulator_handle, stamp_token,
+        next_stamp_token)
+      _result = _StatsAccumulatorScalarFlushOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return stats_accumulator_scalar_flush_eager_fallback(
+          stats_accumulator_handle, stamp_token, next_stamp_token, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def stats_accumulator_scalar_flush_eager_fallback(stats_accumulator_handle, stamp_token, next_stamp_token, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function stats_accumulator_scalar_flush
+  """
+  _ctx = _context.context()
+  stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
+  stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
+  next_stamp_token = _ops.convert_to_tensor(next_stamp_token, _dtypes.int64)
+  _inputs_flat = [stats_accumulator_handle, stamp_token, next_stamp_token]
+  _attrs = None
+  _result = _execute.execute(b"StatsAccumulatorScalarFlush", 5,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "StatsAccumulatorScalarFlush", _inputs_flat, _attrs, _result, name)
   _result = _StatsAccumulatorScalarFlushOutput._make(_result)
@@ -309,7 +484,7 @@ def stats_accumulator_scalar_flush(stats_accumulator_handle, stamp_token, next_s
 _ops.RegisterShape("StatsAccumulatorScalarFlush")(None)
 
 
-@tf_export('StatsAccumulatorScalarIsInitialized')
+@tf_export('stats_accumulator_scalar_is_initialized')
 def stats_accumulator_scalar_is_initialized(stats_accumulator_handle, name=None):
   r"""Checks whether a stats accumulator has been initialized.
 
@@ -321,20 +496,46 @@ def stats_accumulator_scalar_is_initialized(stats_accumulator_handle, name=None)
     A `Tensor` of type `bool`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatsAccumulatorScalarIsInitialized",
         stats_accumulator_handle=stats_accumulator_handle, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "StatsAccumulatorScalarIsInitialized", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
-    _inputs_flat = [stats_accumulator_handle]
-    _attrs = None
-    _result = _execute.execute(b"StatsAccumulatorScalarIsInitialized", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "StatsAccumulatorScalarIsInitialized",
+        name, _ctx._post_execution_callbacks, stats_accumulator_handle)
+      return _result
+    except _core._FallbackException:
+      return stats_accumulator_scalar_is_initialized_eager_fallback(
+          stats_accumulator_handle, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def stats_accumulator_scalar_is_initialized_eager_fallback(stats_accumulator_handle, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function stats_accumulator_scalar_is_initialized
+  """
+  _ctx = _context.context()
+  stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
+  _inputs_flat = [stats_accumulator_handle]
+  _attrs = None
+  _result = _execute.execute(b"StatsAccumulatorScalarIsInitialized", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "StatsAccumulatorScalarIsInitialized", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -352,7 +553,7 @@ _StatsAccumulatorScalarMakeSummaryOutput = _collections.namedtuple(
     _stats_accumulator_scalar_make_summary_outputs)
 
 
-@tf_export('StatsAccumulatorScalarMakeSummary')
+@tf_export('stats_accumulator_scalar_make_summary')
 def stats_accumulator_scalar_make_summary(partition_ids, feature_ids, gradients, hessians, name=None):
   r"""TODO: add doc.
 
@@ -372,7 +573,7 @@ def stats_accumulator_scalar_make_summary(partition_ids, feature_ids, gradients,
     output_hessians: A `Tensor` of type `float32`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatsAccumulatorScalarMakeSummary", partition_ids=partition_ids,
         feature_ids=feature_ids, gradients=gradients, hessians=hessians,
@@ -380,16 +581,44 @@ def stats_accumulator_scalar_make_summary(partition_ids, feature_ids, gradients,
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "StatsAccumulatorScalarMakeSummary", _inputs_flat, _attrs, _result, name)
+    _result = _StatsAccumulatorScalarMakeSummaryOutput._make(_result)
+    return _result
+
   else:
-    partition_ids = _ops.convert_to_tensor(partition_ids, _dtypes.int32)
-    feature_ids = _ops.convert_to_tensor(feature_ids, _dtypes.int64)
-    gradients = _ops.convert_to_tensor(gradients, _dtypes.float32)
-    hessians = _ops.convert_to_tensor(hessians, _dtypes.float32)
-    _inputs_flat = [partition_ids, feature_ids, gradients, hessians]
-    _attrs = None
-    _result = _execute.execute(b"StatsAccumulatorScalarMakeSummary", 4,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "StatsAccumulatorScalarMakeSummary",
+        name, _ctx._post_execution_callbacks, partition_ids, feature_ids,
+        gradients, hessians)
+      _result = _StatsAccumulatorScalarMakeSummaryOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return stats_accumulator_scalar_make_summary_eager_fallback(
+          partition_ids, feature_ids, gradients, hessians, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def stats_accumulator_scalar_make_summary_eager_fallback(partition_ids, feature_ids, gradients, hessians, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function stats_accumulator_scalar_make_summary
+  """
+  _ctx = _context.context()
+  partition_ids = _ops.convert_to_tensor(partition_ids, _dtypes.int32)
+  feature_ids = _ops.convert_to_tensor(feature_ids, _dtypes.int64)
+  gradients = _ops.convert_to_tensor(gradients, _dtypes.float32)
+  hessians = _ops.convert_to_tensor(hessians, _dtypes.float32)
+  _inputs_flat = [partition_ids, feature_ids, gradients, hessians]
+  _attrs = None
+  _result = _execute.execute(b"StatsAccumulatorScalarMakeSummary", 4,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "StatsAccumulatorScalarMakeSummary", _inputs_flat, _attrs, _result, name)
   _result = _StatsAccumulatorScalarMakeSummaryOutput._make(_result)
@@ -398,7 +627,7 @@ def stats_accumulator_scalar_make_summary(partition_ids, feature_ids, gradients,
 _ops.RegisterShape("StatsAccumulatorScalarMakeSummary")(None)
 
 
-@tf_export('StatsAccumulatorScalarResourceHandleOp')
+@tf_export('stats_accumulator_scalar_resource_handle_op')
 def stats_accumulator_scalar_resource_handle_op(container="", shared_name="", name=None):
   r"""Creates a handle to a StatsAccumulatorScalarResource
 
@@ -410,14 +639,14 @@ def stats_accumulator_scalar_resource_handle_op(container="", shared_name="", na
   Returns:
     A `Tensor` of type `resource`.
   """
-  if container is None:
-    container = ""
-  container = _execute.make_str(container, "container")
-  if shared_name is None:
-    shared_name = ""
-  shared_name = _execute.make_str(shared_name, "shared_name")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatsAccumulatorScalarResourceHandleOp", container=container,
         shared_name=shared_name, name=name)
@@ -425,12 +654,46 @@ def stats_accumulator_scalar_resource_handle_op(container="", shared_name="", na
     _inputs_flat = _op.inputs
     _attrs = ("container", _op.get_attr("container"), "shared_name",
               _op.get_attr("shared_name"))
+    _execute.record_gradient(
+      "StatsAccumulatorScalarResourceHandleOp", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _inputs_flat = []
-    _attrs = ("container", container, "shared_name", shared_name)
-    _result = _execute.execute(b"StatsAccumulatorScalarResourceHandleOp", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name,
+        "StatsAccumulatorScalarResourceHandleOp", name,
+        _ctx._post_execution_callbacks, "container", container, "shared_name",
+        shared_name)
+      return _result
+    except _core._FallbackException:
+      return stats_accumulator_scalar_resource_handle_op_eager_fallback(
+          container=container, shared_name=shared_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def stats_accumulator_scalar_resource_handle_op_eager_fallback(container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function stats_accumulator_scalar_resource_handle_op
+  """
+  _ctx = _context.context()
+  if container is None:
+    container = ""
+  container = _execute.make_str(container, "container")
+  if shared_name is None:
+    shared_name = ""
+  shared_name = _execute.make_str(shared_name, "shared_name")
+  _inputs_flat = []
+  _attrs = ("container", container, "shared_name", shared_name)
+  _result = _execute.execute(b"StatsAccumulatorScalarResourceHandleOp", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "StatsAccumulatorScalarResourceHandleOp", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -449,7 +712,7 @@ _StatsAccumulatorScalarSerializeOutput = _collections.namedtuple(
     _stats_accumulator_scalar_serialize_outputs)
 
 
-@tf_export('StatsAccumulatorScalarSerialize')
+@tf_export('stats_accumulator_scalar_serialize')
 def stats_accumulator_scalar_serialize(stats_accumulator_handle, name=None):
   r"""Serializes the scalar stats accumulator state.
 
@@ -473,20 +736,47 @@ def stats_accumulator_scalar_serialize(stats_accumulator_handle, name=None):
       in <output_partition_id, output_feature_id>.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatsAccumulatorScalarSerialize",
         stats_accumulator_handle=stats_accumulator_handle, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "StatsAccumulatorScalarSerialize", _inputs_flat, _attrs, _result, name)
+    _result = _StatsAccumulatorScalarSerializeOutput._make(_result)
+    return _result
+
   else:
-    stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
-    _inputs_flat = [stats_accumulator_handle]
-    _attrs = None
-    _result = _execute.execute(b"StatsAccumulatorScalarSerialize", 6,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "StatsAccumulatorScalarSerialize",
+        name, _ctx._post_execution_callbacks, stats_accumulator_handle)
+      _result = _StatsAccumulatorScalarSerializeOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return stats_accumulator_scalar_serialize_eager_fallback(
+          stats_accumulator_handle, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def stats_accumulator_scalar_serialize_eager_fallback(stats_accumulator_handle, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function stats_accumulator_scalar_serialize
+  """
+  _ctx = _context.context()
+  stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
+  _inputs_flat = [stats_accumulator_handle]
+  _attrs = None
+  _result = _execute.execute(b"StatsAccumulatorScalarSerialize", 6,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "StatsAccumulatorScalarSerialize", _inputs_flat, _attrs, _result, name)
   _result = _StatsAccumulatorScalarSerializeOutput._make(_result)
@@ -495,7 +785,7 @@ def stats_accumulator_scalar_serialize(stats_accumulator_handle, name=None):
 _ops.RegisterShape("StatsAccumulatorScalarSerialize")(None)
 
 
-@tf_export('StatsAccumulatorTensorAdd')
+@tf_export('stats_accumulator_tensor_add')
 def stats_accumulator_tensor_add(stats_accumulator_handles, stamp_token, partition_ids, feature_ids, gradients, hessians, name=None):
   r"""Updates the tensor stats accumulator.
 
@@ -520,6 +810,83 @@ def stats_accumulator_tensor_add(stats_accumulator_handles, stamp_token, partiti
   Returns:
     The created Operation.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(stats_accumulator_handles, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'stats_accumulator_handles' argument to "
+          "'stats_accumulator_tensor_add' Op, not %r." % stats_accumulator_handles)
+    _attr_num_resource_handles = len(stats_accumulator_handles)
+    if not isinstance(partition_ids, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'partition_ids' argument to "
+          "'stats_accumulator_tensor_add' Op, not %r." % partition_ids)
+    if len(partition_ids) != _attr_num_resource_handles:
+      raise ValueError(
+          "List argument 'partition_ids' to 'stats_accumulator_tensor_add' Op with length %d "
+          "must match length %d of argument 'stats_accumulator_handles'." %
+          (len(partition_ids), _attr_num_resource_handles))
+    if not isinstance(feature_ids, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'feature_ids' argument to "
+          "'stats_accumulator_tensor_add' Op, not %r." % feature_ids)
+    if len(feature_ids) != _attr_num_resource_handles:
+      raise ValueError(
+          "List argument 'feature_ids' to 'stats_accumulator_tensor_add' Op with length %d "
+          "must match length %d of argument 'stats_accumulator_handles'." %
+          (len(feature_ids), _attr_num_resource_handles))
+    if not isinstance(gradients, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'gradients' argument to "
+          "'stats_accumulator_tensor_add' Op, not %r." % gradients)
+    if len(gradients) != _attr_num_resource_handles:
+      raise ValueError(
+          "List argument 'gradients' to 'stats_accumulator_tensor_add' Op with length %d "
+          "must match length %d of argument 'stats_accumulator_handles'." %
+          (len(gradients), _attr_num_resource_handles))
+    if not isinstance(hessians, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'hessians' argument to "
+          "'stats_accumulator_tensor_add' Op, not %r." % hessians)
+    if len(hessians) != _attr_num_resource_handles:
+      raise ValueError(
+          "List argument 'hessians' to 'stats_accumulator_tensor_add' Op with length %d "
+          "must match length %d of argument 'stats_accumulator_handles'." %
+          (len(hessians), _attr_num_resource_handles))
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "StatsAccumulatorTensorAdd",
+        stats_accumulator_handles=stats_accumulator_handles,
+        stamp_token=stamp_token, partition_ids=partition_ids,
+        feature_ids=feature_ids, gradients=gradients, hessians=hessians,
+        name=name)
+    return _op
+    _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "StatsAccumulatorTensorAdd", name,
+        _ctx._post_execution_callbacks, stats_accumulator_handles,
+        stamp_token, partition_ids, feature_ids, gradients, hessians)
+      return _result
+    except _core._FallbackException:
+      return stats_accumulator_tensor_add_eager_fallback(
+          stats_accumulator_handles, stamp_token, partition_ids, feature_ids,
+          gradients, hessians, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def stats_accumulator_tensor_add_eager_fallback(stats_accumulator_handles, stamp_token, partition_ids, feature_ids, gradients, hessians, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function stats_accumulator_tensor_add
+  """
+  _ctx = _context.context()
   if not isinstance(stats_accumulator_handles, (list, tuple)):
     raise TypeError(
         "Expected list for 'stats_accumulator_handles' argument to "
@@ -561,34 +928,24 @@ def stats_accumulator_tensor_add(stats_accumulator_handles, stamp_token, partiti
         "List argument 'hessians' to 'stats_accumulator_tensor_add' Op with length %d "
         "must match length %d of argument 'stats_accumulator_handles'." %
         (len(hessians), _attr_num_resource_handles))
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "StatsAccumulatorTensorAdd",
-        stats_accumulator_handles=stats_accumulator_handles,
-        stamp_token=stamp_token, partition_ids=partition_ids,
-        feature_ids=feature_ids, gradients=gradients, hessians=hessians,
-        name=name)
-    return _op
-  else:
-    stats_accumulator_handles = _ops.convert_n_to_tensor(stats_accumulator_handles, _dtypes.resource)
-    stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
-    partition_ids = _ops.convert_n_to_tensor(partition_ids, _dtypes.int32)
-    feature_ids = _ops.convert_n_to_tensor(feature_ids, _dtypes.int64)
-    gradients = _ops.convert_n_to_tensor(gradients, _dtypes.float32)
-    hessians = _ops.convert_n_to_tensor(hessians, _dtypes.float32)
-    _inputs_flat = list(stats_accumulator_handles) + [stamp_token] + list(partition_ids) + list(feature_ids) + list(gradients) + list(hessians)
-    _attrs = ("num_resource_handles", _attr_num_resource_handles)
-    _result = _execute.execute(b"StatsAccumulatorTensorAdd", 0,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
-    _result = None
+  stats_accumulator_handles = _ops.convert_n_to_tensor(stats_accumulator_handles, _dtypes.resource)
+  stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
+  partition_ids = _ops.convert_n_to_tensor(partition_ids, _dtypes.int32)
+  feature_ids = _ops.convert_n_to_tensor(feature_ids, _dtypes.int64)
+  gradients = _ops.convert_n_to_tensor(gradients, _dtypes.float32)
+  hessians = _ops.convert_n_to_tensor(hessians, _dtypes.float32)
+  _inputs_flat = list(stats_accumulator_handles) + [stamp_token] + list(partition_ids) + list(feature_ids) + list(gradients) + list(hessians)
+  _attrs = ("num_resource_handles", _attr_num_resource_handles)
+  _result = _execute.execute(b"StatsAccumulatorTensorAdd", 0,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("StatsAccumulatorTensorAdd")(None)
 
 
-@tf_export('StatsAccumulatorTensorDeserialize')
+@tf_export('stats_accumulator_tensor_deserialize')
 def stats_accumulator_tensor_deserialize(stats_accumulator_handle, stamp_token, num_updates, partition_ids, feature_ids, gradients, hessians, name=None):
   r"""Resets the tensor stats accumulator with the serialized state.
 
@@ -616,7 +973,7 @@ def stats_accumulator_tensor_deserialize(stats_accumulator_handle, stamp_token, 
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatsAccumulatorTensorDeserialize",
         stats_accumulator_handle=stats_accumulator_handle,
@@ -624,20 +981,47 @@ def stats_accumulator_tensor_deserialize(stats_accumulator_handle, stamp_token, 
         partition_ids=partition_ids, feature_ids=feature_ids,
         gradients=gradients, hessians=hessians, name=name)
     return _op
-  else:
-    stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
-    stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
-    num_updates = _ops.convert_to_tensor(num_updates, _dtypes.int64)
-    partition_ids = _ops.convert_to_tensor(partition_ids, _dtypes.int32)
-    feature_ids = _ops.convert_to_tensor(feature_ids, _dtypes.int64)
-    gradients = _ops.convert_to_tensor(gradients, _dtypes.float32)
-    hessians = _ops.convert_to_tensor(hessians, _dtypes.float32)
-    _inputs_flat = [stats_accumulator_handle, stamp_token, num_updates, partition_ids, feature_ids, gradients, hessians]
-    _attrs = None
-    _result = _execute.execute(b"StatsAccumulatorTensorDeserialize", 0,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "StatsAccumulatorTensorDeserialize",
+        name, _ctx._post_execution_callbacks, stats_accumulator_handle,
+        stamp_token, num_updates, partition_ids, feature_ids, gradients,
+        hessians)
+      return _result
+    except _core._FallbackException:
+      return stats_accumulator_tensor_deserialize_eager_fallback(
+          stats_accumulator_handle, stamp_token, num_updates, partition_ids,
+          feature_ids, gradients, hessians, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def stats_accumulator_tensor_deserialize_eager_fallback(stats_accumulator_handle, stamp_token, num_updates, partition_ids, feature_ids, gradients, hessians, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function stats_accumulator_tensor_deserialize
+  """
+  _ctx = _context.context()
+  stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
+  stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
+  num_updates = _ops.convert_to_tensor(num_updates, _dtypes.int64)
+  partition_ids = _ops.convert_to_tensor(partition_ids, _dtypes.int32)
+  feature_ids = _ops.convert_to_tensor(feature_ids, _dtypes.int64)
+  gradients = _ops.convert_to_tensor(gradients, _dtypes.float32)
+  hessians = _ops.convert_to_tensor(hessians, _dtypes.float32)
+  _inputs_flat = [stats_accumulator_handle, stamp_token, num_updates, partition_ids, feature_ids, gradients, hessians]
+  _attrs = None
+  _result = _execute.execute(b"StatsAccumulatorTensorDeserialize", 0,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("StatsAccumulatorTensorDeserialize")(None)
@@ -652,7 +1036,7 @@ _StatsAccumulatorTensorFlushOutput = _collections.namedtuple(
     "StatsAccumulatorTensorFlush", _stats_accumulator_tensor_flush_outputs)
 
 
-@tf_export('StatsAccumulatorTensorFlush')
+@tf_export('stats_accumulator_tensor_flush')
 def stats_accumulator_tensor_flush(stats_accumulator_handle, stamp_token, next_stamp_token, name=None):
   r"""Flushes the stats accumulator to output and resets the internal state.
 
@@ -679,7 +1063,7 @@ def stats_accumulator_tensor_flush(stats_accumulator_handle, stamp_token, next_s
       in <partition_id, feature_id, feature_dimension_id>>.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatsAccumulatorTensorFlush",
         stats_accumulator_handle=stats_accumulator_handle,
@@ -687,15 +1071,43 @@ def stats_accumulator_tensor_flush(stats_accumulator_handle, stamp_token, next_s
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "StatsAccumulatorTensorFlush", _inputs_flat, _attrs, _result, name)
+    _result = _StatsAccumulatorTensorFlushOutput._make(_result)
+    return _result
+
   else:
-    stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
-    stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
-    next_stamp_token = _ops.convert_to_tensor(next_stamp_token, _dtypes.int64)
-    _inputs_flat = [stats_accumulator_handle, stamp_token, next_stamp_token]
-    _attrs = None
-    _result = _execute.execute(b"StatsAccumulatorTensorFlush", 5,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "StatsAccumulatorTensorFlush", name,
+        _ctx._post_execution_callbacks, stats_accumulator_handle, stamp_token,
+        next_stamp_token)
+      _result = _StatsAccumulatorTensorFlushOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return stats_accumulator_tensor_flush_eager_fallback(
+          stats_accumulator_handle, stamp_token, next_stamp_token, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def stats_accumulator_tensor_flush_eager_fallback(stats_accumulator_handle, stamp_token, next_stamp_token, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function stats_accumulator_tensor_flush
+  """
+  _ctx = _context.context()
+  stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
+  stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
+  next_stamp_token = _ops.convert_to_tensor(next_stamp_token, _dtypes.int64)
+  _inputs_flat = [stats_accumulator_handle, stamp_token, next_stamp_token]
+  _attrs = None
+  _result = _execute.execute(b"StatsAccumulatorTensorFlush", 5,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "StatsAccumulatorTensorFlush", _inputs_flat, _attrs, _result, name)
   _result = _StatsAccumulatorTensorFlushOutput._make(_result)
@@ -704,7 +1116,7 @@ def stats_accumulator_tensor_flush(stats_accumulator_handle, stamp_token, next_s
 _ops.RegisterShape("StatsAccumulatorTensorFlush")(None)
 
 
-@tf_export('StatsAccumulatorTensorIsInitialized')
+@tf_export('stats_accumulator_tensor_is_initialized')
 def stats_accumulator_tensor_is_initialized(stats_accumulator_handle, name=None):
   r"""Checks whether a tensor stats accumulator has been initialized.
 
@@ -716,20 +1128,46 @@ def stats_accumulator_tensor_is_initialized(stats_accumulator_handle, name=None)
     A `Tensor` of type `bool`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatsAccumulatorTensorIsInitialized",
         stats_accumulator_handle=stats_accumulator_handle, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "StatsAccumulatorTensorIsInitialized", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
-    _inputs_flat = [stats_accumulator_handle]
-    _attrs = None
-    _result = _execute.execute(b"StatsAccumulatorTensorIsInitialized", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "StatsAccumulatorTensorIsInitialized",
+        name, _ctx._post_execution_callbacks, stats_accumulator_handle)
+      return _result
+    except _core._FallbackException:
+      return stats_accumulator_tensor_is_initialized_eager_fallback(
+          stats_accumulator_handle, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def stats_accumulator_tensor_is_initialized_eager_fallback(stats_accumulator_handle, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function stats_accumulator_tensor_is_initialized
+  """
+  _ctx = _context.context()
+  stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
+  _inputs_flat = [stats_accumulator_handle]
+  _attrs = None
+  _result = _execute.execute(b"StatsAccumulatorTensorIsInitialized", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "StatsAccumulatorTensorIsInitialized", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -747,7 +1185,7 @@ _StatsAccumulatorTensorMakeSummaryOutput = _collections.namedtuple(
     _stats_accumulator_tensor_make_summary_outputs)
 
 
-@tf_export('StatsAccumulatorTensorMakeSummary')
+@tf_export('stats_accumulator_tensor_make_summary')
 def stats_accumulator_tensor_make_summary(partition_ids, feature_ids, gradients, hessians, name=None):
   r"""Summarizes the stats by summing the <gradients, hessians> that are for the same
 
@@ -776,7 +1214,7 @@ def stats_accumulator_tensor_make_summary(partition_ids, feature_ids, gradients,
       in <partition_id, feature_id, feature_dimension_id>.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatsAccumulatorTensorMakeSummary", partition_ids=partition_ids,
         feature_ids=feature_ids, gradients=gradients, hessians=hessians,
@@ -784,16 +1222,44 @@ def stats_accumulator_tensor_make_summary(partition_ids, feature_ids, gradients,
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "StatsAccumulatorTensorMakeSummary", _inputs_flat, _attrs, _result, name)
+    _result = _StatsAccumulatorTensorMakeSummaryOutput._make(_result)
+    return _result
+
   else:
-    partition_ids = _ops.convert_to_tensor(partition_ids, _dtypes.int32)
-    feature_ids = _ops.convert_to_tensor(feature_ids, _dtypes.int64)
-    gradients = _ops.convert_to_tensor(gradients, _dtypes.float32)
-    hessians = _ops.convert_to_tensor(hessians, _dtypes.float32)
-    _inputs_flat = [partition_ids, feature_ids, gradients, hessians]
-    _attrs = None
-    _result = _execute.execute(b"StatsAccumulatorTensorMakeSummary", 4,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "StatsAccumulatorTensorMakeSummary",
+        name, _ctx._post_execution_callbacks, partition_ids, feature_ids,
+        gradients, hessians)
+      _result = _StatsAccumulatorTensorMakeSummaryOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return stats_accumulator_tensor_make_summary_eager_fallback(
+          partition_ids, feature_ids, gradients, hessians, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def stats_accumulator_tensor_make_summary_eager_fallback(partition_ids, feature_ids, gradients, hessians, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function stats_accumulator_tensor_make_summary
+  """
+  _ctx = _context.context()
+  partition_ids = _ops.convert_to_tensor(partition_ids, _dtypes.int32)
+  feature_ids = _ops.convert_to_tensor(feature_ids, _dtypes.int64)
+  gradients = _ops.convert_to_tensor(gradients, _dtypes.float32)
+  hessians = _ops.convert_to_tensor(hessians, _dtypes.float32)
+  _inputs_flat = [partition_ids, feature_ids, gradients, hessians]
+  _attrs = None
+  _result = _execute.execute(b"StatsAccumulatorTensorMakeSummary", 4,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "StatsAccumulatorTensorMakeSummary", _inputs_flat, _attrs, _result, name)
   _result = _StatsAccumulatorTensorMakeSummaryOutput._make(_result)
@@ -802,7 +1268,7 @@ def stats_accumulator_tensor_make_summary(partition_ids, feature_ids, gradients,
 _ops.RegisterShape("StatsAccumulatorTensorMakeSummary")(None)
 
 
-@tf_export('StatsAccumulatorTensorResourceHandleOp')
+@tf_export('stats_accumulator_tensor_resource_handle_op')
 def stats_accumulator_tensor_resource_handle_op(container="", shared_name="", name=None):
   r"""Creates a handle to a StatsAccumulatorTensorResource
 
@@ -814,14 +1280,14 @@ def stats_accumulator_tensor_resource_handle_op(container="", shared_name="", na
   Returns:
     A `Tensor` of type `resource`.
   """
-  if container is None:
-    container = ""
-  container = _execute.make_str(container, "container")
-  if shared_name is None:
-    shared_name = ""
-  shared_name = _execute.make_str(shared_name, "shared_name")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatsAccumulatorTensorResourceHandleOp", container=container,
         shared_name=shared_name, name=name)
@@ -829,12 +1295,46 @@ def stats_accumulator_tensor_resource_handle_op(container="", shared_name="", na
     _inputs_flat = _op.inputs
     _attrs = ("container", _op.get_attr("container"), "shared_name",
               _op.get_attr("shared_name"))
+    _execute.record_gradient(
+      "StatsAccumulatorTensorResourceHandleOp", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _inputs_flat = []
-    _attrs = ("container", container, "shared_name", shared_name)
-    _result = _execute.execute(b"StatsAccumulatorTensorResourceHandleOp", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name,
+        "StatsAccumulatorTensorResourceHandleOp", name,
+        _ctx._post_execution_callbacks, "container", container, "shared_name",
+        shared_name)
+      return _result
+    except _core._FallbackException:
+      return stats_accumulator_tensor_resource_handle_op_eager_fallback(
+          container=container, shared_name=shared_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def stats_accumulator_tensor_resource_handle_op_eager_fallback(container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function stats_accumulator_tensor_resource_handle_op
+  """
+  _ctx = _context.context()
+  if container is None:
+    container = ""
+  container = _execute.make_str(container, "container")
+  if shared_name is None:
+    shared_name = ""
+  shared_name = _execute.make_str(shared_name, "shared_name")
+  _inputs_flat = []
+  _attrs = ("container", container, "shared_name", shared_name)
+  _result = _execute.execute(b"StatsAccumulatorTensorResourceHandleOp", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "StatsAccumulatorTensorResourceHandleOp", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -853,7 +1353,7 @@ _StatsAccumulatorTensorSerializeOutput = _collections.namedtuple(
     _stats_accumulator_tensor_serialize_outputs)
 
 
-@tf_export('StatsAccumulatorTensorSerialize')
+@tf_export('stats_accumulator_tensor_serialize')
 def stats_accumulator_tensor_serialize(stats_accumulator_handle, name=None):
   r"""Serializes the scalar stats accumulator state.
 
@@ -877,20 +1377,47 @@ def stats_accumulator_tensor_serialize(stats_accumulator_handle, name=None):
       in <partition_id, feature_id, feature_dimension_id>.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "StatsAccumulatorTensorSerialize",
         stats_accumulator_handle=stats_accumulator_handle, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "StatsAccumulatorTensorSerialize", _inputs_flat, _attrs, _result, name)
+    _result = _StatsAccumulatorTensorSerializeOutput._make(_result)
+    return _result
+
   else:
-    stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
-    _inputs_flat = [stats_accumulator_handle]
-    _attrs = None
-    _result = _execute.execute(b"StatsAccumulatorTensorSerialize", 6,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "StatsAccumulatorTensorSerialize",
+        name, _ctx._post_execution_callbacks, stats_accumulator_handle)
+      _result = _StatsAccumulatorTensorSerializeOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return stats_accumulator_tensor_serialize_eager_fallback(
+          stats_accumulator_handle, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def stats_accumulator_tensor_serialize_eager_fallback(stats_accumulator_handle, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function stats_accumulator_tensor_serialize
+  """
+  _ctx = _context.context()
+  stats_accumulator_handle = _ops.convert_to_tensor(stats_accumulator_handle, _dtypes.resource)
+  _inputs_flat = [stats_accumulator_handle]
+  _attrs = None
+  _result = _execute.execute(b"StatsAccumulatorTensorSerialize", 6,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "StatsAccumulatorTensorSerialize", _inputs_flat, _attrs, _result, name)
   _result = _StatsAccumulatorTensorSerializeOutput._make(_result)

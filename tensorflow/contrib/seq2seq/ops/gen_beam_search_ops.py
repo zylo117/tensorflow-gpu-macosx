@@ -5,11 +5,14 @@ Original C++ source file: beam_search_ops.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,7 +24,7 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('GatherTree')
+@tf_export('gather_tree')
 def gather_tree(step_ids, parent_ids, max_sequence_lengths, end_token, name=None):
   r"""Calculates the full beams from the per-step ids and parent beam ids.
 
@@ -48,7 +51,7 @@ def gather_tree(step_ids, parent_ids, max_sequence_lengths, end_token, name=None
     `[max_time, batch_size, beam_width]`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "GatherTree", step_ids=step_ids, parent_ids=parent_ids,
         max_sequence_lengths=max_sequence_lengths, end_token=end_token,
@@ -56,14 +59,41 @@ def gather_tree(step_ids, parent_ids, max_sequence_lengths, end_token, name=None
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "GatherTree", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, _inputs_T = _execute.args_to_matching_eager([step_ids, parent_ids, end_token], _ctx)
-    (step_ids, parent_ids, end_token) = _inputs_T
-    max_sequence_lengths = _ops.convert_to_tensor(max_sequence_lengths, _dtypes.int32)
-    _inputs_flat = [step_ids, parent_ids, max_sequence_lengths, end_token]
-    _attrs = ("T", _attr_T)
-    _result = _execute.execute(b"GatherTree", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "GatherTree", name,
+        _ctx._post_execution_callbacks, step_ids, parent_ids,
+        max_sequence_lengths, end_token)
+      return _result
+    except _core._FallbackException:
+      return gather_tree_eager_fallback(
+          step_ids, parent_ids, max_sequence_lengths, end_token, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def gather_tree_eager_fallback(step_ids, parent_ids, max_sequence_lengths, end_token, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function gather_tree
+  """
+  _ctx = _context.context()
+  _attr_T, _inputs_T = _execute.args_to_matching_eager([step_ids, parent_ids, end_token], _ctx)
+  (step_ids, parent_ids, end_token) = _inputs_T
+  max_sequence_lengths = _ops.convert_to_tensor(max_sequence_lengths, _dtypes.int32)
+  _inputs_flat = [step_ids, parent_ids, max_sequence_lengths, end_token]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"GatherTree", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "GatherTree", _inputs_flat, _attrs, _result, name)
   _result, = _result

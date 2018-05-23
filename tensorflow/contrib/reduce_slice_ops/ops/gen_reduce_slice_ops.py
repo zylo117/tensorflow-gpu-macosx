@@ -5,11 +5,14 @@ Original C++ source file: reduce_slice_ops.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,7 +24,7 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('ReduceSliceMax')
+@tf_export('reduce_slice_max')
 def reduce_slice_max(data, indices, axis, name=None):
   r"""Dynamically compute the maximum over the first dimension of a tensor according
 
@@ -39,9 +42,9 @@ def reduce_slice_max(data, indices, axis, name=None):
                     [1,1]
                     [0,2]],
 
-  the the output will be [[          1,         20,          3]
-                          [ -BIG_VALUE, -BIG_VALUE, -BIG_VALUE]
-                          [        400,         20,         60]].
+  the output will be [[          1,         20,          3]
+                      [ -BIG_VALUE, -BIG_VALUE, -BIG_VALUE]
+                      [        400,         20,         60]].
   ```
 
   The data must be at least rank 1. The indices can be of shape (?,2) where the
@@ -66,7 +69,7 @@ def reduce_slice_max(data, indices, axis, name=None):
   ```
 
   Args:
-    data: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int64`, `int32`, `uint8`, `uint16`, `int16`, `int8`, `complex64`, `complex128`, `qint8`, `quint8`, `qint32`, `half`, `uint32`, `uint64`, `bfloat16`.
+    data: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `complex64`, `int64`, `qint8`, `quint8`, `qint32`, `bfloat16`, `uint16`, `complex128`, `half`, `uint32`, `uint64`.
       The source of data where the computation will be taken from.
     indices: A `Tensor`. Must be one of the following types: `int32`, `int64`.
       start, end indices that controls which part to be included.
@@ -77,20 +80,46 @@ def reduce_slice_max(data, indices, axis, name=None):
     A `Tensor`. Has the same type as `data`. the computed product values.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "ReduceSliceMax", data=data, indices=indices, axis=axis, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"), "Tindices", _op.get_attr("Tindices"))
+    _execute.record_gradient(
+      "ReduceSliceMax", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (data,) = _execute.args_to_matching_eager([data], _ctx)
-    _attr_Tindices, (indices,) = _execute.args_to_matching_eager([indices], _ctx)
-    axis = _ops.convert_to_tensor(axis, _dtypes.int64)
-    _inputs_flat = [data, indices, axis]
-    _attrs = ("T", _attr_T, "Tindices", _attr_Tindices)
-    _result = _execute.execute(b"ReduceSliceMax", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "ReduceSliceMax", name,
+        _ctx._post_execution_callbacks, data, indices, axis)
+      return _result
+    except _core._FallbackException:
+      return reduce_slice_max_eager_fallback(
+          data, indices, axis, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def reduce_slice_max_eager_fallback(data, indices, axis, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function reduce_slice_max
+  """
+  _ctx = _context.context()
+  _attr_T, (data,) = _execute.args_to_matching_eager([data], _ctx)
+  _attr_Tindices, (indices,) = _execute.args_to_matching_eager([indices], _ctx)
+  axis = _ops.convert_to_tensor(axis, _dtypes.int64)
+  _inputs_flat = [data, indices, axis]
+  _attrs = ("T", _attr_T, "Tindices", _attr_Tindices)
+  _result = _execute.execute(b"ReduceSliceMax", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "ReduceSliceMax", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -99,7 +128,7 @@ def reduce_slice_max(data, indices, axis, name=None):
 _ops.RegisterShape("ReduceSliceMax")(None)
 
 
-@tf_export('ReduceSliceMin')
+@tf_export('reduce_slice_min')
 def reduce_slice_min(data, indices, axis, name=None):
   r"""Dynamically compute the minimum over the first dimension of a tensor according
 
@@ -117,9 +146,9 @@ def reduce_slice_min(data, indices, axis, name=None):
                     [1,1]
                     [0,2]],
 
-  the the output will be [[          1,         20,          3]
-                          [ +BIG_VALUE, +BIG_VALUE, +BIG_VALUE]
-                          [          1,          5,          3]].
+  the output will be [[          1,         20,          3]
+                      [ +BIG_VALUE, +BIG_VALUE, +BIG_VALUE]
+                      [          1,          5,          3]].
   ```
 
   The data must be at least rank 1. The indices can be of shape (?,2) where the
@@ -144,7 +173,7 @@ def reduce_slice_min(data, indices, axis, name=None):
   ```
 
   Args:
-    data: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int64`, `int32`, `uint8`, `uint16`, `int16`, `int8`, `complex64`, `complex128`, `qint8`, `quint8`, `qint32`, `half`, `uint32`, `uint64`, `bfloat16`.
+    data: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `complex64`, `int64`, `qint8`, `quint8`, `qint32`, `bfloat16`, `uint16`, `complex128`, `half`, `uint32`, `uint64`.
       The source of data where the computation will be taken from.
     indices: A `Tensor`. Must be one of the following types: `int32`, `int64`.
       start, end indices that controls which part to be included.
@@ -155,20 +184,46 @@ def reduce_slice_min(data, indices, axis, name=None):
     A `Tensor`. Has the same type as `data`. the computed product values.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "ReduceSliceMin", data=data, indices=indices, axis=axis, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"), "Tindices", _op.get_attr("Tindices"))
+    _execute.record_gradient(
+      "ReduceSliceMin", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (data,) = _execute.args_to_matching_eager([data], _ctx)
-    _attr_Tindices, (indices,) = _execute.args_to_matching_eager([indices], _ctx)
-    axis = _ops.convert_to_tensor(axis, _dtypes.int64)
-    _inputs_flat = [data, indices, axis]
-    _attrs = ("T", _attr_T, "Tindices", _attr_Tindices)
-    _result = _execute.execute(b"ReduceSliceMin", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "ReduceSliceMin", name,
+        _ctx._post_execution_callbacks, data, indices, axis)
+      return _result
+    except _core._FallbackException:
+      return reduce_slice_min_eager_fallback(
+          data, indices, axis, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def reduce_slice_min_eager_fallback(data, indices, axis, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function reduce_slice_min
+  """
+  _ctx = _context.context()
+  _attr_T, (data,) = _execute.args_to_matching_eager([data], _ctx)
+  _attr_Tindices, (indices,) = _execute.args_to_matching_eager([indices], _ctx)
+  axis = _ops.convert_to_tensor(axis, _dtypes.int64)
+  _inputs_flat = [data, indices, axis]
+  _attrs = ("T", _attr_T, "Tindices", _attr_Tindices)
+  _result = _execute.execute(b"ReduceSliceMin", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "ReduceSliceMin", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -177,7 +232,7 @@ def reduce_slice_min(data, indices, axis, name=None):
 _ops.RegisterShape("ReduceSliceMin")(None)
 
 
-@tf_export('ReduceSliceProd')
+@tf_export('reduce_slice_prod')
 def reduce_slice_prod(data, indices, axis, name=None):
   r"""Dynamically compute the product over the first dimension of a tensor according
 
@@ -195,9 +250,9 @@ def reduce_slice_prod(data, indices, axis, name=None):
                     [1,1]
                     [0,2]],
 
-  the the output will be [[ 1,  2,  3]
-                          [ 1,  1,  1]
-                          [40,100,180]].
+  the output will be [[ 1,  2,  3]
+                      [ 1,  1,  1]
+                      [40,100,180]].
   ```
 
   The data must be at least rank 1. The indices can be of shape (?,2) where the
@@ -222,7 +277,7 @@ def reduce_slice_prod(data, indices, axis, name=None):
   ```
 
   Args:
-    data: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int64`, `int32`, `uint8`, `uint16`, `int16`, `int8`, `complex64`, `complex128`, `qint8`, `quint8`, `qint32`, `half`, `uint32`, `uint64`, `bfloat16`.
+    data: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `complex64`, `int64`, `qint8`, `quint8`, `qint32`, `bfloat16`, `uint16`, `complex128`, `half`, `uint32`, `uint64`.
       The source of data where the computation will be taken from.
     indices: A `Tensor`. Must be one of the following types: `int32`, `int64`.
       start, end indices that controls which part to be included.
@@ -233,20 +288,46 @@ def reduce_slice_prod(data, indices, axis, name=None):
     A `Tensor`. Has the same type as `data`. the computed product values.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "ReduceSliceProd", data=data, indices=indices, axis=axis, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"), "Tindices", _op.get_attr("Tindices"))
+    _execute.record_gradient(
+      "ReduceSliceProd", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (data,) = _execute.args_to_matching_eager([data], _ctx)
-    _attr_Tindices, (indices,) = _execute.args_to_matching_eager([indices], _ctx)
-    axis = _ops.convert_to_tensor(axis, _dtypes.int64)
-    _inputs_flat = [data, indices, axis]
-    _attrs = ("T", _attr_T, "Tindices", _attr_Tindices)
-    _result = _execute.execute(b"ReduceSliceProd", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "ReduceSliceProd", name,
+        _ctx._post_execution_callbacks, data, indices, axis)
+      return _result
+    except _core._FallbackException:
+      return reduce_slice_prod_eager_fallback(
+          data, indices, axis, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def reduce_slice_prod_eager_fallback(data, indices, axis, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function reduce_slice_prod
+  """
+  _ctx = _context.context()
+  _attr_T, (data,) = _execute.args_to_matching_eager([data], _ctx)
+  _attr_Tindices, (indices,) = _execute.args_to_matching_eager([indices], _ctx)
+  axis = _ops.convert_to_tensor(axis, _dtypes.int64)
+  _inputs_flat = [data, indices, axis]
+  _attrs = ("T", _attr_T, "Tindices", _attr_Tindices)
+  _result = _execute.execute(b"ReduceSliceProd", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "ReduceSliceProd", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -255,7 +336,7 @@ def reduce_slice_prod(data, indices, axis, name=None):
 _ops.RegisterShape("ReduceSliceProd")(None)
 
 
-@tf_export('ReduceSliceSum')
+@tf_export('reduce_slice_sum')
 def reduce_slice_sum(data, indices, axis, name=None):
   r"""Dynamically sum over the first dimension of a tensor according to start and end
 
@@ -273,9 +354,9 @@ def reduce_slice_sum(data, indices, axis, name=None):
                     [1,1]
                     [0,2]],
 
-  the the output will be [[ 1, 2, 3]
-                          [ 0, 0, 0]
-                          [41,52,63]].
+  the output will be [[ 1, 2, 3]
+                      [ 0, 0, 0]
+                      [41,52,63]].
   ```
 
   The data must be at least rank 1. The indices must be of shape (?,2) where the
@@ -288,7 +369,7 @@ def reduce_slice_sum(data, indices, axis, name=None):
   reduction until the bound.
 
   Args:
-    data: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int64`, `int32`, `uint8`, `uint16`, `int16`, `int8`, `complex64`, `complex128`, `qint8`, `quint8`, `qint32`, `half`, `uint32`, `uint64`, `bfloat16`.
+    data: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `complex64`, `int64`, `qint8`, `quint8`, `qint32`, `bfloat16`, `uint16`, `complex128`, `half`, `uint32`, `uint64`.
       The source of data where the computation will be taken from.
     indices: A `Tensor`. Must be one of the following types: `int32`, `int64`.
       start, end indices that controls which part to be included.
@@ -299,20 +380,46 @@ def reduce_slice_sum(data, indices, axis, name=None):
     A `Tensor`. Has the same type as `data`. the computed sum values.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "ReduceSliceSum", data=data, indices=indices, axis=axis, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"), "Tindices", _op.get_attr("Tindices"))
+    _execute.record_gradient(
+      "ReduceSliceSum", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (data,) = _execute.args_to_matching_eager([data], _ctx)
-    _attr_Tindices, (indices,) = _execute.args_to_matching_eager([indices], _ctx)
-    axis = _ops.convert_to_tensor(axis, _dtypes.int64)
-    _inputs_flat = [data, indices, axis]
-    _attrs = ("T", _attr_T, "Tindices", _attr_Tindices)
-    _result = _execute.execute(b"ReduceSliceSum", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "ReduceSliceSum", name,
+        _ctx._post_execution_callbacks, data, indices, axis)
+      return _result
+    except _core._FallbackException:
+      return reduce_slice_sum_eager_fallback(
+          data, indices, axis, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def reduce_slice_sum_eager_fallback(data, indices, axis, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function reduce_slice_sum
+  """
+  _ctx = _context.context()
+  _attr_T, (data,) = _execute.args_to_matching_eager([data], _ctx)
+  _attr_Tindices, (indices,) = _execute.args_to_matching_eager([indices], _ctx)
+  axis = _ops.convert_to_tensor(axis, _dtypes.int64)
+  _inputs_flat = [data, indices, axis]
+  _attrs = ("T", _attr_T, "Tindices", _attr_Tindices)
+  _result = _execute.execute(b"ReduceSliceSum", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "ReduceSliceSum", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -352,21 +459,21 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #       list {
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
-#         type: DT_INT64
 #         type: DT_INT32
 #         type: DT_UINT8
-#         type: DT_UINT16
 #         type: DT_INT16
 #         type: DT_INT8
 #         type: DT_COMPLEX64
-#         type: DT_COMPLEX128
+#         type: DT_INT64
 #         type: DT_QINT8
 #         type: DT_QUINT8
 #         type: DT_QINT32
+#         type: DT_BFLOAT16
+#         type: DT_UINT16
+#         type: DT_COMPLEX128
 #         type: DT_HALF
 #         type: DT_UINT32
 #         type: DT_UINT64
-#         type: DT_BFLOAT16
 #       }
 #     }
 #   }
@@ -406,21 +513,21 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #       list {
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
-#         type: DT_INT64
 #         type: DT_INT32
 #         type: DT_UINT8
-#         type: DT_UINT16
 #         type: DT_INT16
 #         type: DT_INT8
 #         type: DT_COMPLEX64
-#         type: DT_COMPLEX128
+#         type: DT_INT64
 #         type: DT_QINT8
 #         type: DT_QUINT8
 #         type: DT_QINT32
+#         type: DT_BFLOAT16
+#         type: DT_UINT16
+#         type: DT_COMPLEX128
 #         type: DT_HALF
 #         type: DT_UINT32
 #         type: DT_UINT64
-#         type: DT_BFLOAT16
 #       }
 #     }
 #   }
@@ -460,21 +567,21 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #       list {
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
-#         type: DT_INT64
 #         type: DT_INT32
 #         type: DT_UINT8
-#         type: DT_UINT16
 #         type: DT_INT16
 #         type: DT_INT8
 #         type: DT_COMPLEX64
-#         type: DT_COMPLEX128
+#         type: DT_INT64
 #         type: DT_QINT8
 #         type: DT_QUINT8
 #         type: DT_QINT32
+#         type: DT_BFLOAT16
+#         type: DT_UINT16
+#         type: DT_COMPLEX128
 #         type: DT_HALF
 #         type: DT_UINT32
 #         type: DT_UINT64
-#         type: DT_BFLOAT16
 #       }
 #     }
 #   }
@@ -514,21 +621,21 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #       list {
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
-#         type: DT_INT64
 #         type: DT_INT32
 #         type: DT_UINT8
-#         type: DT_UINT16
 #         type: DT_INT16
 #         type: DT_INT8
 #         type: DT_COMPLEX64
-#         type: DT_COMPLEX128
+#         type: DT_INT64
 #         type: DT_QINT8
 #         type: DT_QUINT8
 #         type: DT_QINT32
+#         type: DT_BFLOAT16
+#         type: DT_UINT16
+#         type: DT_COMPLEX128
 #         type: DT_HALF
 #         type: DT_UINT32
 #         type: DT_UINT64
-#         type: DT_BFLOAT16
 #       }
 #     }
 #   }
@@ -543,4 +650,4 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     }
 #   }
 # }
-_op_def_lib = _InitOpDefLibrary(b"\n\203\001\n\016ReduceSliceMax\022\t\n\004data\"\001T\022\023\n\007indices\"\010Tindices\022\010\n\004axis\030\t\032\013\n\006output\"\001T\" \n\001T\022\004type:\025\n\0232\021\001\002\t\003\004\021\005\006\010\022\013\014\r\023\026\027\016\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\n\203\001\n\016ReduceSliceMin\022\t\n\004data\"\001T\022\023\n\007indices\"\010Tindices\022\010\n\004axis\030\t\032\013\n\006output\"\001T\" \n\001T\022\004type:\025\n\0232\021\001\002\t\003\004\021\005\006\010\022\013\014\r\023\026\027\016\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\n\204\001\n\017ReduceSliceProd\022\t\n\004data\"\001T\022\023\n\007indices\"\010Tindices\022\010\n\004axis\030\t\032\013\n\006output\"\001T\" \n\001T\022\004type:\025\n\0232\021\001\002\t\003\004\021\005\006\010\022\013\014\r\023\026\027\016\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\n\203\001\n\016ReduceSliceSum\022\t\n\004data\"\001T\022\023\n\007indices\"\010Tindices\022\010\n\004axis\030\t\032\013\n\006output\"\001T\" \n\001T\022\004type:\025\n\0232\021\001\002\t\003\004\021\005\006\010\022\013\014\r\023\026\027\016\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t")
+_op_def_lib = _InitOpDefLibrary(b"\n\203\001\n\016ReduceSliceMax\022\t\n\004data\"\001T\022\023\n\007indices\"\010Tindices\022\010\n\004axis\030\t\032\013\n\006output\"\001T\" \n\001T\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\n\203\001\n\016ReduceSliceMin\022\t\n\004data\"\001T\022\023\n\007indices\"\010Tindices\022\010\n\004axis\030\t\032\013\n\006output\"\001T\" \n\001T\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\n\204\001\n\017ReduceSliceProd\022\t\n\004data\"\001T\022\023\n\007indices\"\010Tindices\022\010\n\004axis\030\t\032\013\n\006output\"\001T\" \n\001T\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t\n\203\001\n\016ReduceSliceSum\022\t\n\004data\"\001T\022\023\n\007indices\"\010Tindices\022\010\n\004axis\030\t\032\013\n\006output\"\001T\" \n\001T\022\004type:\025\n\0232\021\001\002\003\004\005\006\010\t\013\014\r\016\021\022\023\026\027\"\030\n\010Tindices\022\004type:\006\n\0042\002\003\t")

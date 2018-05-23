@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='tensorflow/contrib/boosted_trees/proto/learner.proto',
   package='tensorflow.boosted_trees.learner',
   syntax='proto3',
-  serialized_pb=_b('\n4tensorflow/contrib/boosted_trees/proto/learner.proto\x12 tensorflow.boosted_trees.learner\"K\n\x18TreeRegularizationConfig\x12\n\n\x02l1\x18\x01 \x01(\x02\x12\n\n\x02l2\x18\x02 \x01(\x02\x12\x17\n\x0ftree_complexity\x18\x03 \x01(\x02\"H\n\x15TreeConstraintsConfig\x12\x16\n\x0emax_tree_depth\x18\x01 \x01(\r\x12\x17\n\x0fmin_node_weight\x18\x02 \x01(\x02\"\x96\x02\n\x12LearningRateConfig\x12J\n\x05\x66ixed\x18\x01 \x01(\x0b\x32\x39.tensorflow.boosted_trees.learner.LearningRateFixedConfigH\x00\x12T\n\x07\x64ropout\x18\x02 \x01(\x0b\x32\x41.tensorflow.boosted_trees.learner.LearningRateDropoutDrivenConfigH\x00\x12U\n\x0bline_search\x18\x03 \x01(\x0b\x32>.tensorflow.boosted_trees.learner.LearningRateLineSearchConfigH\x00\x42\x07\n\x05tuner\"0\n\x17LearningRateFixedConfig\x12\x15\n\rlearning_rate\x18\x01 \x01(\x02\"L\n\x1cLearningRateLineSearchConfig\x12\x19\n\x11max_learning_rate\x18\x01 \x01(\x02\x12\x11\n\tnum_steps\x18\x02 \x01(\x05\"a\n\x0f\x41veragingConfig\x12\x1e\n\x14\x61verage_last_n_trees\x18\x01 \x01(\x02H\x00\x12$\n\x1a\x61verage_last_percent_trees\x18\x02 \x01(\x02H\x00\x42\x08\n\x06\x63onfig\"~\n\x1fLearningRateDropoutDrivenConfig\x12\x1b\n\x13\x64ropout_probability\x18\x01 \x01(\x02\x12\'\n\x1fprobability_of_skipping_dropout\x18\x02 \x01(\x02\x12\x15\n\rlearning_rate\x18\x03 \x01(\x02\"\xe2\x07\n\rLearnerConfig\x12\x13\n\x0bnum_classes\x18\x01 \x01(\r\x12#\n\x19\x66\x65\x61ture_fraction_per_tree\x18\x02 \x01(\x02H\x00\x12$\n\x1a\x66\x65\x61ture_fraction_per_level\x18\x03 \x01(\x02H\x00\x12R\n\x0eregularization\x18\x04 \x01(\x0b\x32:.tensorflow.boosted_trees.learner.TreeRegularizationConfig\x12L\n\x0b\x63onstraints\x18\x05 \x01(\x0b\x32\x37.tensorflow.boosted_trees.learner.TreeConstraintsConfig\x12Q\n\x0cpruning_mode\x18\x08 \x01(\x0e\x32;.tensorflow.boosted_trees.learner.LearnerConfig.PruningMode\x12Q\n\x0cgrowing_mode\x18\t \x01(\x0e\x32;.tensorflow.boosted_trees.learner.LearnerConfig.GrowingMode\x12Q\n\x13learning_rate_tuner\x18\x06 \x01(\x0b\x32\x34.tensorflow.boosted_trees.learner.LearningRateConfig\x12`\n\x14multi_class_strategy\x18\n \x01(\x0e\x32\x42.tensorflow.boosted_trees.learner.LearnerConfig.MultiClassStrategy\x12K\n\x10\x61veraging_config\x18\x0b \x01(\x0b\x32\x31.tensorflow.boosted_trees.learner.AveragingConfig\"J\n\x0bPruningMode\x12\x1c\n\x18PRUNING_MODE_UNSPECIFIED\x10\x00\x12\r\n\tPRE_PRUNE\x10\x01\x12\x0e\n\nPOST_PRUNE\x10\x02\"O\n\x0bGrowingMode\x12\x1c\n\x18GROWING_MODE_UNSPECIFIED\x10\x00\x12\x0e\n\nWHOLE_TREE\x10\x01\x12\x12\n\x0eLAYER_BY_LAYER\x10\x02\"v\n\x12MultiClassStrategy\x12$\n MULTI_CLASS_STRATEGY_UNSPECIFIED\x10\x00\x12\x12\n\x0eTREE_PER_CLASS\x10\x01\x12\x10\n\x0c\x46ULL_HESSIAN\x10\x02\x12\x14\n\x10\x44IAGONAL_HESSIAN\x10\x03\x42\x12\n\x10\x66\x65\x61ture_fractionB\x03\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n4tensorflow/contrib/boosted_trees/proto/learner.proto\x12 tensorflow.boosted_trees.learner\"K\n\x18TreeRegularizationConfig\x12\n\n\x02l1\x18\x01 \x01(\x02\x12\n\n\x02l2\x18\x02 \x01(\x02\x12\x17\n\x0ftree_complexity\x18\x03 \x01(\x02\"v\n\x15TreeConstraintsConfig\x12\x16\n\x0emax_tree_depth\x18\x01 \x01(\r\x12\x17\n\x0fmin_node_weight\x18\x02 \x01(\x02\x12,\n$max_number_of_unique_feature_columns\x18\x03 \x01(\x03\"\x96\x02\n\x12LearningRateConfig\x12J\n\x05\x66ixed\x18\x01 \x01(\x0b\x32\x39.tensorflow.boosted_trees.learner.LearningRateFixedConfigH\x00\x12T\n\x07\x64ropout\x18\x02 \x01(\x0b\x32\x41.tensorflow.boosted_trees.learner.LearningRateDropoutDrivenConfigH\x00\x12U\n\x0bline_search\x18\x03 \x01(\x0b\x32>.tensorflow.boosted_trees.learner.LearningRateLineSearchConfigH\x00\x42\x07\n\x05tuner\"0\n\x17LearningRateFixedConfig\x12\x15\n\rlearning_rate\x18\x01 \x01(\x02\"L\n\x1cLearningRateLineSearchConfig\x12\x19\n\x11max_learning_rate\x18\x01 \x01(\x02\x12\x11\n\tnum_steps\x18\x02 \x01(\x05\"a\n\x0f\x41veragingConfig\x12\x1e\n\x14\x61verage_last_n_trees\x18\x01 \x01(\x02H\x00\x12$\n\x1a\x61verage_last_percent_trees\x18\x02 \x01(\x02H\x00\x42\x08\n\x06\x63onfig\"~\n\x1fLearningRateDropoutDrivenConfig\x12\x1b\n\x13\x64ropout_probability\x18\x01 \x01(\x02\x12\'\n\x1fprobability_of_skipping_dropout\x18\x02 \x01(\x02\x12\x15\n\rlearning_rate\x18\x03 \x01(\x02\"\xe2\x07\n\rLearnerConfig\x12\x13\n\x0bnum_classes\x18\x01 \x01(\r\x12#\n\x19\x66\x65\x61ture_fraction_per_tree\x18\x02 \x01(\x02H\x00\x12$\n\x1a\x66\x65\x61ture_fraction_per_level\x18\x03 \x01(\x02H\x00\x12R\n\x0eregularization\x18\x04 \x01(\x0b\x32:.tensorflow.boosted_trees.learner.TreeRegularizationConfig\x12L\n\x0b\x63onstraints\x18\x05 \x01(\x0b\x32\x37.tensorflow.boosted_trees.learner.TreeConstraintsConfig\x12Q\n\x0cpruning_mode\x18\x08 \x01(\x0e\x32;.tensorflow.boosted_trees.learner.LearnerConfig.PruningMode\x12Q\n\x0cgrowing_mode\x18\t \x01(\x0e\x32;.tensorflow.boosted_trees.learner.LearnerConfig.GrowingMode\x12Q\n\x13learning_rate_tuner\x18\x06 \x01(\x0b\x32\x34.tensorflow.boosted_trees.learner.LearningRateConfig\x12`\n\x14multi_class_strategy\x18\n \x01(\x0e\x32\x42.tensorflow.boosted_trees.learner.LearnerConfig.MultiClassStrategy\x12K\n\x10\x61veraging_config\x18\x0b \x01(\x0b\x32\x31.tensorflow.boosted_trees.learner.AveragingConfig\"J\n\x0bPruningMode\x12\x1c\n\x18PRUNING_MODE_UNSPECIFIED\x10\x00\x12\r\n\tPRE_PRUNE\x10\x01\x12\x0e\n\nPOST_PRUNE\x10\x02\"O\n\x0bGrowingMode\x12\x1c\n\x18GROWING_MODE_UNSPECIFIED\x10\x00\x12\x0e\n\nWHOLE_TREE\x10\x01\x12\x12\n\x0eLAYER_BY_LAYER\x10\x02\"v\n\x12MultiClassStrategy\x12$\n MULTI_CLASS_STRATEGY_UNSPECIFIED\x10\x00\x12\x12\n\x0eTREE_PER_CLASS\x10\x01\x12\x10\n\x0c\x46ULL_HESSIAN\x10\x02\x12\x14\n\x10\x44IAGONAL_HESSIAN\x10\x03\x42\x12\n\x10\x66\x65\x61ture_fractionB\x03\xf8\x01\x01\x62\x06proto3')
 )
 
 
@@ -45,8 +45,8 @@ _LEARNERCONFIG_PRUNINGMODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1577,
-  serialized_end=1651,
+  serialized_start=1623,
+  serialized_end=1697,
 )
 _sym_db.RegisterEnumDescriptor(_LEARNERCONFIG_PRUNINGMODE)
 
@@ -71,8 +71,8 @@ _LEARNERCONFIG_GROWINGMODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1653,
-  serialized_end=1732,
+  serialized_start=1699,
+  serialized_end=1778,
 )
 _sym_db.RegisterEnumDescriptor(_LEARNERCONFIG_GROWINGMODE)
 
@@ -101,8 +101,8 @@ _LEARNERCONFIG_MULTICLASSSTRATEGY = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1734,
-  serialized_end=1852,
+  serialized_start=1780,
+  serialized_end=1898,
 )
 _sym_db.RegisterEnumDescriptor(_LEARNERCONFIG_MULTICLASSSTRATEGY)
 
@@ -120,21 +120,21 @@ _TREEREGULARIZATIONCONFIG = _descriptor.Descriptor(
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='l2', full_name='tensorflow.boosted_trees.learner.TreeRegularizationConfig.l2', index=1,
       number=2, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='tree_complexity', full_name='tensorflow.boosted_trees.learner.TreeRegularizationConfig.tree_complexity', index=2,
       number=3, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -165,14 +165,21 @@ _TREECONSTRAINTSCONFIG = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='min_node_weight', full_name='tensorflow.boosted_trees.learner.TreeConstraintsConfig.min_node_weight', index=1,
       number=2, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='max_number_of_unique_feature_columns', full_name='tensorflow.boosted_trees.learner.TreeConstraintsConfig.max_number_of_unique_feature_columns', index=2,
+      number=3, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -186,7 +193,7 @@ _TREECONSTRAINTSCONFIG = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=167,
-  serialized_end=239,
+  serialized_end=285,
 )
 
 
@@ -203,21 +210,21 @@ _LEARNINGRATECONFIG = _descriptor.Descriptor(
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='dropout', full_name='tensorflow.boosted_trees.learner.LearningRateConfig.dropout', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='line_search', full_name='tensorflow.boosted_trees.learner.LearningRateConfig.line_search', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -233,8 +240,8 @@ _LEARNINGRATECONFIG = _descriptor.Descriptor(
       name='tuner', full_name='tensorflow.boosted_trees.learner.LearningRateConfig.tuner',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=242,
-  serialized_end=520,
+  serialized_start=288,
+  serialized_end=566,
 )
 
 
@@ -251,7 +258,7 @@ _LEARNINGRATEFIXEDCONFIG = _descriptor.Descriptor(
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -264,8 +271,8 @@ _LEARNINGRATEFIXEDCONFIG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=522,
-  serialized_end=570,
+  serialized_start=568,
+  serialized_end=616,
 )
 
 
@@ -282,14 +289,14 @@ _LEARNINGRATELINESEARCHCONFIG = _descriptor.Descriptor(
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='num_steps', full_name='tensorflow.boosted_trees.learner.LearningRateLineSearchConfig.num_steps', index=1,
       number=2, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -302,8 +309,8 @@ _LEARNINGRATELINESEARCHCONFIG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=572,
-  serialized_end=648,
+  serialized_start=618,
+  serialized_end=694,
 )
 
 
@@ -320,14 +327,14 @@ _AVERAGINGCONFIG = _descriptor.Descriptor(
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='average_last_percent_trees', full_name='tensorflow.boosted_trees.learner.AveragingConfig.average_last_percent_trees', index=1,
       number=2, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -343,8 +350,8 @@ _AVERAGINGCONFIG = _descriptor.Descriptor(
       name='config', full_name='tensorflow.boosted_trees.learner.AveragingConfig.config',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=650,
-  serialized_end=747,
+  serialized_start=696,
+  serialized_end=793,
 )
 
 
@@ -361,21 +368,21 @@ _LEARNINGRATEDROPOUTDRIVENCONFIG = _descriptor.Descriptor(
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='probability_of_skipping_dropout', full_name='tensorflow.boosted_trees.learner.LearningRateDropoutDrivenConfig.probability_of_skipping_dropout', index=1,
       number=2, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='learning_rate', full_name='tensorflow.boosted_trees.learner.LearningRateDropoutDrivenConfig.learning_rate', index=2,
       number=3, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -388,8 +395,8 @@ _LEARNINGRATEDROPOUTDRIVENCONFIG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=749,
-  serialized_end=875,
+  serialized_start=795,
+  serialized_end=921,
 )
 
 
@@ -406,70 +413,70 @@ _LEARNERCONFIG = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='feature_fraction_per_tree', full_name='tensorflow.boosted_trees.learner.LearnerConfig.feature_fraction_per_tree', index=1,
       number=2, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='feature_fraction_per_level', full_name='tensorflow.boosted_trees.learner.LearnerConfig.feature_fraction_per_level', index=2,
       number=3, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='regularization', full_name='tensorflow.boosted_trees.learner.LearnerConfig.regularization', index=3,
       number=4, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='constraints', full_name='tensorflow.boosted_trees.learner.LearnerConfig.constraints', index=4,
       number=5, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='pruning_mode', full_name='tensorflow.boosted_trees.learner.LearnerConfig.pruning_mode', index=5,
       number=8, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='growing_mode', full_name='tensorflow.boosted_trees.learner.LearnerConfig.growing_mode', index=6,
       number=9, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='learning_rate_tuner', full_name='tensorflow.boosted_trees.learner.LearnerConfig.learning_rate_tuner', index=7,
       number=6, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='multi_class_strategy', full_name='tensorflow.boosted_trees.learner.LearnerConfig.multi_class_strategy', index=8,
       number=10, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='averaging_config', full_name='tensorflow.boosted_trees.learner.LearnerConfig.averaging_config', index=9,
       number=11, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -488,8 +495,8 @@ _LEARNERCONFIG = _descriptor.Descriptor(
       name='feature_fraction', full_name='tensorflow.boosted_trees.learner.LearnerConfig.feature_fraction',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=878,
-  serialized_end=1872,
+  serialized_start=924,
+  serialized_end=1918,
 )
 
 _LEARNINGRATECONFIG.fields_by_name['fixed'].message_type = _LEARNINGRATEFIXEDCONFIG

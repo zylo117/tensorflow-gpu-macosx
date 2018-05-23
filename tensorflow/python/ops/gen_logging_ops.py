@@ -5,11 +5,14 @@ Original C++ source file: logging_ops.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -38,27 +41,55 @@ def _assert(condition, data, summarize=3, name=None):
   Returns:
     The created Operation.
   """
-  if summarize is None:
-    summarize = 3
-  summarize = _execute.make_int(summarize, "summarize")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if summarize is None:
+      summarize = 3
+    summarize = _execute.make_int(summarize, "summarize")
     _, _, _op = _op_def_lib._apply_op_helper(
         "Assert", condition=condition, data=data, summarize=summarize,
         name=name)
     return _op
-  else:
-    _attr_T, data = _execute.convert_to_mixed_eager_tensors(data, _ctx)
-    condition = _ops.convert_to_tensor(condition, _dtypes.bool)
-    _inputs_flat = [condition] + list(data)
-    _attrs = ("T", _attr_T, "summarize", summarize)
-    _result = _execute.execute(b"Assert", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "Assert", name,
+        _ctx._post_execution_callbacks, condition, data, "summarize",
+        summarize)
+      return _result
+    except _core._FallbackException:
+      return _assert_eager_fallback(
+          condition, data, summarize=summarize, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def _assert_eager_fallback(condition, data, summarize=3, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function _assert
+  """
+  _ctx = _context.context()
+  if summarize is None:
+    summarize = 3
+  summarize = _execute.make_int(summarize, "summarize")
+  _attr_T, data = _execute.convert_to_mixed_eager_tensors(data, _ctx)
+  condition = _ops.convert_to_tensor(condition, _dtypes.bool)
+  _inputs_flat = [condition] + list(data)
+  _attrs = ("T", _attr_T, "summarize", summarize)
+  _result = _execute.execute(b"Assert", 0, inputs=_inputs_flat, attrs=_attrs,
+                             ctx=_ctx, name=name)
+  _result = None
   return _result
 
 
-def _audio_summary(tag, tensor, sample_rate, max_outputs=3, name=None):
+def audio_summary(tag, tensor, sample_rate, max_outputs=3, name=None):
   r"""Outputs a `Summary` protocol buffer with audio.
 
   The summary has up to `max_outputs` summary values containing audio. The
@@ -83,14 +114,14 @@ def _audio_summary(tag, tensor, sample_rate, max_outputs=3, name=None):
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type `string`. Scalar. Serialized `Summary` protocol buffer.
+    A `Tensor` of type `string`.
   """
-  sample_rate = _execute.make_float(sample_rate, "sample_rate")
-  if max_outputs is None:
-    max_outputs = 3
-  max_outputs = _execute.make_int(max_outputs, "max_outputs")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    sample_rate = _execute.make_float(sample_rate, "sample_rate")
+    if max_outputs is None:
+      max_outputs = 3
+    max_outputs = _execute.make_int(max_outputs, "max_outputs")
     _, _, _op = _op_def_lib._apply_op_helper(
         "AudioSummary", tag=tag, tensor=tensor, sample_rate=sample_rate,
         max_outputs=max_outputs, name=name)
@@ -98,20 +129,52 @@ def _audio_summary(tag, tensor, sample_rate, max_outputs=3, name=None):
     _inputs_flat = _op.inputs
     _attrs = ("sample_rate", _op.get_attr("sample_rate"), "max_outputs",
               _op.get_attr("max_outputs"))
+    _execute.record_gradient(
+      "AudioSummary", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    tag = _ops.convert_to_tensor(tag, _dtypes.string)
-    tensor = _ops.convert_to_tensor(tensor, _dtypes.float32)
-    _inputs_flat = [tag, tensor]
-    _attrs = ("sample_rate", sample_rate, "max_outputs", max_outputs)
-    _result = _execute.execute(b"AudioSummary", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "AudioSummary", name,
+        _ctx._post_execution_callbacks, tag, tensor, "sample_rate",
+        sample_rate, "max_outputs", max_outputs)
+      return _result
+    except _core._FallbackException:
+      return audio_summary_eager_fallback(
+          tag, tensor, sample_rate=sample_rate, max_outputs=max_outputs,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def audio_summary_eager_fallback(tag, tensor, sample_rate, max_outputs=3, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function audio_summary
+  """
+  _ctx = _context.context()
+  sample_rate = _execute.make_float(sample_rate, "sample_rate")
+  if max_outputs is None:
+    max_outputs = 3
+  max_outputs = _execute.make_int(max_outputs, "max_outputs")
+  tag = _ops.convert_to_tensor(tag, _dtypes.string)
+  tensor = _ops.convert_to_tensor(tensor, _dtypes.float32)
+  _inputs_flat = [tag, tensor]
+  _attrs = ("sample_rate", sample_rate, "max_outputs", max_outputs)
+  _result = _execute.execute(b"AudioSummary", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "AudioSummary", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-def _audio_summary_v2(tag, tensor, sample_rate, max_outputs=3, name=None):
+def audio_summary_v2(tag, tensor, sample_rate, max_outputs=3, name=None):
   r"""Outputs a `Summary` protocol buffer with audio.
 
   The summary has up to `max_outputs` summary values containing audio. The
@@ -137,27 +200,57 @@ def _audio_summary_v2(tag, tensor, sample_rate, max_outputs=3, name=None):
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type `string`. Scalar. Serialized `Summary` protocol buffer.
+    A `Tensor` of type `string`.
   """
-  if max_outputs is None:
-    max_outputs = 3
-  max_outputs = _execute.make_int(max_outputs, "max_outputs")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if max_outputs is None:
+      max_outputs = 3
+    max_outputs = _execute.make_int(max_outputs, "max_outputs")
     _, _, _op = _op_def_lib._apply_op_helper(
         "AudioSummaryV2", tag=tag, tensor=tensor, sample_rate=sample_rate,
         max_outputs=max_outputs, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("max_outputs", _op.get_attr("max_outputs"))
+    _execute.record_gradient(
+      "AudioSummaryV2", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    tag = _ops.convert_to_tensor(tag, _dtypes.string)
-    tensor = _ops.convert_to_tensor(tensor, _dtypes.float32)
-    sample_rate = _ops.convert_to_tensor(sample_rate, _dtypes.float32)
-    _inputs_flat = [tag, tensor, sample_rate]
-    _attrs = ("max_outputs", max_outputs)
-    _result = _execute.execute(b"AudioSummaryV2", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "AudioSummaryV2", name,
+        _ctx._post_execution_callbacks, tag, tensor, sample_rate,
+        "max_outputs", max_outputs)
+      return _result
+    except _core._FallbackException:
+      return audio_summary_v2_eager_fallback(
+          tag, tensor, sample_rate, max_outputs=max_outputs, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def audio_summary_v2_eager_fallback(tag, tensor, sample_rate, max_outputs=3, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function audio_summary_v2
+  """
+  _ctx = _context.context()
+  if max_outputs is None:
+    max_outputs = 3
+  max_outputs = _execute.make_int(max_outputs, "max_outputs")
+  tag = _ops.convert_to_tensor(tag, _dtypes.string)
+  tensor = _ops.convert_to_tensor(tensor, _dtypes.float32)
+  sample_rate = _ops.convert_to_tensor(sample_rate, _dtypes.float32)
+  _inputs_flat = [tag, tensor, sample_rate]
+  _attrs = ("max_outputs", max_outputs)
+  _result = _execute.execute(b"AudioSummaryV2", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "AudioSummaryV2", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -176,34 +269,60 @@ def _histogram_summary(tag, values, name=None):
   Args:
     tag: A `Tensor` of type `string`.
       Scalar.  Tag to use for the `Summary.Value`.
-    values: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `int64`, `uint8`, `int16`, `int8`, `uint16`, `half`, `uint32`, `uint64`, `bfloat16`.
+    values: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `int64`, `bfloat16`, `uint16`, `half`, `uint32`, `uint64`.
       Any shape. Values to use to build the histogram.
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type `string`. Scalar. Serialized `Summary` protocol buffer.
+    A `Tensor` of type `string`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "HistogramSummary", tag=tag, values=values, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "HistogramSummary", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (values,) = _execute.args_to_matching_eager([values], _ctx, _dtypes.float32)
-    tag = _ops.convert_to_tensor(tag, _dtypes.string)
-    _inputs_flat = [tag, values]
-    _attrs = ("T", _attr_T)
-    _result = _execute.execute(b"HistogramSummary", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "HistogramSummary", name,
+        _ctx._post_execution_callbacks, tag, values)
+      return _result
+    except _core._FallbackException:
+      return _histogram_summary_eager_fallback(
+          tag, values, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def _histogram_summary_eager_fallback(tag, values, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function _histogram_summary
+  """
+  _ctx = _context.context()
+  _attr_T, (values,) = _execute.args_to_matching_eager([values], _ctx, _dtypes.float32)
+  tag = _ops.convert_to_tensor(tag, _dtypes.string)
+  _inputs_flat = [tag, values]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"HistogramSummary", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "HistogramSummary", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-def _image_summary(tag, tensor, max_images=3, bad_color=_execute.make_tensor("""dtype: DT_UINT8 tensor_shape { dim { size: 4 } } int_val: 255 int_val: 0 int_val: 0 int_val: 255""", "bad_color"), name=None):
+def image_summary(tag, tensor, max_images=3, bad_color=_execute.make_tensor("""dtype: DT_UINT8 tensor_shape { dim { size: 4 } } int_val: 255 int_val: 0 int_val: 0 int_val: 255""", "bad_color"), name=None):
   r"""Outputs a `Summary` protocol buffer with images.
 
   The summary has up to `max_images` summary values containing images. The
@@ -253,16 +372,16 @@ def _image_summary(tag, tensor, max_images=3, bad_color=_execute.make_tensor("""
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type `string`. Scalar. Serialized `Summary` protocol buffer.
+    A `Tensor` of type `string`.
   """
-  if max_images is None:
-    max_images = 3
-  max_images = _execute.make_int(max_images, "max_images")
-  if bad_color is None:
-    bad_color = _execute.make_tensor("""dtype: DT_UINT8 tensor_shape { dim { size: 4 } } int_val: 255 int_val: 0 int_val: 0 int_val: 255""", "bad_color")
-  bad_color = _execute.make_tensor(bad_color, "bad_color")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if max_images is None:
+      max_images = 3
+    max_images = _execute.make_int(max_images, "max_images")
+    if bad_color is None:
+      bad_color = _execute.make_tensor("""dtype: DT_UINT8 tensor_shape { dim { size: 4 } } int_val: 255 int_val: 0 int_val: 0 int_val: 255""", "bad_color")
+    bad_color = _execute.make_tensor(bad_color, "bad_color")
     _, _, _op = _op_def_lib._apply_op_helper(
         "ImageSummary", tag=tag, tensor=tensor, max_images=max_images,
         bad_color=bad_color, name=name)
@@ -270,20 +389,53 @@ def _image_summary(tag, tensor, max_images=3, bad_color=_execute.make_tensor("""
     _inputs_flat = _op.inputs
     _attrs = ("max_images", _op.get_attr("max_images"), "T",
               _op.get_attr("T"), "bad_color", _op.get_attr("bad_color"))
+    _execute.record_gradient(
+      "ImageSummary", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (tensor,) = _execute.args_to_matching_eager([tensor], _ctx, _dtypes.float32)
-    tag = _ops.convert_to_tensor(tag, _dtypes.string)
-    _inputs_flat = [tag, tensor]
-    _attrs = ("max_images", max_images, "T", _attr_T, "bad_color", bad_color)
-    _result = _execute.execute(b"ImageSummary", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "ImageSummary", name,
+        _ctx._post_execution_callbacks, tag, tensor, "max_images", max_images,
+        "bad_color", bad_color)
+      return _result
+    except _core._FallbackException:
+      return image_summary_eager_fallback(
+          tag, tensor, max_images=max_images, bad_color=bad_color, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def image_summary_eager_fallback(tag, tensor, max_images=3, bad_color=_execute.make_tensor("""dtype: DT_UINT8 tensor_shape { dim { size: 4 } } int_val: 255 int_val: 0 int_val: 0 int_val: 255""", "bad_color"), name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function image_summary
+  """
+  _ctx = _context.context()
+  if max_images is None:
+    max_images = 3
+  max_images = _execute.make_int(max_images, "max_images")
+  if bad_color is None:
+    bad_color = _execute.make_tensor("""dtype: DT_UINT8 tensor_shape { dim { size: 4 } } int_val: 255 int_val: 0 int_val: 0 int_val: 255""", "bad_color")
+  bad_color = _execute.make_tensor(bad_color, "bad_color")
+  _attr_T, (tensor,) = _execute.args_to_matching_eager([tensor], _ctx, _dtypes.float32)
+  tag = _ops.convert_to_tensor(tag, _dtypes.string)
+  _inputs_flat = [tag, tensor]
+  _attrs = ("max_images", max_images, "T", _attr_T, "bad_color", bad_color)
+  _result = _execute.execute(b"ImageSummary", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "ImageSummary", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-def _merge_summary(inputs, name=None):
+def merge_summary(inputs, name=None):
   r"""Merges summaries.
 
   This op creates a
@@ -301,26 +453,57 @@ def _merge_summary(inputs, name=None):
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type `string`. Scalar. Serialized `Summary` protocol buffer.
+    A `Tensor` of type `string`.
   """
-  if not isinstance(inputs, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'inputs' argument to "
-        "'merge_summary' Op, not %r." % inputs)
-  _attr_N = len(inputs)
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(inputs, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'inputs' argument to "
+          "'merge_summary' Op, not %r." % inputs)
+    _attr_N = len(inputs)
     _, _, _op = _op_def_lib._apply_op_helper(
         "MergeSummary", inputs=inputs, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("N", _op.get_attr("N"))
+    _execute.record_gradient(
+      "MergeSummary", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    inputs = _ops.convert_n_to_tensor(inputs, _dtypes.string)
-    _inputs_flat = list(inputs)
-    _attrs = ("N", _attr_N)
-    _result = _execute.execute(b"MergeSummary", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "MergeSummary", name,
+        _ctx._post_execution_callbacks, inputs)
+      return _result
+    except _core._FallbackException:
+      return merge_summary_eager_fallback(
+          inputs, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def merge_summary_eager_fallback(inputs, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function merge_summary
+  """
+  _ctx = _context.context()
+  if not isinstance(inputs, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'inputs' argument to "
+        "'merge_summary' Op, not %r." % inputs)
+  _attr_N = len(inputs)
+  inputs = _ops.convert_n_to_tensor(inputs, _dtypes.string)
+  _inputs_flat = list(inputs)
+  _attrs = ("N", _attr_N)
+  _result = _execute.execute(b"MergeSummary", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "MergeSummary", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -345,8 +528,56 @@ def _print(input, data, message="", first_n=-1, summarize=3, name=None):
     name: A name for the operation (optional).
 
   Returns:
-    The unmodified `input` tensor
+    A `Tensor`. Has the same type as `input`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if message is None:
+      message = ""
+    message = _execute.make_str(message, "message")
+    if first_n is None:
+      first_n = -1
+    first_n = _execute.make_int(first_n, "first_n")
+    if summarize is None:
+      summarize = 3
+    summarize = _execute.make_int(summarize, "summarize")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "Print", input=input, data=data, message=message, first_n=first_n,
+        summarize=summarize, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("T", _op.get_attr("T"), "U", _op.get_attr("U"), "message",
+              _op.get_attr("message"), "first_n", _op.get_attr("first_n"),
+              "summarize", _op.get_attr("summarize"))
+    _execute.record_gradient(
+      "Print", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "Print", name,
+        _ctx._post_execution_callbacks, input, data, "message", message,
+        "first_n", first_n, "summarize", summarize)
+      return _result
+    except _core._FallbackException:
+      return _print_eager_fallback(
+          input, data, message=message, first_n=first_n, summarize=summarize,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def _print_eager_fallback(input, data, message="", first_n=-1, summarize=3, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function _print
+  """
+  _ctx = _context.context()
   if message is None:
     message = ""
   message = _execute.make_str(message, "message")
@@ -356,24 +587,13 @@ def _print(input, data, message="", first_n=-1, summarize=3, name=None):
   if summarize is None:
     summarize = 3
   summarize = _execute.make_int(summarize, "summarize")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "Print", input=input, data=data, message=message, first_n=first_n,
-        summarize=summarize, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("T", _op.get_attr("T"), "U", _op.get_attr("U"), "message",
-              _op.get_attr("message"), "first_n", _op.get_attr("first_n"),
-              "summarize", _op.get_attr("summarize"))
-  else:
-    _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
-    _attr_U, data = _execute.convert_to_mixed_eager_tensors(data, _ctx)
-    _inputs_flat = [input] + list(data)
-    _attrs = ("T", _attr_T, "U", _attr_U, "message", message, "first_n",
-              first_n, "summarize", summarize)
-    _result = _execute.execute(b"Print", 1, inputs=_inputs_flat, attrs=_attrs,
-                               ctx=_ctx, name=name)
+  _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
+  _attr_U, data = _execute.convert_to_mixed_eager_tensors(data, _ctx)
+  _inputs_flat = [input] + list(data)
+  _attrs = ("T", _attr_T, "U", _attr_U, "message", message, "first_n",
+  first_n, "summarize", summarize)
+  _result = _execute.execute(b"Print", 1, inputs=_inputs_flat, attrs=_attrs,
+                             ctx=_ctx, name=name)
   _execute.record_gradient(
       "Print", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -388,35 +608,60 @@ def _scalar_summary(tags, values, name=None):
 
   Args:
     tags: A `Tensor` of type `string`. Tags for the summary.
-    values: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `int64`, `uint8`, `int16`, `int8`, `uint16`, `half`, `uint32`, `uint64`, `bfloat16`.
+    values: A `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `int64`, `bfloat16`, `uint16`, `half`, `uint32`, `uint64`.
       Same shape as `tags.  Values for the summary.
     name: A name for the operation (optional).
 
   Returns:
     A `Tensor` of type `string`.
-    Scalar.  Serialized `Summary` protocol buffer.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "ScalarSummary", tags=tags, values=values, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "ScalarSummary", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (values,) = _execute.args_to_matching_eager([values], _ctx)
-    tags = _ops.convert_to_tensor(tags, _dtypes.string)
-    _inputs_flat = [tags, values]
-    _attrs = ("T", _attr_T)
-    _result = _execute.execute(b"ScalarSummary", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "ScalarSummary", name,
+        _ctx._post_execution_callbacks, tags, values)
+      return _result
+    except _core._FallbackException:
+      return _scalar_summary_eager_fallback(
+          tags, values, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def _scalar_summary_eager_fallback(tags, values, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function _scalar_summary
+  """
+  _ctx = _context.context()
+  _attr_T, (values,) = _execute.args_to_matching_eager([values], _ctx)
+  tags = _ops.convert_to_tensor(tags, _dtypes.string)
+  _inputs_flat = [tags, values]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"ScalarSummary", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "ScalarSummary", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-def _tensor_summary(tensor, description="", labels=[], display_name="", name=None):
+def tensor_summary(tensor, description="", labels=[], display_name="", name=None):
   r"""Outputs a `Summary` protocol buffer with a tensor.
 
   This op is being phased out in favor of TensorSummaryV2, which lets callers pass
@@ -435,6 +680,58 @@ def _tensor_summary(tensor, description="", labels=[], display_name="", name=Non
   Returns:
     A `Tensor` of type `string`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if description is None:
+      description = ""
+    description = _execute.make_str(description, "description")
+    if labels is None:
+      labels = []
+    if not isinstance(labels, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'labels' argument to "
+          "'tensor_summary' Op, not %r." % labels)
+    labels = [_execute.make_str(_s, "labels") for _s in labels]
+    if display_name is None:
+      display_name = ""
+    display_name = _execute.make_str(display_name, "display_name")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "TensorSummary", tensor=tensor, description=description,
+        labels=labels, display_name=display_name, name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("T", _op.get_attr("T"), "description",
+              _op.get_attr("description"), "labels", _op.get_attr("labels"),
+              "display_name", _op.get_attr("display_name"))
+    _execute.record_gradient(
+      "TensorSummary", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TensorSummary", name,
+        _ctx._post_execution_callbacks, tensor, "description", description,
+        "labels", labels, "display_name", display_name)
+      return _result
+    except _core._FallbackException:
+      return tensor_summary_eager_fallback(
+          tensor, description=description, labels=labels,
+          display_name=display_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tensor_summary_eager_fallback(tensor, description="", labels=[], display_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tensor_summary
+  """
+  _ctx = _context.context()
   if description is None:
     description = ""
   description = _execute.make_str(description, "description")
@@ -448,30 +745,19 @@ def _tensor_summary(tensor, description="", labels=[], display_name="", name=Non
   if display_name is None:
     display_name = ""
   display_name = _execute.make_str(display_name, "display_name")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "TensorSummary", tensor=tensor, description=description,
-        labels=labels, display_name=display_name, name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("T", _op.get_attr("T"), "description",
-              _op.get_attr("description"), "labels", _op.get_attr("labels"),
-              "display_name", _op.get_attr("display_name"))
-  else:
-    _attr_T, (tensor,) = _execute.args_to_matching_eager([tensor], _ctx)
-    _inputs_flat = [tensor]
-    _attrs = ("T", _attr_T, "description", description, "labels", labels,
-              "display_name", display_name)
-    _result = _execute.execute(b"TensorSummary", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+  _attr_T, (tensor,) = _execute.args_to_matching_eager([tensor], _ctx)
+  _inputs_flat = [tensor]
+  _attrs = ("T", _attr_T, "description", description, "labels", labels,
+  "display_name", display_name)
+  _result = _execute.execute(b"TensorSummary", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TensorSummary", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-def _tensor_summary_v2(tag, tensor, serialized_summary_metadata, name=None):
+def tensor_summary_v2(tag, tensor, serialized_summary_metadata, name=None):
   r"""Outputs a `Summary` protocol buffer with a tensor and per-plugin data.
 
   Args:
@@ -487,23 +773,109 @@ def _tensor_summary_v2(tag, tensor, serialized_summary_metadata, name=None):
     A `Tensor` of type `string`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "TensorSummaryV2", tag=tag, tensor=tensor,
         serialized_summary_metadata=serialized_summary_metadata, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "TensorSummaryV2", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (tensor,) = _execute.args_to_matching_eager([tensor], _ctx)
-    tag = _ops.convert_to_tensor(tag, _dtypes.string)
-    serialized_summary_metadata = _ops.convert_to_tensor(serialized_summary_metadata, _dtypes.string)
-    _inputs_flat = [tag, tensor, serialized_summary_metadata]
-    _attrs = ("T", _attr_T)
-    _result = _execute.execute(b"TensorSummaryV2", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TensorSummaryV2", name,
+        _ctx._post_execution_callbacks, tag, tensor,
+        serialized_summary_metadata)
+      return _result
+    except _core._FallbackException:
+      return tensor_summary_v2_eager_fallback(
+          tag, tensor, serialized_summary_metadata, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tensor_summary_v2_eager_fallback(tag, tensor, serialized_summary_metadata, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tensor_summary_v2
+  """
+  _ctx = _context.context()
+  _attr_T, (tensor,) = _execute.args_to_matching_eager([tensor], _ctx)
+  tag = _ops.convert_to_tensor(tag, _dtypes.string)
+  serialized_summary_metadata = _ops.convert_to_tensor(serialized_summary_metadata, _dtypes.string)
+  _inputs_flat = [tag, tensor, serialized_summary_metadata]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"TensorSummaryV2", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TensorSummaryV2", _inputs_flat, _attrs, _result, name)
+  _result, = _result
+  return _result
+
+
+@tf_export('timestamp')
+def timestamp(name=None):
+  r"""Provides the time since epoch in seconds.
+
+  Returns the timestamp as a `float64` for seconds since the Unix epoch.
+
+  Note: the timestamp is computed when the op is executed, not when it is added
+  to the graph.
+
+  Args:
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `float64`.
+  """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "Timestamp", name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = None
+    _execute.record_gradient(
+      "Timestamp", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "Timestamp", name,
+        _ctx._post_execution_callbacks)
+      return _result
+    except _core._FallbackException:
+      return timestamp_eager_fallback(
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def timestamp_eager_fallback(name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function timestamp
+  """
+  _ctx = _context.context()
+  _inputs_flat = []
+  _attrs = None
+  _result = _execute.execute(b"Timestamp", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _execute.record_gradient(
+      "Timestamp", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
@@ -624,15 +996,15 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
 #         type: DT_INT32
-#         type: DT_INT64
 #         type: DT_UINT8
 #         type: DT_INT16
 #         type: DT_INT8
+#         type: DT_INT64
+#         type: DT_BFLOAT16
 #         type: DT_UINT16
 #         type: DT_HALF
 #         type: DT_UINT32
 #         type: DT_UINT64
-#         type: DT_BFLOAT16
 #       }
 #     }
 #   }
@@ -780,15 +1152,15 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
 #         type: DT_INT32
-#         type: DT_INT64
 #         type: DT_UINT8
 #         type: DT_INT16
 #         type: DT_INT8
+#         type: DT_INT64
+#         type: DT_BFLOAT16
 #         type: DT_UINT16
 #         type: DT_HALF
 #         type: DT_UINT32
 #         type: DT_UINT64
-#         type: DT_BFLOAT16
 #       }
 #     }
 #   }
@@ -853,4 +1225,12 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #     type: "type"
 #   }
 # }
-_op_def_lib = _InitOpDefLibrary(b"\nP\n\006Assert\022\r\n\tcondition\030\n\022\t\n\004data2\001T\"\023\n\001T\022\nlist(type)(\0010\001\"\024\n\tsummarize\022\003int\032\002\030\003\210\001\001\n{\n\014AudioSummary\022\007\n\003tag\030\007\022\n\n\006tensor\030\001\032\013\n\007summary\030\007\"\024\n\013sample_rate\022\005float\"\032\n\013max_outputs\022\003int\032\002\030\003(\0010\001B\027\010\017\022\023Use AudioSummaryV2.\n_\n\016AudioSummaryV2\022\007\n\003tag\030\007\022\n\n\006tensor\030\001\022\017\n\013sample_rate\030\001\032\013\n\007summary\030\007\"\032\n\013max_outputs\022\003int\032\002\030\003(\0010\001\nV\n\020HistogramSummary\022\007\n\003tag\030\007\022\013\n\006values\"\001T\032\013\n\007summary\030\007\"\037\n\001T\022\004type\032\0020\001:\020\n\0162\014\001\002\003\t\004\005\006\021\023\026\027\016\n\216\001\n\014ImageSummary\022\007\n\003tag\030\007\022\013\n\006tensor\"\001T\032\013\n\007summary\030\007\"\031\n\nmax_images\022\003int\032\002\030\003(\0010\001\"\027\n\001T\022\004type\032\0020\001:\010\n\0062\004\004\001\023\002\"\'\n\tbad_color\022\006tensor\032\022B\020\010\004\022\004\022\002\010\004:\006\377\001\000\000\377\001\n8\n\014MergeSummary\022\r\n\006inputs\030\007*\001N\032\013\n\007summary\030\007\"\014\n\001N\022\003int(\0010\001\n\226\001\n\005Print\022\n\n\005input\"\001T\022\t\n\004data2\001U\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\021\n\001U\022\nlist(type)(\001\"\025\n\007message\022\006string\032\002\022\000\"\033\n\007first_n\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\"\024\n\tsummarize\022\003int\032\002\030\003\210\001\001\nP\n\rScalarSummary\022\010\n\004tags\030\007\022\013\n\006values\"\001T\032\013\n\007summary\030\007\"\033\n\001T\022\004type:\020\n\0162\014\001\002\003\t\004\005\006\021\023\026\027\016\n\207\001\n\rTensorSummary\022\013\n\006tensor\"\001T\032\013\n\007summary\030\007\"\t\n\001T\022\004type\"\031\n\013description\022\006string\032\002\022\000\"\032\n\006labels\022\014list(string)\032\002\n\000\"\032\n\014display_name\022\006string\032\002\022\000\n`\n\017TensorSummaryV2\022\007\n\003tag\030\007\022\013\n\006tensor\"\001T\022\037\n\033serialized_summary_metadata\030\007\032\013\n\007summary\030\007\"\t\n\001T\022\004type")
+# op {
+#   name: "Timestamp"
+#   output_arg {
+#     name: "ts"
+#     type: DT_DOUBLE
+#   }
+#   is_stateful: true
+# }
+_op_def_lib = _InitOpDefLibrary(b"\nP\n\006Assert\022\r\n\tcondition\030\n\022\t\n\004data2\001T\"\023\n\001T\022\nlist(type)(\0010\001\"\024\n\tsummarize\022\003int\032\002\030\003\210\001\001\n{\n\014AudioSummary\022\007\n\003tag\030\007\022\n\n\006tensor\030\001\032\013\n\007summary\030\007\"\024\n\013sample_rate\022\005float\"\032\n\013max_outputs\022\003int\032\002\030\003(\0010\001B\027\010\017\022\023Use AudioSummaryV2.\n_\n\016AudioSummaryV2\022\007\n\003tag\030\007\022\n\n\006tensor\030\001\022\017\n\013sample_rate\030\001\032\013\n\007summary\030\007\"\032\n\013max_outputs\022\003int\032\002\030\003(\0010\001\nV\n\020HistogramSummary\022\007\n\003tag\030\007\022\013\n\006values\"\001T\032\013\n\007summary\030\007\"\037\n\001T\022\004type\032\0020\001:\020\n\0162\014\001\002\003\004\005\006\t\016\021\023\026\027\n\216\001\n\014ImageSummary\022\007\n\003tag\030\007\022\013\n\006tensor\"\001T\032\013\n\007summary\030\007\"\031\n\nmax_images\022\003int\032\002\030\003(\0010\001\"\027\n\001T\022\004type\032\0020\001:\010\n\0062\004\004\001\023\002\"\'\n\tbad_color\022\006tensor\032\022B\020\010\004\022\004\022\002\010\004:\006\377\001\000\000\377\001\n8\n\014MergeSummary\022\r\n\006inputs\030\007*\001N\032\013\n\007summary\030\007\"\014\n\001N\022\003int(\0010\001\n\226\001\n\005Print\022\n\n\005input\"\001T\022\t\n\004data2\001U\032\013\n\006output\"\001T\"\t\n\001T\022\004type\"\021\n\001U\022\nlist(type)(\001\"\025\n\007message\022\006string\032\002\022\000\"\033\n\007first_n\022\003int\032\013\030\377\377\377\377\377\377\377\377\377\001\"\024\n\tsummarize\022\003int\032\002\030\003\210\001\001\nP\n\rScalarSummary\022\010\n\004tags\030\007\022\013\n\006values\"\001T\032\013\n\007summary\030\007\"\033\n\001T\022\004type:\020\n\0162\014\001\002\003\004\005\006\t\016\021\023\026\027\n\207\001\n\rTensorSummary\022\013\n\006tensor\"\001T\032\013\n\007summary\030\007\"\t\n\001T\022\004type\"\031\n\013description\022\006string\032\002\022\000\"\032\n\006labels\022\014list(string)\032\002\n\000\"\032\n\014display_name\022\006string\032\002\022\000\n`\n\017TensorSummaryV2\022\007\n\003tag\030\007\022\013\n\006tensor\"\001T\022\037\n\033serialized_summary_metadata\030\007\032\013\n\007summary\030\007\"\t\n\001T\022\004type\n\026\n\tTimestamp\032\006\n\002ts\030\002\210\001\001")

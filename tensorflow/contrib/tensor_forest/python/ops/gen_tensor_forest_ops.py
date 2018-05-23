@@ -5,11 +5,14 @@ Original C++ source file: gen_tensor_forest_ops.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,7 +24,7 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('ReinterpretStringToFloat')
+@tf_export('reinterpret_string_to_float')
 def reinterpret_string_to_float(input_data, name=None):
   r"""   Converts byte arrays represented by strings to 32-bit
 
@@ -41,19 +44,45 @@ def reinterpret_string_to_float(input_data, name=None):
     A `Tensor` of type `float32`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "ReinterpretStringToFloat", input_data=input_data, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "ReinterpretStringToFloat", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    input_data = _ops.convert_to_tensor(input_data, _dtypes.string)
-    _inputs_flat = [input_data]
-    _attrs = None
-    _result = _execute.execute(b"ReinterpretStringToFloat", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "ReinterpretStringToFloat", name,
+        _ctx._post_execution_callbacks, input_data)
+      return _result
+    except _core._FallbackException:
+      return reinterpret_string_to_float_eager_fallback(
+          input_data, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def reinterpret_string_to_float_eager_fallback(input_data, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function reinterpret_string_to_float
+  """
+  _ctx = _context.context()
+  input_data = _ops.convert_to_tensor(input_data, _dtypes.string)
+  _inputs_flat = [input_data]
+  _attrs = None
+  _result = _execute.execute(b"ReinterpretStringToFloat", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "ReinterpretStringToFloat", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -62,7 +91,7 @@ def reinterpret_string_to_float(input_data, name=None):
 _ops.RegisterShape("ReinterpretStringToFloat")(None)
 
 
-@tf_export('ScatterAddNdim')
+@tf_export('scatter_add_ndim')
 def scatter_add_ndim(input, indices, deltas, name=None):
   r"""  Add elements in deltas to mutable input according to indices.
 
@@ -86,17 +115,19 @@ def scatter_add_ndim(input, indices, deltas, name=None):
     The created Operation.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "ScatterAddNdim", input=input, indices=indices, deltas=deltas,
         name=name)
     return _op
-  else:
-    raise RuntimeError(
-        "scatter_add_ndim op does not support eager execution. Arg 'input'' is a ref.")
     _result = None
-  return _result
+    return _result
 
+  else:
+    raise RuntimeError("scatter_add_ndim op does not support eager execution. Arg 'input' is a ref.")
+
+
+  raise RuntimeError("scatter_add_ndim op does not support eager execution. Arg 'input' is a ref.")
 _ops.RegisterShape("ScatterAddNdim")(None)
 
 def _InitOpDefLibrary(op_list_proto_bytes):

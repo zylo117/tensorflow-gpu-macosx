@@ -5,11 +5,14 @@ Original C++ source file: gen_stats_ops_py.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,7 +24,7 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('CreateFertileStatsVariable')
+@tf_export('create_fertile_stats_variable')
 def create_fertile_stats_variable(stats_handle, stats_config, params, name=None):
   r"""Creates a stats model and returns a handle to it.
 
@@ -35,28 +38,54 @@ def create_fertile_stats_variable(stats_handle, stats_config, params, name=None)
   Returns:
     The created Operation.
   """
-  params = _execute.make_str(params, "params")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    params = _execute.make_str(params, "params")
     _, _, _op = _op_def_lib._apply_op_helper(
         "CreateFertileStatsVariable", stats_handle=stats_handle,
         stats_config=stats_config, params=params, name=name)
     return _op
-  else:
-    stats_handle = _ops.convert_to_tensor(stats_handle, _dtypes.resource)
-    stats_config = _ops.convert_to_tensor(stats_config, _dtypes.string)
-    _inputs_flat = [stats_handle, stats_config]
-    _attrs = ("params", params)
-    _result = _execute.execute(b"CreateFertileStatsVariable", 0,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "CreateFertileStatsVariable", name,
+        _ctx._post_execution_callbacks, stats_handle, stats_config, "params",
+        params)
+      return _result
+    except _core._FallbackException:
+      return create_fertile_stats_variable_eager_fallback(
+          stats_handle, stats_config, params=params, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def create_fertile_stats_variable_eager_fallback(stats_handle, stats_config, params, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function create_fertile_stats_variable
+  """
+  _ctx = _context.context()
+  params = _execute.make_str(params, "params")
+  stats_handle = _ops.convert_to_tensor(stats_handle, _dtypes.resource)
+  stats_config = _ops.convert_to_tensor(stats_config, _dtypes.string)
+  _inputs_flat = [stats_handle, stats_config]
+  _attrs = ("params", params)
+  _result = _execute.execute(b"CreateFertileStatsVariable", 0,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("CreateFertileStatsVariable")(None)
 
 
-@tf_export('FertileStatsDeserialize')
+@tf_export('fertile_stats_deserialize')
 def fertile_stats_deserialize(stats_handle, stats_config, params, name=None):
   r"""Deserializes a serialized stats config and replaces current stats.
 
@@ -69,28 +98,54 @@ def fertile_stats_deserialize(stats_handle, stats_config, params, name=None):
   Returns:
     The created Operation.
   """
-  params = _execute.make_str(params, "params")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    params = _execute.make_str(params, "params")
     _, _, _op = _op_def_lib._apply_op_helper(
         "FertileStatsDeserialize", stats_handle=stats_handle,
         stats_config=stats_config, params=params, name=name)
     return _op
-  else:
-    stats_handle = _ops.convert_to_tensor(stats_handle, _dtypes.resource)
-    stats_config = _ops.convert_to_tensor(stats_config, _dtypes.string)
-    _inputs_flat = [stats_handle, stats_config]
-    _attrs = ("params", params)
-    _result = _execute.execute(b"FertileStatsDeserialize", 0,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "FertileStatsDeserialize", name,
+        _ctx._post_execution_callbacks, stats_handle, stats_config, "params",
+        params)
+      return _result
+    except _core._FallbackException:
+      return fertile_stats_deserialize_eager_fallback(
+          stats_handle, stats_config, params=params, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def fertile_stats_deserialize_eager_fallback(stats_handle, stats_config, params, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function fertile_stats_deserialize
+  """
+  _ctx = _context.context()
+  params = _execute.make_str(params, "params")
+  stats_handle = _ops.convert_to_tensor(stats_handle, _dtypes.resource)
+  stats_config = _ops.convert_to_tensor(stats_config, _dtypes.string)
+  _inputs_flat = [stats_handle, stats_config]
+  _attrs = ("params", params)
+  _result = _execute.execute(b"FertileStatsDeserialize", 0,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("FertileStatsDeserialize")(None)
 
 
-@tf_export('FertileStatsIsInitializedOp')
+@tf_export('fertile_stats_is_initialized_op')
 def fertile_stats_is_initialized_op(stats_handle, name=None):
   r"""Checks whether a stats has been initialized.
 
@@ -102,19 +157,45 @@ def fertile_stats_is_initialized_op(stats_handle, name=None):
     A `Tensor` of type `bool`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "FertileStatsIsInitializedOp", stats_handle=stats_handle, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "FertileStatsIsInitializedOp", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    stats_handle = _ops.convert_to_tensor(stats_handle, _dtypes.resource)
-    _inputs_flat = [stats_handle]
-    _attrs = None
-    _result = _execute.execute(b"FertileStatsIsInitializedOp", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "FertileStatsIsInitializedOp", name,
+        _ctx._post_execution_callbacks, stats_handle)
+      return _result
+    except _core._FallbackException:
+      return fertile_stats_is_initialized_op_eager_fallback(
+          stats_handle, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def fertile_stats_is_initialized_op_eager_fallback(stats_handle, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function fertile_stats_is_initialized_op
+  """
+  _ctx = _context.context()
+  stats_handle = _ops.convert_to_tensor(stats_handle, _dtypes.resource)
+  _inputs_flat = [stats_handle]
+  _attrs = None
+  _result = _execute.execute(b"FertileStatsIsInitializedOp", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "FertileStatsIsInitializedOp", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -123,7 +204,7 @@ def fertile_stats_is_initialized_op(stats_handle, name=None):
 _ops.RegisterShape("FertileStatsIsInitializedOp")(None)
 
 
-@tf_export('FertileStatsResourceHandleOp')
+@tf_export('fertile_stats_resource_handle_op')
 def fertile_stats_resource_handle_op(container="", shared_name="", name=None):
   r"""Creates a handle to a FertileStatsResource
 
@@ -135,14 +216,14 @@ def fertile_stats_resource_handle_op(container="", shared_name="", name=None):
   Returns:
     A `Tensor` of type `resource`.
   """
-  if container is None:
-    container = ""
-  container = _execute.make_str(container, "container")
-  if shared_name is None:
-    shared_name = ""
-  shared_name = _execute.make_str(shared_name, "shared_name")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
     _, _, _op = _op_def_lib._apply_op_helper(
         "FertileStatsResourceHandleOp", container=container,
         shared_name=shared_name, name=name)
@@ -150,12 +231,45 @@ def fertile_stats_resource_handle_op(container="", shared_name="", name=None):
     _inputs_flat = _op.inputs
     _attrs = ("container", _op.get_attr("container"), "shared_name",
               _op.get_attr("shared_name"))
+    _execute.record_gradient(
+      "FertileStatsResourceHandleOp", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _inputs_flat = []
-    _attrs = ("container", container, "shared_name", shared_name)
-    _result = _execute.execute(b"FertileStatsResourceHandleOp", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "FertileStatsResourceHandleOp", name,
+        _ctx._post_execution_callbacks, "container", container, "shared_name",
+        shared_name)
+      return _result
+    except _core._FallbackException:
+      return fertile_stats_resource_handle_op_eager_fallback(
+          container=container, shared_name=shared_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def fertile_stats_resource_handle_op_eager_fallback(container="", shared_name="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function fertile_stats_resource_handle_op
+  """
+  _ctx = _context.context()
+  if container is None:
+    container = ""
+  container = _execute.make_str(container, "container")
+  if shared_name is None:
+    shared_name = ""
+  shared_name = _execute.make_str(shared_name, "shared_name")
+  _inputs_flat = []
+  _attrs = ("container", container, "shared_name", shared_name)
+  _result = _execute.execute(b"FertileStatsResourceHandleOp", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "FertileStatsResourceHandleOp", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -164,7 +278,7 @@ def fertile_stats_resource_handle_op(container="", shared_name="", name=None):
 _ops.RegisterShape("FertileStatsResourceHandleOp")(None)
 
 
-@tf_export('FertileStatsSerialize')
+@tf_export('fertile_stats_serialize')
 def fertile_stats_serialize(stats_handle, params, name=None):
   r"""Serializes the stats to a proto.
 
@@ -176,22 +290,48 @@ def fertile_stats_serialize(stats_handle, params, name=None):
   Returns:
     A `Tensor` of type `string`. Serialized proto of the stats.
   """
-  params = _execute.make_str(params, "params")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    params = _execute.make_str(params, "params")
     _, _, _op = _op_def_lib._apply_op_helper(
         "FertileStatsSerialize", stats_handle=stats_handle, params=params,
         name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("params", _op.get_attr("params"))
+    _execute.record_gradient(
+      "FertileStatsSerialize", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    stats_handle = _ops.convert_to_tensor(stats_handle, _dtypes.resource)
-    _inputs_flat = [stats_handle]
-    _attrs = ("params", params)
-    _result = _execute.execute(b"FertileStatsSerialize", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "FertileStatsSerialize", name,
+        _ctx._post_execution_callbacks, stats_handle, "params", params)
+      return _result
+    except _core._FallbackException:
+      return fertile_stats_serialize_eager_fallback(
+          stats_handle, params=params, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def fertile_stats_serialize_eager_fallback(stats_handle, params, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function fertile_stats_serialize
+  """
+  _ctx = _context.context()
+  params = _execute.make_str(params, "params")
+  stats_handle = _ops.convert_to_tensor(stats_handle, _dtypes.resource)
+  _inputs_flat = [stats_handle]
+  _attrs = ("params", params)
+  _result = _execute.execute(b"FertileStatsSerialize", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "FertileStatsSerialize", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -200,7 +340,7 @@ def fertile_stats_serialize(stats_handle, params, name=None):
 _ops.RegisterShape("FertileStatsSerialize")(None)
 
 
-@tf_export('FinalizeTree')
+@tf_export('finalize_tree')
 def finalize_tree(tree_handle, stats_handle, params, name=None):
   r"""Puts the Leaf models inside the tree into their final form.
 
@@ -216,27 +356,53 @@ def finalize_tree(tree_handle, stats_handle, params, name=None):
   Returns:
     The created Operation.
   """
-  params = _execute.make_str(params, "params")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    params = _execute.make_str(params, "params")
     _, _, _op = _op_def_lib._apply_op_helper(
         "FinalizeTree", tree_handle=tree_handle, stats_handle=stats_handle,
         params=params, name=name)
     return _op
-  else:
-    tree_handle = _ops.convert_to_tensor(tree_handle, _dtypes.resource)
-    stats_handle = _ops.convert_to_tensor(stats_handle, _dtypes.resource)
-    _inputs_flat = [tree_handle, stats_handle]
-    _attrs = ("params", params)
-    _result = _execute.execute(b"FinalizeTree", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "FinalizeTree", name,
+        _ctx._post_execution_callbacks, tree_handle, stats_handle, "params",
+        params)
+      return _result
+    except _core._FallbackException:
+      return finalize_tree_eager_fallback(
+          tree_handle, stats_handle, params=params, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def finalize_tree_eager_fallback(tree_handle, stats_handle, params, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function finalize_tree
+  """
+  _ctx = _context.context()
+  params = _execute.make_str(params, "params")
+  tree_handle = _ops.convert_to_tensor(tree_handle, _dtypes.resource)
+  stats_handle = _ops.convert_to_tensor(stats_handle, _dtypes.resource)
+  _inputs_flat = [tree_handle, stats_handle]
+  _attrs = ("params", params)
+  _result = _execute.execute(b"FinalizeTree", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("FinalizeTree")(None)
 
 
-@tf_export('GrowTreeV4')
+@tf_export('grow_tree_v4')
 def grow_tree_v4(tree_handle, stats_handle, finshed_nodes, params, name=None):
   r"""Grows the tree for finished nodes and allocates waiting nodes.
 
@@ -251,28 +417,54 @@ def grow_tree_v4(tree_handle, stats_handle, finshed_nodes, params, name=None):
   Returns:
     The created Operation.
   """
-  params = _execute.make_str(params, "params")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    params = _execute.make_str(params, "params")
     _, _, _op = _op_def_lib._apply_op_helper(
         "GrowTreeV4", tree_handle=tree_handle, stats_handle=stats_handle,
         finshed_nodes=finshed_nodes, params=params, name=name)
     return _op
-  else:
-    tree_handle = _ops.convert_to_tensor(tree_handle, _dtypes.resource)
-    stats_handle = _ops.convert_to_tensor(stats_handle, _dtypes.resource)
-    finshed_nodes = _ops.convert_to_tensor(finshed_nodes, _dtypes.int32)
-    _inputs_flat = [tree_handle, stats_handle, finshed_nodes]
-    _attrs = ("params", params)
-    _result = _execute.execute(b"GrowTreeV4", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
     _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "GrowTreeV4", name,
+        _ctx._post_execution_callbacks, tree_handle, stats_handle,
+        finshed_nodes, "params", params)
+      return _result
+    except _core._FallbackException:
+      return grow_tree_v4_eager_fallback(
+          tree_handle, stats_handle, finshed_nodes, params=params, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def grow_tree_v4_eager_fallback(tree_handle, stats_handle, finshed_nodes, params, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function grow_tree_v4
+  """
+  _ctx = _context.context()
+  params = _execute.make_str(params, "params")
+  tree_handle = _ops.convert_to_tensor(tree_handle, _dtypes.resource)
+  stats_handle = _ops.convert_to_tensor(stats_handle, _dtypes.resource)
+  finshed_nodes = _ops.convert_to_tensor(finshed_nodes, _dtypes.int32)
+  _inputs_flat = [tree_handle, stats_handle, finshed_nodes]
+  _attrs = ("params", params)
+  _result = _execute.execute(b"GrowTreeV4", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("GrowTreeV4")(None)
 
 
-@tf_export('ProcessInputV4')
+@tf_export('process_input_v4')
 def process_input_v4(tree_handle, stats_handle, input_data, sparse_input_indices, sparse_input_values, sparse_input_shape, input_labels, input_weights, leaf_ids, random_seed, input_spec, params, name=None):
   r"""Add labels to stats after traversing the tree for each example.
 
@@ -308,11 +500,11 @@ def process_input_v4(tree_handle, stats_handle, input_data, sparse_input_indices
     A 1-d tensor of node ids that have finished and are ready to
     grow.
   """
-  random_seed = _execute.make_int(random_seed, "random_seed")
-  input_spec = _execute.make_str(input_spec, "input_spec")
-  params = _execute.make_str(params, "params")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    random_seed = _execute.make_int(random_seed, "random_seed")
+    input_spec = _execute.make_str(input_spec, "input_spec")
+    params = _execute.make_str(params, "params")
     _, _, _op = _op_def_lib._apply_op_helper(
         "ProcessInputV4", tree_handle=tree_handle, stats_handle=stats_handle,
         input_data=input_data, sparse_input_indices=sparse_input_indices,
@@ -325,21 +517,56 @@ def process_input_v4(tree_handle, stats_handle, input_data, sparse_input_indices
     _inputs_flat = _op.inputs
     _attrs = ("random_seed", _op.get_attr("random_seed"), "input_spec",
               _op.get_attr("input_spec"), "params", _op.get_attr("params"))
+    _execute.record_gradient(
+      "ProcessInputV4", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    tree_handle = _ops.convert_to_tensor(tree_handle, _dtypes.resource)
-    stats_handle = _ops.convert_to_tensor(stats_handle, _dtypes.resource)
-    input_data = _ops.convert_to_tensor(input_data, _dtypes.float32)
-    sparse_input_indices = _ops.convert_to_tensor(sparse_input_indices, _dtypes.int64)
-    sparse_input_values = _ops.convert_to_tensor(sparse_input_values, _dtypes.float32)
-    sparse_input_shape = _ops.convert_to_tensor(sparse_input_shape, _dtypes.int64)
-    input_labels = _ops.convert_to_tensor(input_labels, _dtypes.float32)
-    input_weights = _ops.convert_to_tensor(input_weights, _dtypes.float32)
-    leaf_ids = _ops.convert_to_tensor(leaf_ids, _dtypes.int32)
-    _inputs_flat = [tree_handle, stats_handle, input_data, sparse_input_indices, sparse_input_values, sparse_input_shape, input_labels, input_weights, leaf_ids]
-    _attrs = ("random_seed", random_seed, "input_spec", input_spec, "params",
-              params)
-    _result = _execute.execute(b"ProcessInputV4", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "ProcessInputV4", name,
+        _ctx._post_execution_callbacks, tree_handle, stats_handle, input_data,
+        sparse_input_indices, sparse_input_values, sparse_input_shape,
+        input_labels, input_weights, leaf_ids, "random_seed", random_seed,
+        "input_spec", input_spec, "params", params)
+      return _result
+    except _core._FallbackException:
+      return process_input_v4_eager_fallback(
+          tree_handle, stats_handle, input_data, sparse_input_indices,
+          sparse_input_values, sparse_input_shape, input_labels,
+          input_weights, leaf_ids, random_seed=random_seed,
+          input_spec=input_spec, params=params, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def process_input_v4_eager_fallback(tree_handle, stats_handle, input_data, sparse_input_indices, sparse_input_values, sparse_input_shape, input_labels, input_weights, leaf_ids, random_seed, input_spec, params, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function process_input_v4
+  """
+  _ctx = _context.context()
+  random_seed = _execute.make_int(random_seed, "random_seed")
+  input_spec = _execute.make_str(input_spec, "input_spec")
+  params = _execute.make_str(params, "params")
+  tree_handle = _ops.convert_to_tensor(tree_handle, _dtypes.resource)
+  stats_handle = _ops.convert_to_tensor(stats_handle, _dtypes.resource)
+  input_data = _ops.convert_to_tensor(input_data, _dtypes.float32)
+  sparse_input_indices = _ops.convert_to_tensor(sparse_input_indices, _dtypes.int64)
+  sparse_input_values = _ops.convert_to_tensor(sparse_input_values, _dtypes.float32)
+  sparse_input_shape = _ops.convert_to_tensor(sparse_input_shape, _dtypes.int64)
+  input_labels = _ops.convert_to_tensor(input_labels, _dtypes.float32)
+  input_weights = _ops.convert_to_tensor(input_weights, _dtypes.float32)
+  leaf_ids = _ops.convert_to_tensor(leaf_ids, _dtypes.int32)
+  _inputs_flat = [tree_handle, stats_handle, input_data, sparse_input_indices, sparse_input_values, sparse_input_shape, input_labels, input_weights, leaf_ids]
+  _attrs = ("random_seed", random_seed, "input_spec", input_spec, "params",
+  params)
+  _result = _execute.execute(b"ProcessInputV4", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "ProcessInputV4", _inputs_flat, _attrs, _result, name)
   _result, = _result

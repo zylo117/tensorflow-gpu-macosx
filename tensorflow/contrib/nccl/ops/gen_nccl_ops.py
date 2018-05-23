@@ -5,11 +5,14 @@ Original C++ source file: nccl_ops.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,7 +24,7 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('NcclAllReduce')
+@tf_export('nccl_all_reduce')
 def nccl_all_reduce(input, reduction, num_devices, shared_name, name=None):
   r"""Outputs a tensor containing the reduction across all input tensors passed to ops
 
@@ -46,11 +49,11 @@ def nccl_all_reduce(input, reduction, num_devices, shared_name, name=None):
     A `Tensor`. Has the same type as `input`.
     the value of the reduction across all `num_devices` devices.
   """
-  reduction = _execute.make_str(reduction, "reduction")
-  num_devices = _execute.make_int(num_devices, "num_devices")
-  shared_name = _execute.make_str(shared_name, "shared_name")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    reduction = _execute.make_str(reduction, "reduction")
+    num_devices = _execute.make_int(num_devices, "num_devices")
+    shared_name = _execute.make_str(shared_name, "shared_name")
     _, _, _op = _op_def_lib._apply_op_helper(
         "NcclAllReduce", input=input, reduction=reduction,
         num_devices=num_devices, shared_name=shared_name, name=name)
@@ -59,13 +62,44 @@ def nccl_all_reduce(input, reduction, num_devices, shared_name, name=None):
     _attrs = ("reduction", _op.get_attr("reduction"), "T", _op.get_attr("T"),
               "num_devices", _op.get_attr("num_devices"), "shared_name",
               _op.get_attr("shared_name"))
+    _execute.record_gradient(
+      "NcclAllReduce", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
-    _inputs_flat = [input]
-    _attrs = ("reduction", reduction, "T", _attr_T, "num_devices",
-              num_devices, "shared_name", shared_name)
-    _result = _execute.execute(b"NcclAllReduce", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "NcclAllReduce", name,
+        _ctx._post_execution_callbacks, input, "reduction", reduction,
+        "num_devices", num_devices, "shared_name", shared_name)
+      return _result
+    except _core._FallbackException:
+      return nccl_all_reduce_eager_fallback(
+          input, reduction=reduction, num_devices=num_devices,
+          shared_name=shared_name, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def nccl_all_reduce_eager_fallback(input, reduction, num_devices, shared_name, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function nccl_all_reduce
+  """
+  _ctx = _context.context()
+  reduction = _execute.make_str(reduction, "reduction")
+  num_devices = _execute.make_int(num_devices, "num_devices")
+  shared_name = _execute.make_str(shared_name, "shared_name")
+  _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
+  _inputs_flat = [input]
+  _attrs = ("reduction", reduction, "T", _attr_T, "num_devices", num_devices,
+  "shared_name", shared_name)
+  _result = _execute.execute(b"NcclAllReduce", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "NcclAllReduce", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -74,7 +108,7 @@ def nccl_all_reduce(input, reduction, num_devices, shared_name, name=None):
 _ops.RegisterShape("NcclAllReduce")(None)
 
 
-@tf_export('NcclBroadcast')
+@tf_export('nccl_broadcast')
 def nccl_broadcast(input, shape, name=None):
   r"""Sends `input` to all devices that are connected to the output.
 
@@ -91,20 +125,47 @@ def nccl_broadcast(input, shape, name=None):
   Returns:
     A `Tensor`. Has the same type as `input`. The same as input.
   """
-  shape = _execute.make_shape(shape, "shape")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    shape = _execute.make_shape(shape, "shape")
     _, _, _op = _op_def_lib._apply_op_helper(
         "NcclBroadcast", input=input, shape=shape, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"), "shape", _op.get_attr("shape"))
+    _execute.record_gradient(
+      "NcclBroadcast", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
-    _inputs_flat = [input]
-    _attrs = ("T", _attr_T, "shape", shape)
-    _result = _execute.execute(b"NcclBroadcast", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "NcclBroadcast", name,
+        _ctx._post_execution_callbacks, input, "shape", shape)
+      return _result
+    except _core._FallbackException:
+      return nccl_broadcast_eager_fallback(
+          input, shape=shape, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def nccl_broadcast_eager_fallback(input, shape, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function nccl_broadcast
+  """
+  _ctx = _context.context()
+  shape = _execute.make_shape(shape, "shape")
+  _attr_T, (input,) = _execute.args_to_matching_eager([input], _ctx)
+  _inputs_flat = [input]
+  _attrs = ("T", _attr_T, "shape", shape)
+  _result = _execute.execute(b"NcclBroadcast", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "NcclBroadcast", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -113,7 +174,7 @@ def nccl_broadcast(input, shape, name=None):
 _ops.RegisterShape("NcclBroadcast")(None)
 
 
-@tf_export('NcclReduce')
+@tf_export('nccl_reduce')
 def nccl_reduce(input, reduction, name=None):
   r"""Reduces `input` from `num_devices` using `reduction` to a single device.
 
@@ -131,27 +192,59 @@ def nccl_reduce(input, reduction, name=None):
     A `Tensor`. Has the same type as `input`.
     the value of the reduction across all `num_devices` devices.
   """
-  if not isinstance(input, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'input' argument to "
-        "'nccl_reduce' Op, not %r." % input)
-  _attr_num_devices = len(input)
-  reduction = _execute.make_str(reduction, "reduction")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(input, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'input' argument to "
+          "'nccl_reduce' Op, not %r." % input)
+    _attr_num_devices = len(input)
+    reduction = _execute.make_str(reduction, "reduction")
     _, _, _op = _op_def_lib._apply_op_helper(
         "NcclReduce", input=input, reduction=reduction, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("reduction", _op.get_attr("reduction"), "T", _op.get_attr("T"),
               "num_devices", _op.get_attr("num_devices"))
+    _execute.record_gradient(
+      "NcclReduce", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, input = _execute.args_to_matching_eager(list(input), _ctx)
-    _inputs_flat = list(input)
-    _attrs = ("reduction", reduction, "T", _attr_T, "num_devices",
-              _attr_num_devices)
-    _result = _execute.execute(b"NcclReduce", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "NcclReduce", name,
+        _ctx._post_execution_callbacks, input, "reduction", reduction)
+      return _result
+    except _core._FallbackException:
+      return nccl_reduce_eager_fallback(
+          input, reduction=reduction, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def nccl_reduce_eager_fallback(input, reduction, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function nccl_reduce
+  """
+  _ctx = _context.context()
+  if not isinstance(input, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'input' argument to "
+        "'nccl_reduce' Op, not %r." % input)
+  _attr_num_devices = len(input)
+  reduction = _execute.make_str(reduction, "reduction")
+  _attr_T, input = _execute.args_to_matching_eager(list(input), _ctx)
+  _inputs_flat = list(input)
+  _attrs = ("reduction", reduction, "T", _attr_T, "num_devices",
+  _attr_num_devices)
+  _result = _execute.execute(b"NcclReduce", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "NcclReduce", _inputs_flat, _attrs, _result, name)
   _result, = _result

@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='tensorflow/core/profiler/tfprof_log.proto',
   package='tensorflow.tfprof',
   syntax='proto3',
-  serialized_pb=_b('\n)tensorflow/core/profiler/tfprof_log.proto\x12\x11tensorflow.tfprof\x1a*tensorflow/core/framework/attr_value.proto\x1a*tensorflow/core/framework/step_stats.proto\"\xdf\x01\n\x07\x43odeDef\x12\x30\n\x06traces\x18\x01 \x03(\x0b\x32 .tensorflow.tfprof.CodeDef.Trace\x1a\xa1\x01\n\x05Trace\x12\x10\n\x04\x66ile\x18\x01 \x01(\tB\x02\x18\x01\x12\x0f\n\x07\x66ile_id\x18\x06 \x01(\x03\x12\x0e\n\x06lineno\x18\x02 \x01(\x05\x12\x14\n\x08\x66unction\x18\x03 \x01(\tB\x02\x18\x01\x12\x13\n\x0b\x66unction_id\x18\x07 \x01(\x03\x12\x10\n\x04line\x18\x04 \x01(\tB\x02\x18\x01\x12\x0f\n\x07line_id\x18\x08 \x01(\x03\x12\x17\n\x0f\x66unc_start_line\x18\x05 \x01(\x05\"j\n\nOpLogEntry\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x11\n\tfloat_ops\x18\x02 \x01(\x03\x12\r\n\x05types\x18\x03 \x03(\t\x12,\n\x08\x63ode_def\x18\x04 \x01(\x0b\x32\x1a.tensorflow.tfprof.CodeDef\"\xb8\x01\n\nOpLogProto\x12\x32\n\x0blog_entries\x18\x01 \x03(\x0b\x32\x1d.tensorflow.tfprof.OpLogEntry\x12\x43\n\x0cid_to_string\x18\x02 \x03(\x0b\x32-.tensorflow.tfprof.OpLogProto.IdToStringEntry\x1a\x31\n\x0fIdToStringEntry\x12\x0b\n\x03key\x18\x01 \x01(\x03\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xb3\x02\n\x0cProfileProto\x12\x39\n\x05nodes\x18\x01 \x03(\x0b\x32*.tensorflow.tfprof.ProfileProto.NodesEntry\x12\x11\n\thas_trace\x18\x02 \x01(\x08\x12\r\n\x05steps\x18\x03 \x03(\x03\x12\x45\n\x0cid_to_string\x18\x04 \x03(\x0b\x32/.tensorflow.tfprof.ProfileProto.IdToStringEntry\x1aL\n\nNodesEntry\x12\x0b\n\x03key\x18\x01 \x01(\x03\x12-\n\x05value\x18\x02 \x01(\x0b\x32\x1e.tensorflow.tfprof.ProfileNode:\x02\x38\x01\x1a\x31\n\x0fIdToStringEntry\x12\x0b\n\x03key\x18\x01 \x01(\x03\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xd3\x08\n\x0bProfileNode\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\n\n\x02op\x18\t \x01(\t\x12\n\n\x02id\x18\r \x01(\x03\x12:\n\x06inputs\x18\x02 \x03(\x0b\x32*.tensorflow.tfprof.ProfileNode.InputsEntry\x12\x45\n\x0cinput_shapes\x18\x10 \x03(\x0b\x32/.tensorflow.tfprof.ProfileNode.InputShapesEntry\x12<\n\x07outputs\x18\x03 \x03(\x0b\x32+.tensorflow.tfprof.ProfileNode.OutputsEntry\x12G\n\routput_shapes\x18\x0f \x03(\x0b\x32\x30.tensorflow.tfprof.ProfileNode.OutputShapesEntry\x12L\n\x10src_output_index\x18\x0e \x03(\x0b\x32\x32.tensorflow.tfprof.ProfileNode.SrcOutputIndexEntry\x12\r\n\x05shape\x18\x04 \x03(\x03\x12\x10\n\x08op_types\x18\x05 \x03(\t\x12\x18\n\x10\x63\x61nonical_device\x18\x06 \x01(\t\x12\x13\n\x0bhost_device\x18\x07 \x01(\t\x12\x11\n\tfloat_ops\x18\x08 \x01(\x03\x12)\n\x05trace\x18\n \x01(\x0b\x32\x1a.tensorflow.tfprof.CodeDef\x12\x38\n\x05\x61ttrs\x18\x0b \x03(\x0b\x32).tensorflow.tfprof.ProfileNode.AttrsEntry\x12\x38\n\x05\x65xecs\x18\x0c \x03(\x0b\x32).tensorflow.tfprof.ProfileNode.ExecsEntry\x1a-\n\x0bInputsEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12\r\n\x05value\x18\x02 \x01(\x03:\x02\x38\x01\x1aL\n\x10InputShapesEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12\'\n\x05value\x18\x02 \x01(\x0b\x32\x18.tensorflow.tfprof.Tuple:\x02\x38\x01\x1a.\n\x0cOutputsEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12\r\n\x05value\x18\x02 \x01(\x03:\x02\x38\x01\x1aM\n\x11OutputShapesEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12\'\n\x05value\x18\x02 \x01(\x0b\x32\x18.tensorflow.tfprof.Tuple:\x02\x38\x01\x1a\x35\n\x13SrcOutputIndexEntry\x12\x0b\n\x03key\x18\x01 \x01(\x03\x12\r\n\x05value\x18\x02 \x01(\x05:\x02\x38\x01\x1a\x43\n\nAttrsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12$\n\x05value\x18\x02 \x01(\x0b\x32\x15.tensorflow.AttrValue:\x02\x38\x01\x1aL\n\nExecsEntry\x12\x0b\n\x03key\x18\x01 \x01(\x03\x12-\n\x05value\x18\x02 \x01(\x0b\x32\x1e.tensorflow.tfprof.ExecProfile:\x02\x38\x01\"\x84\x04\n\x0b\x45xecProfile\x12\x11\n\trun_count\x18\x01 \x01(\x03\x12\x18\n\x10\x61ll_start_micros\x18\x02 \x01(\x03\x12\x19\n\x11latest_end_micros\x18\x03 \x01(\x03\x12O\n\x11\x61\x63\x63\x65lerator_execs\x18\x04 \x03(\x0b\x32\x34.tensorflow.tfprof.ExecProfile.AcceleratorExecsEntry\x12?\n\tcpu_execs\x18\x05 \x03(\x0b\x32,.tensorflow.tfprof.ExecProfile.CpuExecsEntry\x12\x33\n\x0cmemory_execs\x18\x07 \x03(\x0b\x32\x1d.tensorflow.tfprof.ExecMemory\x12\x31\n\x0b\x61llocations\x18\x0b \x03(\x0b\x32\x1c.tensorflow.AllocationRecord\x12\x0f\n\x07\x64\x65vices\x18\x06 \x03(\t\x1aT\n\x15\x41\x63\x63\x65leratorExecsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12*\n\x05value\x18\x02 \x01(\x0b\x32\x1b.tensorflow.tfprof.ExecTime:\x02\x38\x01\x1aL\n\rCpuExecsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12*\n\x05value\x18\x02 \x01(\x0b\x32\x1b.tensorflow.tfprof.ExecTime:\x02\x38\x01\"3\n\x08\x45xecTime\x12\'\n\x05times\x18\x01 \x03(\x0b\x32\x18.tensorflow.tfprof.Tuple\"\xb4\x03\n\nExecMemory\x12\x15\n\rmemory_micros\x18\x01 \x01(\x03\x12\x17\n\x0fhost_temp_bytes\x18\x02 \x01(\x03\x12\x1d\n\x15host_persistent_bytes\x18\x03 \x01(\x03\x12\x1e\n\x16\x61\x63\x63\x65lerator_temp_bytes\x18\x04 \x01(\x03\x12$\n\x1c\x61\x63\x63\x65lerator_persistent_bytes\x18\x05 \x01(\x03\x12\x17\n\x0frequested_bytes\x18\x06 \x01(\x03\x12\x12\n\npeak_bytes\x18\x07 \x01(\x03\x12\x16\n\x0eresidual_bytes\x18\x08 \x01(\x03\x12\x14\n\x0coutput_bytes\x18\t \x01(\x03\x12\x1e\n\x16\x61llocator_bytes_in_use\x18\n \x01(\x03\x12\x46\n\routput_memory\x18\x0b \x03(\x0b\x32/.tensorflow.tfprof.ExecMemory.OutputMemoryEntry\x1aN\n\x11OutputMemoryEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12(\n\x05value\x18\x02 \x01(\x0b\x32\x19.tensorflow.tfprof.Memory:\x02\x38\x01\"\x1d\n\x05Tuple\x12\x14\n\x0cint64_values\x18\x01 \x03(\x03\"$\n\x06Memory\x12\r\n\x05\x62ytes\x18\x01 \x01(\x03\x12\x0b\n\x03ptr\x18\x02 \x01(\x04\x62\x06proto3')
+  serialized_pb=_b('\n)tensorflow/core/profiler/tfprof_log.proto\x12\x11tensorflow.tfprof\x1a*tensorflow/core/framework/attr_value.proto\x1a*tensorflow/core/framework/step_stats.proto\"\xdf\x01\n\x07\x43odeDef\x12\x30\n\x06traces\x18\x01 \x03(\x0b\x32 .tensorflow.tfprof.CodeDef.Trace\x1a\xa1\x01\n\x05Trace\x12\x10\n\x04\x66ile\x18\x01 \x01(\tB\x02\x18\x01\x12\x0f\n\x07\x66ile_id\x18\x06 \x01(\x03\x12\x0e\n\x06lineno\x18\x02 \x01(\x05\x12\x14\n\x08\x66unction\x18\x03 \x01(\tB\x02\x18\x01\x12\x13\n\x0b\x66unction_id\x18\x07 \x01(\x03\x12\x10\n\x04line\x18\x04 \x01(\tB\x02\x18\x01\x12\x0f\n\x07line_id\x18\x08 \x01(\x03\x12\x17\n\x0f\x66unc_start_line\x18\x05 \x01(\x05\"j\n\nOpLogEntry\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x11\n\tfloat_ops\x18\x02 \x01(\x03\x12\r\n\x05types\x18\x03 \x03(\t\x12,\n\x08\x63ode_def\x18\x04 \x01(\x0b\x32\x1a.tensorflow.tfprof.CodeDef\"\xb8\x01\n\nOpLogProto\x12\x32\n\x0blog_entries\x18\x01 \x03(\x0b\x32\x1d.tensorflow.tfprof.OpLogEntry\x12\x43\n\x0cid_to_string\x18\x02 \x03(\x0b\x32-.tensorflow.tfprof.OpLogProto.IdToStringEntry\x1a\x31\n\x0fIdToStringEntry\x12\x0b\n\x03key\x18\x01 \x01(\x03\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xd4\x02\n\x0cProfileProto\x12\x39\n\x05nodes\x18\x01 \x03(\x0b\x32*.tensorflow.tfprof.ProfileProto.NodesEntry\x12\x11\n\thas_trace\x18\x02 \x01(\x08\x12\x1f\n\x17miss_accelerator_stream\x18\x05 \x01(\x08\x12\r\n\x05steps\x18\x03 \x03(\x03\x12\x45\n\x0cid_to_string\x18\x04 \x03(\x0b\x32/.tensorflow.tfprof.ProfileProto.IdToStringEntry\x1aL\n\nNodesEntry\x12\x0b\n\x03key\x18\x01 \x01(\x03\x12-\n\x05value\x18\x02 \x01(\x0b\x32\x1e.tensorflow.tfprof.ProfileNode:\x02\x38\x01\x1a\x31\n\x0fIdToStringEntry\x12\x0b\n\x03key\x18\x01 \x01(\x03\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xd3\x08\n\x0bProfileNode\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\n\n\x02op\x18\t \x01(\t\x12\n\n\x02id\x18\r \x01(\x03\x12:\n\x06inputs\x18\x02 \x03(\x0b\x32*.tensorflow.tfprof.ProfileNode.InputsEntry\x12\x45\n\x0cinput_shapes\x18\x10 \x03(\x0b\x32/.tensorflow.tfprof.ProfileNode.InputShapesEntry\x12<\n\x07outputs\x18\x03 \x03(\x0b\x32+.tensorflow.tfprof.ProfileNode.OutputsEntry\x12G\n\routput_shapes\x18\x0f \x03(\x0b\x32\x30.tensorflow.tfprof.ProfileNode.OutputShapesEntry\x12L\n\x10src_output_index\x18\x0e \x03(\x0b\x32\x32.tensorflow.tfprof.ProfileNode.SrcOutputIndexEntry\x12\r\n\x05shape\x18\x04 \x03(\x03\x12\x10\n\x08op_types\x18\x05 \x03(\t\x12\x18\n\x10\x63\x61nonical_device\x18\x06 \x01(\t\x12\x13\n\x0bhost_device\x18\x07 \x01(\t\x12\x11\n\tfloat_ops\x18\x08 \x01(\x03\x12)\n\x05trace\x18\n \x01(\x0b\x32\x1a.tensorflow.tfprof.CodeDef\x12\x38\n\x05\x61ttrs\x18\x0b \x03(\x0b\x32).tensorflow.tfprof.ProfileNode.AttrsEntry\x12\x38\n\x05\x65xecs\x18\x0c \x03(\x0b\x32).tensorflow.tfprof.ProfileNode.ExecsEntry\x1a-\n\x0bInputsEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12\r\n\x05value\x18\x02 \x01(\x03:\x02\x38\x01\x1aL\n\x10InputShapesEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12\'\n\x05value\x18\x02 \x01(\x0b\x32\x18.tensorflow.tfprof.Tuple:\x02\x38\x01\x1a.\n\x0cOutputsEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12\r\n\x05value\x18\x02 \x01(\x03:\x02\x38\x01\x1aM\n\x11OutputShapesEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12\'\n\x05value\x18\x02 \x01(\x0b\x32\x18.tensorflow.tfprof.Tuple:\x02\x38\x01\x1a\x35\n\x13SrcOutputIndexEntry\x12\x0b\n\x03key\x18\x01 \x01(\x03\x12\r\n\x05value\x18\x02 \x01(\x05:\x02\x38\x01\x1a\x43\n\nAttrsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12$\n\x05value\x18\x02 \x01(\x0b\x32\x15.tensorflow.AttrValue:\x02\x38\x01\x1aL\n\nExecsEntry\x12\x0b\n\x03key\x18\x01 \x01(\x03\x12-\n\x05value\x18\x02 \x01(\x0b\x32\x1e.tensorflow.tfprof.ExecProfile:\x02\x38\x01\"\x84\x04\n\x0b\x45xecProfile\x12\x11\n\trun_count\x18\x01 \x01(\x03\x12\x18\n\x10\x61ll_start_micros\x18\x02 \x01(\x03\x12\x19\n\x11latest_end_micros\x18\x03 \x01(\x03\x12O\n\x11\x61\x63\x63\x65lerator_execs\x18\x04 \x03(\x0b\x32\x34.tensorflow.tfprof.ExecProfile.AcceleratorExecsEntry\x12?\n\tcpu_execs\x18\x05 \x03(\x0b\x32,.tensorflow.tfprof.ExecProfile.CpuExecsEntry\x12\x33\n\x0cmemory_execs\x18\x07 \x03(\x0b\x32\x1d.tensorflow.tfprof.ExecMemory\x12\x31\n\x0b\x61llocations\x18\x0b \x03(\x0b\x32\x1c.tensorflow.AllocationRecord\x12\x0f\n\x07\x64\x65vices\x18\x06 \x03(\t\x1aT\n\x15\x41\x63\x63\x65leratorExecsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12*\n\x05value\x18\x02 \x01(\x0b\x32\x1b.tensorflow.tfprof.ExecTime:\x02\x38\x01\x1aL\n\rCpuExecsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12*\n\x05value\x18\x02 \x01(\x0b\x32\x1b.tensorflow.tfprof.ExecTime:\x02\x38\x01\"3\n\x08\x45xecTime\x12\'\n\x05times\x18\x01 \x03(\x0b\x32\x18.tensorflow.tfprof.Tuple\"\xb4\x03\n\nExecMemory\x12\x15\n\rmemory_micros\x18\x01 \x01(\x03\x12\x17\n\x0fhost_temp_bytes\x18\x02 \x01(\x03\x12\x1d\n\x15host_persistent_bytes\x18\x03 \x01(\x03\x12\x1e\n\x16\x61\x63\x63\x65lerator_temp_bytes\x18\x04 \x01(\x03\x12$\n\x1c\x61\x63\x63\x65lerator_persistent_bytes\x18\x05 \x01(\x03\x12\x17\n\x0frequested_bytes\x18\x06 \x01(\x03\x12\x12\n\npeak_bytes\x18\x07 \x01(\x03\x12\x16\n\x0eresidual_bytes\x18\x08 \x01(\x03\x12\x14\n\x0coutput_bytes\x18\t \x01(\x03\x12\x1e\n\x16\x61llocator_bytes_in_use\x18\n \x01(\x03\x12\x46\n\routput_memory\x18\x0b \x03(\x0b\x32/.tensorflow.tfprof.ExecMemory.OutputMemoryEntry\x1aN\n\x11OutputMemoryEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12(\n\x05value\x18\x02 \x01(\x0b\x32\x19.tensorflow.tfprof.Memory:\x02\x38\x01\"\x1d\n\x05Tuple\x12\x14\n\x0cint64_values\x18\x01 \x03(\x03\"$\n\x06Memory\x12\r\n\x05\x62ytes\x18\x01 \x01(\x03\x12\x0b\n\x03ptr\x18\x02 \x01(\x04\x62\x06proto3')
   ,
   dependencies=[tensorflow_dot_core_dot_framework_dot_attr__value__pb2.DESCRIPTOR,tensorflow_dot_core_dot_framework_dot_step__stats__pb2.DESCRIPTOR,])
 
@@ -41,56 +41,56 @@ _CODEDEF_TRACE = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\030\001'))),
+      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\030\001')), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='file_id', full_name='tensorflow.tfprof.CodeDef.Trace.file_id', index=1,
       number=6, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='lineno', full_name='tensorflow.tfprof.CodeDef.Trace.lineno', index=2,
       number=2, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='function', full_name='tensorflow.tfprof.CodeDef.Trace.function', index=3,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\030\001'))),
+      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\030\001')), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='function_id', full_name='tensorflow.tfprof.CodeDef.Trace.function_id', index=4,
       number=7, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='line', full_name='tensorflow.tfprof.CodeDef.Trace.line', index=5,
       number=4, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\030\001'))),
+      options=_descriptor._ParseOptions(descriptor_pb2.FieldOptions(), _b('\030\001')), file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='line_id', full_name='tensorflow.tfprof.CodeDef.Trace.line_id', index=6,
       number=8, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='func_start_line', full_name='tensorflow.tfprof.CodeDef.Trace.func_start_line', index=7,
       number=5, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -120,7 +120,7 @@ _CODEDEF = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -151,28 +151,28 @@ _OPLOGENTRY = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='float_ops', full_name='tensorflow.tfprof.OpLogEntry.float_ops', index=1,
       number=2, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='types', full_name='tensorflow.tfprof.OpLogEntry.types', index=2,
       number=3, type=9, cpp_type=9, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='code_def', full_name='tensorflow.tfprof.OpLogEntry.code_def', index=3,
       number=4, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -203,14 +203,14 @@ _OPLOGPROTO_IDTOSTRINGENTRY = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='value', full_name='tensorflow.tfprof.OpLogProto.IdToStringEntry.value', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -240,14 +240,14 @@ _OPLOGPROTO = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='id_to_string', full_name='tensorflow.tfprof.OpLogProto.id_to_string', index=1,
       number=2, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -278,14 +278,14 @@ _PROFILEPROTO_NODESENTRY = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='value', full_name='tensorflow.tfprof.ProfileProto.NodesEntry.value', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -298,8 +298,8 @@ _PROFILEPROTO_NODESENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=854,
-  serialized_end=930,
+  serialized_start=887,
+  serialized_end=963,
 )
 
 _PROFILEPROTO_IDTOSTRINGENTRY = _descriptor.Descriptor(
@@ -315,14 +315,14 @@ _PROFILEPROTO_IDTOSTRINGENTRY = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='value', full_name='tensorflow.tfprof.ProfileProto.IdToStringEntry.value', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -352,28 +352,35 @@ _PROFILEPROTO = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='has_trace', full_name='tensorflow.tfprof.ProfileProto.has_trace', index=1,
       number=2, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='steps', full_name='tensorflow.tfprof.ProfileProto.steps', index=2,
+      name='miss_accelerator_stream', full_name='tensorflow.tfprof.ProfileProto.miss_accelerator_stream', index=2,
+      number=5, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='steps', full_name='tensorflow.tfprof.ProfileProto.steps', index=3,
       number=3, type=3, cpp_type=2, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='id_to_string', full_name='tensorflow.tfprof.ProfileProto.id_to_string', index=3,
+      name='id_to_string', full_name='tensorflow.tfprof.ProfileProto.id_to_string', index=4,
       number=4, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -387,7 +394,7 @@ _PROFILEPROTO = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=674,
-  serialized_end=981,
+  serialized_end=1014,
 )
 
 
@@ -404,14 +411,14 @@ _PROFILENODE_INPUTSENTRY = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='value', full_name='tensorflow.tfprof.ProfileNode.InputsEntry.value', index=1,
       number=2, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -424,8 +431,8 @@ _PROFILENODE_INPUTSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1639,
-  serialized_end=1684,
+  serialized_start=1672,
+  serialized_end=1717,
 )
 
 _PROFILENODE_INPUTSHAPESENTRY = _descriptor.Descriptor(
@@ -441,14 +448,14 @@ _PROFILENODE_INPUTSHAPESENTRY = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='value', full_name='tensorflow.tfprof.ProfileNode.InputShapesEntry.value', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -461,8 +468,8 @@ _PROFILENODE_INPUTSHAPESENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1686,
-  serialized_end=1762,
+  serialized_start=1719,
+  serialized_end=1795,
 )
 
 _PROFILENODE_OUTPUTSENTRY = _descriptor.Descriptor(
@@ -478,14 +485,14 @@ _PROFILENODE_OUTPUTSENTRY = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='value', full_name='tensorflow.tfprof.ProfileNode.OutputsEntry.value', index=1,
       number=2, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -498,8 +505,8 @@ _PROFILENODE_OUTPUTSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1764,
-  serialized_end=1810,
+  serialized_start=1797,
+  serialized_end=1843,
 )
 
 _PROFILENODE_OUTPUTSHAPESENTRY = _descriptor.Descriptor(
@@ -515,14 +522,14 @@ _PROFILENODE_OUTPUTSHAPESENTRY = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='value', full_name='tensorflow.tfprof.ProfileNode.OutputShapesEntry.value', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -535,8 +542,8 @@ _PROFILENODE_OUTPUTSHAPESENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1812,
-  serialized_end=1889,
+  serialized_start=1845,
+  serialized_end=1922,
 )
 
 _PROFILENODE_SRCOUTPUTINDEXENTRY = _descriptor.Descriptor(
@@ -552,14 +559,14 @@ _PROFILENODE_SRCOUTPUTINDEXENTRY = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='value', full_name='tensorflow.tfprof.ProfileNode.SrcOutputIndexEntry.value', index=1,
       number=2, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -572,8 +579,8 @@ _PROFILENODE_SRCOUTPUTINDEXENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1891,
-  serialized_end=1944,
+  serialized_start=1924,
+  serialized_end=1977,
 )
 
 _PROFILENODE_ATTRSENTRY = _descriptor.Descriptor(
@@ -589,14 +596,14 @@ _PROFILENODE_ATTRSENTRY = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='value', full_name='tensorflow.tfprof.ProfileNode.AttrsEntry.value', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -609,8 +616,8 @@ _PROFILENODE_ATTRSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1946,
-  serialized_end=2013,
+  serialized_start=1979,
+  serialized_end=2046,
 )
 
 _PROFILENODE_EXECSENTRY = _descriptor.Descriptor(
@@ -626,14 +633,14 @@ _PROFILENODE_EXECSENTRY = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='value', full_name='tensorflow.tfprof.ProfileNode.ExecsEntry.value', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -646,8 +653,8 @@ _PROFILENODE_EXECSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2015,
-  serialized_end=2091,
+  serialized_start=2048,
+  serialized_end=2124,
 )
 
 _PROFILENODE = _descriptor.Descriptor(
@@ -663,112 +670,112 @@ _PROFILENODE = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='op', full_name='tensorflow.tfprof.ProfileNode.op', index=1,
       number=9, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='id', full_name='tensorflow.tfprof.ProfileNode.id', index=2,
       number=13, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='inputs', full_name='tensorflow.tfprof.ProfileNode.inputs', index=3,
       number=2, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='input_shapes', full_name='tensorflow.tfprof.ProfileNode.input_shapes', index=4,
       number=16, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='outputs', full_name='tensorflow.tfprof.ProfileNode.outputs', index=5,
       number=3, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='output_shapes', full_name='tensorflow.tfprof.ProfileNode.output_shapes', index=6,
       number=15, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='src_output_index', full_name='tensorflow.tfprof.ProfileNode.src_output_index', index=7,
       number=14, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='shape', full_name='tensorflow.tfprof.ProfileNode.shape', index=8,
       number=4, type=3, cpp_type=2, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='op_types', full_name='tensorflow.tfprof.ProfileNode.op_types', index=9,
       number=5, type=9, cpp_type=9, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='canonical_device', full_name='tensorflow.tfprof.ProfileNode.canonical_device', index=10,
       number=6, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='host_device', full_name='tensorflow.tfprof.ProfileNode.host_device', index=11,
       number=7, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='float_ops', full_name='tensorflow.tfprof.ProfileNode.float_ops', index=12,
       number=8, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='trace', full_name='tensorflow.tfprof.ProfileNode.trace', index=13,
       number=10, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='attrs', full_name='tensorflow.tfprof.ProfileNode.attrs', index=14,
       number=11, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='execs', full_name='tensorflow.tfprof.ProfileNode.execs', index=15,
       number=12, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -781,8 +788,8 @@ _PROFILENODE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=984,
-  serialized_end=2091,
+  serialized_start=1017,
+  serialized_end=2124,
 )
 
 
@@ -799,14 +806,14 @@ _EXECPROFILE_ACCELERATOREXECSENTRY = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='value', full_name='tensorflow.tfprof.ExecProfile.AcceleratorExecsEntry.value', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -819,8 +826,8 @@ _EXECPROFILE_ACCELERATOREXECSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2448,
-  serialized_end=2532,
+  serialized_start=2481,
+  serialized_end=2565,
 )
 
 _EXECPROFILE_CPUEXECSENTRY = _descriptor.Descriptor(
@@ -836,14 +843,14 @@ _EXECPROFILE_CPUEXECSENTRY = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='value', full_name='tensorflow.tfprof.ExecProfile.CpuExecsEntry.value', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -856,8 +863,8 @@ _EXECPROFILE_CPUEXECSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2534,
-  serialized_end=2610,
+  serialized_start=2567,
+  serialized_end=2643,
 )
 
 _EXECPROFILE = _descriptor.Descriptor(
@@ -873,56 +880,56 @@ _EXECPROFILE = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='all_start_micros', full_name='tensorflow.tfprof.ExecProfile.all_start_micros', index=1,
       number=2, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='latest_end_micros', full_name='tensorflow.tfprof.ExecProfile.latest_end_micros', index=2,
       number=3, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='accelerator_execs', full_name='tensorflow.tfprof.ExecProfile.accelerator_execs', index=3,
       number=4, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='cpu_execs', full_name='tensorflow.tfprof.ExecProfile.cpu_execs', index=4,
       number=5, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='memory_execs', full_name='tensorflow.tfprof.ExecProfile.memory_execs', index=5,
       number=7, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='allocations', full_name='tensorflow.tfprof.ExecProfile.allocations', index=6,
       number=11, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='devices', full_name='tensorflow.tfprof.ExecProfile.devices', index=7,
       number=6, type=9, cpp_type=9, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -935,8 +942,8 @@ _EXECPROFILE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2094,
-  serialized_end=2610,
+  serialized_start=2127,
+  serialized_end=2643,
 )
 
 
@@ -953,7 +960,7 @@ _EXECTIME = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -966,8 +973,8 @@ _EXECTIME = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2612,
-  serialized_end=2663,
+  serialized_start=2645,
+  serialized_end=2696,
 )
 
 
@@ -984,14 +991,14 @@ _EXECMEMORY_OUTPUTMEMORYENTRY = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='value', full_name='tensorflow.tfprof.ExecMemory.OutputMemoryEntry.value', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -1004,8 +1011,8 @@ _EXECMEMORY_OUTPUTMEMORYENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3024,
-  serialized_end=3102,
+  serialized_start=3057,
+  serialized_end=3135,
 )
 
 _EXECMEMORY = _descriptor.Descriptor(
@@ -1021,77 +1028,77 @@ _EXECMEMORY = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='host_temp_bytes', full_name='tensorflow.tfprof.ExecMemory.host_temp_bytes', index=1,
       number=2, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='host_persistent_bytes', full_name='tensorflow.tfprof.ExecMemory.host_persistent_bytes', index=2,
       number=3, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='accelerator_temp_bytes', full_name='tensorflow.tfprof.ExecMemory.accelerator_temp_bytes', index=3,
       number=4, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='accelerator_persistent_bytes', full_name='tensorflow.tfprof.ExecMemory.accelerator_persistent_bytes', index=4,
       number=5, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='requested_bytes', full_name='tensorflow.tfprof.ExecMemory.requested_bytes', index=5,
       number=6, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='peak_bytes', full_name='tensorflow.tfprof.ExecMemory.peak_bytes', index=6,
       number=7, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='residual_bytes', full_name='tensorflow.tfprof.ExecMemory.residual_bytes', index=7,
       number=8, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='output_bytes', full_name='tensorflow.tfprof.ExecMemory.output_bytes', index=8,
       number=9, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='allocator_bytes_in_use', full_name='tensorflow.tfprof.ExecMemory.allocator_bytes_in_use', index=9,
       number=10, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='output_memory', full_name='tensorflow.tfprof.ExecMemory.output_memory', index=10,
       number=11, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -1104,8 +1111,8 @@ _EXECMEMORY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2666,
-  serialized_end=3102,
+  serialized_start=2699,
+  serialized_end=3135,
 )
 
 
@@ -1122,7 +1129,7 @@ _TUPLE = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -1135,8 +1142,8 @@ _TUPLE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3104,
-  serialized_end=3133,
+  serialized_start=3137,
+  serialized_end=3166,
 )
 
 
@@ -1153,14 +1160,14 @@ _MEMORY = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='ptr', full_name='tensorflow.tfprof.Memory.ptr', index=1,
       number=2, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -1173,8 +1180,8 @@ _MEMORY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3135,
-  serialized_end=3171,
+  serialized_start=3168,
+  serialized_end=3204,
 )
 
 _CODEDEF_TRACE.containing_type = _CODEDEF

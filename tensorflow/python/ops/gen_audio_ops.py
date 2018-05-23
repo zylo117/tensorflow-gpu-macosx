@@ -5,11 +5,14 @@ Original C++ source file: audio_ops.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,7 +24,7 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('AudioSpectrogram')
+@tf_export('audio_spectrogram')
 def audio_spectrogram(input, window_size, stride, magnitude_squared=False, name=None):
   r"""Produces a visualization of audio data over time.
 
@@ -65,15 +68,14 @@ def audio_spectrogram(input, window_size, stride, magnitude_squared=False, name=
 
   Returns:
     A `Tensor` of type `float32`.
-    3D representation of the audio frequencies as an image.
   """
-  window_size = _execute.make_int(window_size, "window_size")
-  stride = _execute.make_int(stride, "stride")
-  if magnitude_squared is None:
-    magnitude_squared = False
-  magnitude_squared = _execute.make_bool(magnitude_squared, "magnitude_squared")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    window_size = _execute.make_int(window_size, "window_size")
+    stride = _execute.make_int(stride, "stride")
+    if magnitude_squared is None:
+      magnitude_squared = False
+    magnitude_squared = _execute.make_bool(magnitude_squared, "magnitude_squared")
     _, _, _op = _op_def_lib._apply_op_helper(
         "AudioSpectrogram", input=input, window_size=window_size,
         stride=stride, magnitude_squared=magnitude_squared, name=name)
@@ -82,13 +84,46 @@ def audio_spectrogram(input, window_size, stride, magnitude_squared=False, name=
     _attrs = ("window_size", _op.get_attr("window_size"), "stride",
               _op.get_attr("stride"), "magnitude_squared",
               _op.get_attr("magnitude_squared"))
+    _execute.record_gradient(
+      "AudioSpectrogram", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    input = _ops.convert_to_tensor(input, _dtypes.float32)
-    _inputs_flat = [input]
-    _attrs = ("window_size", window_size, "stride", stride,
-              "magnitude_squared", magnitude_squared)
-    _result = _execute.execute(b"AudioSpectrogram", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "AudioSpectrogram", name,
+        _ctx._post_execution_callbacks, input, "window_size", window_size,
+        "stride", stride, "magnitude_squared", magnitude_squared)
+      return _result
+    except _core._FallbackException:
+      return audio_spectrogram_eager_fallback(
+          input, window_size=window_size, stride=stride,
+          magnitude_squared=magnitude_squared, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def audio_spectrogram_eager_fallback(input, window_size, stride, magnitude_squared=False, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function audio_spectrogram
+  """
+  _ctx = _context.context()
+  window_size = _execute.make_int(window_size, "window_size")
+  stride = _execute.make_int(stride, "stride")
+  if magnitude_squared is None:
+    magnitude_squared = False
+  magnitude_squared = _execute.make_bool(magnitude_squared, "magnitude_squared")
+  input = _ops.convert_to_tensor(input, _dtypes.float32)
+  _inputs_flat = [input]
+  _attrs = ("window_size", window_size, "stride", stride, "magnitude_squared",
+  magnitude_squared)
+  _result = _execute.execute(b"AudioSpectrogram", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "AudioSpectrogram", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -100,7 +135,7 @@ _DecodeWavOutput = _collections.namedtuple(
     "DecodeWav", _decode_wav_outputs)
 
 
-@tf_export('DecodeWav')
+@tf_export('decode_wav')
 def decode_wav(contents, desired_channels=-1, desired_samples=-1, name=None):
   r"""Decode a 16-bit PCM WAV file to a float tensor.
 
@@ -131,17 +166,17 @@ def decode_wav(contents, desired_channels=-1, desired_samples=-1, name=None):
   Returns:
     A tuple of `Tensor` objects (audio, sample_rate).
 
-    audio: A `Tensor` of type `float32`. 2-D with shape `[length, channels]`.
-    sample_rate: A `Tensor` of type `int32`. Scalar holding the sample rate found in the WAV header.
+    audio: A `Tensor` of type `float32`.
+    sample_rate: A `Tensor` of type `int32`.
   """
-  if desired_channels is None:
-    desired_channels = -1
-  desired_channels = _execute.make_int(desired_channels, "desired_channels")
-  if desired_samples is None:
-    desired_samples = -1
-  desired_samples = _execute.make_int(desired_samples, "desired_samples")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if desired_channels is None:
+      desired_channels = -1
+    desired_channels = _execute.make_int(desired_channels, "desired_channels")
+    if desired_samples is None:
+      desired_samples = -1
+    desired_samples = _execute.make_int(desired_samples, "desired_samples")
     _, _, _op = _op_def_lib._apply_op_helper(
         "DecodeWav", contents=contents, desired_channels=desired_channels,
         desired_samples=desired_samples, name=name)
@@ -149,20 +184,55 @@ def decode_wav(contents, desired_channels=-1, desired_samples=-1, name=None):
     _inputs_flat = _op.inputs
     _attrs = ("desired_channels", _op.get_attr("desired_channels"),
               "desired_samples", _op.get_attr("desired_samples"))
+    _execute.record_gradient(
+      "DecodeWav", _inputs_flat, _attrs, _result, name)
+    _result = _DecodeWavOutput._make(_result)
+    return _result
+
   else:
-    contents = _ops.convert_to_tensor(contents, _dtypes.string)
-    _inputs_flat = [contents]
-    _attrs = ("desired_channels", desired_channels, "desired_samples",
-              desired_samples)
-    _result = _execute.execute(b"DecodeWav", 2, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "DecodeWav", name,
+        _ctx._post_execution_callbacks, contents, "desired_channels",
+        desired_channels, "desired_samples", desired_samples)
+      _result = _DecodeWavOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return decode_wav_eager_fallback(
+          contents, desired_channels=desired_channels,
+          desired_samples=desired_samples, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def decode_wav_eager_fallback(contents, desired_channels=-1, desired_samples=-1, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function decode_wav
+  """
+  _ctx = _context.context()
+  if desired_channels is None:
+    desired_channels = -1
+  desired_channels = _execute.make_int(desired_channels, "desired_channels")
+  if desired_samples is None:
+    desired_samples = -1
+  desired_samples = _execute.make_int(desired_samples, "desired_samples")
+  contents = _ops.convert_to_tensor(contents, _dtypes.string)
+  _inputs_flat = [contents]
+  _attrs = ("desired_channels", desired_channels, "desired_samples",
+  desired_samples)
+  _result = _execute.execute(b"DecodeWav", 2, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "DecodeWav", _inputs_flat, _attrs, _result, name)
   _result = _DecodeWavOutput._make(_result)
   return _result
 
 
-@tf_export('EncodeWav')
+@tf_export('encode_wav')
 def encode_wav(audio, sample_rate, name=None):
   r"""Encode audio data using the WAV file format.
 
@@ -181,29 +251,55 @@ def encode_wav(audio, sample_rate, name=None):
     name: A name for the operation (optional).
 
   Returns:
-    A `Tensor` of type `string`. 0-D. WAV-encoded file contents.
+    A `Tensor` of type `string`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "EncodeWav", audio=audio, sample_rate=sample_rate, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "EncodeWav", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    audio = _ops.convert_to_tensor(audio, _dtypes.float32)
-    sample_rate = _ops.convert_to_tensor(sample_rate, _dtypes.int32)
-    _inputs_flat = [audio, sample_rate]
-    _attrs = None
-    _result = _execute.execute(b"EncodeWav", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "EncodeWav", name,
+        _ctx._post_execution_callbacks, audio, sample_rate)
+      return _result
+    except _core._FallbackException:
+      return encode_wav_eager_fallback(
+          audio, sample_rate, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def encode_wav_eager_fallback(audio, sample_rate, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function encode_wav
+  """
+  _ctx = _context.context()
+  audio = _ops.convert_to_tensor(audio, _dtypes.float32)
+  sample_rate = _ops.convert_to_tensor(sample_rate, _dtypes.int32)
+  _inputs_flat = [audio, sample_rate]
+  _attrs = None
+  _result = _execute.execute(b"EncodeWav", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "EncodeWav", _inputs_flat, _attrs, _result, name)
   _result, = _result
   return _result
 
 
-@tf_export('Mfcc')
+@tf_export('mfcc')
 def mfcc(spectrogram, sample_rate, upper_frequency_limit=4000, lower_frequency_limit=20, filterbank_channel_count=40, dct_coefficient_count=13, name=None):
   r"""Transforms a spectrogram into a form that's useful for speech recognition.
 
@@ -235,20 +331,20 @@ def mfcc(spectrogram, sample_rate, upper_frequency_limit=4000, lower_frequency_l
   Returns:
     A `Tensor` of type `float32`.
   """
-  if upper_frequency_limit is None:
-    upper_frequency_limit = 4000
-  upper_frequency_limit = _execute.make_float(upper_frequency_limit, "upper_frequency_limit")
-  if lower_frequency_limit is None:
-    lower_frequency_limit = 20
-  lower_frequency_limit = _execute.make_float(lower_frequency_limit, "lower_frequency_limit")
-  if filterbank_channel_count is None:
-    filterbank_channel_count = 40
-  filterbank_channel_count = _execute.make_int(filterbank_channel_count, "filterbank_channel_count")
-  if dct_coefficient_count is None:
-    dct_coefficient_count = 13
-  dct_coefficient_count = _execute.make_int(dct_coefficient_count, "dct_coefficient_count")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if upper_frequency_limit is None:
+      upper_frequency_limit = 4000
+    upper_frequency_limit = _execute.make_float(upper_frequency_limit, "upper_frequency_limit")
+    if lower_frequency_limit is None:
+      lower_frequency_limit = 20
+    lower_frequency_limit = _execute.make_float(lower_frequency_limit, "lower_frequency_limit")
+    if filterbank_channel_count is None:
+      filterbank_channel_count = 40
+    filterbank_channel_count = _execute.make_int(filterbank_channel_count, "filterbank_channel_count")
+    if dct_coefficient_count is None:
+      dct_coefficient_count = 13
+    dct_coefficient_count = _execute.make_int(dct_coefficient_count, "dct_coefficient_count")
     _, _, _op = _op_def_lib._apply_op_helper(
         "Mfcc", spectrogram=spectrogram, sample_rate=sample_rate,
         upper_frequency_limit=upper_frequency_limit,
@@ -262,16 +358,61 @@ def mfcc(spectrogram, sample_rate, upper_frequency_limit=4000, lower_frequency_l
               "filterbank_channel_count",
               _op.get_attr("filterbank_channel_count"),
               "dct_coefficient_count", _op.get_attr("dct_coefficient_count"))
+    _execute.record_gradient(
+      "Mfcc", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    spectrogram = _ops.convert_to_tensor(spectrogram, _dtypes.float32)
-    sample_rate = _ops.convert_to_tensor(sample_rate, _dtypes.int32)
-    _inputs_flat = [spectrogram, sample_rate]
-    _attrs = ("upper_frequency_limit", upper_frequency_limit,
-              "lower_frequency_limit", lower_frequency_limit,
-              "filterbank_channel_count", filterbank_channel_count,
-              "dct_coefficient_count", dct_coefficient_count)
-    _result = _execute.execute(b"Mfcc", 1, inputs=_inputs_flat, attrs=_attrs,
-                               ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "Mfcc", name,
+        _ctx._post_execution_callbacks, spectrogram, sample_rate,
+        "upper_frequency_limit", upper_frequency_limit,
+        "lower_frequency_limit", lower_frequency_limit,
+        "filterbank_channel_count", filterbank_channel_count,
+        "dct_coefficient_count", dct_coefficient_count)
+      return _result
+    except _core._FallbackException:
+      return mfcc_eager_fallback(
+          spectrogram, sample_rate,
+          upper_frequency_limit=upper_frequency_limit,
+          lower_frequency_limit=lower_frequency_limit,
+          filterbank_channel_count=filterbank_channel_count,
+          dct_coefficient_count=dct_coefficient_count, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def mfcc_eager_fallback(spectrogram, sample_rate, upper_frequency_limit=4000, lower_frequency_limit=20, filterbank_channel_count=40, dct_coefficient_count=13, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function mfcc
+  """
+  _ctx = _context.context()
+  if upper_frequency_limit is None:
+    upper_frequency_limit = 4000
+  upper_frequency_limit = _execute.make_float(upper_frequency_limit, "upper_frequency_limit")
+  if lower_frequency_limit is None:
+    lower_frequency_limit = 20
+  lower_frequency_limit = _execute.make_float(lower_frequency_limit, "lower_frequency_limit")
+  if filterbank_channel_count is None:
+    filterbank_channel_count = 40
+  filterbank_channel_count = _execute.make_int(filterbank_channel_count, "filterbank_channel_count")
+  if dct_coefficient_count is None:
+    dct_coefficient_count = 13
+  dct_coefficient_count = _execute.make_int(dct_coefficient_count, "dct_coefficient_count")
+  spectrogram = _ops.convert_to_tensor(spectrogram, _dtypes.float32)
+  sample_rate = _ops.convert_to_tensor(sample_rate, _dtypes.int32)
+  _inputs_flat = [spectrogram, sample_rate]
+  _attrs = ("upper_frequency_limit", upper_frequency_limit,
+  "lower_frequency_limit", lower_frequency_limit, "filterbank_channel_count",
+  filterbank_channel_count, "dct_coefficient_count", dct_coefficient_count)
+  _result = _execute.execute(b"Mfcc", 1, inputs=_inputs_flat, attrs=_attrs,
+                             ctx=_ctx, name=name)
   _execute.record_gradient(
       "Mfcc", _inputs_flat, _attrs, _result, name)
   _result, = _result

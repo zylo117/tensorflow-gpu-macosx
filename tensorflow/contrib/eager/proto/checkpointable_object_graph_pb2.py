@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='tensorflow/contrib/eager/proto/checkpointable_object_graph.proto',
   package='tensorflow.contrib.eager',
   syntax='proto3',
-  serialized_pb=_b('\n@tensorflow/contrib/eager/proto/checkpointable_object_graph.proto\x12\x18tensorflow.contrib.eager\"\xaa\x05\n\x19\x43heckpointableObjectGraph\x12I\n\x05nodes\x18\x01 \x03(\x0b\x32:.tensorflow.contrib.eager.CheckpointableObjectGraph.Object\x1a\xc1\x04\n\x06Object\x12\\\n\x08\x63hildren\x18\x01 \x03(\x0b\x32J.tensorflow.contrib.eager.CheckpointableObjectGraph.Object.ObjectReference\x12_\n\tvariables\x18\x02 \x03(\x0b\x32L.tensorflow.contrib.eager.CheckpointableObjectGraph.Object.VariableReference\x12h\n\x0eslot_variables\x18\x03 \x03(\x0b\x32P.tensorflow.contrib.eager.CheckpointableObjectGraph.Object.SlotVariableReference\x1aI\n\x0fObjectReference\x12\x0f\n\x07node_id\x18\x01 \x01(\x05\x12\x11\n\tlocal_uid\x18\x02 \x01(\x05\x12\x12\n\nlocal_name\x18\x03 \x01(\t\x1a:\n\x11VariableReference\x12\x12\n\nlocal_name\x18\x01 \x01(\t\x12\x11\n\tfull_name\x18\x02 \x01(\t\x1a\x86\x01\n\x15SlotVariableReference\x12!\n\x19original_variable_node_id\x18\x01 \x01(\x05\x12$\n\x1coriginal_variable_local_name\x18\x02 \x01(\t\x12\x11\n\tslot_name\x18\x03 \x01(\t\x12\x11\n\tfull_name\x18\x04 \x01(\tB\x03\xf8\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n@tensorflow/contrib/eager/proto/checkpointable_object_graph.proto\x12\x18tensorflow.contrib.eager\"\x8d\x05\n\x19\x43heckpointableObjectGraph\x12I\n\x05nodes\x18\x01 \x03(\x0b\x32:.tensorflow.contrib.eager.CheckpointableObjectGraph.Object\x1a\xa4\x04\n\x06Object\x12\\\n\x08\x63hildren\x18\x01 \x03(\x0b\x32J.tensorflow.contrib.eager.CheckpointableObjectGraph.Object.ObjectReference\x12_\n\nattributes\x18\x02 \x03(\x0b\x32K.tensorflow.contrib.eager.CheckpointableObjectGraph.Object.SerializedTensor\x12h\n\x0eslot_variables\x18\x03 \x03(\x0b\x32P.tensorflow.contrib.eager.CheckpointableObjectGraph.Object.SlotVariableReference\x1a\x36\n\x0fObjectReference\x12\x0f\n\x07node_id\x18\x01 \x01(\x05\x12\x12\n\nlocal_name\x18\x02 \x01(\t\x1aK\n\x10SerializedTensor\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x11\n\tfull_name\x18\x02 \x01(\t\x12\x16\n\x0e\x63heckpoint_key\x18\x03 \x01(\t\x1al\n\x15SlotVariableReference\x12!\n\x19original_variable_node_id\x18\x01 \x01(\x05\x12\x11\n\tslot_name\x18\x02 \x01(\t\x12\x1d\n\x15slot_variable_node_id\x18\x03 \x01(\x05\x42\x03\xf8\x01\x01\x62\x06proto3')
 )
 
 
@@ -38,21 +38,14 @@ _CHECKPOINTABLEOBJECTGRAPH_OBJECT_OBJECTREFERENCE = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='local_uid', full_name='tensorflow.contrib.eager.CheckpointableObjectGraph.Object.ObjectReference.local_uid', index=1,
-      number=2, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='local_name', full_name='tensorflow.contrib.eager.CheckpointableObjectGraph.Object.ObjectReference.local_name', index=2,
-      number=3, type=9, cpp_type=9, label=1,
+      name='local_name', full_name='tensorflow.contrib.eager.CheckpointableObjectGraph.Object.ObjectReference.local_name', index=1,
+      number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -66,30 +59,37 @@ _CHECKPOINTABLEOBJECTGRAPH_OBJECT_OBJECTREFERENCE = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=507,
-  serialized_end=580,
+  serialized_end=561,
 )
 
-_CHECKPOINTABLEOBJECTGRAPH_OBJECT_VARIABLEREFERENCE = _descriptor.Descriptor(
-  name='VariableReference',
-  full_name='tensorflow.contrib.eager.CheckpointableObjectGraph.Object.VariableReference',
+_CHECKPOINTABLEOBJECTGRAPH_OBJECT_SERIALIZEDTENSOR = _descriptor.Descriptor(
+  name='SerializedTensor',
+  full_name='tensorflow.contrib.eager.CheckpointableObjectGraph.Object.SerializedTensor',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='local_name', full_name='tensorflow.contrib.eager.CheckpointableObjectGraph.Object.VariableReference.local_name', index=0,
+      name='name', full_name='tensorflow.contrib.eager.CheckpointableObjectGraph.Object.SerializedTensor.name', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='full_name', full_name='tensorflow.contrib.eager.CheckpointableObjectGraph.Object.VariableReference.full_name', index=1,
+      name='full_name', full_name='tensorflow.contrib.eager.CheckpointableObjectGraph.Object.SerializedTensor.full_name', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='checkpoint_key', full_name='tensorflow.contrib.eager.CheckpointableObjectGraph.Object.SerializedTensor.checkpoint_key', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -102,8 +102,8 @@ _CHECKPOINTABLEOBJECTGRAPH_OBJECT_VARIABLEREFERENCE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=582,
-  serialized_end=640,
+  serialized_start=563,
+  serialized_end=638,
 )
 
 _CHECKPOINTABLEOBJECTGRAPH_OBJECT_SLOTVARIABLEREFERENCE = _descriptor.Descriptor(
@@ -119,28 +119,21 @@ _CHECKPOINTABLEOBJECTGRAPH_OBJECT_SLOTVARIABLEREFERENCE = _descriptor.Descriptor
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='original_variable_local_name', full_name='tensorflow.contrib.eager.CheckpointableObjectGraph.Object.SlotVariableReference.original_variable_local_name', index=1,
+      name='slot_name', full_name='tensorflow.contrib.eager.CheckpointableObjectGraph.Object.SlotVariableReference.slot_name', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='slot_name', full_name='tensorflow.contrib.eager.CheckpointableObjectGraph.Object.SlotVariableReference.slot_name', index=2,
-      number=3, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
+      name='slot_variable_node_id', full_name='tensorflow.contrib.eager.CheckpointableObjectGraph.Object.SlotVariableReference.slot_variable_node_id', index=2,
+      number=3, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='full_name', full_name='tensorflow.contrib.eager.CheckpointableObjectGraph.Object.SlotVariableReference.full_name', index=3,
-      number=4, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -153,8 +146,8 @@ _CHECKPOINTABLEOBJECTGRAPH_OBJECT_SLOTVARIABLEREFERENCE = _descriptor.Descriptor
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=643,
-  serialized_end=777,
+  serialized_start=640,
+  serialized_end=748,
 )
 
 _CHECKPOINTABLEOBJECTGRAPH_OBJECT = _descriptor.Descriptor(
@@ -170,25 +163,25 @@ _CHECKPOINTABLEOBJECTGRAPH_OBJECT = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='variables', full_name='tensorflow.contrib.eager.CheckpointableObjectGraph.Object.variables', index=1,
+      name='attributes', full_name='tensorflow.contrib.eager.CheckpointableObjectGraph.Object.attributes', index=1,
       number=2, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='slot_variables', full_name='tensorflow.contrib.eager.CheckpointableObjectGraph.Object.slot_variables', index=2,
       number=3, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
-  nested_types=[_CHECKPOINTABLEOBJECTGRAPH_OBJECT_OBJECTREFERENCE, _CHECKPOINTABLEOBJECTGRAPH_OBJECT_VARIABLEREFERENCE, _CHECKPOINTABLEOBJECTGRAPH_OBJECT_SLOTVARIABLEREFERENCE, ],
+  nested_types=[_CHECKPOINTABLEOBJECTGRAPH_OBJECT_OBJECTREFERENCE, _CHECKPOINTABLEOBJECTGRAPH_OBJECT_SERIALIZEDTENSOR, _CHECKPOINTABLEOBJECTGRAPH_OBJECT_SLOTVARIABLEREFERENCE, ],
   enum_types=[
   ],
   options=None,
@@ -198,7 +191,7 @@ _CHECKPOINTABLEOBJECTGRAPH_OBJECT = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=200,
-  serialized_end=777,
+  serialized_end=748,
 )
 
 _CHECKPOINTABLEOBJECTGRAPH = _descriptor.Descriptor(
@@ -214,7 +207,7 @@ _CHECKPOINTABLEOBJECTGRAPH = _descriptor.Descriptor(
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -228,14 +221,14 @@ _CHECKPOINTABLEOBJECTGRAPH = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=95,
-  serialized_end=777,
+  serialized_end=748,
 )
 
 _CHECKPOINTABLEOBJECTGRAPH_OBJECT_OBJECTREFERENCE.containing_type = _CHECKPOINTABLEOBJECTGRAPH_OBJECT
-_CHECKPOINTABLEOBJECTGRAPH_OBJECT_VARIABLEREFERENCE.containing_type = _CHECKPOINTABLEOBJECTGRAPH_OBJECT
+_CHECKPOINTABLEOBJECTGRAPH_OBJECT_SERIALIZEDTENSOR.containing_type = _CHECKPOINTABLEOBJECTGRAPH_OBJECT
 _CHECKPOINTABLEOBJECTGRAPH_OBJECT_SLOTVARIABLEREFERENCE.containing_type = _CHECKPOINTABLEOBJECTGRAPH_OBJECT
 _CHECKPOINTABLEOBJECTGRAPH_OBJECT.fields_by_name['children'].message_type = _CHECKPOINTABLEOBJECTGRAPH_OBJECT_OBJECTREFERENCE
-_CHECKPOINTABLEOBJECTGRAPH_OBJECT.fields_by_name['variables'].message_type = _CHECKPOINTABLEOBJECTGRAPH_OBJECT_VARIABLEREFERENCE
+_CHECKPOINTABLEOBJECTGRAPH_OBJECT.fields_by_name['attributes'].message_type = _CHECKPOINTABLEOBJECTGRAPH_OBJECT_SERIALIZEDTENSOR
 _CHECKPOINTABLEOBJECTGRAPH_OBJECT.fields_by_name['slot_variables'].message_type = _CHECKPOINTABLEOBJECTGRAPH_OBJECT_SLOTVARIABLEREFERENCE
 _CHECKPOINTABLEOBJECTGRAPH_OBJECT.containing_type = _CHECKPOINTABLEOBJECTGRAPH
 _CHECKPOINTABLEOBJECTGRAPH.fields_by_name['nodes'].message_type = _CHECKPOINTABLEOBJECTGRAPH_OBJECT
@@ -253,10 +246,10 @@ CheckpointableObjectGraph = _reflection.GeneratedProtocolMessageType('Checkpoint
       ))
     ,
 
-    VariableReference = _reflection.GeneratedProtocolMessageType('VariableReference', (_message.Message,), dict(
-      DESCRIPTOR = _CHECKPOINTABLEOBJECTGRAPH_OBJECT_VARIABLEREFERENCE,
+    SerializedTensor = _reflection.GeneratedProtocolMessageType('SerializedTensor', (_message.Message,), dict(
+      DESCRIPTOR = _CHECKPOINTABLEOBJECTGRAPH_OBJECT_SERIALIZEDTENSOR,
       __module__ = 'tensorflow.contrib.eager.proto.checkpointable_object_graph_pb2'
-      # @@protoc_insertion_point(class_scope:tensorflow.contrib.eager.CheckpointableObjectGraph.Object.VariableReference)
+      # @@protoc_insertion_point(class_scope:tensorflow.contrib.eager.CheckpointableObjectGraph.Object.SerializedTensor)
       ))
     ,
 
@@ -278,7 +271,7 @@ CheckpointableObjectGraph = _reflection.GeneratedProtocolMessageType('Checkpoint
 _sym_db.RegisterMessage(CheckpointableObjectGraph)
 _sym_db.RegisterMessage(CheckpointableObjectGraph.Object)
 _sym_db.RegisterMessage(CheckpointableObjectGraph.Object.ObjectReference)
-_sym_db.RegisterMessage(CheckpointableObjectGraph.Object.VariableReference)
+_sym_db.RegisterMessage(CheckpointableObjectGraph.Object.SerializedTensor)
 _sym_db.RegisterMessage(CheckpointableObjectGraph.Object.SlotVariableReference)
 
 

@@ -5,11 +5,14 @@ Original C++ source file: distort_image_ops.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,7 +24,7 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('AdjustHsvInYiq')
+@tf_export('adjust_hsv_in_yiq')
 def adjust_hsv_in_yiq(images, delta_h, scale_s, scale_v, name=None):
   r"""Adjust the YIQ hue of one or more images.
 
@@ -56,22 +59,48 @@ def adjust_hsv_in_yiq(images, delta_h, scale_s, scale_v, name=None):
     The client can clip them using additional ops in their graph.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "AdjustHsvInYiq", images=images, delta_h=delta_h, scale_s=scale_s,
         scale_v=scale_v, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"))
+    _execute.record_gradient(
+      "AdjustHsvInYiq", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (images,) = _execute.args_to_matching_eager([images], _ctx)
-    delta_h = _ops.convert_to_tensor(delta_h, _dtypes.float32)
-    scale_s = _ops.convert_to_tensor(scale_s, _dtypes.float32)
-    scale_v = _ops.convert_to_tensor(scale_v, _dtypes.float32)
-    _inputs_flat = [images, delta_h, scale_s, scale_v]
-    _attrs = ("T", _attr_T)
-    _result = _execute.execute(b"AdjustHsvInYiq", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "AdjustHsvInYiq", name,
+        _ctx._post_execution_callbacks, images, delta_h, scale_s, scale_v)
+      return _result
+    except _core._FallbackException:
+      return adjust_hsv_in_yiq_eager_fallback(
+          images, delta_h, scale_s, scale_v, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def adjust_hsv_in_yiq_eager_fallback(images, delta_h, scale_s, scale_v, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function adjust_hsv_in_yiq
+  """
+  _ctx = _context.context()
+  _attr_T, (images,) = _execute.args_to_matching_eager([images], _ctx)
+  delta_h = _ops.convert_to_tensor(delta_h, _dtypes.float32)
+  scale_s = _ops.convert_to_tensor(scale_s, _dtypes.float32)
+  scale_v = _ops.convert_to_tensor(scale_v, _dtypes.float32)
+  _inputs_flat = [images, delta_h, scale_s, scale_v]
+  _attrs = ("T", _attr_T)
+  _result = _execute.execute(b"AdjustHsvInYiq", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "AdjustHsvInYiq", _inputs_flat, _attrs, _result, name)
   _result, = _result

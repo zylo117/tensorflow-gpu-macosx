@@ -5,11 +5,14 @@ Original C++ source file: input_pipeline_ops.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,7 +24,7 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('ObtainNext')
+@tf_export('obtain_next')
 def obtain_next(list, counter, name=None):
   r"""Takes a list and returns the next based on a counter in a round-robin fashion.
 
@@ -38,20 +41,22 @@ def obtain_next(list, counter, name=None):
     A `Tensor` of type `string`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "ObtainNext", list=list, counter=counter, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
-  else:
-    raise RuntimeError(
-        "obtain_next op does not support eager execution. Arg 'counter'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "ObtainNext", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
 
+  else:
+    raise RuntimeError("obtain_next op does not support eager execution. Arg 'counter' is a ref.")
+
+
+  raise RuntimeError("obtain_next op does not support eager execution. Arg 'counter' is a ref.")
 _ops.RegisterShape("ObtainNext")(None)
 
 def _InitOpDefLibrary(op_list_proto_bytes):

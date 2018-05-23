@@ -5,11 +5,14 @@ Original C++ source file: memory_stats_ops.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,7 +24,7 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('BytesInUse')
+@tf_export('bytes_in_use')
 def bytes_in_use(name=None):
   r"""TODO: add doc.
 
@@ -32,17 +35,43 @@ def bytes_in_use(name=None):
     A `Tensor` of type `int64`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "BytesInUse", name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "BytesInUse", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _inputs_flat = []
-    _attrs = None
-    _result = _execute.execute(b"BytesInUse", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "BytesInUse", name,
+        _ctx._post_execution_callbacks)
+      return _result
+    except _core._FallbackException:
+      return bytes_in_use_eager_fallback(
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def bytes_in_use_eager_fallback(name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function bytes_in_use
+  """
+  _ctx = _context.context()
+  _inputs_flat = []
+  _attrs = None
+  _result = _execute.execute(b"BytesInUse", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "BytesInUse", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -51,7 +80,7 @@ def bytes_in_use(name=None):
 _ops.RegisterShape("BytesInUse")(None)
 
 
-@tf_export('BytesLimit')
+@tf_export('bytes_limit')
 def bytes_limit(name=None):
   r"""TODO: add doc.
 
@@ -62,17 +91,43 @@ def bytes_limit(name=None):
     A `Tensor` of type `int64`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "BytesLimit", name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "BytesLimit", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _inputs_flat = []
-    _attrs = None
-    _result = _execute.execute(b"BytesLimit", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "BytesLimit", name,
+        _ctx._post_execution_callbacks)
+      return _result
+    except _core._FallbackException:
+      return bytes_limit_eager_fallback(
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def bytes_limit_eager_fallback(name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function bytes_limit
+  """
+  _ctx = _context.context()
+  _inputs_flat = []
+  _attrs = None
+  _result = _execute.execute(b"BytesLimit", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "BytesLimit", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -81,7 +136,7 @@ def bytes_limit(name=None):
 _ops.RegisterShape("BytesLimit")(None)
 
 
-@tf_export('MaxBytesInUse')
+@tf_export('max_bytes_in_use')
 def max_bytes_in_use(name=None):
   r"""TODO: add doc.
 
@@ -92,17 +147,43 @@ def max_bytes_in_use(name=None):
     A `Tensor` of type `int64`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "MaxBytesInUse", name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "MaxBytesInUse", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _inputs_flat = []
-    _attrs = None
-    _result = _execute.execute(b"MaxBytesInUse", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "MaxBytesInUse", name,
+        _ctx._post_execution_callbacks)
+      return _result
+    except _core._FallbackException:
+      return max_bytes_in_use_eager_fallback(
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def max_bytes_in_use_eager_fallback(name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function max_bytes_in_use
+  """
+  _ctx = _context.context()
+  _inputs_flat = []
+  _attrs = None
+  _result = _execute.execute(b"MaxBytesInUse", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "MaxBytesInUse", _inputs_flat, _attrs, _result, name)
   _result, = _result

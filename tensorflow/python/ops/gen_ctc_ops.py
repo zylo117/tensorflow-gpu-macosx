@@ -5,11 +5,14 @@ Original C++ source file: ctc_ops.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,13 +24,13 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-__ctc_beam_search_decoder_outputs = ["decoded_indices", "decoded_values",
-                                    "decoded_shape", "log_probability"]
+_ctc_beam_search_decoder_outputs = ["decoded_indices", "decoded_values",
+                                   "decoded_shape", "log_probability"]
 _CTCBeamSearchDecoderOutput = _collections.namedtuple(
-    "CTCBeamSearchDecoder", __ctc_beam_search_decoder_outputs)
+    "CTCBeamSearchDecoder", _ctc_beam_search_decoder_outputs)
 
 
-def _ctc_beam_search_decoder(inputs, sequence_length, beam_width, top_paths, merge_repeated=True, name=None):
+def ctc_beam_search_decoder(inputs, sequence_length, beam_width, top_paths, merge_repeated=True, name=None):
   r"""Performs beam search decoding on the logits given in input.
 
   A note about the attribute merge_repeated: For the beam search decoder,
@@ -52,25 +55,18 @@ def _ctc_beam_search_decoder(inputs, sequence_length, beam_width, top_paths, mer
   Returns:
     A tuple of `Tensor` objects (decoded_indices, decoded_values, decoded_shape, log_probability).
 
-    decoded_indices: A list of `top_paths` `Tensor` objects with type `int64`. A list (length: top_paths) of indices matrices.  Matrix j,
-      size `(total_decoded_outputs[j] x 2)`, has indices of a
-      `SparseTensor<int64, 2>`.  The rows store: [batch, time].
-    decoded_values: A list of `top_paths` `Tensor` objects with type `int64`. A list (length: top_paths) of values vectors.  Vector j,
-      size `(length total_decoded_outputs[j])`, has the values of a
-      `SparseTensor<int64, 2>`.  The vector stores the decoded classes for beam j.
-    decoded_shape: A list of `top_paths` `Tensor` objects with type `int64`. A list (length: top_paths) of shape vector.  Vector j,
-      size `(2)`, stores the shape of the decoded `SparseTensor[j]`.
-      Its values are: `[batch_size, max_decoded_length[j]]`.
-    log_probability: A `Tensor` of type `float32`. A matrix, shaped: `(batch_size x top_paths)`.  The
-      sequence log-probabilities.
+    decoded_indices: A list of `top_paths` `Tensor` objects with type `int64`.
+    decoded_values: A list of `top_paths` `Tensor` objects with type `int64`.
+    decoded_shape: A list of `top_paths` `Tensor` objects with type `int64`.
+    log_probability: A `Tensor` of type `float32`.
   """
-  beam_width = _execute.make_int(beam_width, "beam_width")
-  top_paths = _execute.make_int(top_paths, "top_paths")
-  if merge_repeated is None:
-    merge_repeated = True
-  merge_repeated = _execute.make_bool(merge_repeated, "merge_repeated")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    beam_width = _execute.make_int(beam_width, "beam_width")
+    top_paths = _execute.make_int(top_paths, "top_paths")
+    if merge_repeated is None:
+      merge_repeated = True
+    merge_repeated = _execute.make_bool(merge_repeated, "merge_repeated")
     _, _, _op = _op_def_lib._apply_op_helper(
         "CTCBeamSearchDecoder", inputs=inputs,
         sequence_length=sequence_length, beam_width=beam_width,
@@ -80,15 +76,52 @@ def _ctc_beam_search_decoder(inputs, sequence_length, beam_width, top_paths, mer
     _attrs = ("beam_width", _op.get_attr("beam_width"), "top_paths",
               _op.get_attr("top_paths"), "merge_repeated",
               _op.get_attr("merge_repeated"))
+    _execute.record_gradient(
+      "CTCBeamSearchDecoder", _inputs_flat, _attrs, _result, name)
+    _result = [_result[:top_paths]] + _result[top_paths:]
+    _result = _result[:1] + [_result[1:1 + top_paths]] + _result[1 + top_paths:]
+    _result = _result[:2] + [_result[2:2 + top_paths]] + _result[2 + top_paths:]
+    _result = _CTCBeamSearchDecoderOutput._make(_result)
+    return _result
+
   else:
-    inputs = _ops.convert_to_tensor(inputs, _dtypes.float32)
-    sequence_length = _ops.convert_to_tensor(sequence_length, _dtypes.int32)
-    _inputs_flat = [inputs, sequence_length]
-    _attrs = ("beam_width", beam_width, "top_paths", top_paths,
-              "merge_repeated", merge_repeated)
-    _result = _execute.execute(b"CTCBeamSearchDecoder", top_paths + top_paths
-                               + top_paths + 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "CTCBeamSearchDecoder", name,
+        _ctx._post_execution_callbacks, inputs, sequence_length, "beam_width",
+        beam_width, "top_paths", top_paths, "merge_repeated", merge_repeated)
+      _result = _CTCBeamSearchDecoderOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return ctc_beam_search_decoder_eager_fallback(
+          inputs, sequence_length, beam_width=beam_width, top_paths=top_paths,
+          merge_repeated=merge_repeated, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def ctc_beam_search_decoder_eager_fallback(inputs, sequence_length, beam_width, top_paths, merge_repeated=True, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function ctc_beam_search_decoder
+  """
+  _ctx = _context.context()
+  beam_width = _execute.make_int(beam_width, "beam_width")
+  top_paths = _execute.make_int(top_paths, "top_paths")
+  if merge_repeated is None:
+    merge_repeated = True
+  merge_repeated = _execute.make_bool(merge_repeated, "merge_repeated")
+  inputs = _ops.convert_to_tensor(inputs, _dtypes.float32)
+  sequence_length = _ops.convert_to_tensor(sequence_length, _dtypes.int32)
+  _inputs_flat = [inputs, sequence_length]
+  _attrs = ("beam_width", beam_width, "top_paths", top_paths,
+  "merge_repeated", merge_repeated)
+  _result = _execute.execute(b"CTCBeamSearchDecoder", top_paths + top_paths +
+                             top_paths + 1, inputs=_inputs_flat, attrs=_attrs,
+                             ctx=_ctx, name=name)
   _execute.record_gradient(
       "CTCBeamSearchDecoder", _inputs_flat, _attrs, _result, name)
   _result = [_result[:top_paths]] + _result[top_paths:]
@@ -98,13 +131,13 @@ def _ctc_beam_search_decoder(inputs, sequence_length, beam_width, top_paths, mer
   return _result
 
 
-__ctc_greedy_decoder_outputs = ["decoded_indices", "decoded_values",
-                               "decoded_shape", "log_probability"]
+_ctc_greedy_decoder_outputs = ["decoded_indices", "decoded_values",
+                              "decoded_shape", "log_probability"]
 _CTCGreedyDecoderOutput = _collections.namedtuple(
-    "CTCGreedyDecoder", __ctc_greedy_decoder_outputs)
+    "CTCGreedyDecoder", _ctc_greedy_decoder_outputs)
 
 
-def _ctc_greedy_decoder(inputs, sequence_length, merge_repeated=False, name=None):
+def ctc_greedy_decoder(inputs, sequence_length, merge_repeated=False, name=None):
   r"""Performs greedy decoding on the logits given in inputs.
 
   A note about the attribute merge_repeated: if enabled, when
@@ -129,45 +162,72 @@ def _ctc_greedy_decoder(inputs, sequence_length, merge_repeated=False, name=None
   Returns:
     A tuple of `Tensor` objects (decoded_indices, decoded_values, decoded_shape, log_probability).
 
-    decoded_indices: A `Tensor` of type `int64`. Indices matrix, size `(total_decoded_outputs x 2)`,
-      of a `SparseTensor<int64, 2>`.  The rows store: [batch, time].
-    decoded_values: A `Tensor` of type `int64`. Values vector, size: `(total_decoded_outputs)`,
-      of a `SparseTensor<int64, 2>`.  The vector stores the decoded classes.
-    decoded_shape: A `Tensor` of type `int64`. Shape vector, size `(2)`, of the decoded SparseTensor.
-      Values are: `[batch_size, max_decoded_length]`.
-    log_probability: A `Tensor` of type `float32`. Matrix, size `(batch_size x 1)`, containing sequence
-      log-probabilities.
+    decoded_indices: A `Tensor` of type `int64`.
+    decoded_values: A `Tensor` of type `int64`.
+    decoded_shape: A `Tensor` of type `int64`.
+    log_probability: A `Tensor` of type `float32`.
   """
-  if merge_repeated is None:
-    merge_repeated = False
-  merge_repeated = _execute.make_bool(merge_repeated, "merge_repeated")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if merge_repeated is None:
+      merge_repeated = False
+    merge_repeated = _execute.make_bool(merge_repeated, "merge_repeated")
     _, _, _op = _op_def_lib._apply_op_helper(
         "CTCGreedyDecoder", inputs=inputs, sequence_length=sequence_length,
         merge_repeated=merge_repeated, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("merge_repeated", _op.get_attr("merge_repeated"))
+    _execute.record_gradient(
+      "CTCGreedyDecoder", _inputs_flat, _attrs, _result, name)
+    _result = _CTCGreedyDecoderOutput._make(_result)
+    return _result
+
   else:
-    inputs = _ops.convert_to_tensor(inputs, _dtypes.float32)
-    sequence_length = _ops.convert_to_tensor(sequence_length, _dtypes.int32)
-    _inputs_flat = [inputs, sequence_length]
-    _attrs = ("merge_repeated", merge_repeated)
-    _result = _execute.execute(b"CTCGreedyDecoder", 4, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "CTCGreedyDecoder", name,
+        _ctx._post_execution_callbacks, inputs, sequence_length,
+        "merge_repeated", merge_repeated)
+      _result = _CTCGreedyDecoderOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return ctc_greedy_decoder_eager_fallback(
+          inputs, sequence_length, merge_repeated=merge_repeated, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def ctc_greedy_decoder_eager_fallback(inputs, sequence_length, merge_repeated=False, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function ctc_greedy_decoder
+  """
+  _ctx = _context.context()
+  if merge_repeated is None:
+    merge_repeated = False
+  merge_repeated = _execute.make_bool(merge_repeated, "merge_repeated")
+  inputs = _ops.convert_to_tensor(inputs, _dtypes.float32)
+  sequence_length = _ops.convert_to_tensor(sequence_length, _dtypes.int32)
+  _inputs_flat = [inputs, sequence_length]
+  _attrs = ("merge_repeated", merge_repeated)
+  _result = _execute.execute(b"CTCGreedyDecoder", 4, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "CTCGreedyDecoder", _inputs_flat, _attrs, _result, name)
   _result = _CTCGreedyDecoderOutput._make(_result)
   return _result
 
 
-__ctc_loss_outputs = ["loss", "gradient"]
+_ctc_loss_outputs = ["loss", "gradient"]
 _CTCLossOutput = _collections.namedtuple(
-    "CTCLoss", __ctc_loss_outputs)
+    "CTCLoss", _ctc_loss_outputs)
 
 
-def _ctc_loss(inputs, labels_indices, labels_values, sequence_length, preprocess_collapse_repeated=False, ctc_merge_repeated=True, ignore_longer_outputs_than_inputs=False, name=None):
+def ctc_loss(inputs, labels_indices, labels_values, sequence_length, preprocess_collapse_repeated=False, ctc_merge_repeated=True, ignore_longer_outputs_than_inputs=False, name=None):
   r"""Calculates the CTC Loss (log probability) for each batch entry.  Also calculates
 
   the gradient.  This class performs the softmax operation for you, so inputs
@@ -200,21 +260,20 @@ def _ctc_loss(inputs, labels_indices, labels_values, sequence_length, preprocess
   Returns:
     A tuple of `Tensor` objects (loss, gradient).
 
-    loss: A `Tensor` of type `float32`. A vector (batch) containing log-probabilities.
-    gradient: A `Tensor` of type `float32`. The gradient of `loss`.  3-D, shape:
-      `(max_time x batch_size x num_classes)`.
+    loss: A `Tensor` of type `float32`.
+    gradient: A `Tensor` of type `float32`.
   """
-  if preprocess_collapse_repeated is None:
-    preprocess_collapse_repeated = False
-  preprocess_collapse_repeated = _execute.make_bool(preprocess_collapse_repeated, "preprocess_collapse_repeated")
-  if ctc_merge_repeated is None:
-    ctc_merge_repeated = True
-  ctc_merge_repeated = _execute.make_bool(ctc_merge_repeated, "ctc_merge_repeated")
-  if ignore_longer_outputs_than_inputs is None:
-    ignore_longer_outputs_than_inputs = False
-  ignore_longer_outputs_than_inputs = _execute.make_bool(ignore_longer_outputs_than_inputs, "ignore_longer_outputs_than_inputs")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if preprocess_collapse_repeated is None:
+      preprocess_collapse_repeated = False
+    preprocess_collapse_repeated = _execute.make_bool(preprocess_collapse_repeated, "preprocess_collapse_repeated")
+    if ctc_merge_repeated is None:
+      ctc_merge_repeated = True
+    ctc_merge_repeated = _execute.make_bool(ctc_merge_repeated, "ctc_merge_repeated")
+    if ignore_longer_outputs_than_inputs is None:
+      ignore_longer_outputs_than_inputs = False
+    ignore_longer_outputs_than_inputs = _execute.make_bool(ignore_longer_outputs_than_inputs, "ignore_longer_outputs_than_inputs")
     _, _, _op = _op_def_lib._apply_op_helper(
         "CTCLoss", inputs=inputs, labels_indices=labels_indices,
         labels_values=labels_values, sequence_length=sequence_length,
@@ -229,18 +288,61 @@ def _ctc_loss(inputs, labels_indices, labels_values, sequence_length, preprocess
               "ctc_merge_repeated", _op.get_attr("ctc_merge_repeated"),
               "ignore_longer_outputs_than_inputs",
               _op.get_attr("ignore_longer_outputs_than_inputs"))
+    _execute.record_gradient(
+      "CTCLoss", _inputs_flat, _attrs, _result, name)
+    _result = _CTCLossOutput._make(_result)
+    return _result
+
   else:
-    inputs = _ops.convert_to_tensor(inputs, _dtypes.float32)
-    labels_indices = _ops.convert_to_tensor(labels_indices, _dtypes.int64)
-    labels_values = _ops.convert_to_tensor(labels_values, _dtypes.int32)
-    sequence_length = _ops.convert_to_tensor(sequence_length, _dtypes.int32)
-    _inputs_flat = [inputs, labels_indices, labels_values, sequence_length]
-    _attrs = ("preprocess_collapse_repeated", preprocess_collapse_repeated,
-              "ctc_merge_repeated", ctc_merge_repeated,
-              "ignore_longer_outputs_than_inputs",
-              ignore_longer_outputs_than_inputs)
-    _result = _execute.execute(b"CTCLoss", 2, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "CTCLoss", name,
+        _ctx._post_execution_callbacks, inputs, labels_indices, labels_values,
+        sequence_length, "preprocess_collapse_repeated",
+        preprocess_collapse_repeated, "ctc_merge_repeated",
+        ctc_merge_repeated, "ignore_longer_outputs_than_inputs",
+        ignore_longer_outputs_than_inputs)
+      _result = _CTCLossOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return ctc_loss_eager_fallback(
+          inputs, labels_indices, labels_values, sequence_length,
+          preprocess_collapse_repeated=preprocess_collapse_repeated,
+          ctc_merge_repeated=ctc_merge_repeated,
+          ignore_longer_outputs_than_inputs=ignore_longer_outputs_than_inputs,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def ctc_loss_eager_fallback(inputs, labels_indices, labels_values, sequence_length, preprocess_collapse_repeated=False, ctc_merge_repeated=True, ignore_longer_outputs_than_inputs=False, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function ctc_loss
+  """
+  _ctx = _context.context()
+  if preprocess_collapse_repeated is None:
+    preprocess_collapse_repeated = False
+  preprocess_collapse_repeated = _execute.make_bool(preprocess_collapse_repeated, "preprocess_collapse_repeated")
+  if ctc_merge_repeated is None:
+    ctc_merge_repeated = True
+  ctc_merge_repeated = _execute.make_bool(ctc_merge_repeated, "ctc_merge_repeated")
+  if ignore_longer_outputs_than_inputs is None:
+    ignore_longer_outputs_than_inputs = False
+  ignore_longer_outputs_than_inputs = _execute.make_bool(ignore_longer_outputs_than_inputs, "ignore_longer_outputs_than_inputs")
+  inputs = _ops.convert_to_tensor(inputs, _dtypes.float32)
+  labels_indices = _ops.convert_to_tensor(labels_indices, _dtypes.int64)
+  labels_values = _ops.convert_to_tensor(labels_values, _dtypes.int32)
+  sequence_length = _ops.convert_to_tensor(sequence_length, _dtypes.int32)
+  _inputs_flat = [inputs, labels_indices, labels_values, sequence_length]
+  _attrs = ("preprocess_collapse_repeated", preprocess_collapse_repeated,
+  "ctc_merge_repeated", ctc_merge_repeated,
+  "ignore_longer_outputs_than_inputs", ignore_longer_outputs_than_inputs)
+  _result = _execute.execute(b"CTCLoss", 2, inputs=_inputs_flat, attrs=_attrs,
+                             ctx=_ctx, name=name)
   _execute.record_gradient(
       "CTCLoss", _inputs_flat, _attrs, _result, name)
   _result = _CTCLossOutput._make(_result)

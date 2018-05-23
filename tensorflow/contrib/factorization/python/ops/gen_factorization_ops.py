@@ -5,11 +5,14 @@ Original C++ source file: gen_factorization_ops.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,7 +24,7 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('MaskedMatmul')
+@tf_export('masked_matmul')
 def masked_matmul(a, b, mask_indices, transpose_a, transpose_b, name=None):
   r"""Computes the product a * b, but only for indices (i, j) in mask_indices. The
 
@@ -62,23 +65,50 @@ def masked_matmul(a, b, mask_indices, transpose_a, transpose_b, name=None):
     prod_values[i] = (a * b)[mask_indices[i, 0], mask_indices[i, 1]].
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "MaskedMatmul", a=a, b=b, mask_indices=mask_indices,
         transpose_a=transpose_a, transpose_b=transpose_b, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "MaskedMatmul", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    a = _ops.convert_to_tensor(a, _dtypes.float32)
-    b = _ops.convert_to_tensor(b, _dtypes.float32)
-    mask_indices = _ops.convert_to_tensor(mask_indices, _dtypes.int64)
-    transpose_a = _ops.convert_to_tensor(transpose_a, _dtypes.bool)
-    transpose_b = _ops.convert_to_tensor(transpose_b, _dtypes.bool)
-    _inputs_flat = [a, b, mask_indices, transpose_a, transpose_b]
-    _attrs = None
-    _result = _execute.execute(b"MaskedMatmul", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "MaskedMatmul", name,
+        _ctx._post_execution_callbacks, a, b, mask_indices, transpose_a,
+        transpose_b)
+      return _result
+    except _core._FallbackException:
+      return masked_matmul_eager_fallback(
+          a, b, mask_indices, transpose_a, transpose_b, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def masked_matmul_eager_fallback(a, b, mask_indices, transpose_a, transpose_b, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function masked_matmul
+  """
+  _ctx = _context.context()
+  a = _ops.convert_to_tensor(a, _dtypes.float32)
+  b = _ops.convert_to_tensor(b, _dtypes.float32)
+  mask_indices = _ops.convert_to_tensor(mask_indices, _dtypes.int64)
+  transpose_a = _ops.convert_to_tensor(transpose_a, _dtypes.bool)
+  transpose_b = _ops.convert_to_tensor(transpose_b, _dtypes.bool)
+  _inputs_flat = [a, b, mask_indices, transpose_a, transpose_b]
+  _attrs = None
+  _result = _execute.execute(b"MaskedMatmul", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "MaskedMatmul", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -92,7 +122,7 @@ _WALSComputePartialLhsAndRhsOutput = _collections.namedtuple(
     "WALSComputePartialLhsAndRhs", _wals_compute_partial_lhs_and_rhs_outputs)
 
 
-@tf_export('WALSComputePartialLhsAndRhs')
+@tf_export('wals_compute_partial_lhs_and_rhs')
 def wals_compute_partial_lhs_and_rhs(factors, factor_weights, unobserved_weights, input_weights, input_indices, input_values, input_block_size, input_is_transpose, name=None):
   r"""Computes the partial left-hand side and right-hand side of WALS update.
 
@@ -121,7 +151,7 @@ def wals_compute_partial_lhs_and_rhs(factors, factor_weights, unobserved_weights
     partial_rhs: A `Tensor` of type `float32`. Matrix with size input_block_size x k.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "WALSComputePartialLhsAndRhs", factors=factors,
         factor_weights=factor_weights, unobserved_weights=unobserved_weights,
@@ -131,20 +161,51 @@ def wals_compute_partial_lhs_and_rhs(factors, factor_weights, unobserved_weights
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "WALSComputePartialLhsAndRhs", _inputs_flat, _attrs, _result, name)
+    _result = _WALSComputePartialLhsAndRhsOutput._make(_result)
+    return _result
+
   else:
-    factors = _ops.convert_to_tensor(factors, _dtypes.float32)
-    factor_weights = _ops.convert_to_tensor(factor_weights, _dtypes.float32)
-    unobserved_weights = _ops.convert_to_tensor(unobserved_weights, _dtypes.float32)
-    input_weights = _ops.convert_to_tensor(input_weights, _dtypes.float32)
-    input_indices = _ops.convert_to_tensor(input_indices, _dtypes.int64)
-    input_values = _ops.convert_to_tensor(input_values, _dtypes.float32)
-    input_block_size = _ops.convert_to_tensor(input_block_size, _dtypes.int64)
-    input_is_transpose = _ops.convert_to_tensor(input_is_transpose, _dtypes.bool)
-    _inputs_flat = [factors, factor_weights, unobserved_weights, input_weights, input_indices, input_values, input_block_size, input_is_transpose]
-    _attrs = None
-    _result = _execute.execute(b"WALSComputePartialLhsAndRhs", 2,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "WALSComputePartialLhsAndRhs", name,
+        _ctx._post_execution_callbacks, factors, factor_weights,
+        unobserved_weights, input_weights, input_indices, input_values,
+        input_block_size, input_is_transpose)
+      _result = _WALSComputePartialLhsAndRhsOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return wals_compute_partial_lhs_and_rhs_eager_fallback(
+          factors, factor_weights, unobserved_weights, input_weights,
+          input_indices, input_values, input_block_size, input_is_transpose,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def wals_compute_partial_lhs_and_rhs_eager_fallback(factors, factor_weights, unobserved_weights, input_weights, input_indices, input_values, input_block_size, input_is_transpose, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function wals_compute_partial_lhs_and_rhs
+  """
+  _ctx = _context.context()
+  factors = _ops.convert_to_tensor(factors, _dtypes.float32)
+  factor_weights = _ops.convert_to_tensor(factor_weights, _dtypes.float32)
+  unobserved_weights = _ops.convert_to_tensor(unobserved_weights, _dtypes.float32)
+  input_weights = _ops.convert_to_tensor(input_weights, _dtypes.float32)
+  input_indices = _ops.convert_to_tensor(input_indices, _dtypes.int64)
+  input_values = _ops.convert_to_tensor(input_values, _dtypes.float32)
+  input_block_size = _ops.convert_to_tensor(input_block_size, _dtypes.int64)
+  input_is_transpose = _ops.convert_to_tensor(input_is_transpose, _dtypes.bool)
+  _inputs_flat = [factors, factor_weights, unobserved_weights, input_weights, input_indices, input_values, input_block_size, input_is_transpose]
+  _attrs = None
+  _result = _execute.execute(b"WALSComputePartialLhsAndRhs", 2,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "WALSComputePartialLhsAndRhs", _inputs_flat, _attrs, _result, name)
   _result = _WALSComputePartialLhsAndRhsOutput._make(_result)

@@ -5,11 +5,14 @@ Original C++ source file: gen_variable_ops.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,7 +24,7 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('ZeroInitializer')
+@tf_export('zero_initializer')
 def zero_initializer(ref, name=None):
   r"""Initialize 'ref' with all zeros. This op requires that the tensor is not
 
@@ -30,7 +33,7 @@ def zero_initializer(ref, name=None):
   if you use this op, you should not run initializer of the 'ref' tensor.
 
   Args:
-    ref: A mutable `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `int64`, `uint8`, `int16`, `int8`, `uint16`, `half`, `uint32`, `uint64`, `bfloat16`.
+    ref: A mutable `Tensor`. Must be one of the following types: `float32`, `float64`, `int32`, `uint8`, `int16`, `int8`, `int64`, `bfloat16`, `uint16`, `half`, `uint32`, `uint64`.
       Should be from a `Variable` node.
     name: A name for the operation (optional).
 
@@ -38,20 +41,22 @@ def zero_initializer(ref, name=None):
     Same as "ref".
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "ZeroInitializer", ref=ref, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = ("T", _op.get_attr("T"))
-  else:
-    raise RuntimeError(
-        "zero_initializer op does not support eager execution. Arg 'output_ref'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "ZeroInitializer", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
 
+  else:
+    raise RuntimeError("zero_initializer op does not support eager execution. Arg 'output_ref' is a ref.")
+
+
+  raise RuntimeError("zero_initializer op does not support eager execution. Arg 'output_ref' is a ref.")
 _ops.RegisterShape("ZeroInitializer")(None)
 
 def _InitOpDefLibrary(op_list_proto_bytes):
@@ -81,18 +86,18 @@ def _InitOpDefLibrary(op_list_proto_bytes):
 #         type: DT_FLOAT
 #         type: DT_DOUBLE
 #         type: DT_INT32
-#         type: DT_INT64
 #         type: DT_UINT8
 #         type: DT_INT16
 #         type: DT_INT8
+#         type: DT_INT64
+#         type: DT_BFLOAT16
 #         type: DT_UINT16
 #         type: DT_HALF
 #         type: DT_UINT32
 #         type: DT_UINT64
-#         type: DT_BFLOAT16
 #       }
 #     }
 #   }
 #   allows_uninitialized_input: true
 # }
-_op_def_lib = _InitOpDefLibrary(b"\nR\n\017ZeroInitializer\022\013\n\003ref\"\001T\200\001\001\032\022\n\noutput_ref\"\001T\200\001\001\"\033\n\001T\022\004type:\020\n\0162\014\001\002\003\t\004\005\006\021\023\026\027\016\230\001\001")
+_op_def_lib = _InitOpDefLibrary(b"\nR\n\017ZeroInitializer\022\013\n\003ref\"\001T\200\001\001\032\022\n\noutput_ref\"\001T\200\001\001\"\033\n\001T\022\004type:\020\n\0162\014\001\002\003\004\005\006\t\016\021\023\026\027\230\001\001")

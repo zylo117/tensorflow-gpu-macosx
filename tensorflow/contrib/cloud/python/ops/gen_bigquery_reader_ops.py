@@ -5,11 +5,14 @@ Original C++ source file: gen_bigquery_reader_ops.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,7 +24,7 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('BigQueryReader')
+@tf_export('big_query_reader')
 def big_query_reader(project_id, dataset_id, table_id, columns, timestamp_millis, container="", shared_name="", test_end_point="", name=None):
   r"""A Reader that outputs rows from a BigQuery table as tensorflow Examples.
 
@@ -48,26 +51,26 @@ def big_query_reader(project_id, dataset_id, table_id, columns, timestamp_millis
   Returns:
     A `Tensor` of type mutable `string`. The handle to reference the Reader.
   """
-  project_id = _execute.make_str(project_id, "project_id")
-  dataset_id = _execute.make_str(dataset_id, "dataset_id")
-  table_id = _execute.make_str(table_id, "table_id")
-  if not isinstance(columns, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'columns' argument to "
-        "'big_query_reader' Op, not %r." % columns)
-  columns = [_execute.make_str(_s, "columns") for _s in columns]
-  timestamp_millis = _execute.make_int(timestamp_millis, "timestamp_millis")
-  if container is None:
-    container = ""
-  container = _execute.make_str(container, "container")
-  if shared_name is None:
-    shared_name = ""
-  shared_name = _execute.make_str(shared_name, "shared_name")
-  if test_end_point is None:
-    test_end_point = ""
-  test_end_point = _execute.make_str(test_end_point, "test_end_point")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    project_id = _execute.make_str(project_id, "project_id")
+    dataset_id = _execute.make_str(dataset_id, "dataset_id")
+    table_id = _execute.make_str(table_id, "table_id")
+    if not isinstance(columns, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'columns' argument to "
+          "'big_query_reader' Op, not %r." % columns)
+    columns = [_execute.make_str(_s, "columns") for _s in columns]
+    timestamp_millis = _execute.make_int(timestamp_millis, "timestamp_millis")
+    if container is None:
+      container = ""
+    container = _execute.make_str(container, "container")
+    if shared_name is None:
+      shared_name = ""
+    shared_name = _execute.make_str(shared_name, "shared_name")
+    if test_end_point is None:
+      test_end_point = ""
+    test_end_point = _execute.make_str(test_end_point, "test_end_point")
     _, _, _op = _op_def_lib._apply_op_helper(
         "BigQueryReader", project_id=project_id, dataset_id=dataset_id,
         table_id=table_id, columns=columns, timestamp_millis=timestamp_millis,
@@ -82,16 +85,18 @@ def big_query_reader(project_id, dataset_id, table_id, columns, timestamp_millis
               _op.get_attr("table_id"), "columns", _op.get_attr("columns"),
               "timestamp_millis", _op.get_attr("timestamp_millis"),
               "test_end_point", _op.get_attr("test_end_point"))
-  else:
-    raise RuntimeError(
-        "big_query_reader op does not support eager execution. Arg 'reader_handle'' is a ref.")
-  _execute.record_gradient(
+    _execute.record_gradient(
       "BigQueryReader", _inputs_flat, _attrs, _result, name)
-  _result, = _result
-  return _result
+    _result, = _result
+    return _result
+
+  else:
+    raise RuntimeError("big_query_reader op does not support eager execution. Arg 'reader_handle' is a ref.")
 
 
-@tf_export('GenerateBigQueryReaderPartitions')
+  raise RuntimeError("big_query_reader op does not support eager execution. Arg 'reader_handle' is a ref.")
+
+@tf_export('generate_big_query_reader_partitions')
 def generate_big_query_reader_partitions(project_id, dataset_id, table_id, columns, timestamp_millis, num_partitions, test_end_point="", name=None):
   r"""Generates serialized partition messages suitable for batch reads.
 
@@ -116,21 +121,21 @@ def generate_big_query_reader_partitions(project_id, dataset_id, table_id, colum
   Returns:
     A `Tensor` of type `string`. Serialized table partitions.
   """
-  project_id = _execute.make_str(project_id, "project_id")
-  dataset_id = _execute.make_str(dataset_id, "dataset_id")
-  table_id = _execute.make_str(table_id, "table_id")
-  if not isinstance(columns, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'columns' argument to "
-        "'generate_big_query_reader_partitions' Op, not %r." % columns)
-  columns = [_execute.make_str(_s, "columns") for _s in columns]
-  timestamp_millis = _execute.make_int(timestamp_millis, "timestamp_millis")
-  num_partitions = _execute.make_int(num_partitions, "num_partitions")
-  if test_end_point is None:
-    test_end_point = ""
-  test_end_point = _execute.make_str(test_end_point, "test_end_point")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    project_id = _execute.make_str(project_id, "project_id")
+    dataset_id = _execute.make_str(dataset_id, "dataset_id")
+    table_id = _execute.make_str(table_id, "table_id")
+    if not isinstance(columns, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'columns' argument to "
+          "'generate_big_query_reader_partitions' Op, not %r." % columns)
+    columns = [_execute.make_str(_s, "columns") for _s in columns]
+    timestamp_millis = _execute.make_int(timestamp_millis, "timestamp_millis")
+    num_partitions = _execute.make_int(num_partitions, "num_partitions")
+    if test_end_point is None:
+      test_end_point = ""
+    test_end_point = _execute.make_str(test_end_point, "test_end_point")
     _, _, _op = _op_def_lib._apply_op_helper(
         "GenerateBigQueryReaderPartitions", project_id=project_id,
         dataset_id=dataset_id, table_id=table_id, columns=columns,
@@ -144,15 +149,59 @@ def generate_big_query_reader_partitions(project_id, dataset_id, table_id, colum
               "timestamp_millis", _op.get_attr("timestamp_millis"),
               "num_partitions", _op.get_attr("num_partitions"),
               "test_end_point", _op.get_attr("test_end_point"))
+    _execute.record_gradient(
+      "GenerateBigQueryReaderPartitions", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _inputs_flat = []
-    _attrs = ("project_id", project_id, "dataset_id", dataset_id, "table_id",
-              table_id, "columns", columns, "timestamp_millis",
-              timestamp_millis, "num_partitions", num_partitions,
-              "test_end_point", test_end_point)
-    _result = _execute.execute(b"GenerateBigQueryReaderPartitions", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "GenerateBigQueryReaderPartitions",
+        name, _ctx._post_execution_callbacks, "project_id", project_id,
+        "dataset_id", dataset_id, "table_id", table_id, "columns", columns,
+        "timestamp_millis", timestamp_millis, "num_partitions",
+        num_partitions, "test_end_point", test_end_point)
+      return _result
+    except _core._FallbackException:
+      return generate_big_query_reader_partitions_eager_fallback(
+          project_id=project_id, dataset_id=dataset_id, table_id=table_id,
+          columns=columns, timestamp_millis=timestamp_millis,
+          num_partitions=num_partitions, test_end_point=test_end_point,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def generate_big_query_reader_partitions_eager_fallback(project_id, dataset_id, table_id, columns, timestamp_millis, num_partitions, test_end_point="", name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function generate_big_query_reader_partitions
+  """
+  _ctx = _context.context()
+  project_id = _execute.make_str(project_id, "project_id")
+  dataset_id = _execute.make_str(dataset_id, "dataset_id")
+  table_id = _execute.make_str(table_id, "table_id")
+  if not isinstance(columns, (list, tuple)):
+    raise TypeError(
+        "Expected list for 'columns' argument to "
+        "'generate_big_query_reader_partitions' Op, not %r." % columns)
+  columns = [_execute.make_str(_s, "columns") for _s in columns]
+  timestamp_millis = _execute.make_int(timestamp_millis, "timestamp_millis")
+  num_partitions = _execute.make_int(num_partitions, "num_partitions")
+  if test_end_point is None:
+    test_end_point = ""
+  test_end_point = _execute.make_str(test_end_point, "test_end_point")
+  _inputs_flat = []
+  _attrs = ("project_id", project_id, "dataset_id", dataset_id, "table_id",
+  table_id, "columns", columns, "timestamp_millis", timestamp_millis,
+  "num_partitions", num_partitions, "test_end_point", test_end_point)
+  _result = _execute.execute(b"GenerateBigQueryReaderPartitions", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "GenerateBigQueryReaderPartitions", _inputs_flat, _attrs, _result, name)
   _result, = _result

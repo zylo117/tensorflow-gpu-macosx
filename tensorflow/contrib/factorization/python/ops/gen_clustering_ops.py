@@ -5,11 +5,14 @@ Original C++ source file: gen_clustering_ops.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,7 +24,7 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('KMC2ChainInitialization')
+@tf_export('kmc2_chain_initialization')
 def kmc2_chain_initialization(distances, seed, name=None):
   r"""Returns the index of a data point that should be added to the seed set.
 
@@ -42,20 +45,46 @@ def kmc2_chain_initialization(distances, seed, name=None):
     A `Tensor` of type `int64`. Scalar with the index of the sampled point.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "KMC2ChainInitialization", distances=distances, seed=seed, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "KMC2ChainInitialization", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    distances = _ops.convert_to_tensor(distances, _dtypes.float32)
-    seed = _ops.convert_to_tensor(seed, _dtypes.int64)
-    _inputs_flat = [distances, seed]
-    _attrs = None
-    _result = _execute.execute(b"KMC2ChainInitialization", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "KMC2ChainInitialization", name,
+        _ctx._post_execution_callbacks, distances, seed)
+      return _result
+    except _core._FallbackException:
+      return kmc2_chain_initialization_eager_fallback(
+          distances, seed, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def kmc2_chain_initialization_eager_fallback(distances, seed, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function kmc2_chain_initialization
+  """
+  _ctx = _context.context()
+  distances = _ops.convert_to_tensor(distances, _dtypes.float32)
+  seed = _ops.convert_to_tensor(seed, _dtypes.int64)
+  _inputs_flat = [distances, seed]
+  _attrs = None
+  _result = _execute.execute(b"KMC2ChainInitialization", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "KMC2ChainInitialization", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -64,7 +93,7 @@ def kmc2_chain_initialization(distances, seed, name=None):
 _ops.RegisterShape("KMC2ChainInitialization")(None)
 
 
-@tf_export('KmeansPlusPlusInitialization')
+@tf_export('kmeans_plus_plus_initialization')
 def kmeans_plus_plus_initialization(points, num_to_sample, seed, num_retries_per_sample, name=None):
   r"""Selects num_to_sample rows of input using the KMeans++ criterion.
 
@@ -93,7 +122,7 @@ def kmeans_plus_plus_initialization(points, num_to_sample, seed, num_retries_per
     Matrix of shape (num_to_sample, d). The sampled rows.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "KmeansPlusPlusInitialization", points=points,
         num_to_sample=num_to_sample, seed=seed,
@@ -101,16 +130,43 @@ def kmeans_plus_plus_initialization(points, num_to_sample, seed, num_retries_per
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "KmeansPlusPlusInitialization", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    points = _ops.convert_to_tensor(points, _dtypes.float32)
-    num_to_sample = _ops.convert_to_tensor(num_to_sample, _dtypes.int64)
-    seed = _ops.convert_to_tensor(seed, _dtypes.int64)
-    num_retries_per_sample = _ops.convert_to_tensor(num_retries_per_sample, _dtypes.int64)
-    _inputs_flat = [points, num_to_sample, seed, num_retries_per_sample]
-    _attrs = None
-    _result = _execute.execute(b"KmeansPlusPlusInitialization", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "KmeansPlusPlusInitialization", name,
+        _ctx._post_execution_callbacks, points, num_to_sample, seed,
+        num_retries_per_sample)
+      return _result
+    except _core._FallbackException:
+      return kmeans_plus_plus_initialization_eager_fallback(
+          points, num_to_sample, seed, num_retries_per_sample, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def kmeans_plus_plus_initialization_eager_fallback(points, num_to_sample, seed, num_retries_per_sample, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function kmeans_plus_plus_initialization
+  """
+  _ctx = _context.context()
+  points = _ops.convert_to_tensor(points, _dtypes.float32)
+  num_to_sample = _ops.convert_to_tensor(num_to_sample, _dtypes.int64)
+  seed = _ops.convert_to_tensor(seed, _dtypes.int64)
+  num_retries_per_sample = _ops.convert_to_tensor(num_retries_per_sample, _dtypes.int64)
+  _inputs_flat = [points, num_to_sample, seed, num_retries_per_sample]
+  _attrs = None
+  _result = _execute.execute(b"KmeansPlusPlusInitialization", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "KmeansPlusPlusInitialization", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -125,7 +181,7 @@ _NearestNeighborsOutput = _collections.namedtuple(
     "NearestNeighbors", _nearest_neighbors_outputs)
 
 
-@tf_export('NearestNeighbors')
+@tf_export('nearest_neighbors')
 def nearest_neighbors(points, centers, k, name=None):
   r"""Selects the k nearest centers for each point.
 
@@ -153,20 +209,47 @@ def nearest_neighbors(points, centers, k, name=None):
       squared L2 distance to the corresponding center in nearest_center_indices.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "NearestNeighbors", points=points, centers=centers, k=k, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "NearestNeighbors", _inputs_flat, _attrs, _result, name)
+    _result = _NearestNeighborsOutput._make(_result)
+    return _result
+
   else:
-    points = _ops.convert_to_tensor(points, _dtypes.float32)
-    centers = _ops.convert_to_tensor(centers, _dtypes.float32)
-    k = _ops.convert_to_tensor(k, _dtypes.int64)
-    _inputs_flat = [points, centers, k]
-    _attrs = None
-    _result = _execute.execute(b"NearestNeighbors", 2, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "NearestNeighbors", name,
+        _ctx._post_execution_callbacks, points, centers, k)
+      _result = _NearestNeighborsOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return nearest_neighbors_eager_fallback(
+          points, centers, k, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def nearest_neighbors_eager_fallback(points, centers, k, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function nearest_neighbors
+  """
+  _ctx = _context.context()
+  points = _ops.convert_to_tensor(points, _dtypes.float32)
+  centers = _ops.convert_to_tensor(centers, _dtypes.float32)
+  k = _ops.convert_to_tensor(k, _dtypes.int64)
+  _inputs_flat = [points, centers, k]
+  _attrs = None
+  _result = _execute.execute(b"NearestNeighbors", 2, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "NearestNeighbors", _inputs_flat, _attrs, _result, name)
   _result = _NearestNeighborsOutput._make(_result)

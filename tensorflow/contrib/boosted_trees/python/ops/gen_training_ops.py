@@ -5,11 +5,14 @@ Original C++ source file: gen_training_ops_py.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,7 +24,7 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('CenterTreeEnsembleBias')
+@tf_export('center_tree_ensemble_bias')
 def center_tree_ensemble_bias(tree_ensemble_handle, stamp_token, next_stamp_token, delta_updates, learner_config, centering_epsilon=0.01, name=None):
   r"""Centers the tree ensemble bias before adding trees based on feature splits.
 
@@ -43,12 +46,12 @@ def center_tree_ensemble_bias(tree_ensemble_handle, stamp_token, next_stamp_toke
     A `Tensor` of type `bool`.
     Scalar indicating whether more centering is needed.
   """
-  learner_config = _execute.make_str(learner_config, "learner_config")
-  if centering_epsilon is None:
-    centering_epsilon = 0.01
-  centering_epsilon = _execute.make_float(centering_epsilon, "centering_epsilon")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    learner_config = _execute.make_str(learner_config, "learner_config")
+    if centering_epsilon is None:
+      centering_epsilon = 0.01
+    centering_epsilon = _execute.make_float(centering_epsilon, "centering_epsilon")
     _, _, _op = _op_def_lib._apply_op_helper(
         "CenterTreeEnsembleBias", tree_ensemble_handle=tree_ensemble_handle,
         stamp_token=stamp_token, next_stamp_token=next_stamp_token,
@@ -58,17 +61,51 @@ def center_tree_ensemble_bias(tree_ensemble_handle, stamp_token, next_stamp_toke
     _inputs_flat = _op.inputs
     _attrs = ("learner_config", _op.get_attr("learner_config"),
               "centering_epsilon", _op.get_attr("centering_epsilon"))
+    _execute.record_gradient(
+      "CenterTreeEnsembleBias", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    tree_ensemble_handle = _ops.convert_to_tensor(tree_ensemble_handle, _dtypes.resource)
-    stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
-    next_stamp_token = _ops.convert_to_tensor(next_stamp_token, _dtypes.int64)
-    delta_updates = _ops.convert_to_tensor(delta_updates, _dtypes.float32)
-    _inputs_flat = [tree_ensemble_handle, stamp_token, next_stamp_token, delta_updates]
-    _attrs = ("learner_config", learner_config, "centering_epsilon",
-              centering_epsilon)
-    _result = _execute.execute(b"CenterTreeEnsembleBias", 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "CenterTreeEnsembleBias", name,
+        _ctx._post_execution_callbacks, tree_ensemble_handle, stamp_token,
+        next_stamp_token, delta_updates, "learner_config", learner_config,
+        "centering_epsilon", centering_epsilon)
+      return _result
+    except _core._FallbackException:
+      return center_tree_ensemble_bias_eager_fallback(
+          tree_ensemble_handle, stamp_token, next_stamp_token, delta_updates,
+          learner_config=learner_config, centering_epsilon=centering_epsilon,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def center_tree_ensemble_bias_eager_fallback(tree_ensemble_handle, stamp_token, next_stamp_token, delta_updates, learner_config, centering_epsilon=0.01, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function center_tree_ensemble_bias
+  """
+  _ctx = _context.context()
+  learner_config = _execute.make_str(learner_config, "learner_config")
+  if centering_epsilon is None:
+    centering_epsilon = 0.01
+  centering_epsilon = _execute.make_float(centering_epsilon, "centering_epsilon")
+  tree_ensemble_handle = _ops.convert_to_tensor(tree_ensemble_handle, _dtypes.resource)
+  stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
+  next_stamp_token = _ops.convert_to_tensor(next_stamp_token, _dtypes.int64)
+  delta_updates = _ops.convert_to_tensor(delta_updates, _dtypes.float32)
+  _inputs_flat = [tree_ensemble_handle, stamp_token, next_stamp_token, delta_updates]
+  _attrs = ("learner_config", learner_config, "centering_epsilon",
+  centering_epsilon)
+  _result = _execute.execute(b"CenterTreeEnsembleBias", 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "CenterTreeEnsembleBias", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -77,7 +114,7 @@ def center_tree_ensemble_bias(tree_ensemble_handle, stamp_token, next_stamp_toke
 _ops.RegisterShape("CenterTreeEnsembleBias")(None)
 
 
-@tf_export('GrowTreeEnsemble')
+@tf_export('grow_tree_ensemble')
 def grow_tree_ensemble(tree_ensemble_handle, stamp_token, next_stamp_token, learning_rate, dropout_seed, partition_ids, gains, splits, learner_config, center_bias, name=None):
   r"""Grows the tree ensemble by either adding a layer to the last tree being grown
 
@@ -106,6 +143,69 @@ def grow_tree_ensemble(tree_ensemble_handle, stamp_token, next_stamp_token, lear
   Returns:
     The created Operation.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(partition_ids, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'partition_ids' argument to "
+          "'grow_tree_ensemble' Op, not %r." % partition_ids)
+    _attr_num_handlers = len(partition_ids)
+    if not isinstance(gains, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'gains' argument to "
+          "'grow_tree_ensemble' Op, not %r." % gains)
+    if len(gains) != _attr_num_handlers:
+      raise ValueError(
+          "List argument 'gains' to 'grow_tree_ensemble' Op with length %d "
+          "must match length %d of argument 'partition_ids'." %
+          (len(gains), _attr_num_handlers))
+    if not isinstance(splits, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'splits' argument to "
+          "'grow_tree_ensemble' Op, not %r." % splits)
+    if len(splits) != _attr_num_handlers:
+      raise ValueError(
+          "List argument 'splits' to 'grow_tree_ensemble' Op with length %d "
+          "must match length %d of argument 'partition_ids'." %
+          (len(splits), _attr_num_handlers))
+    learner_config = _execute.make_str(learner_config, "learner_config")
+    center_bias = _execute.make_bool(center_bias, "center_bias")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "GrowTreeEnsemble", tree_ensemble_handle=tree_ensemble_handle,
+        stamp_token=stamp_token, next_stamp_token=next_stamp_token,
+        learning_rate=learning_rate, dropout_seed=dropout_seed,
+        partition_ids=partition_ids, gains=gains, splits=splits,
+        learner_config=learner_config, center_bias=center_bias, name=name)
+    return _op
+    _result = None
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "GrowTreeEnsemble", name,
+        _ctx._post_execution_callbacks, tree_ensemble_handle, stamp_token,
+        next_stamp_token, learning_rate, dropout_seed, partition_ids, gains,
+        splits, "learner_config", learner_config, "center_bias", center_bias)
+      return _result
+    except _core._FallbackException:
+      return grow_tree_ensemble_eager_fallback(
+          tree_ensemble_handle, stamp_token, next_stamp_token, learning_rate,
+          dropout_seed, partition_ids, gains, splits,
+          learner_config=learner_config, center_bias=center_bias, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def grow_tree_ensemble_eager_fallback(tree_ensemble_handle, stamp_token, next_stamp_token, learning_rate, dropout_seed, partition_ids, gains, splits, learner_config, center_bias, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function grow_tree_ensemble
+  """
+  _ctx = _context.context()
   if not isinstance(partition_ids, (list, tuple)):
     raise TypeError(
         "Expected list for 'partition_ids' argument to "
@@ -131,30 +231,20 @@ def grow_tree_ensemble(tree_ensemble_handle, stamp_token, next_stamp_token, lear
         (len(splits), _attr_num_handlers))
   learner_config = _execute.make_str(learner_config, "learner_config")
   center_bias = _execute.make_bool(center_bias, "center_bias")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "GrowTreeEnsemble", tree_ensemble_handle=tree_ensemble_handle,
-        stamp_token=stamp_token, next_stamp_token=next_stamp_token,
-        learning_rate=learning_rate, dropout_seed=dropout_seed,
-        partition_ids=partition_ids, gains=gains, splits=splits,
-        learner_config=learner_config, center_bias=center_bias, name=name)
-    return _op
-  else:
-    tree_ensemble_handle = _ops.convert_to_tensor(tree_ensemble_handle, _dtypes.resource)
-    stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
-    next_stamp_token = _ops.convert_to_tensor(next_stamp_token, _dtypes.int64)
-    learning_rate = _ops.convert_to_tensor(learning_rate, _dtypes.float32)
-    dropout_seed = _ops.convert_to_tensor(dropout_seed, _dtypes.int64)
-    partition_ids = _ops.convert_n_to_tensor(partition_ids, _dtypes.int32)
-    gains = _ops.convert_n_to_tensor(gains, _dtypes.float32)
-    splits = _ops.convert_n_to_tensor(splits, _dtypes.string)
-    _inputs_flat = [tree_ensemble_handle, stamp_token, next_stamp_token, learning_rate, dropout_seed] + list(partition_ids) + list(gains) + list(splits)
-    _attrs = ("learner_config", learner_config, "num_handlers",
-              _attr_num_handlers, "center_bias", center_bias)
-    _result = _execute.execute(b"GrowTreeEnsemble", 0, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
-    _result = None
+  tree_ensemble_handle = _ops.convert_to_tensor(tree_ensemble_handle, _dtypes.resource)
+  stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
+  next_stamp_token = _ops.convert_to_tensor(next_stamp_token, _dtypes.int64)
+  learning_rate = _ops.convert_to_tensor(learning_rate, _dtypes.float32)
+  dropout_seed = _ops.convert_to_tensor(dropout_seed, _dtypes.int64)
+  partition_ids = _ops.convert_n_to_tensor(partition_ids, _dtypes.int32)
+  gains = _ops.convert_n_to_tensor(gains, _dtypes.float32)
+  splits = _ops.convert_n_to_tensor(splits, _dtypes.string)
+  _inputs_flat = [tree_ensemble_handle, stamp_token, next_stamp_token, learning_rate, dropout_seed] + list(partition_ids) + list(gains) + list(splits)
+  _attrs = ("learner_config", learner_config, "num_handlers",
+  _attr_num_handlers, "center_bias", center_bias)
+  _result = _execute.execute(b"GrowTreeEnsemble", 0, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
+  _result = None
   return _result
 
 _ops.RegisterShape("GrowTreeEnsemble")(None)
@@ -167,7 +257,7 @@ _TreeEnsembleStatsOutput = _collections.namedtuple(
     "TreeEnsembleStats", _tree_ensemble_stats_outputs)
 
 
-@tf_export('TreeEnsembleStats')
+@tf_export('tree_ensemble_stats')
 def tree_ensemble_stats(tree_ensemble_handle, stamp_token, name=None):
   r"""Retrieves stats related to the tree ensemble.
 
@@ -189,20 +279,47 @@ def tree_ensemble_stats(tree_ensemble_handle, stamp_token, name=None):
     attempted_layers: A `Tensor` of type `int64`.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "TreeEnsembleStats", tree_ensemble_handle=tree_ensemble_handle,
         stamp_token=stamp_token, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "TreeEnsembleStats", _inputs_flat, _attrs, _result, name)
+    _result = _TreeEnsembleStatsOutput._make(_result)
+    return _result
+
   else:
-    tree_ensemble_handle = _ops.convert_to_tensor(tree_ensemble_handle, _dtypes.resource)
-    stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
-    _inputs_flat = [tree_ensemble_handle, stamp_token]
-    _attrs = None
-    _result = _execute.execute(b"TreeEnsembleStats", 6, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "TreeEnsembleStats", name,
+        _ctx._post_execution_callbacks, tree_ensemble_handle, stamp_token)
+      _result = _TreeEnsembleStatsOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return tree_ensemble_stats_eager_fallback(
+          tree_ensemble_handle, stamp_token, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def tree_ensemble_stats_eager_fallback(tree_ensemble_handle, stamp_token, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function tree_ensemble_stats
+  """
+  _ctx = _context.context()
+  tree_ensemble_handle = _ops.convert_to_tensor(tree_ensemble_handle, _dtypes.resource)
+  stamp_token = _ops.convert_to_tensor(stamp_token, _dtypes.int64)
+  _inputs_flat = [tree_ensemble_handle, stamp_token]
+  _attrs = None
+  _result = _execute.execute(b"TreeEnsembleStats", 6, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "TreeEnsembleStats", _inputs_flat, _attrs, _result, name)
   _result = _TreeEnsembleStatsOutput._make(_result)

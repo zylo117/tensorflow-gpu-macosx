@@ -5,11 +5,14 @@ Original C++ source file: sdca_ops.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -32,22 +35,46 @@ def sdca_fprint(input, name=None):
 
   Returns:
     A `Tensor` of type `int64`.
-    a (N,2) shaped matrix where N is the number of elements in the input
-    vector. Each row contains the low and high parts of the fingerprint.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "SdcaFprint", input=input, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "SdcaFprint", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    input = _ops.convert_to_tensor(input, _dtypes.string)
-    _inputs_flat = [input]
-    _attrs = None
-    _result = _execute.execute(b"SdcaFprint", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "SdcaFprint", name,
+        _ctx._post_execution_callbacks, input)
+      return _result
+    except _core._FallbackException:
+      return sdca_fprint_eager_fallback(
+          input, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def sdca_fprint_eager_fallback(input, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function sdca_fprint
+  """
+  _ctx = _context.context()
+  input = _ops.convert_to_tensor(input, _dtypes.string)
+  _inputs_flat = [input]
+  _attrs = None
+  _result = _execute.execute(b"SdcaFprint", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "SdcaFprint", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -127,13 +154,133 @@ def sdca_optimizer(sparse_example_indices, sparse_feature_indices, sparse_featur
   Returns:
     A tuple of `Tensor` objects (out_example_state_data, out_delta_sparse_weights, out_delta_dense_weights).
 
-    out_example_state_data: A `Tensor` of type `float32`. a list of vectors containing the updated example state
-      data.
-    out_delta_sparse_weights: A list with the same length as `sparse_example_indices` of `Tensor` objects with type `float32`. a list of vectors where each value is the delta
-      weights associated with a sparse feature group.
-    out_delta_dense_weights: A list with the same length as `dense_features` of `Tensor` objects with type `float32`. a list of vectors where the values are the delta
-      weights associated with a dense feature group.
+    out_example_state_data: A `Tensor` of type `float32`.
+    out_delta_sparse_weights: A list with the same length as `sparse_example_indices` of `Tensor` objects with type `float32`.
+    out_delta_dense_weights: A list with the same length as `dense_features` of `Tensor` objects with type `float32`.
   """
+  _ctx = _context.context()
+  if not _ctx.executing_eagerly():
+    if not isinstance(sparse_example_indices, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'sparse_example_indices' argument to "
+          "'sdca_optimizer' Op, not %r." % sparse_example_indices)
+    _attr_num_sparse_features = len(sparse_example_indices)
+    if not isinstance(sparse_feature_indices, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'sparse_feature_indices' argument to "
+          "'sdca_optimizer' Op, not %r." % sparse_feature_indices)
+    if len(sparse_feature_indices) != _attr_num_sparse_features:
+      raise ValueError(
+          "List argument 'sparse_feature_indices' to 'sdca_optimizer' Op with length %d "
+          "must match length %d of argument 'sparse_example_indices'." %
+          (len(sparse_feature_indices), _attr_num_sparse_features))
+    if not isinstance(sparse_indices, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'sparse_indices' argument to "
+          "'sdca_optimizer' Op, not %r." % sparse_indices)
+    if len(sparse_indices) != _attr_num_sparse_features:
+      raise ValueError(
+          "List argument 'sparse_indices' to 'sdca_optimizer' Op with length %d "
+          "must match length %d of argument 'sparse_example_indices'." %
+          (len(sparse_indices), _attr_num_sparse_features))
+    if not isinstance(sparse_weights, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'sparse_weights' argument to "
+          "'sdca_optimizer' Op, not %r." % sparse_weights)
+    if len(sparse_weights) != _attr_num_sparse_features:
+      raise ValueError(
+          "List argument 'sparse_weights' to 'sdca_optimizer' Op with length %d "
+          "must match length %d of argument 'sparse_example_indices'." %
+          (len(sparse_weights), _attr_num_sparse_features))
+    if not isinstance(sparse_feature_values, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'sparse_feature_values' argument to "
+          "'sdca_optimizer' Op, not %r." % sparse_feature_values)
+    _attr_num_sparse_features_with_values = len(sparse_feature_values)
+    if not isinstance(dense_features, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dense_features' argument to "
+          "'sdca_optimizer' Op, not %r." % dense_features)
+    _attr_num_dense_features = len(dense_features)
+    if not isinstance(dense_weights, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'dense_weights' argument to "
+          "'sdca_optimizer' Op, not %r." % dense_weights)
+    if len(dense_weights) != _attr_num_dense_features:
+      raise ValueError(
+          "List argument 'dense_weights' to 'sdca_optimizer' Op with length %d "
+          "must match length %d of argument 'dense_features'." %
+          (len(dense_weights), _attr_num_dense_features))
+    loss_type = _execute.make_str(loss_type, "loss_type")
+    l1 = _execute.make_float(l1, "l1")
+    l2 = _execute.make_float(l2, "l2")
+    num_loss_partitions = _execute.make_int(num_loss_partitions, "num_loss_partitions")
+    num_inner_iterations = _execute.make_int(num_inner_iterations, "num_inner_iterations")
+    if adaptative is None:
+      adaptative = False
+    adaptative = _execute.make_bool(adaptative, "adaptative")
+    _, _, _op = _op_def_lib._apply_op_helper(
+        "SdcaOptimizer", sparse_example_indices=sparse_example_indices,
+        sparse_feature_indices=sparse_feature_indices,
+        sparse_feature_values=sparse_feature_values,
+        dense_features=dense_features, example_weights=example_weights,
+        example_labels=example_labels, sparse_indices=sparse_indices,
+        sparse_weights=sparse_weights, dense_weights=dense_weights,
+        example_state_data=example_state_data, loss_type=loss_type, l1=l1,
+        l2=l2, num_loss_partitions=num_loss_partitions,
+        num_inner_iterations=num_inner_iterations, adaptative=adaptative,
+        name=name)
+    _result = _op.outputs[:]
+    _inputs_flat = _op.inputs
+    _attrs = ("loss_type", _op.get_attr("loss_type"), "adaptative",
+              _op.get_attr("adaptative"), "num_sparse_features",
+              _op.get_attr("num_sparse_features"),
+              "num_sparse_features_with_values",
+              _op.get_attr("num_sparse_features_with_values"),
+              "num_dense_features", _op.get_attr("num_dense_features"), "l1",
+              _op.get_attr("l1"), "l2", _op.get_attr("l2"),
+              "num_loss_partitions", _op.get_attr("num_loss_partitions"),
+              "num_inner_iterations", _op.get_attr("num_inner_iterations"))
+    _execute.record_gradient(
+      "SdcaOptimizer", _inputs_flat, _attrs, _result, name)
+    _result = _result[:1] + [_result[1:1 + _attr_num_sparse_features]] + _result[1 + _attr_num_sparse_features:]
+    _result = _result[:2] + [_result[2:]]
+    _result = _SdcaOptimizerOutput._make(_result)
+    return _result
+
+  else:
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "SdcaOptimizer", name,
+        _ctx._post_execution_callbacks, sparse_example_indices,
+        sparse_feature_indices, sparse_feature_values, dense_features,
+        example_weights, example_labels, sparse_indices, sparse_weights,
+        dense_weights, example_state_data, "loss_type", loss_type,
+        "adaptative", adaptative, "l1", l1, "l2", l2, "num_loss_partitions",
+        num_loss_partitions, "num_inner_iterations", num_inner_iterations)
+      _result = _SdcaOptimizerOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return sdca_optimizer_eager_fallback(
+          sparse_example_indices, sparse_feature_indices,
+          sparse_feature_values, dense_features, example_weights,
+          example_labels, sparse_indices, sparse_weights, dense_weights,
+          example_state_data, loss_type=loss_type, adaptative=adaptative,
+          l1=l1, l2=l2, num_loss_partitions=num_loss_partitions,
+          num_inner_iterations=num_inner_iterations, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def sdca_optimizer_eager_fallback(sparse_example_indices, sparse_feature_indices, sparse_feature_values, dense_features, example_weights, example_labels, sparse_indices, sparse_weights, dense_weights, example_state_data, loss_type, l1, l2, num_loss_partitions, num_inner_iterations, adaptative=False, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function sdca_optimizer
+  """
+  _ctx = _context.context()
   if not isinstance(sparse_example_indices, (list, tuple)):
     raise TypeError(
         "Expected list for 'sparse_example_indices' argument to "
@@ -193,53 +340,27 @@ def sdca_optimizer(sparse_example_indices, sparse_feature_indices, sparse_featur
   if adaptative is None:
     adaptative = False
   adaptative = _execute.make_bool(adaptative, "adaptative")
-  _ctx = _context.context()
-  if _ctx.in_graph_mode():
-    _, _, _op = _op_def_lib._apply_op_helper(
-        "SdcaOptimizer", sparse_example_indices=sparse_example_indices,
-        sparse_feature_indices=sparse_feature_indices,
-        sparse_feature_values=sparse_feature_values,
-        dense_features=dense_features, example_weights=example_weights,
-        example_labels=example_labels, sparse_indices=sparse_indices,
-        sparse_weights=sparse_weights, dense_weights=dense_weights,
-        example_state_data=example_state_data, loss_type=loss_type, l1=l1,
-        l2=l2, num_loss_partitions=num_loss_partitions,
-        num_inner_iterations=num_inner_iterations, adaptative=adaptative,
-        name=name)
-    _result = _op.outputs[:]
-    _inputs_flat = _op.inputs
-    _attrs = ("loss_type", _op.get_attr("loss_type"), "adaptative",
-              _op.get_attr("adaptative"), "num_sparse_features",
-              _op.get_attr("num_sparse_features"),
-              "num_sparse_features_with_values",
-              _op.get_attr("num_sparse_features_with_values"),
-              "num_dense_features", _op.get_attr("num_dense_features"), "l1",
-              _op.get_attr("l1"), "l2", _op.get_attr("l2"),
-              "num_loss_partitions", _op.get_attr("num_loss_partitions"),
-              "num_inner_iterations", _op.get_attr("num_inner_iterations"))
-  else:
-    sparse_example_indices = _ops.convert_n_to_tensor(sparse_example_indices, _dtypes.int64)
-    sparse_feature_indices = _ops.convert_n_to_tensor(sparse_feature_indices, _dtypes.int64)
-    sparse_feature_values = _ops.convert_n_to_tensor(sparse_feature_values, _dtypes.float32)
-    dense_features = _ops.convert_n_to_tensor(dense_features, _dtypes.float32)
-    example_weights = _ops.convert_to_tensor(example_weights, _dtypes.float32)
-    example_labels = _ops.convert_to_tensor(example_labels, _dtypes.float32)
-    sparse_indices = _ops.convert_n_to_tensor(sparse_indices, _dtypes.int64)
-    sparse_weights = _ops.convert_n_to_tensor(sparse_weights, _dtypes.float32)
-    dense_weights = _ops.convert_n_to_tensor(dense_weights, _dtypes.float32)
-    example_state_data = _ops.convert_to_tensor(example_state_data, _dtypes.float32)
-    _inputs_flat = list(sparse_example_indices) + list(sparse_feature_indices) + list(sparse_feature_values) + list(dense_features) + [example_weights, example_labels] + list(sparse_indices) + list(sparse_weights) + list(dense_weights) + [example_state_data]
-    _attrs = ("loss_type", loss_type, "adaptative", adaptative,
-              "num_sparse_features", _attr_num_sparse_features,
-              "num_sparse_features_with_values",
-              _attr_num_sparse_features_with_values, "num_dense_features",
-              _attr_num_dense_features, "l1", l1, "l2", l2,
-              "num_loss_partitions", num_loss_partitions,
-              "num_inner_iterations", num_inner_iterations)
-    _result = _execute.execute(b"SdcaOptimizer", _attr_num_sparse_features +
-                               _attr_num_dense_features + 1,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+  sparse_example_indices = _ops.convert_n_to_tensor(sparse_example_indices, _dtypes.int64)
+  sparse_feature_indices = _ops.convert_n_to_tensor(sparse_feature_indices, _dtypes.int64)
+  sparse_feature_values = _ops.convert_n_to_tensor(sparse_feature_values, _dtypes.float32)
+  dense_features = _ops.convert_n_to_tensor(dense_features, _dtypes.float32)
+  example_weights = _ops.convert_to_tensor(example_weights, _dtypes.float32)
+  example_labels = _ops.convert_to_tensor(example_labels, _dtypes.float32)
+  sparse_indices = _ops.convert_n_to_tensor(sparse_indices, _dtypes.int64)
+  sparse_weights = _ops.convert_n_to_tensor(sparse_weights, _dtypes.float32)
+  dense_weights = _ops.convert_n_to_tensor(dense_weights, _dtypes.float32)
+  example_state_data = _ops.convert_to_tensor(example_state_data, _dtypes.float32)
+  _inputs_flat = list(sparse_example_indices) + list(sparse_feature_indices) + list(sparse_feature_values) + list(dense_features) + [example_weights, example_labels] + list(sparse_indices) + list(sparse_weights) + list(dense_weights) + [example_state_data]
+  _attrs = ("loss_type", loss_type, "adaptative", adaptative,
+  "num_sparse_features", _attr_num_sparse_features,
+  "num_sparse_features_with_values", _attr_num_sparse_features_with_values,
+  "num_dense_features", _attr_num_dense_features, "l1", l1, "l2", l2,
+  "num_loss_partitions", num_loss_partitions, "num_inner_iterations",
+  num_inner_iterations)
+  _result = _execute.execute(b"SdcaOptimizer", _attr_num_sparse_features +
+                             _attr_num_dense_features + 1,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "SdcaOptimizer", _inputs_flat, _attrs, _result, name)
   _result = _result[:1] + [_result[1:1 + _attr_num_sparse_features]] + _result[1 + _attr_num_sparse_features:]
@@ -264,24 +385,26 @@ def sdca_shrink_l1(weights, l1, l2, name=None):
   Returns:
     The created Operation.
   """
-  if not isinstance(weights, (list, tuple)):
-    raise TypeError(
-        "Expected list for 'weights' argument to "
-        "'sdca_shrink_l1' Op, not %r." % weights)
-  _attr_num_features = len(weights)
-  l1 = _execute.make_float(l1, "l1")
-  l2 = _execute.make_float(l2, "l2")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if not isinstance(weights, (list, tuple)):
+      raise TypeError(
+          "Expected list for 'weights' argument to "
+          "'sdca_shrink_l1' Op, not %r." % weights)
+    _attr_num_features = len(weights)
+    l1 = _execute.make_float(l1, "l1")
+    l2 = _execute.make_float(l2, "l2")
     _, _, _op = _op_def_lib._apply_op_helper(
         "SdcaShrinkL1", weights=weights, l1=l1, l2=l2, name=name)
     return _op
-  else:
-    raise RuntimeError(
-        "sdca_shrink_l1 op does not support eager execution. Arg 'weights'' is a ref.")
     _result = None
-  return _result
+    return _result
 
+  else:
+    raise RuntimeError("sdca_shrink_l1 op does not support eager execution. Arg 'weights' is a ref.")
+
+
+  raise RuntimeError("sdca_shrink_l1 op does not support eager execution. Arg 'weights' is a ref.")
 def _InitOpDefLibrary(op_list_proto_bytes):
   op_list = _op_def_pb2.OpList()
   op_list.ParseFromString(op_list_proto_bytes)

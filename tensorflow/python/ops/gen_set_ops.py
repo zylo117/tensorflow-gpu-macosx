@@ -5,11 +5,14 @@ Original C++ source file: set_ops.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -27,7 +30,6 @@ _DenseToDenseSetOperationOutput = _collections.namedtuple(
     "DenseToDenseSetOperation", _dense_to_dense_set_operation_outputs)
 
 
-@tf_export('DenseToDenseSetOperation')
 def dense_to_dense_set_operation(set1, set2, set_operation, validate_indices=True, name=None):
   r"""Applies set operation along last dimension of 2 `Tensor` inputs.
 
@@ -53,18 +55,16 @@ def dense_to_dense_set_operation(set1, set2, set_operation, validate_indices=Tru
   Returns:
     A tuple of `Tensor` objects (result_indices, result_values, result_shape).
 
-    result_indices: A `Tensor` of type `int64`. 2D indices of a `SparseTensor`.
-    result_values: A `Tensor`. Has the same type as `set1`. 1D values of a `SparseTensor`.
-    result_shape: A `Tensor` of type `int64`. 1D `Tensor` shape of a `SparseTensor`. `result_shape[0...n-1]` is
-      the same as the 1st `n-1` dimensions of `set1` and `set2`, `result_shape[n]`
-      is the max result set size across all `0...n-1` dimensions.
+    result_indices: A `Tensor` of type `int64`.
+    result_values: A `Tensor`. Has the same type as `set1`.
+    result_shape: A `Tensor` of type `int64`.
   """
-  set_operation = _execute.make_str(set_operation, "set_operation")
-  if validate_indices is None:
-    validate_indices = True
-  validate_indices = _execute.make_bool(validate_indices, "validate_indices")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    set_operation = _execute.make_str(set_operation, "set_operation")
+    if validate_indices is None:
+      validate_indices = True
+    validate_indices = _execute.make_bool(validate_indices, "validate_indices")
     _, _, _op = _op_def_lib._apply_op_helper(
         "DenseToDenseSetOperation", set1=set1, set2=set2,
         set_operation=set_operation, validate_indices=validate_indices,
@@ -74,15 +74,48 @@ def dense_to_dense_set_operation(set1, set2, set_operation, validate_indices=Tru
     _attrs = ("set_operation", _op.get_attr("set_operation"),
               "validate_indices", _op.get_attr("validate_indices"), "T",
               _op.get_attr("T"))
+    _execute.record_gradient(
+      "DenseToDenseSetOperation", _inputs_flat, _attrs, _result, name)
+    _result = _DenseToDenseSetOperationOutput._make(_result)
+    return _result
+
   else:
-    _attr_T, _inputs_T = _execute.args_to_matching_eager([set1, set2], _ctx)
-    (set1, set2) = _inputs_T
-    _inputs_flat = [set1, set2]
-    _attrs = ("set_operation", set_operation, "validate_indices",
-              validate_indices, "T", _attr_T)
-    _result = _execute.execute(b"DenseToDenseSetOperation", 3,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "DenseToDenseSetOperation", name,
+        _ctx._post_execution_callbacks, set1, set2, "set_operation",
+        set_operation, "validate_indices", validate_indices)
+      _result = _DenseToDenseSetOperationOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return dense_to_dense_set_operation_eager_fallback(
+          set1, set2, set_operation=set_operation,
+          validate_indices=validate_indices, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def dense_to_dense_set_operation_eager_fallback(set1, set2, set_operation, validate_indices=True, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function dense_to_dense_set_operation
+  """
+  _ctx = _context.context()
+  set_operation = _execute.make_str(set_operation, "set_operation")
+  if validate_indices is None:
+    validate_indices = True
+  validate_indices = _execute.make_bool(validate_indices, "validate_indices")
+  _attr_T, _inputs_T = _execute.args_to_matching_eager([set1, set2], _ctx)
+  (set1, set2) = _inputs_T
+  _inputs_flat = [set1, set2]
+  _attrs = ("set_operation", set_operation, "validate_indices",
+  validate_indices, "T", _attr_T)
+  _result = _execute.execute(b"DenseToDenseSetOperation", 3,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "DenseToDenseSetOperation", _inputs_flat, _attrs, _result, name)
   _result = _DenseToDenseSetOperationOutput._make(_result)
@@ -95,7 +128,6 @@ _DenseToSparseSetOperationOutput = _collections.namedtuple(
     "DenseToSparseSetOperation", _dense_to_sparse_set_operation_outputs)
 
 
-@tf_export('DenseToSparseSetOperation')
 def dense_to_sparse_set_operation(set1, set2_indices, set2_values, set2_shape, set_operation, validate_indices=True, name=None):
   r"""Applies set operation along last dimension of `Tensor` and `SparseTensor`.
 
@@ -136,18 +168,16 @@ def dense_to_sparse_set_operation(set1, set2_indices, set2_values, set2_shape, s
   Returns:
     A tuple of `Tensor` objects (result_indices, result_values, result_shape).
 
-    result_indices: A `Tensor` of type `int64`. 2D indices of a `SparseTensor`.
-    result_values: A `Tensor`. Has the same type as `set1`. 1D values of a `SparseTensor`.
-    result_shape: A `Tensor` of type `int64`. 1D `Tensor` shape of a `SparseTensor`. `result_shape[0...n-1]` is
-      the same as the 1st `n-1` dimensions of `set1` and `set2`, `result_shape[n]`
-      is the max result set size across all `0...n-1` dimensions.
+    result_indices: A `Tensor` of type `int64`.
+    result_values: A `Tensor`. Has the same type as `set1`.
+    result_shape: A `Tensor` of type `int64`.
   """
-  set_operation = _execute.make_str(set_operation, "set_operation")
-  if validate_indices is None:
-    validate_indices = True
-  validate_indices = _execute.make_bool(validate_indices, "validate_indices")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    set_operation = _execute.make_str(set_operation, "set_operation")
+    if validate_indices is None:
+      validate_indices = True
+    validate_indices = _execute.make_bool(validate_indices, "validate_indices")
     _, _, _op = _op_def_lib._apply_op_helper(
         "DenseToSparseSetOperation", set1=set1, set2_indices=set2_indices,
         set2_values=set2_values, set2_shape=set2_shape,
@@ -158,24 +188,58 @@ def dense_to_sparse_set_operation(set1, set2_indices, set2_values, set2_shape, s
     _attrs = ("set_operation", _op.get_attr("set_operation"),
               "validate_indices", _op.get_attr("validate_indices"), "T",
               _op.get_attr("T"))
+    _execute.record_gradient(
+      "DenseToSparseSetOperation", _inputs_flat, _attrs, _result, name)
+    _result = _DenseToSparseSetOperationOutput._make(_result)
+    return _result
+
   else:
-    _attr_T, _inputs_T = _execute.args_to_matching_eager([set1, set2_values], _ctx)
-    (set1, set2_values) = _inputs_T
-    set2_indices = _ops.convert_to_tensor(set2_indices, _dtypes.int64)
-    set2_shape = _ops.convert_to_tensor(set2_shape, _dtypes.int64)
-    _inputs_flat = [set1, set2_indices, set2_values, set2_shape]
-    _attrs = ("set_operation", set_operation, "validate_indices",
-              validate_indices, "T", _attr_T)
-    _result = _execute.execute(b"DenseToSparseSetOperation", 3,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "DenseToSparseSetOperation", name,
+        _ctx._post_execution_callbacks, set1, set2_indices, set2_values,
+        set2_shape, "set_operation", set_operation, "validate_indices",
+        validate_indices)
+      _result = _DenseToSparseSetOperationOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return dense_to_sparse_set_operation_eager_fallback(
+          set1, set2_indices, set2_values, set2_shape,
+          set_operation=set_operation, validate_indices=validate_indices,
+          name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def dense_to_sparse_set_operation_eager_fallback(set1, set2_indices, set2_values, set2_shape, set_operation, validate_indices=True, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function dense_to_sparse_set_operation
+  """
+  _ctx = _context.context()
+  set_operation = _execute.make_str(set_operation, "set_operation")
+  if validate_indices is None:
+    validate_indices = True
+  validate_indices = _execute.make_bool(validate_indices, "validate_indices")
+  _attr_T, _inputs_T = _execute.args_to_matching_eager([set1, set2_values], _ctx)
+  (set1, set2_values) = _inputs_T
+  set2_indices = _ops.convert_to_tensor(set2_indices, _dtypes.int64)
+  set2_shape = _ops.convert_to_tensor(set2_shape, _dtypes.int64)
+  _inputs_flat = [set1, set2_indices, set2_values, set2_shape]
+  _attrs = ("set_operation", set_operation, "validate_indices",
+  validate_indices, "T", _attr_T)
+  _result = _execute.execute(b"DenseToSparseSetOperation", 3,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "DenseToSparseSetOperation", _inputs_flat, _attrs, _result, name)
   _result = _DenseToSparseSetOperationOutput._make(_result)
   return _result
 
 
-@tf_export('SetSize')
 def set_size(set_indices, set_values, set_shape, validate_indices=True, name=None):
   r"""Number of unique elements along last dimension of input `set`.
 
@@ -198,15 +262,12 @@ def set_size(set_indices, set_values, set_shape, validate_indices=True, name=Non
 
   Returns:
     A `Tensor` of type `int32`.
-    For `set` ranked `n`, this is a `Tensor` with rank `n-1`, and the same 1st
-    `n-1` dimensions as `set`. Each value is the number of unique elements in
-    the corresponding `[0...n-1]` dimension of `set`.
   """
-  if validate_indices is None:
-    validate_indices = True
-  validate_indices = _execute.make_bool(validate_indices, "validate_indices")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    if validate_indices is None:
+      validate_indices = True
+    validate_indices = _execute.make_bool(validate_indices, "validate_indices")
     _, _, _op = _op_def_lib._apply_op_helper(
         "SetSize", set_indices=set_indices, set_values=set_values,
         set_shape=set_shape, validate_indices=validate_indices, name=name)
@@ -214,14 +275,45 @@ def set_size(set_indices, set_values, set_shape, validate_indices=True, name=Non
     _inputs_flat = _op.inputs
     _attrs = ("validate_indices", _op.get_attr("validate_indices"), "T",
               _op.get_attr("T"))
+    _execute.record_gradient(
+      "SetSize", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    _attr_T, (set_values,) = _execute.args_to_matching_eager([set_values], _ctx)
-    set_indices = _ops.convert_to_tensor(set_indices, _dtypes.int64)
-    set_shape = _ops.convert_to_tensor(set_shape, _dtypes.int64)
-    _inputs_flat = [set_indices, set_values, set_shape]
-    _attrs = ("validate_indices", validate_indices, "T", _attr_T)
-    _result = _execute.execute(b"SetSize", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "SetSize", name,
+        _ctx._post_execution_callbacks, set_indices, set_values, set_shape,
+        "validate_indices", validate_indices)
+      return _result
+    except _core._FallbackException:
+      return set_size_eager_fallback(
+          set_indices, set_values, set_shape,
+          validate_indices=validate_indices, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def set_size_eager_fallback(set_indices, set_values, set_shape, validate_indices=True, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function set_size
+  """
+  _ctx = _context.context()
+  if validate_indices is None:
+    validate_indices = True
+  validate_indices = _execute.make_bool(validate_indices, "validate_indices")
+  _attr_T, (set_values,) = _execute.args_to_matching_eager([set_values], _ctx)
+  set_indices = _ops.convert_to_tensor(set_indices, _dtypes.int64)
+  set_shape = _ops.convert_to_tensor(set_shape, _dtypes.int64)
+  _inputs_flat = [set_indices, set_values, set_shape]
+  _attrs = ("validate_indices", validate_indices, "T", _attr_T)
+  _result = _execute.execute(b"SetSize", 1, inputs=_inputs_flat, attrs=_attrs,
+                             ctx=_ctx, name=name)
   _execute.record_gradient(
       "SetSize", _inputs_flat, _attrs, _result, name)
   _result, = _result
@@ -234,7 +326,6 @@ _SparseToSparseSetOperationOutput = _collections.namedtuple(
     "SparseToSparseSetOperation", _sparse_to_sparse_set_operation_outputs)
 
 
-@tf_export('SparseToSparseSetOperation')
 def sparse_to_sparse_set_operation(set1_indices, set1_values, set1_shape, set2_indices, set2_values, set2_shape, set_operation, validate_indices=True, name=None):
   r"""Applies set operation along last dimension of 2 `SparseTensor` inputs.
 
@@ -290,18 +381,16 @@ def sparse_to_sparse_set_operation(set1_indices, set1_values, set1_shape, set2_i
   Returns:
     A tuple of `Tensor` objects (result_indices, result_values, result_shape).
 
-    result_indices: A `Tensor` of type `int64`. 2D indices of a `SparseTensor`.
-    result_values: A `Tensor`. Has the same type as `set1_values`. 1D values of a `SparseTensor`.
-    result_shape: A `Tensor` of type `int64`. 1D `Tensor` shape of a `SparseTensor`. `result_shape[0...n-1]` is
-      the same as the 1st `n-1` dimensions of `set1` and `set2`, `result_shape[n]`
-      is the max result set size across all `0...n-1` dimensions.
+    result_indices: A `Tensor` of type `int64`.
+    result_values: A `Tensor`. Has the same type as `set1_values`.
+    result_shape: A `Tensor` of type `int64`.
   """
-  set_operation = _execute.make_str(set_operation, "set_operation")
-  if validate_indices is None:
-    validate_indices = True
-  validate_indices = _execute.make_bool(validate_indices, "validate_indices")
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
+    set_operation = _execute.make_str(set_operation, "set_operation")
+    if validate_indices is None:
+      validate_indices = True
+    validate_indices = _execute.make_bool(validate_indices, "validate_indices")
     _, _, _op = _op_def_lib._apply_op_helper(
         "SparseToSparseSetOperation", set1_indices=set1_indices,
         set1_values=set1_values, set1_shape=set1_shape,
@@ -313,19 +402,54 @@ def sparse_to_sparse_set_operation(set1_indices, set1_values, set1_shape, set2_i
     _attrs = ("set_operation", _op.get_attr("set_operation"),
               "validate_indices", _op.get_attr("validate_indices"), "T",
               _op.get_attr("T"))
+    _execute.record_gradient(
+      "SparseToSparseSetOperation", _inputs_flat, _attrs, _result, name)
+    _result = _SparseToSparseSetOperationOutput._make(_result)
+    return _result
+
   else:
-    _attr_T, _inputs_T = _execute.args_to_matching_eager([set1_values, set2_values], _ctx)
-    (set1_values, set2_values) = _inputs_T
-    set1_indices = _ops.convert_to_tensor(set1_indices, _dtypes.int64)
-    set1_shape = _ops.convert_to_tensor(set1_shape, _dtypes.int64)
-    set2_indices = _ops.convert_to_tensor(set2_indices, _dtypes.int64)
-    set2_shape = _ops.convert_to_tensor(set2_shape, _dtypes.int64)
-    _inputs_flat = [set1_indices, set1_values, set1_shape, set2_indices, set2_values, set2_shape]
-    _attrs = ("set_operation", set_operation, "validate_indices",
-              validate_indices, "T", _attr_T)
-    _result = _execute.execute(b"SparseToSparseSetOperation", 3,
-                               inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
-                               name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "SparseToSparseSetOperation", name,
+        _ctx._post_execution_callbacks, set1_indices, set1_values, set1_shape,
+        set2_indices, set2_values, set2_shape, "set_operation", set_operation,
+        "validate_indices", validate_indices)
+      _result = _SparseToSparseSetOperationOutput._make(_result)
+      return _result
+    except _core._FallbackException:
+      return sparse_to_sparse_set_operation_eager_fallback(
+          set1_indices, set1_values, set1_shape, set2_indices, set2_values,
+          set2_shape, set_operation=set_operation,
+          validate_indices=validate_indices, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def sparse_to_sparse_set_operation_eager_fallback(set1_indices, set1_values, set1_shape, set2_indices, set2_values, set2_shape, set_operation, validate_indices=True, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function sparse_to_sparse_set_operation
+  """
+  _ctx = _context.context()
+  set_operation = _execute.make_str(set_operation, "set_operation")
+  if validate_indices is None:
+    validate_indices = True
+  validate_indices = _execute.make_bool(validate_indices, "validate_indices")
+  _attr_T, _inputs_T = _execute.args_to_matching_eager([set1_values, set2_values], _ctx)
+  (set1_values, set2_values) = _inputs_T
+  set1_indices = _ops.convert_to_tensor(set1_indices, _dtypes.int64)
+  set1_shape = _ops.convert_to_tensor(set1_shape, _dtypes.int64)
+  set2_indices = _ops.convert_to_tensor(set2_indices, _dtypes.int64)
+  set2_shape = _ops.convert_to_tensor(set2_shape, _dtypes.int64)
+  _inputs_flat = [set1_indices, set1_values, set1_shape, set2_indices, set2_values, set2_shape]
+  _attrs = ("set_operation", set_operation, "validate_indices",
+  validate_indices, "T", _attr_T)
+  _result = _execute.execute(b"SparseToSparseSetOperation", 3,
+                             inputs=_inputs_flat, attrs=_attrs, ctx=_ctx,
+                             name=name)
   _execute.record_gradient(
       "SparseToSparseSetOperation", _inputs_flat, _attrs, _result, name)
   _result = _SparseToSparseSetOperationOutput._make(_result)

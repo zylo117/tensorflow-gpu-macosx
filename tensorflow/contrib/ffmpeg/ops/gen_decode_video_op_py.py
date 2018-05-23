@@ -5,11 +5,14 @@ Original C++ source file: decode_video_op_py.cc
 """
 
 import collections as _collections
+import six as _six
 
-from tensorflow.python.eager import execute as _execute
+from tensorflow.python import pywrap_tensorflow as _pywrap_tensorflow
 from tensorflow.python.eager import context as _context
 from tensorflow.python.eager import core as _core
+from tensorflow.python.eager import execute as _execute
 from tensorflow.python.framework import dtypes as _dtypes
+from tensorflow.python.framework import errors as _errors
 from tensorflow.python.framework import tensor_shape as _tensor_shape
 
 from tensorflow.core.framework import op_def_pb2 as _op_def_pb2
@@ -21,39 +24,61 @@ from tensorflow.python.framework import op_def_library as _op_def_library
 from tensorflow.python.util.tf_export import tf_export
 
 
-@tf_export('DecodeVideo')
+@tf_export('decode_video')
 def decode_video(contents, name=None):
-  r"""Processes the contents of an audio file into a tensor using FFmpeg to decode
+  r"""Processes the contents of an video file into a tensor using FFmpeg to decode
 
   the file.
 
-  One row of the tensor is created for each channel in the audio file. Each
-  channel contains audio samples starting at the beginning of the audio and
-  having `1/samples_per_second` time between them. If the `channel_count` is
-  different from the contents of the file, channels will be merged or created.
-
   Args:
     contents: A `Tensor` of type `string`.
-      The binary audio file contents, as a string or rank-0 string
-      tensor.
+      The binary contents of the video file to decode. This is a
+      scalar.
     name: A name for the operation (optional).
 
   Returns:
     A `Tensor` of type `uint8`.
+    A rank-4 `Tensor` that has `[frames, height, width, 3]` RGB as output.
   """
   _ctx = _context.context()
-  if _ctx.in_graph_mode():
+  if not _ctx.executing_eagerly():
     _, _, _op = _op_def_lib._apply_op_helper(
         "DecodeVideo", contents=contents, name=name)
     _result = _op.outputs[:]
     _inputs_flat = _op.inputs
     _attrs = None
+    _execute.record_gradient(
+      "DecodeVideo", _inputs_flat, _attrs, _result, name)
+    _result, = _result
+    return _result
+
   else:
-    contents = _ops.convert_to_tensor(contents, _dtypes.string)
-    _inputs_flat = [contents]
-    _attrs = None
-    _result = _execute.execute(b"DecodeVideo", 1, inputs=_inputs_flat,
-                               attrs=_attrs, ctx=_ctx, name=name)
+    try:
+      _result = _pywrap_tensorflow.TFE_Py_FastPathExecute(
+        _ctx._handle, _ctx.device_name, "DecodeVideo", name,
+        _ctx._post_execution_callbacks, contents)
+      return _result
+    except _core._FallbackException:
+      return decode_video_eager_fallback(
+          contents, name=name)
+    except _core._NotOkStatusException as e:
+      if name is not None:
+        message = e.message + " name: " + name
+      else:
+        message = e.message
+      _six.raise_from(_core._status_to_exception(e.code, message), None)
+
+
+def decode_video_eager_fallback(contents, name=None):
+  r"""This is the slowpath function for Eager mode.
+  This is for function decode_video
+  """
+  _ctx = _context.context()
+  contents = _ops.convert_to_tensor(contents, _dtypes.string)
+  _inputs_flat = [contents]
+  _attrs = None
+  _result = _execute.execute(b"DecodeVideo", 1, inputs=_inputs_flat,
+                             attrs=_attrs, ctx=_ctx, name=name)
   _execute.record_gradient(
       "DecodeVideo", _inputs_flat, _attrs, _result, name)
   _result, = _result

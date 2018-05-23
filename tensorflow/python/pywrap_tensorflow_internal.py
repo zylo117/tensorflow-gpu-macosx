@@ -108,6 +108,9 @@ TFE_DEVICE_PLACEMENT_WARN = _pywrap_tensorflow_internal.TFE_DEVICE_PLACEMENT_WAR
 _pywrap_tensorflow_internal.TFE_DEVICE_PLACEMENT_SILENT_swigconstant(_pywrap_tensorflow_internal)
 TFE_DEVICE_PLACEMENT_SILENT = _pywrap_tensorflow_internal.TFE_DEVICE_PLACEMENT_SILENT
 
+_pywrap_tensorflow_internal.TFE_DEVICE_PLACEMENT_SILENT_FOR_INT32_swigconstant(_pywrap_tensorflow_internal)
+TFE_DEVICE_PLACEMENT_SILENT_FOR_INT32 = _pywrap_tensorflow_internal.TFE_DEVICE_PLACEMENT_SILENT_FOR_INT32
+
 def TFE_ContextOptionsSetDevicePlacementPolicy(arg1, arg2):
     return _pywrap_tensorflow_internal.TFE_ContextOptionsSetDevicePlacementPolicy(arg1, arg2)
 TFE_ContextOptionsSetDevicePlacementPolicy = _pywrap_tensorflow_internal.TFE_ContextOptionsSetDevicePlacementPolicy
@@ -128,6 +131,18 @@ def TFE_ContextListDevices(ctx, status):
     return _pywrap_tensorflow_internal.TFE_ContextListDevices(ctx, status)
 TFE_ContextListDevices = _pywrap_tensorflow_internal.TFE_ContextListDevices
 
+def TFE_ContextClearCaches(ctx):
+    return _pywrap_tensorflow_internal.TFE_ContextClearCaches(ctx)
+TFE_ContextClearCaches = _pywrap_tensorflow_internal.TFE_ContextClearCaches
+
+def TFE_ContextSetThreadLocalDevicePlacementPolicy(arg1, arg2):
+    return _pywrap_tensorflow_internal.TFE_ContextSetThreadLocalDevicePlacementPolicy(arg1, arg2)
+TFE_ContextSetThreadLocalDevicePlacementPolicy = _pywrap_tensorflow_internal.TFE_ContextSetThreadLocalDevicePlacementPolicy
+
+def TFE_ContextGetDevicePlacementPolicy(arg1):
+    return _pywrap_tensorflow_internal.TFE_ContextGetDevicePlacementPolicy(arg1)
+TFE_ContextGetDevicePlacementPolicy = _pywrap_tensorflow_internal.TFE_ContextGetDevicePlacementPolicy
+
 def TFE_OpNameGetAttrType(ctx, op_or_function_name, attr_name, status):
     return _pywrap_tensorflow_internal.TFE_OpNameGetAttrType(ctx, op_or_function_name, attr_name, status)
 TFE_OpNameGetAttrType = _pywrap_tensorflow_internal.TFE_OpNameGetAttrType
@@ -140,6 +155,18 @@ def TFE_ContextAddFunction(ctx, function, status):
     return _pywrap_tensorflow_internal.TFE_ContextAddFunction(ctx, function, status)
 TFE_ContextAddFunction = _pywrap_tensorflow_internal.TFE_ContextAddFunction
 
+def TFE_ContextEnableRunMetadata(ctx):
+    return _pywrap_tensorflow_internal.TFE_ContextEnableRunMetadata(ctx)
+TFE_ContextEnableRunMetadata = _pywrap_tensorflow_internal.TFE_ContextEnableRunMetadata
+
+def TFE_ContextDisableRunMetadata(ctx):
+    return _pywrap_tensorflow_internal.TFE_ContextDisableRunMetadata(ctx)
+TFE_ContextDisableRunMetadata = _pywrap_tensorflow_internal.TFE_ContextDisableRunMetadata
+
+def TFE_ContextExportRunMetadata(ctx, buf, status):
+    return _pywrap_tensorflow_internal.TFE_ContextExportRunMetadata(ctx, buf, status)
+TFE_ContextExportRunMetadata = _pywrap_tensorflow_internal.TFE_ContextExportRunMetadata
+
 def TFE_Py_Execute(ctx, device_name, op_name, inputs, attrs, outputs):
     return _pywrap_tensorflow_internal.TFE_Py_Execute(ctx, device_name, op_name, inputs, attrs, outputs)
 TFE_Py_Execute = _pywrap_tensorflow_internal.TFE_Py_Execute
@@ -147,6 +174,18 @@ TFE_Py_Execute = _pywrap_tensorflow_internal.TFE_Py_Execute
 def TFE_Py_RegisterExceptionClass(e):
     return _pywrap_tensorflow_internal.TFE_Py_RegisterExceptionClass(e)
 TFE_Py_RegisterExceptionClass = _pywrap_tensorflow_internal.TFE_Py_RegisterExceptionClass
+
+def TFE_Py_RegisterResourceVariableType(e):
+    return _pywrap_tensorflow_internal.TFE_Py_RegisterResourceVariableType(e)
+TFE_Py_RegisterResourceVariableType = _pywrap_tensorflow_internal.TFE_Py_RegisterResourceVariableType
+
+def TFE_Py_RegisterFallbackExceptionClass(e):
+    return _pywrap_tensorflow_internal.TFE_Py_RegisterFallbackExceptionClass(e)
+TFE_Py_RegisterFallbackExceptionClass = _pywrap_tensorflow_internal.TFE_Py_RegisterFallbackExceptionClass
+
+def TFE_Py_RegisterBackwardFunctionGetter(e):
+    return _pywrap_tensorflow_internal.TFE_Py_RegisterBackwardFunctionGetter(e)
+TFE_Py_RegisterBackwardFunctionGetter = _pywrap_tensorflow_internal.TFE_Py_RegisterBackwardFunctionGetter
 
 def TFE_Py_UID():
     return _pywrap_tensorflow_internal.TFE_Py_UID()
@@ -156,45 +195,53 @@ def TFE_Py_InitEagerTensor(base_class):
     return _pywrap_tensorflow_internal.TFE_Py_InitEagerTensor(base_class)
 TFE_Py_InitEagerTensor = _pywrap_tensorflow_internal.TFE_Py_InitEagerTensor
 
-def TFE_Py_TapeStackPushNew(persistent):
-    return _pywrap_tensorflow_internal.TFE_Py_TapeStackPushNew(persistent)
-TFE_Py_TapeStackPushNew = _pywrap_tensorflow_internal.TFE_Py_TapeStackPushNew
+def TFE_Py_TapeSetNew(persistent):
+    return _pywrap_tensorflow_internal.TFE_Py_TapeSetNew(persistent)
+TFE_Py_TapeSetNew = _pywrap_tensorflow_internal.TFE_Py_TapeSetNew
 
-def TFE_Py_TapeStackPop():
-    return _pywrap_tensorflow_internal.TFE_Py_TapeStackPop()
-TFE_Py_TapeStackPop = _pywrap_tensorflow_internal.TFE_Py_TapeStackPop
+def TFE_Py_TapeSetRemove(tape):
+    return _pywrap_tensorflow_internal.TFE_Py_TapeSetRemove(tape)
+TFE_Py_TapeSetRemove = _pywrap_tensorflow_internal.TFE_Py_TapeSetRemove
 
-def TFE_Py_TapeStackPush(tape):
-    return _pywrap_tensorflow_internal.TFE_Py_TapeStackPush(tape)
-TFE_Py_TapeStackPush = _pywrap_tensorflow_internal.TFE_Py_TapeStackPush
+def TFE_Py_TapeSetIsEmpty():
+    return _pywrap_tensorflow_internal.TFE_Py_TapeSetIsEmpty()
+TFE_Py_TapeSetIsEmpty = _pywrap_tensorflow_internal.TFE_Py_TapeSetIsEmpty
 
-def TFE_Py_TapeStackIsEmpty():
-    return _pywrap_tensorflow_internal.TFE_Py_TapeStackIsEmpty()
-TFE_Py_TapeStackIsEmpty = _pywrap_tensorflow_internal.TFE_Py_TapeStackIsEmpty
+def TFE_Py_TapeSetShouldRecord(tensors):
+    return _pywrap_tensorflow_internal.TFE_Py_TapeSetShouldRecord(tensors)
+TFE_Py_TapeSetShouldRecord = _pywrap_tensorflow_internal.TFE_Py_TapeSetShouldRecord
 
-def TFE_Py_TapeStackShouldRecord(tensors):
-    return _pywrap_tensorflow_internal.TFE_Py_TapeStackShouldRecord(tensors)
-TFE_Py_TapeStackShouldRecord = _pywrap_tensorflow_internal.TFE_Py_TapeStackShouldRecord
+def TFE_Py_TapeSetWatch(tensor):
+    return _pywrap_tensorflow_internal.TFE_Py_TapeSetWatch(tensor)
+TFE_Py_TapeSetWatch = _pywrap_tensorflow_internal.TFE_Py_TapeSetWatch
 
-def TFE_Py_TapeStackWatch(tensor):
-    return _pywrap_tensorflow_internal.TFE_Py_TapeStackWatch(tensor)
-TFE_Py_TapeStackWatch = _pywrap_tensorflow_internal.TFE_Py_TapeStackWatch
+def TFE_Py_TapeSetDeleteTrace(tensor_id):
+    return _pywrap_tensorflow_internal.TFE_Py_TapeSetDeleteTrace(tensor_id)
+TFE_Py_TapeSetDeleteTrace = _pywrap_tensorflow_internal.TFE_Py_TapeSetDeleteTrace
 
-def TFE_Py_TapeStackDeleteTrace(tensor_id):
-    return _pywrap_tensorflow_internal.TFE_Py_TapeStackDeleteTrace(tensor_id)
-TFE_Py_TapeStackDeleteTrace = _pywrap_tensorflow_internal.TFE_Py_TapeStackDeleteTrace
+def TFE_Py_TapeSetStopOnThread():
+    return _pywrap_tensorflow_internal.TFE_Py_TapeSetStopOnThread()
+TFE_Py_TapeSetStopOnThread = _pywrap_tensorflow_internal.TFE_Py_TapeSetStopOnThread
 
-def TFE_Py_TapeStackRecordOperation(op_type, output_tensors, input_tensor_ids, backward_function):
-    return _pywrap_tensorflow_internal.TFE_Py_TapeStackRecordOperation(op_type, output_tensors, input_tensor_ids, backward_function)
-TFE_Py_TapeStackRecordOperation = _pywrap_tensorflow_internal.TFE_Py_TapeStackRecordOperation
+def TFE_Py_TapeSetRestartOnThread():
+    return _pywrap_tensorflow_internal.TFE_Py_TapeSetRestartOnThread()
+TFE_Py_TapeSetRestartOnThread = _pywrap_tensorflow_internal.TFE_Py_TapeSetRestartOnThread
 
-def TFE_Py_TapeStackWatchVariable(variable):
-    return _pywrap_tensorflow_internal.TFE_Py_TapeStackWatchVariable(variable)
-TFE_Py_TapeStackWatchVariable = _pywrap_tensorflow_internal.TFE_Py_TapeStackWatchVariable
+def TFE_Py_TapeSetRecordOperation(op_type, output_tensors, input_tensor_ids, backward_function):
+    return _pywrap_tensorflow_internal.TFE_Py_TapeSetRecordOperation(op_type, output_tensors, input_tensor_ids, backward_function)
+TFE_Py_TapeSetRecordOperation = _pywrap_tensorflow_internal.TFE_Py_TapeSetRecordOperation
+
+def TFE_Py_TapeSetWatchVariable(variable):
+    return _pywrap_tensorflow_internal.TFE_Py_TapeSetWatchVariable(variable)
+TFE_Py_TapeSetWatchVariable = _pywrap_tensorflow_internal.TFE_Py_TapeSetWatchVariable
 
 def TFE_Py_TapeGradient(tape, vspace, target, sources, output_gradients, status):
     return _pywrap_tensorflow_internal.TFE_Py_TapeGradient(tape, vspace, target, sources, output_gradients, status)
 TFE_Py_TapeGradient = _pywrap_tensorflow_internal.TFE_Py_TapeGradient
+
+def TFE_Py_RecordGradient(op_name, inputs, attrs, results, name):
+    return _pywrap_tensorflow_internal.TFE_Py_RecordGradient(op_name, inputs, attrs, results, name)
+TFE_Py_RecordGradient = _pywrap_tensorflow_internal.TFE_Py_RecordGradient
 
 def TFE_Py_TapeWatchedVariables(tape):
     return _pywrap_tensorflow_internal.TFE_Py_TapeWatchedVariables(tape)
@@ -211,6 +258,10 @@ IsGoogleCudaEnabled = _pywrap_tensorflow_internal.IsGoogleCudaEnabled
 def CudaSupportsHalfMatMulAndConv():
     return _pywrap_tensorflow_internal.CudaSupportsHalfMatMulAndConv()
 CudaSupportsHalfMatMulAndConv = _pywrap_tensorflow_internal.CudaSupportsHalfMatMulAndConv
+
+def IsMklEnabled():
+    return _pywrap_tensorflow_internal.IsMklEnabled()
+IsMklEnabled = _pywrap_tensorflow_internal.IsMklEnabled
 
 def CheckpointReader_GetTensor(reader, name, out_status):
     return _pywrap_tensorflow_internal.CheckpointReader_GetTensor(reader, name, out_status)
@@ -270,6 +321,7 @@ class CheckpointReader(_object):
     __del__ = lambda self: None
 CheckpointReader_swigregister = _pywrap_tensorflow_internal.CheckpointReader_swigregister
 CheckpointReader_swigregister(CheckpointReader)
+TFE_Py_FastPathExecute = _pywrap_tensorflow_internal.TFE_Py_FastPathExecute
 
 
 def _NewStatSummarizer(unused):
@@ -347,6 +399,10 @@ def ProfilerFromFile(filename):
     return _pywrap_tensorflow_internal.ProfilerFromFile(filename)
 ProfilerFromFile = _pywrap_tensorflow_internal.ProfilerFromFile
 
+def SerializeToString():
+    return _pywrap_tensorflow_internal.SerializeToString()
+SerializeToString = _pywrap_tensorflow_internal.SerializeToString
+
 def Profile(command, options):
     return _pywrap_tensorflow_internal.Profile(command, options)
 Profile = _pywrap_tensorflow_internal.Profile
@@ -421,6 +477,67 @@ def PyRecordWriter_New(filename, compression_type_string, out_status):
     return _pywrap_tensorflow_internal.PyRecordWriter_New(filename, compression_type_string, out_status)
 PyRecordWriter_New = _pywrap_tensorflow_internal.PyRecordWriter_New
 
+class Status(_object):
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, Status, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, Status, name)
+    __repr__ = _swig_repr
+
+    def __init__(self, *args):
+        this = _pywrap_tensorflow_internal.new_Status(*args)
+        try:
+            self.this.append(this)
+        except Exception:
+            self.this = this
+    __swig_getmethods__["OK"] = lambda x: _pywrap_tensorflow_internal.Status_OK
+    if _newclass:
+        OK = staticmethod(_pywrap_tensorflow_internal.Status_OK)
+
+    def ok(self):
+        return _pywrap_tensorflow_internal.Status_ok(self)
+
+    def code(self):
+        return _pywrap_tensorflow_internal.Status_code(self)
+
+    def error_message(self):
+        return _pywrap_tensorflow_internal.Status_error_message(self)
+
+    def __eq__(self, x):
+        return _pywrap_tensorflow_internal.Status___eq__(self, x)
+
+    def __ne__(self, x):
+        return _pywrap_tensorflow_internal.Status___ne__(self, x)
+
+    def Update(self, new_status):
+        return _pywrap_tensorflow_internal.Status_Update(self, new_status)
+
+    def ToString(self):
+        return _pywrap_tensorflow_internal.Status_ToString(self)
+
+    def IgnoreError(self):
+        return _pywrap_tensorflow_internal.Status_IgnoreError(self)
+    __swig_destroy__ = _pywrap_tensorflow_internal.delete_Status
+    __del__ = lambda self: None
+Status_swigregister = _pywrap_tensorflow_internal.Status_swigregister
+Status_swigregister(Status)
+
+def Status_OK():
+    return _pywrap_tensorflow_internal.Status_OK()
+Status_OK = _pywrap_tensorflow_internal.Status_OK
+
+
+def __lshift__(os, x):
+    return _pywrap_tensorflow_internal.__lshift__(os, x)
+__lshift__ = _pywrap_tensorflow_internal.__lshift__
+
+def TfCheckOpHelperOutOfLine(v, msg):
+    return _pywrap_tensorflow_internal.TfCheckOpHelperOutOfLine(v, msg)
+TfCheckOpHelperOutOfLine = _pywrap_tensorflow_internal.TfCheckOpHelperOutOfLine
+
+def TfCheckOpHelper(v, msg):
+    return _pywrap_tensorflow_internal.TfCheckOpHelper(v, msg)
+TfCheckOpHelper = _pywrap_tensorflow_internal.TfCheckOpHelper
 class EventsWriter(_object):
     __swig_setmethods__ = {}
     __setattr__ = lambda self, name, value: _swig_setattr(self, EventsWriter, name, value)
@@ -887,6 +1004,10 @@ def TF_SetAttrTypeList(desc, attr_name, values, num_values):
     return _pywrap_tensorflow_internal.TF_SetAttrTypeList(desc, attr_name, values, num_values)
 TF_SetAttrTypeList = _pywrap_tensorflow_internal.TF_SetAttrTypeList
 
+def TF_SetAttrFuncName(desc, attr_name, value, length):
+    return _pywrap_tensorflow_internal.TF_SetAttrFuncName(desc, attr_name, value, length)
+TF_SetAttrFuncName = _pywrap_tensorflow_internal.TF_SetAttrFuncName
+
 def TF_SetAttrShape(desc, attr_name, dims, num_dims):
     return _pywrap_tensorflow_internal.TF_SetAttrShape(desc, attr_name, dims, num_dims)
 TF_SetAttrShape = _pywrap_tensorflow_internal.TF_SetAttrShape
@@ -1204,6 +1325,14 @@ def TF_GraphCopyFunction(g, func, grad, status):
     return _pywrap_tensorflow_internal.TF_GraphCopyFunction(g, func, grad, status)
 TF_GraphCopyFunction = _pywrap_tensorflow_internal.TF_GraphCopyFunction
 
+def TF_GraphNumFunctions(g):
+    return _pywrap_tensorflow_internal.TF_GraphNumFunctions(g)
+TF_GraphNumFunctions = _pywrap_tensorflow_internal.TF_GraphNumFunctions
+
+def TF_GraphGetFunctions(g, funcs, max_func, status):
+    return _pywrap_tensorflow_internal.TF_GraphGetFunctions(g, funcs, max_func, status)
+TF_GraphGetFunctions = _pywrap_tensorflow_internal.TF_GraphGetFunctions
+
 def TF_OperationToNodeDef(oper, output_node_def, status):
     return _pywrap_tensorflow_internal.TF_OperationToNodeDef(oper, output_node_def, status)
 TF_OperationToNodeDef = _pywrap_tensorflow_internal.TF_OperationToNodeDef
@@ -1235,6 +1364,10 @@ TF_FunctionGetAttrValueProto = _pywrap_tensorflow_internal.TF_FunctionGetAttrVal
 def TF_DeleteFunction(func):
     return _pywrap_tensorflow_internal.TF_DeleteFunction(func)
 TF_DeleteFunction = _pywrap_tensorflow_internal.TF_DeleteFunction
+
+def TF_TryEvaluateConstant(graph, output, result, status):
+    return _pywrap_tensorflow_internal.TF_TryEvaluateConstant(graph, output, result, status)
+TF_TryEvaluateConstant = _pywrap_tensorflow_internal.TF_TryEvaluateConstant
 
 def TF_NewSession(graph, opts, status):
     return _pywrap_tensorflow_internal.TF_NewSession(graph, opts, status)
@@ -1320,6 +1453,22 @@ def TF_GetAllOpList():
     return _pywrap_tensorflow_internal.TF_GetAllOpList()
 TF_GetAllOpList = _pywrap_tensorflow_internal.TF_GetAllOpList
 
+def TF_NewApiDefMap(op_list_buffer, status):
+    return _pywrap_tensorflow_internal.TF_NewApiDefMap(op_list_buffer, status)
+TF_NewApiDefMap = _pywrap_tensorflow_internal.TF_NewApiDefMap
+
+def TF_DeleteApiDefMap(apimap):
+    return _pywrap_tensorflow_internal.TF_DeleteApiDefMap(apimap)
+TF_DeleteApiDefMap = _pywrap_tensorflow_internal.TF_DeleteApiDefMap
+
+def TF_ApiDefMapPut(api_def_map, text, text_len, status):
+    return _pywrap_tensorflow_internal.TF_ApiDefMapPut(api_def_map, text, text_len, status)
+TF_ApiDefMapPut = _pywrap_tensorflow_internal.TF_ApiDefMapPut
+
+def TF_ApiDefMapGet(api_def_map, name, name_len, status):
+    return _pywrap_tensorflow_internal.TF_ApiDefMapGet(api_def_map, name, name_len, status)
+TF_ApiDefMapGet = _pywrap_tensorflow_internal.TF_ApiDefMapGet
+
 def AddControlInput(graph, op, input):
     return _pywrap_tensorflow_internal.AddControlInput(graph, op, input)
 AddControlInput = _pywrap_tensorflow_internal.AddControlInput
@@ -1339,6 +1488,14 @@ UpdateEdge = _pywrap_tensorflow_internal.UpdateEdge
 def RemoveAllControlInputs(graph, op):
     return _pywrap_tensorflow_internal.RemoveAllControlInputs(graph, op)
 RemoveAllControlInputs = _pywrap_tensorflow_internal.RemoveAllControlInputs
+
+def SetRequireShapeInferenceFns(graph, require):
+    return _pywrap_tensorflow_internal.SetRequireShapeInferenceFns(graph, require)
+SetRequireShapeInferenceFns = _pywrap_tensorflow_internal.SetRequireShapeInferenceFns
+
+def ExtendSession(session, status):
+    return _pywrap_tensorflow_internal.ExtendSession(session, status)
+ExtendSession = _pywrap_tensorflow_internal.ExtendSession
 
 def TF_NewSessionOptions(target=None, config=None):
 # NOTE: target and config are validated in the session constructor.
@@ -1383,6 +1540,10 @@ def EqualGraphDefWrapper(actual, expected):
     return _pywrap_tensorflow_internal.EqualGraphDefWrapper(actual, expected)
 EqualGraphDefWrapper = _pywrap_tensorflow_internal.EqualGraphDefWrapper
 
+def EqualAttrValueWrapper(actual, expected):
+    return _pywrap_tensorflow_internal.EqualAttrValueWrapper(actual, expected)
+EqualAttrValueWrapper = _pywrap_tensorflow_internal.EqualAttrValueWrapper
+
 def TF_GraphGetTensorShapeHelper(graph, output, out_status):
     return _pywrap_tensorflow_internal.TF_GraphGetTensorShapeHelper(graph, output, out_status)
 TF_GraphGetTensorShapeHelper = _pywrap_tensorflow_internal.TF_GraphGetTensorShapeHelper
@@ -1415,6 +1576,10 @@ def TF_GraphToFunction_wrapper(fn_body, fn_name, append_hash_to_fn_name, opers, 
     return _pywrap_tensorflow_internal.TF_GraphToFunction_wrapper(fn_body, fn_name, append_hash_to_fn_name, opers, inputs, outputs, output_names, opts, description, out_status)
 TF_GraphToFunction_wrapper = _pywrap_tensorflow_internal.TF_GraphToFunction_wrapper
 
+def TF_GraphSetOutputHandleShapesAndTypes_wrapper(graph, output, shapes, ranks, types, status):
+    return _pywrap_tensorflow_internal.TF_GraphSetOutputHandleShapesAndTypes_wrapper(graph, output, shapes, ranks, types, status)
+TF_GraphSetOutputHandleShapesAndTypes_wrapper = _pywrap_tensorflow_internal.TF_GraphSetOutputHandleShapesAndTypes_wrapper
+
 def TF_GraphSetTensorShape_wrapper(graph, output, dims, unknown_shape, status):
     return _pywrap_tensorflow_internal.TF_GraphSetTensorShape_wrapper(graph, output, dims, unknown_shape, status)
 TF_GraphSetTensorShape_wrapper = _pywrap_tensorflow_internal.TF_GraphSetTensorShape_wrapper
@@ -1426,6 +1591,10 @@ TF_GraphGetTensorShape_wrapper = _pywrap_tensorflow_internal.TF_GraphGetTensorSh
 def TF_ImportGraphDefResultsMissingUnusedInputMappings_wrapper(results):
     return _pywrap_tensorflow_internal.TF_ImportGraphDefResultsMissingUnusedInputMappings_wrapper(results)
 TF_ImportGraphDefResultsMissingUnusedInputMappings_wrapper = _pywrap_tensorflow_internal.TF_ImportGraphDefResultsMissingUnusedInputMappings_wrapper
+
+def TF_TryEvaluateConstant_wrapper(graph, output, status):
+    return _pywrap_tensorflow_internal.TF_TryEvaluateConstant_wrapper(graph, output, status)
+TF_TryEvaluateConstant_wrapper = _pywrap_tensorflow_internal.TF_TryEvaluateConstant_wrapper
 
 def ListDevices(out_status):
     return _pywrap_tensorflow_internal.ListDevices(out_status)
@@ -1509,67 +1678,6 @@ AppendToFile = _pywrap_tensorflow_internal.AppendToFile
 def ReadFromStream(stream, bytes, out_status):
     return _pywrap_tensorflow_internal.ReadFromStream(stream, bytes, out_status)
 ReadFromStream = _pywrap_tensorflow_internal.ReadFromStream
-class Status(_object):
-    __swig_setmethods__ = {}
-    __setattr__ = lambda self, name, value: _swig_setattr(self, Status, name, value)
-    __swig_getmethods__ = {}
-    __getattr__ = lambda self, name: _swig_getattr(self, Status, name)
-    __repr__ = _swig_repr
-
-    def __init__(self, *args):
-        this = _pywrap_tensorflow_internal.new_Status(*args)
-        try:
-            self.this.append(this)
-        except Exception:
-            self.this = this
-    __swig_getmethods__["OK"] = lambda x: _pywrap_tensorflow_internal.Status_OK
-    if _newclass:
-        OK = staticmethod(_pywrap_tensorflow_internal.Status_OK)
-
-    def ok(self):
-        return _pywrap_tensorflow_internal.Status_ok(self)
-
-    def code(self):
-        return _pywrap_tensorflow_internal.Status_code(self)
-
-    def error_message(self):
-        return _pywrap_tensorflow_internal.Status_error_message(self)
-
-    def __eq__(self, x):
-        return _pywrap_tensorflow_internal.Status___eq__(self, x)
-
-    def __ne__(self, x):
-        return _pywrap_tensorflow_internal.Status___ne__(self, x)
-
-    def Update(self, new_status):
-        return _pywrap_tensorflow_internal.Status_Update(self, new_status)
-
-    def ToString(self):
-        return _pywrap_tensorflow_internal.Status_ToString(self)
-
-    def IgnoreError(self):
-        return _pywrap_tensorflow_internal.Status_IgnoreError(self)
-    __swig_destroy__ = _pywrap_tensorflow_internal.delete_Status
-    __del__ = lambda self: None
-Status_swigregister = _pywrap_tensorflow_internal.Status_swigregister
-Status_swigregister(Status)
-
-def Status_OK():
-    return _pywrap_tensorflow_internal.Status_OK()
-Status_OK = _pywrap_tensorflow_internal.Status_OK
-
-
-def __lshift__(os, x):
-    return _pywrap_tensorflow_internal.__lshift__(os, x)
-__lshift__ = _pywrap_tensorflow_internal.__lshift__
-
-def TfCheckOpHelperOutOfLine(v, msg):
-    return _pywrap_tensorflow_internal.TfCheckOpHelperOutOfLine(v, msg)
-TfCheckOpHelperOutOfLine = _pywrap_tensorflow_internal.TfCheckOpHelperOutOfLine
-
-def TfCheckOpHelper(v, msg):
-    return _pywrap_tensorflow_internal.TfCheckOpHelper(v, msg)
-TfCheckOpHelper = _pywrap_tensorflow_internal.TfCheckOpHelper
 class WritableFile(_object):
     __swig_setmethods__ = {}
     __setattr__ = lambda self, name, value: _swig_setattr(self, WritableFile, name, value)
@@ -1744,6 +1852,10 @@ def RunCppShapeInference(graph_def_version, serialized_node_def, input_serialize
     return _pywrap_tensorflow_internal.RunCppShapeInference(graph_def_version, serialized_node_def, input_serialized_shapes, input_constant_tensor_values, input_constant_tensor_as_shape_values, out_status)
 RunCppShapeInference = _pywrap_tensorflow_internal.RunCppShapeInference
 
+def InstallStacktraceHandler():
+    return _pywrap_tensorflow_internal.InstallStacktraceHandler()
+InstallStacktraceHandler = _pywrap_tensorflow_internal.InstallStacktraceHandler
+
 def TryFindKernelClass(serialized_node_def):
     return _pywrap_tensorflow_internal.TryFindKernelClass(serialized_node_def)
 TryFindKernelClass = _pywrap_tensorflow_internal.TryFindKernelClass
@@ -1793,13 +1905,17 @@ def TF_NewItem(meta_graph, ignore_colocation, ignore_user_placement, out_status)
     return _pywrap_tensorflow_internal.TF_NewItem(meta_graph, ignore_colocation, ignore_user_placement, out_status)
 TF_NewItem = _pywrap_tensorflow_internal.TF_NewItem
 
-def TF_IdentifyImportantOps(item):
-    return _pywrap_tensorflow_internal.TF_IdentifyImportantOps(item)
+def TF_IdentifyImportantOps(item, sort_topologically, status):
+    return _pywrap_tensorflow_internal.TF_IdentifyImportantOps(item, sort_topologically, status)
 TF_IdentifyImportantOps = _pywrap_tensorflow_internal.TF_IdentifyImportantOps
 
 def TF_GetOpProperties(item):
     return _pywrap_tensorflow_internal.TF_GetOpProperties(item)
 TF_GetOpProperties = _pywrap_tensorflow_internal.TF_GetOpProperties
+
+def TF_GetColocationGroups(item):
+    return _pywrap_tensorflow_internal.TF_GetColocationGroups(item)
+TF_GetColocationGroups = _pywrap_tensorflow_internal.TF_GetColocationGroups
 class GCluster(_object):
     __swig_setmethods__ = {}
     __setattr__ = lambda self, name, value: _swig_setattr(self, GCluster, name, value)
@@ -1839,6 +1955,18 @@ def TF_ListDevices(cluster):
     return _pywrap_tensorflow_internal.TF_ListDevices(cluster)
 TF_ListDevices = _pywrap_tensorflow_internal.TF_ListDevices
 
+def TF_ListAvailableOps():
+    return _pywrap_tensorflow_internal.TF_ListAvailableOps()
+TF_ListAvailableOps = _pywrap_tensorflow_internal.TF_ListAvailableOps
+
+def TF_GetSupportedDevices(cluster, item):
+    return _pywrap_tensorflow_internal.TF_GetSupportedDevices(cluster, item)
+TF_GetSupportedDevices = _pywrap_tensorflow_internal.TF_GetSupportedDevices
+
+def TF_EstimatePerformance(device):
+    return _pywrap_tensorflow_internal.TF_EstimatePerformance(device)
+TF_EstimatePerformance = _pywrap_tensorflow_internal.TF_EstimatePerformance
+
 def TF_MeasureCosts(item, cluster, generate_timeline, out_status):
     return _pywrap_tensorflow_internal.TF_MeasureCosts(item, cluster, generate_timeline, out_status)
 TF_MeasureCosts = _pywrap_tensorflow_internal.TF_MeasureCosts
@@ -1851,8 +1979,8 @@ def TF_OptimizeGraph(cluster, rewriter_config, metagraph, verbose, graph_id, out
     return _pywrap_tensorflow_internal.TF_OptimizeGraph(cluster, rewriter_config, metagraph, verbose, graph_id, out_status)
 TF_OptimizeGraph = _pywrap_tensorflow_internal.TF_OptimizeGraph
 
-def GenerateCostReport(metagraph, per_node_report, cluster):
-    return _pywrap_tensorflow_internal.GenerateCostReport(metagraph, per_node_report, cluster)
+def GenerateCostReport(metagraph, per_node_report, verbose, cluster):
+    return _pywrap_tensorflow_internal.GenerateCostReport(metagraph, per_node_report, verbose, cluster)
 GenerateCostReport = _pywrap_tensorflow_internal.GenerateCostReport
 
 def GenerateModelReport(metagraph, debug):
