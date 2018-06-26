@@ -1,6 +1,6 @@
 # tensorflow-gpu-macosx
 
-Unoffcial NVIDIA CUDA GPU support version of Google Tensorflow for MAC OSX 10.13
+Unoffcial NVIDIA CUDA GPU support version of Google Tensorflow 1.8 for MAC OSX 10.13
 
 **Description:**
 
@@ -9,9 +9,25 @@ Unoffcial NVIDIA CUDA GPU support version of Google Tensorflow for MAC OSX 10.13
     I built this unoffcial tensorflow-gpu for MAC OSX so that
     Hackintosh users or Mac users with eGPU can run tensorflow-gpu with CUDA.
 
+**Requirement:**
+
+    1. Must use python3 instead of python2
+
+    2. Must be installed on MAC OSX 10.6+
+
+    3. Must install Nvidia GPU drivers
+
+    4. Must install Nvidia CUDA toolkit 9.1 (if not, you need to re-compile by yourself)
+
+    5. Must install Nvidia CUDA cudnn 7.0 (if not, you need to re-compile by yourself)
+
+    6. Must set up cuda environment (make sure 'nvcc -V' shows the cuda version '9.1')
+
+    7.CUDA compute capability is in [3.0,3.5,5.0,5.2,6.1] (if not, you need to re-compile by yourself)
+
 # HOW TO BUILD TENSORFLOW-GPU FOR MAC OSX?
 
-## notice 
+## NOTICE 
 
 1.INSTALL NVIDIA DRIVER
 
@@ -25,7 +41,7 @@ Unoffcial NVIDIA CUDA GPU support version of Google Tensorflow for MAC OSX 10.13
 
 WORKS AND PRINTS CUDA VERSION)
 
-5.INSTALL XCODE/COMMAND LINE TOOL 9
+5.INSTALL XCODE/COMMAND LINE TOOL 9.3+
 
 6.INSTALL HOMEBREW
 
@@ -33,7 +49,7 @@ WORKS AND PRINTS CUDA VERSION)
 
     brew install coreutils
 
-**8.INSTALL LLVM USING
+**8.INSTALL LLVM USING**
 
     brew install llvm
     
@@ -41,12 +57,12 @@ WORKS AND PRINTS CUDA VERSION)
 
     brew install cliutils/apple/libomp
 
-**10.INSTALL BAZEL 0.10.0 FROM GITHUB**
-*(https://github.com/bazelbuild/bazel/releases, newer/older version will cause failure)*
+~~10.INSTALL BAZEL 0.10.0 FROM GITHUB~~
 
-**11.INSTALL XCODE/COMMAND LINE TOOL 8.2 (TF COMPILE ONLY SUPPORTS XCODE 8)**
+**10.INSTALL BAZEL 0.14.1 FROM GITHUB**
+*(https://github.com/bazelbuild/bazel/releases, newer/older version may cause failure)*
 
-    sudo xcode-select --switch /Library/Developer/CommandLineTools
+~~11.INSTALL XCODE/COMMAND LINE TOOL 8.2 (TF COMPILE ONLY SUPPORTS XCODE 8) AND SWITCH TO XCODE 8.2~~
 
 12.GIT CLONE TENSORFLOW
 
@@ -54,7 +70,7 @@ WORKS AND PRINTS CUDA VERSION)
 
 13.CD TENSORFLOW SOURCE DIR
 
-14.CONFIG AND BUILD(read it very carefully)
+14.CONFIG(skip this step if your CUDA version is same as mine)
 
     ./configure
       #Please specify the location of python.: Accept the default option
@@ -73,7 +89,7 @@ WORKS AND PRINTS CUDA VERSION)
         #Please specify the location where cuDNN 7 library is installed.: Accept the default option
         ##Please specify a list of comma-separated Cuda compute capabilities you want to build with.
         ##You can find the compute capability of your device at: https://developer.nvidia.com/cuda-gpus. (GTX10X0: 6.1, GTX9X0: 5.2)
-        #Please note that each additional compute capability significantly increases your build time and binary size.: 5.0,3.0
+        #Please note that each additional compute capability significantly increases your build time and binary size.: 6.1,5.2,5.0,3.0
         #Do you want to use clang as CUDA compiler? [y/N]: n
         #Please specify which gcc should be used by nvcc as the host compiler.: Accept the default option
         #Do you wish to build TensorFlow with MPI support? [y/N]: n
@@ -87,17 +103,33 @@ WORKS AND PRINTS CUDA VERSION)
 
     # bazel clean --expunge # Use this if you failed to compile before.
 
+**15.BUILD**
+
     bazel build --config=cuda --config=opt --cxxopt="-D_GLIBCXX_USE_CXX11_ABI=0" --action_env PATH --action_env LD_LIBRARY_PATH --action_env DYLD_LIBRARY_PATH //tensorflow/tools/pip_package:build_pip_package
 
+**16.NCCL PATCH**
+  
+  You can compile NCCL_OPS by yourself (not necessary):
+
+    gcc -c -fPIC ./nccl_patched/nccl_ops.cc -o ./nccl_patched/_nccl_ops.o
+    
+    gcc ./nccl_patched/_nccl_ops.o -shared -o ./nccl_patched/_nccl_ops.so
+  
+  Then replace the original nccl lib:
+
+    mv ./bazel-bin/tensorflow/contrib/nccl/python/ops/_nccl_ops.so ./bazel-bin/tensorflow/contrib/nccl/python/ops/_nccl_ops.so.bk
+
+    cp ./nccl_patched/_nccl_ops.so ./bazel-bin/tensorflow/contrib/nccl/python/ops/
 
 
-15.BUILD PYTHON BINDING USING
+
+16.BUILD PYTHON BINDING USING
 
     bazel-bin/tensorflow/tools/pip_package/build_pip_package/tmp/tensorflow_pkg
 
-16.INSTALL PYTHON WHEEL USING 'pip3 install /tmp/tensorflow_pkg/*.whl'
+17.INSTALL PYTHON WHEEL USING 'pip3 install /tmp/tensorflow_pkg/*.whl'
 
-17.REINSTALL XCODE/COMMAND LINE TOOL 9
+18.REINSTALL XCODE/COMMAND LINE TOOL 9
 
 
 **NOTICE**
@@ -112,18 +144,3 @@ WORKS AND PRINTS CUDA VERSION)
         pip3 install tensorflow-gpu-macosx
     **or install from relese (the easiest way)**
         pip3 install *.whl
-
-
-**Requirement:**
-
-    1. Must use python3 instead of python2
-
-    2. Must be installed on MAC OSX 10.6+
-
-    3. Must install Nvidia GPU drivers
-
-    4. Must install Nvidia CUDA toolkit 9.1 (if not, you need to re-compile by yourself)
-
-    5. Must install Nvidia CUDA cudnn 7.0 (if not, you need to re-compile by yourself)
-
-    6. Must set up cuda environment (make sure 'nvcc -V' shows the cuda version '9.1')
