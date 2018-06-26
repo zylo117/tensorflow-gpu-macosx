@@ -110,7 +110,7 @@ cc_library(
         ".",
         "cuda/include",
     ],
-    # linkopts = ["-lgomp"],
+    linkopts = ["-lgomp"],
     linkstatic = 1,
     visibility = ["//visibility:public"],
 )

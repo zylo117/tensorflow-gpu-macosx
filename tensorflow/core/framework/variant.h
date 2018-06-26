@@ -152,7 +152,8 @@ bool DecodeVariant(const string& buf, T* value);
 //
 class Variant {
  public:
-  constexpr Variant() noexcept = default;
+//  constexpr Variant() noexcept = default;
+  Variant() noexcept = default;
 
   Variant(const Variant& other)
       : value_(other.is_empty() ? std::unique_ptr<ValueInterface>()
