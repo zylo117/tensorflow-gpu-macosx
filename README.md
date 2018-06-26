@@ -19,27 +19,40 @@ Unoffcial NVIDIA CUDA GPU support version of Google Tensorflow for MAC OSX 10.13
 
 3.INSTALL NVIDIA CUDA CUDNN (7.0 OR LATER)
 
-4.SET UP CUDA ENVIRONMENT (MAKE SURE 'nvcc -V' WORKS AND PRINTS CUDA VERSION)
+4.SET UP CUDA ENVIRONMENT (MAKE SURE
+
+    nvcc -V
+
+WORKS AND PRINTS CUDA VERSION)
 
 5.INSTALL XCODE/COMMAND LINE TOOL 9
 
 6.INSTALL HOMEBREW
 
-7.INSTALL COREUTILS USING 'brew install coreutils'
+7.INSTALL COREUTILS USING 
 
-**8.INSTALL LLVM USING 'brew install llvm'**
+    brew install coreutils
 
-**9.INSTALL OPENMP USING 'brew install cliutils/apple/libomp'**
+**8.INSTALL LLVM USING
 
-**10.INSTALL BAZEL 0.10.0 FROM GITHUB**(https://github.com/bazelbuild/bazel/releases, newer/older version will cause failure)
+    brew install llvm
+    
+**9.INSTALL OPENMP USING** 
 
-**11.INSTALL XCODE/COMMAND LINE TOOL 8.2 (TF ONLY SUPPORTS XCODE 8 and 'sudo xcode-select --switch /Library/Developer/CommandLineTools')**
+    brew install cliutils/apple/libomp
+
+**10.INSTALL BAZEL 0.10.0 FROM GITHUB**
+*(https://github.com/bazelbuild/bazel/releases, newer/older version will cause failure)*
+
+**11.INSTALL XCODE/COMMAND LINE TOOL 8.2 (TF COMPILE ONLY SUPPORTS XCODE 8)**
+
+    sudo xcode-select --switch /Library/Developer/CommandLineTools
 
 ~~~12.GIT CLONE TENSORFLOW (1.8.0 rc1, newer version such as 1.8.0 will not be supported)~~~
 
-13.CD TENSORFLOW DIR
+13.CD TENSORFLOW SOURCE DIR
 
-14.CONFIG AND BUILD(
+14.CONFIG AND BUILD(read it very carefully)
 
     ./configure
       #Please specify the location of python.: Accept the default option
@@ -70,14 +83,15 @@ Unoffcial NVIDIA CUDA GPU support version of Google Tensorflow for MAC OSX 10.13
     export LD_LIBRARY_PATH=$DYLD_LIBRARY_PATH
     export PATH=$DYLD_LIBRARY_PATH:$PATH
 
-    #bazel clean --expunge
+    # bazel clean --expunge # Use this if you failed to compile before.
 
     bazel build --config=cuda --config=opt --cxxopt="-D_GLIBCXX_USE_CXX11_ABI=0" --action_env PATH --action_env LD_LIBRARY_PATH --action_env DYLD_LIBRARY_PATH //tensorflow/tools/pip_package:build_pip_package
 
 
-)
 
-15.BUILD PYTHON BINDING USING 'bazel-bin/tensorflow/tools/pip_package/build_pip_package /tmp/tensorflow_pkg'
+15.BUILD PYTHON BINDING USING
+
+    bazel-bin/tensorflow/tools/pip_package/build_pip_package/tmp/tensorflow_pkg
 
 16.INSTALL PYTHON WHEEL USING 'pip3 install /tmp/tensorflow_pkg/*.whl'
 
@@ -106,8 +120,8 @@ Unoffcial NVIDIA CUDA GPU support version of Google Tensorflow for MAC OSX 10.13
 
     3. Must install Nvidia GPU drivers
 
-    4. Must install Nvidia CUDA toolkit 9.1
+    4. Must install Nvidia CUDA toolkit 9.1 (if not, you need to re-compile by yourself)
 
-    5. Must install Nvidia CUDA cudnn 7.0
+    5. Must install Nvidia CUDA cudnn 7.0 (if not, you need to re-compile by yourself)
 
     6. Must set up cuda environment (make sure 'nvcc -V' shows the cuda version '9.1')
