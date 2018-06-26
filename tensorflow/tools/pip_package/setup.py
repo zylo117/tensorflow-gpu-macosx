@@ -1,18 +1,3 @@
-# Copyright 2015 The TensorFlow Authors. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# ==============================================================================
-
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -210,11 +195,10 @@ headers = (list(find_files('*.h', 'tensorflow/core')) +
 setup(
     name=project_name,
     version=_VERSION.replace('-', ''),
-    description='TensorFlow helps the tensors flow',
-    long_description='',
-    url='https://www.tensorflow.org/',
-    author='Google Inc.',
-    author_email='opensource@google.com',
+    description="Unoffcial NVIDIA CUDA GPU support version of Google Tensorflow for MAC OSX 10.13\nFor more info, please check out my github page.\nI highly recommend you directly download and install it from my github's release.\nIf you insist on compiling it, you'd do it on a shell to debug.",
+    url='https://github.com/zylo117/tensorflow-gpu-macosx',
+    author='Carl Cheung',
+    author_email='zylo117@hotmail.com',
     # Contained modules and scripts.
     packages=find_packages(),
     entry_points={
