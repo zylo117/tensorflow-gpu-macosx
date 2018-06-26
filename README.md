@@ -48,7 +48,9 @@ WORKS AND PRINTS CUDA VERSION)
 
     sudo xcode-select --switch /Library/Developer/CommandLineTools
 
-~~~12.GIT CLONE TENSORFLOW (1.8.0 rc1, newer version such as 1.8.0 will not be supported)~~~
+12.GIT CLONE TENSORFLOW
+
+    git clone https://github.com/zylo117/tensorflow-gpu-macosx
 
 13.CD TENSORFLOW SOURCE DIR
 
