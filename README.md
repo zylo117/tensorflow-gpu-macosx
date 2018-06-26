@@ -23,7 +23,7 @@ Unoffcial NVIDIA CUDA GPU support version of Google Tensorflow 1.8 for MAC OSX 1
 
     6. Must set up cuda environment (make sure 'nvcc -V' shows the cuda version '9.1')
 
-    7.CUDA compute capability is in [3.0,3.5,5.0,5.2,6.1] (if not, you need to re-compile by yourself)
+    7.CUDA compute capability is in [3.0,5.0] (if not, you need to re-compile to get a better performance)
 
 # HOW TO BUILD TENSORFLOW-GPU FOR MAC OSX?
 
