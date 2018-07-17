@@ -34,4 +34,3 @@ xcuserdata/**
 *.iml
 local.properties
 gradleBuild
-test/
