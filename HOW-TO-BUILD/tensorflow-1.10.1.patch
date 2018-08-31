@@ -1,0 +1,1632 @@
+From cd7f071b6427fc4485b60fab17dd9e87ca42b30a Mon Sep 17 00:00:00 2001
+From: Tom Warfel <thomas.warfel@pnnl.gov>
+Date: Thu, 30 Aug 2018 17:53:37 -0700
+Subject: [PATCH] changes to allow compiling r1.10.1 for macOS 10.13.6 with
+ CUDA
+
+---
+ tensorflow/c/eager/c_api.cc                   |   12 +-
+ tensorflow/c/eager/c_api.h                    |    4 +-
+ .../core/kernels/concat_lib_gpu_impl.cu.cc    |    2 +-
+ .../core/kernels/depthwise_conv_op_gpu.cu.cc  |    8 +-
+ tensorflow/core/kernels/split_lib_gpu.cu.cc   |    2 +-
+ tensorflow/python/eager/pywrap_tfe_src.cc     | 1086 ++++++++---------
+ tensorflow/python/lib/core/ndarray_tensor.cc  |    2 +-
+ tensorflow/python/lib/core/py_func.cc         |    2 +-
+ tensorflow/workspace.bzl                      |   27 +-
+ third_party/nccl/nccl.h                       |  203 +++
+ 10 files changed, 780 insertions(+), 568 deletions(-)
+ create mode 100644 third_party/nccl/nccl.h
+
+diff --git a/tensorflow/c/eager/c_api.cc b/tensorflow/c/eager/c_api.cc
+index 82ca2be2cf..1324dad25e 100644
+--- a/tensorflow/c/eager/c_api.cc
++++ b/tensorflow/c/eager/c_api.cc
+@@ -111,7 +111,7 @@ tensorflow::Status GetAllRemoteDevices(
+ tensorflow::Status CreateRemoteContexts(
+     const std::vector<string>& remote_workers, int64 rendezvous_id,
+     const tensorflow::ServerDef& server_def,
+-    tensorflow::eager::EagerClientCache* remote_eager_workers, bool async,
++    tensorflow::eager::EagerClientCache* remote_eager_workers, bool tf_async,
+     tensorflow::gtl::FlatMap<string, tensorflow::uint64>* remote_contexts) {
+   for (int i = 0; i < remote_workers.size(); i++) {
+     const string& remote_worker = remote_workers[i];
+@@ -128,7 +128,7 @@ tensorflow::Status CreateRemoteContexts(
+     *request.mutable_server_def() = server_def;
+     request.mutable_server_def()->set_job_name(parsed_name.job);
+     request.mutable_server_def()->set_task_index(parsed_name.task);
+-    request.set_async(async);
++    request.set_async(tf_async);
+     auto* eager_client = remote_eager_workers->GetClient(remote_worker);
+     if (eager_client == nullptr) {
+       return tensorflow::errors::Internal(
+@@ -241,8 +241,8 @@ void TFE_ContextOptionsSetConfig(TFE_ContextOptions* options, const void* proto,
+ }
+ 
+ void TFE_ContextOptionsSetAsync(TFE_ContextOptions* options,
+-                                unsigned char async) {
+-  options->async = async;
++                                unsigned char tf_async) {
++  options->async = tf_async;
+ }
+ void TFE_ContextOptionsSetDevicePlacementPolicy(
+     TFE_ContextOptions* options, TFE_ContextDevicePlacementPolicy policy) {
+@@ -259,9 +259,9 @@ TF_CAPI_EXPORT extern void TFE_ContextOptionsSetServerDef(
+ }
+ 
+ TF_CAPI_EXPORT extern void TFE_ContextSetAsyncForThread(TFE_Context* ctx,
+-                                                        unsigned char async,
++                                                        unsigned char tf_async,
+                                                         TF_Status* status) {
+-  status->status = ctx->context.SetAsyncForThread(async);
++  status->status = ctx->context.SetAsyncForThread(tf_async);
+ }
+ 
+ void TFE_DeleteContextOptions(TFE_ContextOptions* options) { delete options; }
+diff --git a/tensorflow/c/eager/c_api.h b/tensorflow/c/eager/c_api.h
+index fdbd5374b2..d8de50d25b 100644
+--- a/tensorflow/c/eager/c_api.h
++++ b/tensorflow/c/eager/c_api.h
+@@ -76,7 +76,7 @@ typedef enum TFE_ContextDevicePlacementPolicy {
+ // Sets the default execution mode (sync/async). Note that this can be
+ // overridden per thread using TFE_ContextSetAsyncForThread.
+ TF_CAPI_EXPORT extern void TFE_ContextOptionsSetAsync(TFE_ContextOptions*,
+-                                                      unsigned char async);
++                                                      unsigned char tf_async);
+ 
+ TF_CAPI_EXPORT extern void TFE_ContextOptionsSetDevicePlacementPolicy(
+     TFE_ContextOptions*, TFE_ContextDevicePlacementPolicy);
+@@ -125,7 +125,7 @@ TFE_ContextGetDevicePlacementPolicy(TFE_Context*);
+ 
+ // Overrides the execution mode (sync/async) for the current thread.
+ TF_CAPI_EXPORT extern void TFE_ContextSetAsyncForThread(TFE_Context*,
+-                                                        unsigned char async,
++                                                        unsigned char tf_async,
+                                                         TF_Status* status);
+ 
+ // Causes the calling thread to block till all ops dispatched in async mode
+diff --git a/tensorflow/core/kernels/concat_lib_gpu_impl.cu.cc b/tensorflow/core/kernels/concat_lib_gpu_impl.cu.cc
+index a561d918bd..785e0ddf4e 100644
+--- a/tensorflow/core/kernels/concat_lib_gpu_impl.cu.cc
++++ b/tensorflow/core/kernels/concat_lib_gpu_impl.cu.cc
+@@ -69,7 +69,7 @@ __global__ void concat_variable_kernel(
+   IntType num_inputs = input_ptr_data.size;
+ 
+   // verbose declaration needed due to template
+-  extern __shared__ __align__(sizeof(T)) unsigned char smem[];
++  extern __shared__ unsigned char smem[];
+   IntType* smem_col_scan = reinterpret_cast<IntType*>(smem);
+ 
+   if (useSmem) {
+diff --git a/tensorflow/core/kernels/depthwise_conv_op_gpu.cu.cc b/tensorflow/core/kernels/depthwise_conv_op_gpu.cu.cc
+index 5390222b3a..10ac4652e3 100644
+--- a/tensorflow/core/kernels/depthwise_conv_op_gpu.cu.cc
++++ b/tensorflow/core/kernels/depthwise_conv_op_gpu.cu.cc
+@@ -172,7 +172,7 @@ __global__ __launch_bounds__(1024, 2) void DepthwiseConv2dGPUKernelNHWCSmall(
+     const DepthwiseArgs args, const T* input, const T* filter, T* output) {
+   assert(CanLaunchDepthwiseConv2dGPUSmall(args));
+   // Holds block plus halo and filter data for blockDim.x depths.
+-  extern __shared__ __align__(sizeof(T)) unsigned char shared_memory[];
++  extern __shared__ unsigned char shared_memory[];
+   T* const shared_data = reinterpret_cast<T*>(shared_memory);
+ 
+   const int num_batches = args.batch;
+@@ -452,7 +452,7 @@ __global__ __launch_bounds__(1024, 2) void DepthwiseConv2dGPUKernelNCHWSmall(
+     const DepthwiseArgs args, const T* input, const T* filter, T* output) {
+   assert(CanLaunchDepthwiseConv2dGPUSmall(args));
+   // Holds block plus halo and filter data for blockDim.z depths.
+-  extern __shared__ __align__(sizeof(T)) unsigned char shared_memory[];
++  extern __shared__ unsigned char shared_memory[];
+   T* const shared_data = reinterpret_cast<T*>(shared_memory);
+ 
+   const int num_batches = args.batch;
+@@ -1118,7 +1118,7 @@ __launch_bounds__(1024, 2) void DepthwiseConv2dBackpropFilterGPUKernelNHWCSmall(
+     const DepthwiseArgs args, const T* output, const T* input, T* filter) {
+   assert(CanLaunchDepthwiseConv2dBackpropFilterGPUSmall(args, blockDim.z));
+   // Holds block plus halo and filter data for blockDim.x depths.
+-  extern __shared__ __align__(sizeof(T)) unsigned char shared_memory[];
++  extern __shared__ unsigned char shared_memory[];
+   T* const shared_data = reinterpret_cast<T*>(shared_memory);
+ 
+   const int num_batches = args.batch;
+@@ -1388,7 +1388,7 @@ __launch_bounds__(1024, 2) void DepthwiseConv2dBackpropFilterGPUKernelNCHWSmall(
+     const DepthwiseArgs args, const T* output, const T* input, T* filter) {
+   assert(CanLaunchDepthwiseConv2dBackpropFilterGPUSmall(args, blockDim.x));
+   // Holds block plus halo and filter data for blockDim.z depths.
+-  extern __shared__ __align__(sizeof(T)) unsigned char shared_memory[];
++  extern __shared__ unsigned char shared_memory[];
+   T* const shared_data = reinterpret_cast<T*>(shared_memory);
+ 
+   const int num_batches = args.batch;
+diff --git a/tensorflow/core/kernels/split_lib_gpu.cu.cc b/tensorflow/core/kernels/split_lib_gpu.cu.cc
+index 393818730b..a7d9e02853 100644
+--- a/tensorflow/core/kernels/split_lib_gpu.cu.cc
++++ b/tensorflow/core/kernels/split_lib_gpu.cu.cc
+@@ -121,7 +121,7 @@ __global__ void split_v_kernel(const T* input_ptr,
+   int num_outputs = output_ptr_data.size;
+ 
+   // verbose declaration needed due to template
+-  extern __shared__ __align__(sizeof(T)) unsigned char smem[];
++  extern __shared__ unsigned char smem[];
+   IntType* smem_col_scan = reinterpret_cast<IntType*>(smem);
+ 
+   if (useSmem) {
+diff --git a/tensorflow/python/eager/pywrap_tfe_src.cc b/tensorflow/python/eager/pywrap_tfe_src.cc
+index ec7e2371e9..999ffc6db9 100644
+--- a/tensorflow/python/eager/pywrap_tfe_src.cc
++++ b/tensorflow/python/eager/pywrap_tfe_src.cc
+@@ -186,443 +186,443 @@ bool ParseDimensionValue(const string& key, PyObject* py_value,
+   }
+ 
+   tensorflow::Safe_PyObjectPtr dimension_value(
+-      PyObject_GetAttrString(py_value, "_value"));
++		  PyObject_GetAttrString(py_value, "_value"));
+   if (dimension_value == nullptr) {
+-    TF_SetStatus(
+-        status, TF_INVALID_ARGUMENT,
+-        tensorflow::strings::StrCat("Expecting a Dimension for attr ", key,
+-                                    ", got ", py_value->ob_type->tp_name)
+-            .c_str());
+-    return false;
++	  TF_SetStatus(
++			  status, TF_INVALID_ARGUMENT,
++			  tensorflow::strings::StrCat("Expecting a Dimension for attr ", key,
++				  ", got ", py_value->ob_type->tp_name)
++			  .c_str());
++	  return false;
+   }
+ 
+   if (dimension_value.get() == Py_None) {
+-    *value = -1;
+-    return true;
++	  *value = -1;
++	  return true;
+   }
+ 
+   return ParseInt64Value(key, dimension_value.get(), status, value);
+ }
+ 
+ bool ParseStringValue(const string& key, PyObject* py_value, TF_Status* status,
+-                      tensorflow::StringPiece* value) {
+-  if (PyBytes_Check(py_value)) {
+-    Py_ssize_t size = 0;
+-    char* buf = nullptr;
+-    if (PyBytes_AsStringAndSize(py_value, &buf, &size) < 0) return false;
+-    *value = tensorflow::StringPiece(buf, size);
+-    return true;
+-  }
++		tensorflow::StringPiece* value) {
++	if (PyBytes_Check(py_value)) {
++		Py_ssize_t size = 0;
++		char* buf = nullptr;
++		if (PyBytes_AsStringAndSize(py_value, &buf, &size) < 0) return false;
++		*value = tensorflow::StringPiece(buf, size);
++		return true;
++	}
+ #if PY_MAJOR_VERSION >= 3
+-  if (PyUnicode_Check(py_value)) {
+-    Py_ssize_t size = 0;
+-    char* buf = PyUnicode_AsUTF8AndSize(py_value, &size);
+-    if (buf == nullptr) return false;
+-    *value = tensorflow::StringPiece(buf, size);
+-    return true;
+-  }
++	if (PyUnicode_Check(py_value)) {
++		Py_ssize_t size = 0;
++		char* buf = const_cast<char *>(PyUnicode_AsUTF8AndSize(py_value, &size));
++		if (buf == nullptr) return false;
++		*value = tensorflow::StringPiece(buf, size);
++		return true;
++	}
+ #endif
+-  TF_SetStatus(
+-      status, TF_INVALID_ARGUMENT,
+-      tensorflow::strings::StrCat("Expecting a string value for attr ", key,
+-                                  ", got ", py_value->ob_type->tp_name)
+-          .c_str());
+-  return false;
++	TF_SetStatus(
++			status, TF_INVALID_ARGUMENT,
++			tensorflow::strings::StrCat("Expecting a string value for attr ", key,
++				", got ", py_value->ob_type->tp_name)
++			.c_str());
++	return false;
+ }
+ 
+ bool ParseBoolValue(const string& key, PyObject* py_value, TF_Status* status,
+-                    unsigned char* value) {
+-  *value = PyObject_IsTrue(py_value);
+-  return true;
++		unsigned char* value) {
++	*value = PyObject_IsTrue(py_value);
++	return true;
+ }
+ 
+ // The passed in py_value is expected to be an object of the python type
+ // dtypes.DType or an int.
+ bool ParseTypeValue(const string& key, PyObject* py_value, TF_Status* status,
+-                    int* value) {
+-  if (IsInteger(py_value)) {
+-    return ParseIntValue(key, py_value, status, value);
+-  }
++		int* value) {
++	if (IsInteger(py_value)) {
++		return ParseIntValue(key, py_value, status, value);
++	}
+ 
+-  tensorflow::Safe_PyObjectPtr py_type_enum(
+-      PyObject_GetAttrString(py_value, "_type_enum"));
+-  if (py_type_enum == nullptr) {
+-    TF_SetStatus(
+-        status, TF_INVALID_ARGUMENT,
+-        tensorflow::strings::StrCat("Expecting a DType.dtype for attr ", key,
+-                                    ", got ", py_value->ob_type->tp_name)
+-            .c_str());
+-    return false;
+-  }
++	tensorflow::Safe_PyObjectPtr py_type_enum(
++			PyObject_GetAttrString(py_value, "_type_enum"));
++	if (py_type_enum == nullptr) {
++		TF_SetStatus(
++				status, TF_INVALID_ARGUMENT,
++				tensorflow::strings::StrCat("Expecting a DType.dtype for attr ", key,
++					", got ", py_value->ob_type->tp_name)
++				.c_str());
++		return false;
++	}
+ 
+-  return ParseIntValue(key, py_type_enum.get(), status, value);
++	return ParseIntValue(key, py_type_enum.get(), status, value);
+ }
+ 
+ bool SetOpAttrList(
+-    TFE_Op* op, const char* key, PyObject* py_list, TF_AttrType type,
+-    tensorflow::gtl::FlatMap<string, tensorflow::int64>* attr_list_sizes,
+-    TF_Status* status) {
+-  if (!PySequence_Check(py_list)) {
+-    TF_SetStatus(
+-        status, TF_INVALID_ARGUMENT,
+-        tensorflow::strings::StrCat("Expecting sequence value for attr ", key,
+-                                    ", got ", py_list->ob_type->tp_name)
+-            .c_str());
+-    return false;
+-  }
+-  const int num_values = PySequence_Size(py_list);
+-  if (attr_list_sizes != nullptr) (*attr_list_sizes)[key] = num_values;
++		TFE_Op* op, const char* key, PyObject* py_list, TF_AttrType type,
++		tensorflow::gtl::FlatMap<string, tensorflow::int64>* attr_list_sizes,
++		TF_Status* status) {
++	if (!PySequence_Check(py_list)) {
++		TF_SetStatus(
++				status, TF_INVALID_ARGUMENT,
++				tensorflow::strings::StrCat("Expecting sequence value for attr ", key,
++					", got ", py_list->ob_type->tp_name)
++				.c_str());
++		return false;
++	}
++	const int num_values = PySequence_Size(py_list);
++	if (attr_list_sizes != nullptr) (*attr_list_sizes)[key] = num_values;
+ 
+ #define PARSE_LIST(c_type, parse_fn)                                      \
+-  std::unique_ptr<c_type[]> values(new c_type[num_values]);               \
+-  for (int i = 0; i < num_values; ++i) {                                  \
+-    tensorflow::Safe_PyObjectPtr py_value(PySequence_ITEM(py_list, i));   \
+-    if (!parse_fn(key, py_value.get(), status, &values[i])) return false; \
+-  }
+-
+-  if (type == TF_ATTR_STRING) {
+-    std::unique_ptr<const void*[]> values(new const void*[num_values]);
+-    std::unique_ptr<size_t[]> lengths(new size_t[num_values]);
+-    for (int i = 0; i < num_values; ++i) {
+-      tensorflow::StringPiece value;
+-      tensorflow::Safe_PyObjectPtr py_value(PySequence_ITEM(py_list, i));
+-      if (!ParseStringValue(key, py_value.get(), status, &value)) return false;
+-      values[i] = value.data();
+-      lengths[i] = value.size();
+-    }
+-    TFE_OpSetAttrStringList(op, key, values.get(), lengths.get(), num_values);
+-  } else if (type == TF_ATTR_INT) {
+-    PARSE_LIST(int64_t, ParseInt64Value);
+-    TFE_OpSetAttrIntList(op, key, values.get(), num_values);
+-  } else if (type == TF_ATTR_FLOAT) {
+-    PARSE_LIST(float, ParseFloatValue);
+-    TFE_OpSetAttrFloatList(op, key, values.get(), num_values);
+-  } else if (type == TF_ATTR_BOOL) {
+-    PARSE_LIST(unsigned char, ParseBoolValue);
+-    TFE_OpSetAttrBoolList(op, key, values.get(), num_values);
+-  } else if (type == TF_ATTR_TYPE) {
+-    PARSE_LIST(int, ParseTypeValue);
+-    TFE_OpSetAttrTypeList(op, key,
+-                          reinterpret_cast<const TF_DataType*>(values.get()),
+-                          num_values);
+-  } else if (type == TF_ATTR_SHAPE) {
+-    // Make one pass through the input counting the total number of
+-    // dims across all the input lists.
+-    int total_dims = 0;
+-    for (int i = 0; i < num_values; ++i) {
+-      tensorflow::Safe_PyObjectPtr py_value(PySequence_ITEM(py_list, i));
+-      if (py_value.get() != Py_None) {
+-        if (!PySequence_Check(py_value.get())) {
+-          TF_SetStatus(
+-              status, TF_INVALID_ARGUMENT,
+-              tensorflow::strings::StrCat(
+-                  "Expecting None or sequence value for element", i,
+-                  " of attr ", key, ", got ", py_value->ob_type->tp_name)
+-                  .c_str());
+-          return false;
+-        }
+-        const auto size = TensorShapeNumDims(py_value.get());
+-        if (size >= 0) {
+-          total_dims += size;
+-        }
+-      }
+-    }
+-    // Allocate a buffer that can fit all of the dims together.
+-    std::unique_ptr<int64_t[]> buffer(new int64_t[total_dims]);
+-    // Copy the input dims into the buffer and set dims to point to
+-    // the start of each list's dims.
+-    std::unique_ptr<const int64_t*[]> dims(new const int64_t*[num_values]);
+-    std::unique_ptr<int[]> num_dims(new int[num_values]);
+-    int64_t* offset = buffer.get();
+-    for (int i = 0; i < num_values; ++i) {
+-      tensorflow::Safe_PyObjectPtr py_value(PySequence_ITEM(py_list, i));
+-      if (py_value.get() == Py_None) {
+-        dims[i] = nullptr;
+-        num_dims[i] = -1;
+-      } else {
+-        const auto size = TensorShapeNumDims(py_value.get());
+-        if (size == -1) {
+-          dims[i] = nullptr;
+-          num_dims[i] = -1;
+-          continue;
+-        }
+-        dims[i] = offset;
+-        num_dims[i] = size;
+-        for (int j = 0; j < size; ++j) {
+-          tensorflow::Safe_PyObjectPtr inner_py_value(
+-              PySequence_ITEM(py_value.get(), j));
+-          if (inner_py_value.get() == Py_None) {
+-            *offset = -1;
+-          } else if (!ParseDimensionValue(key, inner_py_value.get(), status,
+-                                          offset)) {
+-            return false;
+-          }
+-          ++offset;
+-        }
+-      }
+-    }
+-    TFE_OpSetAttrShapeList(op, key, dims.get(), num_dims.get(), num_values,
+-                           status);
+-    if (TF_GetCode(status) != TF_OK) return false;
+-  } else {
+-    TF_SetStatus(status, TF_UNIMPLEMENTED,
+-                 tensorflow::strings::StrCat("Attr ", key,
+-                                             " has unhandled list type ", type)
+-                     .c_str());
+-    return false;
+-  }
++	std::unique_ptr<c_type[]> values(new c_type[num_values]);               \
++	for (int i = 0; i < num_values; ++i) {                                  \
++		tensorflow::Safe_PyObjectPtr py_value(PySequence_ITEM(py_list, i));   \
++		if (!parse_fn(key, py_value.get(), status, &values[i])) return false; \
++	}
++
++	if (type == TF_ATTR_STRING) {
++		std::unique_ptr<const void*[]> values(new const void*[num_values]);
++		std::unique_ptr<size_t[]> lengths(new size_t[num_values]);
++		for (int i = 0; i < num_values; ++i) {
++			tensorflow::StringPiece value;
++			tensorflow::Safe_PyObjectPtr py_value(PySequence_ITEM(py_list, i));
++			if (!ParseStringValue(key, py_value.get(), status, &value)) return false;
++			values[i] = value.data();
++			lengths[i] = value.size();
++		}
++		TFE_OpSetAttrStringList(op, key, values.get(), lengths.get(), num_values);
++	} else if (type == TF_ATTR_INT) {
++		PARSE_LIST(int64_t, ParseInt64Value);
++		TFE_OpSetAttrIntList(op, key, values.get(), num_values);
++	} else if (type == TF_ATTR_FLOAT) {
++		PARSE_LIST(float, ParseFloatValue);
++		TFE_OpSetAttrFloatList(op, key, values.get(), num_values);
++	} else if (type == TF_ATTR_BOOL) {
++		PARSE_LIST(unsigned char, ParseBoolValue);
++		TFE_OpSetAttrBoolList(op, key, values.get(), num_values);
++	} else if (type == TF_ATTR_TYPE) {
++		PARSE_LIST(int, ParseTypeValue);
++		TFE_OpSetAttrTypeList(op, key,
++				reinterpret_cast<const TF_DataType*>(values.get()),
++				num_values);
++	} else if (type == TF_ATTR_SHAPE) {
++		// Make one pass through the input counting the total number of
++		// dims across all the input lists.
++		int total_dims = 0;
++		for (int i = 0; i < num_values; ++i) {
++			tensorflow::Safe_PyObjectPtr py_value(PySequence_ITEM(py_list, i));
++			if (py_value.get() != Py_None) {
++				if (!PySequence_Check(py_value.get())) {
++					TF_SetStatus(
++							status, TF_INVALID_ARGUMENT,
++							tensorflow::strings::StrCat(
++								"Expecting None or sequence value for element", i,
++								" of attr ", key, ", got ", py_value->ob_type->tp_name)
++							.c_str());
++					return false;
++				}
++				const auto size = TensorShapeNumDims(py_value.get());
++				if (size >= 0) {
++					total_dims += size;
++				}
++			}
++		}
++		// Allocate a buffer that can fit all of the dims together.
++		std::unique_ptr<int64_t[]> buffer(new int64_t[total_dims]);
++		// Copy the input dims into the buffer and set dims to point to
++		// the start of each list's dims.
++		std::unique_ptr<const int64_t*[]> dims(new const int64_t*[num_values]);
++		std::unique_ptr<int[]> num_dims(new int[num_values]);
++		int64_t* offset = buffer.get();
++		for (int i = 0; i < num_values; ++i) {
++			tensorflow::Safe_PyObjectPtr py_value(PySequence_ITEM(py_list, i));
++			if (py_value.get() == Py_None) {
++				dims[i] = nullptr;
++				num_dims[i] = -1;
++			} else {
++				const auto size = TensorShapeNumDims(py_value.get());
++				if (size == -1) {
++					dims[i] = nullptr;
++					num_dims[i] = -1;
++					continue;
++				}
++				dims[i] = offset;
++				num_dims[i] = size;
++				for (int j = 0; j < size; ++j) {
++					tensorflow::Safe_PyObjectPtr inner_py_value(
++							PySequence_ITEM(py_value.get(), j));
++					if (inner_py_value.get() == Py_None) {
++						*offset = -1;
++					} else if (!ParseDimensionValue(key, inner_py_value.get(), status,
++								offset)) {
++						return false;
++					}
++					++offset;
++				}
++			}
++		}
++		TFE_OpSetAttrShapeList(op, key, dims.get(), num_dims.get(), num_values,
++				status);
++		if (TF_GetCode(status) != TF_OK) return false;
++	} else {
++		TF_SetStatus(status, TF_UNIMPLEMENTED,
++				tensorflow::strings::StrCat("Attr ", key,
++					" has unhandled list type ", type)
++				.c_str());
++		return false;
++	}
+ #undef PARSE_LIST
+-  return true;
++	return true;
+ }
+ 
+ TFE_Op* GetFunc(TFE_Context* ctx, const tensorflow::NameAttrList& func,
+-                TF_Status* status) {
+-  TFE_Op* func_op = TFE_NewOp(ctx, func.name().data(), status);
+-  for (const auto& attr : func.attr()) {
+-    if (TF_GetCode(status) != TF_OK) return nullptr;
+-    SetOpAttrValueScalar(ctx, func_op, attr.second, attr.first.data(), status);
+-    if (TF_GetCode(status) != TF_OK) return nullptr;
+-  }
+-  return func_op;
++		TF_Status* status) {
++	TFE_Op* func_op = TFE_NewOp(ctx, func.name().data(), status);
++	for (const auto& attr : func.attr()) {
++		if (TF_GetCode(status) != TF_OK) return nullptr;
++		SetOpAttrValueScalar(ctx, func_op, attr.second, attr.first.data(), status);
++		if (TF_GetCode(status) != TF_OK) return nullptr;
++	}
++	return func_op;
+ }
+ 
+ void SetOpAttrListDefault(
+-    TFE_Context* ctx, TFE_Op* op, const tensorflow::OpDef::AttrDef& attr,
+-    const char* key, TF_AttrType type,
+-    tensorflow::gtl::FlatMap<string, tensorflow::int64>* attr_list_sizes,
+-    TF_Status* status) {
+-  if (type == TF_ATTR_STRING) {
+-    int num_values = attr.default_value().list().s_size();
+-    std::unique_ptr<const void*[]> values(new const void*[num_values]);
+-    std::unique_ptr<size_t[]> lengths(new size_t[num_values]);
+-    (*attr_list_sizes)[key] = num_values;
+-    for (int i = 0; i < num_values; i++) {
+-      const string& v = attr.default_value().list().s(i);
+-      values[i] = v.data();
+-      lengths[i] = v.size();
+-    }
+-    TFE_OpSetAttrStringList(op, key, values.get(), lengths.get(), num_values);
+-  } else if (type == TF_ATTR_INT) {
+-    int num_values = attr.default_value().list().i_size();
+-    std::unique_ptr<int64_t[]> values(new int64_t[num_values]);
+-    (*attr_list_sizes)[key] = num_values;
+-    for (int i = 0; i < num_values; i++) {
+-      values[i] = attr.default_value().list().i(i);
+-    }
+-    TFE_OpSetAttrIntList(op, key, values.get(), num_values);
+-  } else if (type == TF_ATTR_FLOAT) {
+-    int num_values = attr.default_value().list().f_size();
+-    std::unique_ptr<float[]> values(new float[num_values]);
+-    (*attr_list_sizes)[key] = num_values;
+-    for (int i = 0; i < num_values; i++) {
+-      values[i] = attr.default_value().list().f(i);
+-    }
+-    TFE_OpSetAttrFloatList(op, key, values.get(), num_values);
+-  } else if (type == TF_ATTR_BOOL) {
+-    int num_values = attr.default_value().list().b_size();
+-    std::unique_ptr<unsigned char[]> values(new unsigned char[num_values]);
+-    (*attr_list_sizes)[key] = num_values;
+-    for (int i = 0; i < num_values; i++) {
+-      values[i] = attr.default_value().list().b(i);
+-    }
+-    TFE_OpSetAttrBoolList(op, key, values.get(), num_values);
+-  } else if (type == TF_ATTR_TYPE) {
+-    int num_values = attr.default_value().list().type_size();
+-    std::unique_ptr<int[]> values(new int[num_values]);
+-    (*attr_list_sizes)[key] = num_values;
+-    for (int i = 0; i < num_values; i++) {
+-      values[i] = attr.default_value().list().type(i);
+-    }
+-    TFE_OpSetAttrTypeList(op, key,
+-                          reinterpret_cast<const TF_DataType*>(values.get()),
+-                          attr.default_value().list().type_size());
+-  } else if (type == TF_ATTR_SHAPE) {
+-    int num_values = attr.default_value().list().shape_size();
+-    (*attr_list_sizes)[key] = num_values;
+-    int total_dims = 0;
+-    for (int i = 0; i < num_values; ++i) {
+-      if (!attr.default_value().list().shape(i).unknown_rank()) {
+-        total_dims += attr.default_value().list().shape(i).dim_size();
+-      }
+-    }
+-    // Allocate a buffer that can fit all of the dims together.
+-    std::unique_ptr<int64_t[]> buffer(new int64_t[total_dims]);
+-    // Copy the input dims into the buffer and set dims to point to
+-    // the start of each list's dims.
+-    std::unique_ptr<const int64_t*[]> dims(new const int64_t*[num_values]);
+-    std::unique_ptr<int[]> num_dims(new int[num_values]);
+-    int64_t* offset = buffer.get();
+-    for (int i = 0; i < num_values; ++i) {
+-      const auto& shape = attr.default_value().list().shape(i);
+-      if (shape.unknown_rank()) {
+-        dims[i] = nullptr;
+-        num_dims[i] = -1;
+-      } else {
+-        for (int j = 0; j < shape.dim_size(); j++) {
+-          *offset = shape.dim(j).size();
+-          ++offset;
+-        }
+-      }
+-    }
+-    TFE_OpSetAttrShapeList(op, key, dims.get(), num_dims.get(), num_values,
+-                           status);
+-  } else if (type == TF_ATTR_FUNC) {
+-    int num_values = attr.default_value().list().func_size();
+-    (*attr_list_sizes)[key] = num_values;
+-    std::unique_ptr<const TFE_Op*[]> funcs(new const TFE_Op*[num_values]);
+-    for (int i = 0; i < num_values; i++) {
+-      funcs[i] = GetFunc(ctx, attr.default_value().list().func(i), status);
+-    }
+-    TFE_OpSetAttrFunctionList(op, key, funcs.get(), num_values);
+-  } else {
+-    TF_SetStatus(status, TF_UNIMPLEMENTED,
+-                 "Lists of tensors are not yet implemented for default valued "
+-                 "attributes for an operation.");
+-  }
++		TFE_Context* ctx, TFE_Op* op, const tensorflow::OpDef::AttrDef& attr,
++		const char* key, TF_AttrType type,
++		tensorflow::gtl::FlatMap<string, tensorflow::int64>* attr_list_sizes,
++		TF_Status* status) {
++	if (type == TF_ATTR_STRING) {
++		int num_values = attr.default_value().list().s_size();
++		std::unique_ptr<const void*[]> values(new const void*[num_values]);
++		std::unique_ptr<size_t[]> lengths(new size_t[num_values]);
++		(*attr_list_sizes)[key] = num_values;
++		for (int i = 0; i < num_values; i++) {
++			const string& v = attr.default_value().list().s(i);
++			values[i] = v.data();
++			lengths[i] = v.size();
++		}
++		TFE_OpSetAttrStringList(op, key, values.get(), lengths.get(), num_values);
++	} else if (type == TF_ATTR_INT) {
++		int num_values = attr.default_value().list().i_size();
++		std::unique_ptr<int64_t[]> values(new int64_t[num_values]);
++		(*attr_list_sizes)[key] = num_values;
++		for (int i = 0; i < num_values; i++) {
++			values[i] = attr.default_value().list().i(i);
++		}
++		TFE_OpSetAttrIntList(op, key, values.get(), num_values);
++	} else if (type == TF_ATTR_FLOAT) {
++		int num_values = attr.default_value().list().f_size();
++		std::unique_ptr<float[]> values(new float[num_values]);
++		(*attr_list_sizes)[key] = num_values;
++		for (int i = 0; i < num_values; i++) {
++			values[i] = attr.default_value().list().f(i);
++		}
++		TFE_OpSetAttrFloatList(op, key, values.get(), num_values);
++	} else if (type == TF_ATTR_BOOL) {
++		int num_values = attr.default_value().list().b_size();
++		std::unique_ptr<unsigned char[]> values(new unsigned char[num_values]);
++		(*attr_list_sizes)[key] = num_values;
++		for (int i = 0; i < num_values; i++) {
++			values[i] = attr.default_value().list().b(i);
++		}
++		TFE_OpSetAttrBoolList(op, key, values.get(), num_values);
++	} else if (type == TF_ATTR_TYPE) {
++		int num_values = attr.default_value().list().type_size();
++		std::unique_ptr<int[]> values(new int[num_values]);
++		(*attr_list_sizes)[key] = num_values;
++		for (int i = 0; i < num_values; i++) {
++			values[i] = attr.default_value().list().type(i);
++		}
++		TFE_OpSetAttrTypeList(op, key,
++				reinterpret_cast<const TF_DataType*>(values.get()),
++				attr.default_value().list().type_size());
++	} else if (type == TF_ATTR_SHAPE) {
++		int num_values = attr.default_value().list().shape_size();
++		(*attr_list_sizes)[key] = num_values;
++		int total_dims = 0;
++		for (int i = 0; i < num_values; ++i) {
++			if (!attr.default_value().list().shape(i).unknown_rank()) {
++				total_dims += attr.default_value().list().shape(i).dim_size();
++			}
++		}
++		// Allocate a buffer that can fit all of the dims together.
++		std::unique_ptr<int64_t[]> buffer(new int64_t[total_dims]);
++		// Copy the input dims into the buffer and set dims to point to
++		// the start of each list's dims.
++		std::unique_ptr<const int64_t*[]> dims(new const int64_t*[num_values]);
++		std::unique_ptr<int[]> num_dims(new int[num_values]);
++		int64_t* offset = buffer.get();
++		for (int i = 0; i < num_values; ++i) {
++			const auto& shape = attr.default_value().list().shape(i);
++			if (shape.unknown_rank()) {
++				dims[i] = nullptr;
++				num_dims[i] = -1;
++			} else {
++				for (int j = 0; j < shape.dim_size(); j++) {
++					*offset = shape.dim(j).size();
++					++offset;
++				}
++			}
++		}
++		TFE_OpSetAttrShapeList(op, key, dims.get(), num_dims.get(), num_values,
++				status);
++	} else if (type == TF_ATTR_FUNC) {
++		int num_values = attr.default_value().list().func_size();
++		(*attr_list_sizes)[key] = num_values;
++		std::unique_ptr<const TFE_Op*[]> funcs(new const TFE_Op*[num_values]);
++		for (int i = 0; i < num_values; i++) {
++			funcs[i] = GetFunc(ctx, attr.default_value().list().func(i), status);
++		}
++		TFE_OpSetAttrFunctionList(op, key, funcs.get(), num_values);
++	} else {
++		TF_SetStatus(status, TF_UNIMPLEMENTED,
++				"Lists of tensors are not yet implemented for default valued "
++				"attributes for an operation.");
++	}
+ }
+ 
+ bool SetOpAttrScalar(
+-    TFE_Context* ctx, TFE_Op* op, const char* key, PyObject* py_value,
+-    TF_AttrType type,
+-    tensorflow::gtl::FlatMap<string, tensorflow::int64>* attr_list_sizes,
+-    TF_Status* status) {
+-  if (type == TF_ATTR_STRING) {
+-    tensorflow::StringPiece value;
+-    if (!ParseStringValue(key, py_value, status, &value)) return false;
+-    TFE_OpSetAttrString(op, key, value.data(), value.size());
+-  } else if (type == TF_ATTR_INT) {
+-    int64_t value;
+-    if (!ParseInt64Value(key, py_value, status, &value)) return false;
+-    TFE_OpSetAttrInt(op, key, value);
+-    // attr_list_sizes is set for all int attributes (since at this point we are
+-    // not aware if that attribute might be used to calculate the size of an
+-    // output list or not).
+-    if (attr_list_sizes != nullptr) (*attr_list_sizes)[key] = value;
+-  } else if (type == TF_ATTR_FLOAT) {
+-    float value;
+-    if (!ParseFloatValue(key, py_value, status, &value)) return false;
+-    TFE_OpSetAttrFloat(op, key, value);
+-  } else if (type == TF_ATTR_BOOL) {
+-    unsigned char value;
+-    if (!ParseBoolValue(key, py_value, status, &value)) return false;
+-    TFE_OpSetAttrBool(op, key, value);
+-  } else if (type == TF_ATTR_TYPE) {
+-    int value;
+-    if (!ParseTypeValue(key, py_value, status, &value)) return false;
+-    TFE_OpSetAttrType(op, key, static_cast<TF_DataType>(value));
+-  } else if (type == TF_ATTR_SHAPE) {
+-    if (py_value == Py_None) {
+-      TFE_OpSetAttrShape(op, key, nullptr, -1, status);
+-    } else {
+-      if (!PySequence_Check(py_value)) {
+-        TF_SetStatus(status, TF_INVALID_ARGUMENT,
+-                     tensorflow::strings::StrCat(
+-                         "Expecting None or sequence value for attr", key,
+-                         ", got ", py_value->ob_type->tp_name)
+-                         .c_str());
+-        return false;
+-      }
+-      const auto num_dims = TensorShapeNumDims(py_value);
+-      if (num_dims == -1) {
+-        TFE_OpSetAttrShape(op, key, nullptr, -1, status);
+-        return true;
+-      }
+-      std::unique_ptr<int64_t[]> dims(new int64_t[num_dims]);
+-      for (int i = 0; i < num_dims; ++i) {
+-        tensorflow::Safe_PyObjectPtr inner_py_value(
+-            PySequence_ITEM(py_value, i));
+-        if (inner_py_value.get() == Py_None) {
+-          dims[i] = -1;
+-        } else if (!ParseDimensionValue(key, inner_py_value.get(), status,
+-                                        &dims[i])) {
+-          return false;
+-        }
+-      }
+-      TFE_OpSetAttrShape(op, key, dims.get(), num_dims, status);
+-    }
+-    if (TF_GetCode(status) != TF_OK) return false;
+-  } else if (type == TF_ATTR_FUNC) {
+-    // Allow:
+-    // (1) String function name, OR
+-    // (2) A Python object with a .name attribute
+-    //     (A crude test for being a
+-    //     tensorflow.python.framework.function._DefinedFunction)
+-    //     (which is what the various "defun" or "Defun" decorators do).
+-    // And in the future also allow an object that can encapsulate
+-    // the function name and its attribute values.
+-    tensorflow::StringPiece func_name;
+-    if (!ParseStringValue(key, py_value, status, &func_name)) {
+-      PyObject* name_attr = PyObject_GetAttrString(py_value, "name");
+-      if (name_attr == nullptr ||
+-          !ParseStringValue(key, name_attr, status, &func_name)) {
+-        TF_SetStatus(
+-            status, TF_INVALID_ARGUMENT,
+-            tensorflow::strings::StrCat(
+-                "unable to set function value attribute from a ",
+-                py_value->ob_type->tp_name,
+-                " object. If you think this is an error, please file an issue "
+-                "at https://github.com/tensorflow/tensorflow/issues/new")
+-                .c_str());
+-        return false;
+-      }
+-    }
+-    TFE_Op* func = TFE_NewOp(
+-        ctx, string(func_name.data(), func_name.size()).c_str(), status);
+-    if (TF_GetCode(status) != TF_OK) return false;
+-    TFE_OpSetAttrFunction(op, key, func);
+-    TFE_DeleteOp(func);
+-  } else {
+-    TF_SetStatus(
+-        status, TF_UNIMPLEMENTED,
+-        tensorflow::strings::StrCat("Attr ", key, " has unhandled type ", type)
+-            .c_str());
+-    return false;
+-  }
+-  return true;
++		TFE_Context* ctx, TFE_Op* op, const char* key, PyObject* py_value,
++		TF_AttrType type,
++		tensorflow::gtl::FlatMap<string, tensorflow::int64>* attr_list_sizes,
++		TF_Status* status) {
++	if (type == TF_ATTR_STRING) {
++		tensorflow::StringPiece value;
++		if (!ParseStringValue(key, py_value, status, &value)) return false;
++		TFE_OpSetAttrString(op, key, value.data(), value.size());
++	} else if (type == TF_ATTR_INT) {
++		int64_t value;
++		if (!ParseInt64Value(key, py_value, status, &value)) return false;
++		TFE_OpSetAttrInt(op, key, value);
++		// attr_list_sizes is set for all int attributes (since at this point we are
++		// not aware if that attribute might be used to calculate the size of an
++		// output list or not).
++		if (attr_list_sizes != nullptr) (*attr_list_sizes)[key] = value;
++	} else if (type == TF_ATTR_FLOAT) {
++		float value;
++		if (!ParseFloatValue(key, py_value, status, &value)) return false;
++		TFE_OpSetAttrFloat(op, key, value);
++	} else if (type == TF_ATTR_BOOL) {
++		unsigned char value;
++		if (!ParseBoolValue(key, py_value, status, &value)) return false;
++		TFE_OpSetAttrBool(op, key, value);
++	} else if (type == TF_ATTR_TYPE) {
++		int value;
++		if (!ParseTypeValue(key, py_value, status, &value)) return false;
++		TFE_OpSetAttrType(op, key, static_cast<TF_DataType>(value));
++	} else if (type == TF_ATTR_SHAPE) {
++		if (py_value == Py_None) {
++			TFE_OpSetAttrShape(op, key, nullptr, -1, status);
++		} else {
++			if (!PySequence_Check(py_value)) {
++				TF_SetStatus(status, TF_INVALID_ARGUMENT,
++						tensorflow::strings::StrCat(
++							"Expecting None or sequence value for attr", key,
++							", got ", py_value->ob_type->tp_name)
++						.c_str());
++				return false;
++			}
++			const auto num_dims = TensorShapeNumDims(py_value);
++			if (num_dims == -1) {
++				TFE_OpSetAttrShape(op, key, nullptr, -1, status);
++				return true;
++			}
++			std::unique_ptr<int64_t[]> dims(new int64_t[num_dims]);
++			for (int i = 0; i < num_dims; ++i) {
++				tensorflow::Safe_PyObjectPtr inner_py_value(
++						PySequence_ITEM(py_value, i));
++				if (inner_py_value.get() == Py_None) {
++					dims[i] = -1;
++				} else if (!ParseDimensionValue(key, inner_py_value.get(), status,
++							&dims[i])) {
++					return false;
++				}
++			}
++			TFE_OpSetAttrShape(op, key, dims.get(), num_dims, status);
++		}
++		if (TF_GetCode(status) != TF_OK) return false;
++	} else if (type == TF_ATTR_FUNC) {
++		// Allow:
++		// (1) String function name, OR
++		// (2) A Python object with a .name attribute
++		//     (A crude test for being a
++		//     tensorflow.python.framework.function._DefinedFunction)
++		//     (which is what the various "defun" or "Defun" decorators do).
++		// And in the future also allow an object that can encapsulate
++		// the function name and its attribute values.
++		tensorflow::StringPiece func_name;
++		if (!ParseStringValue(key, py_value, status, &func_name)) {
++			PyObject* name_attr = PyObject_GetAttrString(py_value, "name");
++			if (name_attr == nullptr ||
++					!ParseStringValue(key, name_attr, status, &func_name)) {
++				TF_SetStatus(
++						status, TF_INVALID_ARGUMENT,
++						tensorflow::strings::StrCat(
++							"unable to set function value attribute from a ",
++							py_value->ob_type->tp_name,
++							" object. If you think this is an error, please file an issue "
++							"at https://github.com/tensorflow/tensorflow/issues/new")
++						.c_str());
++				return false;
++			}
++		}
++		TFE_Op* func = TFE_NewOp(
++				ctx, string(func_name.data(), func_name.size()).c_str(), status);
++		if (TF_GetCode(status) != TF_OK) return false;
++		TFE_OpSetAttrFunction(op, key, func);
++		TFE_DeleteOp(func);
++	} else {
++		TF_SetStatus(
++				status, TF_UNIMPLEMENTED,
++				tensorflow::strings::StrCat("Attr ", key, " has unhandled type ", type)
++				.c_str());
++		return false;
++	}
++	return true;
+ }
+ 
+ void SetOpAttrScalarDefault(
+-    TFE_Context* ctx, TFE_Op* op, const tensorflow::AttrValue& default_value,
+-    const char* attr_name,
+-    tensorflow::gtl::FlatMap<string, tensorflow::int64>* attr_list_sizes,
+-    TF_Status* status) {
+-  SetOpAttrValueScalar(ctx, op, default_value, attr_name, status);
+-  if (default_value.value_case() == tensorflow::AttrValue::kI) {
+-    (*attr_list_sizes)[attr_name] = default_value.i();
+-  }
++		TFE_Context* ctx, TFE_Op* op, const tensorflow::AttrValue& default_value,
++		const char* attr_name,
++		tensorflow::gtl::FlatMap<string, tensorflow::int64>* attr_list_sizes,
++		TF_Status* status) {
++	SetOpAttrValueScalar(ctx, op, default_value, attr_name, status);
++	if (default_value.value_case() == tensorflow::AttrValue::kI) {
++		(*attr_list_sizes)[attr_name] = default_value.i();
++	}
+ }
+ 
+ // start_index is the index at which the Tuple/List attrs will start getting
+ // processed.
+ void SetOpAttrs(TFE_Context* ctx, TFE_Op* op, PyObject* attrs, int start_index,
+-                TF_Status* out_status) {
+-  if (attrs == Py_None) return;
+-  Py_ssize_t len = PyTuple_GET_SIZE(attrs) - start_index;
+-  if ((len & 1) != 0) {
+-    TF_SetStatus(out_status, TF_INVALID_ARGUMENT,
+-                 "Expecting attrs tuple to have even length.");
+-    return;
+-  }
+-  // Parse attrs
+-  for (Py_ssize_t i = 0; i < len; i += 2) {
+-    PyObject* py_key = PyTuple_GET_ITEM(attrs, start_index + i);
+-    PyObject* py_value = PyTuple_GET_ITEM(attrs, start_index + i + 1);
++		TF_Status* out_status) {
++	if (attrs == Py_None) return;
++	Py_ssize_t len = PyTuple_GET_SIZE(attrs) - start_index;
++	if ((len & 1) != 0) {
++		TF_SetStatus(out_status, TF_INVALID_ARGUMENT,
++				"Expecting attrs tuple to have even length.");
++		return;
++	}
++	// Parse attrs
++	for (Py_ssize_t i = 0; i < len; i += 2) {
++		PyObject* py_key = PyTuple_GET_ITEM(attrs, start_index + i);
++		PyObject* py_value = PyTuple_GET_ITEM(attrs, start_index + i + 1);
+ #if PY_MAJOR_VERSION >= 3
+-    const char* key = PyBytes_Check(py_key) ? PyBytes_AsString(py_key)
+-                                            : PyUnicode_AsUTF8(py_key);
++		const char* key = PyBytes_Check(py_key) ? PyBytes_AsString(py_key)
++			: PyUnicode_AsUTF8(py_key);
+ #else
+-    const char* key = PyBytes_AsString(py_key);
++		const char* key = PyBytes_AsString(py_key);
+ #endif
+-    unsigned char is_list = 0;
+-    const TF_AttrType type = TFE_OpGetAttrType(op, key, &is_list, out_status);
+-    if (TF_GetCode(out_status) != TF_OK) return;
+-    if (is_list != 0) {
+-      if (!SetOpAttrList(op, key, py_value, type, nullptr, out_status)) return;
+-    } else {
+-      if (!SetOpAttrScalar(ctx, op, key, py_value, type, nullptr, out_status))
+-        return;
+-    }
+-  }
++		unsigned char is_list = 0;
++		const TF_AttrType type = TFE_OpGetAttrType(op, key, &is_list, out_status);
++		if (TF_GetCode(out_status) != TF_OK) return;
++		if (is_list != 0) {
++			if (!SetOpAttrList(op, key, py_value, type, nullptr, out_status)) return;
++		} else {
++			if (!SetOpAttrScalar(ctx, op, key, py_value, type, nullptr, out_status))
++				return;
++		}
++	}
+ }
+ 
+ // This function will set the op attrs required. If an attr has the value of
+@@ -630,29 +630,29 @@ void SetOpAttrs(TFE_Context* ctx, TFE_Op* op, PyObject* attrs, int start_index,
+ // instead. Any failure in this function will simply fall back to the slow
+ // path.
+ void SetOpAttrWithDefaults(
+-    TFE_Context* ctx, TFE_Op* op, const tensorflow::OpDef::AttrDef& attr,
+-    const char* attr_name, PyObject* attr_value,
+-    tensorflow::gtl::FlatMap<string, tensorflow::int64>* attr_list_sizes,
+-    TF_Status* status) {
+-  unsigned char is_list = 0;
+-  const TF_AttrType type = TFE_OpGetAttrType(op, attr_name, &is_list, status);
+-  if (TF_GetCode(status) != TF_OK) return;
+-  if (attr_value == Py_None) {
+-    if (is_list != 0) {
+-      SetOpAttrListDefault(ctx, op, attr, attr_name, type, attr_list_sizes,
+-                           status);
+-    } else {
+-      SetOpAttrScalarDefault(ctx, op, attr.default_value(), attr_name,
+-                             attr_list_sizes, status);
+-    }
+-  } else {
+-    if (is_list != 0) {
+-      SetOpAttrList(op, attr_name, attr_value, type, attr_list_sizes, status);
+-    } else {
+-      SetOpAttrScalar(ctx, op, attr_name, attr_value, type, attr_list_sizes,
+-                      status);
+-    }
+-  }
++		TFE_Context* ctx, TFE_Op* op, const tensorflow::OpDef::AttrDef& attr,
++		const char* attr_name, PyObject* attr_value,
++		tensorflow::gtl::FlatMap<string, tensorflow::int64>* attr_list_sizes,
++		TF_Status* status) {
++	unsigned char is_list = 0;
++	const TF_AttrType type = TFE_OpGetAttrType(op, attr_name, &is_list, status);
++	if (TF_GetCode(status) != TF_OK) return;
++	if (attr_value == Py_None) {
++		if (is_list != 0) {
++			SetOpAttrListDefault(ctx, op, attr, attr_name, type, attr_list_sizes,
++					status);
++		} else {
++			SetOpAttrScalarDefault(ctx, op, attr.default_value(), attr_name,
++					attr_list_sizes, status);
++		}
++	} else {
++		if (is_list != 0) {
++			SetOpAttrList(op, attr_name, attr_value, type, attr_list_sizes, status);
++		} else {
++			SetOpAttrScalar(ctx, op, attr_name, attr_value, type, attr_list_sizes,
++					status);
++		}
++	}
+ }
+ 
+ // Python subclass of Exception that is created on not ok Status.
+@@ -673,165 +673,165 @@ tensorflow::int64 _uid GUARDED_BY(_uid_mutex) = 0;
+ }  // namespace
+ 
+ void TFE_Py_Execute(TFE_Context* ctx, const char* device_name,
+-                    const char* op_name, TFE_InputTensorHandles* inputs,
+-                    PyObject* attrs, TFE_OutputTensorHandles* outputs,
+-                    TF_Status* out_status) {
+-  TFE_Op* op = TFE_NewOp(ctx, op_name, out_status);
+-  if (TF_GetCode(out_status) != TF_OK) return;
+-  TFE_OpSetDevice(op, device_name, out_status);
+-  if (TF_GetCode(out_status) == TF_OK) {
+-    for (int i = 0; i < inputs->size() && TF_GetCode(out_status) == TF_OK;
+-         ++i) {
+-      TFE_OpAddInput(op, inputs->at(i), out_status);
+-    }
+-  }
+-  if (TF_GetCode(out_status) == TF_OK) {
+-    SetOpAttrs(ctx, op, attrs, 0, out_status);
+-  }
+-  Py_BEGIN_ALLOW_THREADS;
+-  if (TF_GetCode(out_status) == TF_OK) {
+-    int num_outputs = outputs->size();
+-    TFE_Execute(op, outputs->data(), &num_outputs, out_status);
+-    outputs->resize(num_outputs);
+-  }
+-  if (TF_GetCode(out_status) != TF_OK) {
+-    TF_SetStatus(out_status, TF_GetCode(out_status),
+-                 tensorflow::strings::StrCat(TF_Message(out_status),
+-                                             " [Op:", op_name, "]")
+-                     .c_str());
+-  }
+-  TFE_DeleteOp(op);
+-  Py_END_ALLOW_THREADS;
++		const char* op_name, TFE_InputTensorHandles* inputs,
++		PyObject* attrs, TFE_OutputTensorHandles* outputs,
++		TF_Status* out_status) {
++	TFE_Op* op = TFE_NewOp(ctx, op_name, out_status);
++	if (TF_GetCode(out_status) != TF_OK) return;
++	TFE_OpSetDevice(op, device_name, out_status);
++	if (TF_GetCode(out_status) == TF_OK) {
++		for (int i = 0; i < inputs->size() && TF_GetCode(out_status) == TF_OK;
++				++i) {
++			TFE_OpAddInput(op, inputs->at(i), out_status);
++		}
++	}
++	if (TF_GetCode(out_status) == TF_OK) {
++		SetOpAttrs(ctx, op, attrs, 0, out_status);
++	}
++	Py_BEGIN_ALLOW_THREADS;
++	if (TF_GetCode(out_status) == TF_OK) {
++		int num_outputs = outputs->size();
++		TFE_Execute(op, outputs->data(), &num_outputs, out_status);
++		outputs->resize(num_outputs);
++	}
++	if (TF_GetCode(out_status) != TF_OK) {
++		TF_SetStatus(out_status, TF_GetCode(out_status),
++				tensorflow::strings::StrCat(TF_Message(out_status),
++					" [Op:", op_name, "]")
++				.c_str());
++	}
++	TFE_DeleteOp(op);
++	Py_END_ALLOW_THREADS;
+ }
+ 
+ PyObject* TFE_Py_RegisterExceptionClass(PyObject* e) {
+-  tensorflow::mutex_lock l(exception_class_mutex);
+-  if (exception_class != nullptr) {
+-    Py_DECREF(exception_class);
+-  }
+-  if (PyObject_IsSubclass(e, PyExc_Exception) <= 0) {
+-    exception_class = nullptr;
+-    PyErr_SetString(PyExc_TypeError,
+-                    "TFE_Py_RegisterExceptionClass: "
+-                    "Registered class should be subclass of Exception.");
+-    return nullptr;
+-  }
+-
+-  Py_INCREF(e);
+-  exception_class = e;
+-  Py_RETURN_NONE;
++	tensorflow::mutex_lock l(exception_class_mutex);
++	if (exception_class != nullptr) {
++		Py_DECREF(exception_class);
++	}
++	if (PyObject_IsSubclass(e, PyExc_Exception) <= 0) {
++		exception_class = nullptr;
++		PyErr_SetString(PyExc_TypeError,
++				"TFE_Py_RegisterExceptionClass: "
++				"Registered class should be subclass of Exception.");
++		return nullptr;
++	}
++
++	Py_INCREF(e);
++	exception_class = e;
++	Py_RETURN_NONE;
+ }
+ 
+ PyObject* TFE_Py_RegisterResourceVariableType(PyObject* e) {
+-  if (!PyType_Check(e)) {
+-    PyErr_SetString(
+-        PyExc_TypeError,
+-        "TFE_Py_RegisterResourceVariableType: Need to register a type.");
+-    return nullptr;
+-  }
++	if (!PyType_Check(e)) {
++		PyErr_SetString(
++				PyExc_TypeError,
++				"TFE_Py_RegisterResourceVariableType: Need to register a type.");
++		return nullptr;
++	}
+ 
+-  if (resource_variable_type != nullptr) {
+-    Py_DECREF(resource_variable_type);
+-  }
++	if (resource_variable_type != nullptr) {
++		Py_DECREF(resource_variable_type);
++	}
+ 
+-  Py_INCREF(e);
+-  resource_variable_type = reinterpret_cast<PyTypeObject*>(e);
+-  Py_RETURN_NONE;
++	Py_INCREF(e);
++	resource_variable_type = reinterpret_cast<PyTypeObject*>(e);
++	Py_RETURN_NONE;
+ }
+ 
+ PyObject* TFE_Py_RegisterFallbackExceptionClass(PyObject* e) {
+-  if (fallback_exception_class != nullptr) {
+-    Py_DECREF(fallback_exception_class);
+-  }
+-  if (PyObject_IsSubclass(e, PyExc_Exception) <= 0) {
+-    fallback_exception_class = nullptr;
+-    PyErr_SetString(PyExc_TypeError,
+-                    "TFE_Py_RegisterFallbackExceptionClass: "
+-                    "Registered class should be subclass of Exception.");
+-    return nullptr;
+-  } else {
+-    Py_INCREF(e);
+-    fallback_exception_class = e;
+-    Py_RETURN_NONE;
+-  }
++	if (fallback_exception_class != nullptr) {
++		Py_DECREF(fallback_exception_class);
++	}
++	if (PyObject_IsSubclass(e, PyExc_Exception) <= 0) {
++		fallback_exception_class = nullptr;
++		PyErr_SetString(PyExc_TypeError,
++				"TFE_Py_RegisterFallbackExceptionClass: "
++				"Registered class should be subclass of Exception.");
++		return nullptr;
++	} else {
++		Py_INCREF(e);
++		fallback_exception_class = e;
++		Py_RETURN_NONE;
++	}
+ }
+ 
+ PyObject* TFE_Py_RegisterGradientFunction(PyObject* e) {
+-  if (gradient_function != nullptr) {
+-    Py_DECREF(gradient_function);
+-  }
+-  if (!PyCallable_Check(e)) {
+-    gradient_function = nullptr;
+-    PyErr_SetString(PyExc_TypeError,
+-                    "TFE_Py_RegisterBackwardFunctionGetter: "
+-                    "Registered object should be function.");
+-    return nullptr;
+-  } else {
+-    Py_INCREF(e);
+-    gradient_function = e;
+-    Py_RETURN_NONE;
+-  }
++	if (gradient_function != nullptr) {
++		Py_DECREF(gradient_function);
++	}
++	if (!PyCallable_Check(e)) {
++		gradient_function = nullptr;
++		PyErr_SetString(PyExc_TypeError,
++				"TFE_Py_RegisterBackwardFunctionGetter: "
++				"Registered object should be function.");
++		return nullptr;
++	} else {
++		Py_INCREF(e);
++		gradient_function = e;
++		Py_RETURN_NONE;
++	}
+ }
+ 
+ void RaiseFallbackException(const char* message) {
+-  if (fallback_exception_class != nullptr) {
+-    PyErr_SetString(fallback_exception_class, message);
+-    return;
+-  }
++	if (fallback_exception_class != nullptr) {
++		PyErr_SetString(fallback_exception_class, message);
++		return;
++	}
+ 
+-  PyErr_SetString(
+-      PyExc_RuntimeError,
+-      tensorflow::strings::StrCat(
+-          "Fallback exception type not set, attempting to fallback due to ",
+-          message)
+-          .data());
++	PyErr_SetString(
++			PyExc_RuntimeError,
++			tensorflow::strings::StrCat(
++				"Fallback exception type not set, attempting to fallback due to ",
++				message)
++			.data());
+ }
+ 
+ int MaybeRaiseExceptionFromTFStatus(TF_Status* status, PyObject* exception) {
+-  if (TF_GetCode(status) == TF_OK) return 0;
+-  const char* msg = TF_Message(status);
+-  if (exception == nullptr) {
+-    tensorflow::mutex_lock l(exception_class_mutex);
+-    if (exception_class != nullptr) {
+-      tensorflow::Safe_PyObjectPtr val(
+-          Py_BuildValue("si", msg, TF_GetCode(status)));
+-      PyErr_SetObject(exception_class, val.get());
+-      return -1;
+-    } else {
+-      exception = PyExc_RuntimeError;
+-    }
+-  }
+-  // May be update already set exception.
+-  PyErr_SetString(exception, msg);
+-  return -1;
++	if (TF_GetCode(status) == TF_OK) return 0;
++	const char* msg = TF_Message(status);
++	if (exception == nullptr) {
++		tensorflow::mutex_lock l(exception_class_mutex);
++		if (exception_class != nullptr) {
++			tensorflow::Safe_PyObjectPtr val(
++					Py_BuildValue("si", msg, TF_GetCode(status)));
++			PyErr_SetObject(exception_class, val.get());
++			return -1;
++		} else {
++			exception = PyExc_RuntimeError;
++		}
++	}
++	// May be update already set exception.
++	PyErr_SetString(exception, msg);
++	return -1;
+ }
+ 
+ int MaybeRaiseExceptionFromStatus(const tensorflow::Status& status,
+-                                  PyObject* exception) {
+-  if (status.ok()) return 0;
+-  const char* msg = status.error_message().c_str();
+-  if (exception == nullptr) {
+-    tensorflow::mutex_lock l(exception_class_mutex);
+-    if (exception_class != nullptr) {
+-      tensorflow::Safe_PyObjectPtr val(Py_BuildValue("si", msg, status.code()));
+-      PyErr_SetObject(exception_class, val.get());
+-      return -1;
+-    } else {
+-      exception = PyExc_RuntimeError;
+-    }
+-  }
+-  // May be update already set exception.
+-  PyErr_SetString(exception, msg);
+-  return -1;
++		PyObject* exception) {
++	if (status.ok()) return 0;
++	const char* msg = status.error_message().c_str();
++	if (exception == nullptr) {
++		tensorflow::mutex_lock l(exception_class_mutex);
++		if (exception_class != nullptr) {
++			tensorflow::Safe_PyObjectPtr val(Py_BuildValue("si", msg, status.code()));
++			PyErr_SetObject(exception_class, val.get());
++			return -1;
++		} else {
++			exception = PyExc_RuntimeError;
++		}
++	}
++	// May be update already set exception.
++	PyErr_SetString(exception, msg);
++	return -1;
+ }
+ 
+ char* TFE_GetPythonString(PyObject* o) {
+-  if (PyBytes_Check(o)) {
+-    return PyBytes_AsString(o);
+-  }
++	if (PyBytes_Check(o)) {
++		return PyBytes_AsString(o);
++	}
+ #if PY_MAJOR_VERSION >= 3
+-  if (PyUnicode_Check(o)) {
+-    return PyUnicode_AsUTF8(o);
++	if (PyUnicode_Check(o)) {
++		return const_cast<char *>(PyUnicode_AsUTF8(o));
+   }
+ #endif
+   return nullptr;
+diff --git a/tensorflow/python/lib/core/ndarray_tensor.cc b/tensorflow/python/lib/core/ndarray_tensor.cc
+index ec1ba7b8f7..fd9e9fca5e 100644
+--- a/tensorflow/python/lib/core/ndarray_tensor.cc
++++ b/tensorflow/python/lib/core/ndarray_tensor.cc
+@@ -154,7 +154,7 @@ Status PyBytesArrayMap(PyArrayObject* array, F f) {
+     if (PyUnicode_Check(item.get())) {
+ #if PY_VERSION_HEX >= 0x03030000
+       // Accept unicode by converting to UTF-8 bytes.
+-      ptr = PyUnicode_AsUTF8AndSize(item.get(), &len);
++      ptr = const_cast<char *>(PyUnicode_AsUTF8AndSize(item.get(), &len));
+       if (!ptr) {
+         return errors::Internal("Unable to get element as UTF-8.");
+       }
+diff --git a/tensorflow/python/lib/core/py_func.cc b/tensorflow/python/lib/core/py_func.cc
+index 57139986af..b8a3b5bc77 100644
+--- a/tensorflow/python/lib/core/py_func.cc
++++ b/tensorflow/python/lib/core/py_func.cc
+@@ -352,7 +352,7 @@ Status ConvertNdarrayToTensor(PyObject* obj, Tensor* ret) {
+         Py_ssize_t el_size;
+         if (PyBytes_AsStringAndSize(input_data[i], &el, &el_size) == -1) {
+ #if PY_MAJOR_VERSION >= 3
+-          el = PyUnicode_AsUTF8AndSize(input_data[i], &el_size);
++          el = const_cast<char *>(PyUnicode_AsUTF8AndSize(input_data[i], &el_size));
+ #else
+           el = nullptr;
+           if (PyUnicode_Check(input_data[i])) {
+diff --git a/tensorflow/workspace.bzl b/tensorflow/workspace.bzl
+index 378de4261c..a0fcaec189 100644
+--- a/tensorflow/workspace.bzl
++++ b/tensorflow/workspace.bzl
+@@ -363,24 +363,24 @@ def tf_workspace(path_prefix="", tf_repo_name=""):
+   tf_http_archive(
+       name = "protobuf_archive",
+       urls = [
+-          "https://mirror.bazel.build/github.com/google/protobuf/archive/v3.6.0.tar.gz",
+-          "https://github.com/google/protobuf/archive/v3.6.0.tar.gz",
++          "https://mirror.bazel.build/github.com/google/protobuf/archive/9a8d9b1014448ffd4177ca78deccec4cf06223e9.tar.gz",
++          "https://github.com/google/protobuf/archive/9a8d9b1014448ffd4177ca78deccec4cf06223e9.tar.gz",
+       ],
+-      sha256 = "50a5753995b3142627ac55cfd496cebc418a2e575ca0236e29033c67bd5665f4",
+-      strip_prefix = "protobuf-3.6.0",
++      sha256 = "16ce6fbf2ce35d5de1974b7c88746bca33314721329bc8d261382c885407fc41",
++      strip_prefix = "protobuf-9a8d9b1014448ffd4177ca78deccec4cf06223e9",
+   )
+ 
+   # We need to import the protobuf library under the names com_google_protobuf
+   # and com_google_protobuf_cc to enable proto_library support in bazel.
+   # Unfortunately there is no way to alias http_archives at the moment.
+   tf_http_archive(
+-      name = "com_google_protobuf",
++      name = "protobuf_archive",
+       urls = [
+-          "https://mirror.bazel.build/github.com/google/protobuf/archive/v3.6.0.tar.gz",
+-          "https://github.com/google/protobuf/archive/v3.6.0.tar.gz",
++          "https://mirror.bazel.build/github.com/google/protobuf/archive/9a8d9b1014448ffd4177ca78deccec4cf06223e9.tar.gz",
++          "https://github.com/google/protobuf/archive/9a8d9b1014448ffd4177ca78deccec4cf06223e9.tar.gz",
+       ],
+-      sha256 = "50a5753995b3142627ac55cfd496cebc418a2e575ca0236e29033c67bd5665f4",
+-      strip_prefix = "protobuf-3.6.0",
++      sha256 = "16ce6fbf2ce35d5de1974b7c88746bca33314721329bc8d261382c885407fc41",
++      strip_prefix = "protobuf-9a8d9b1014448ffd4177ca78deccec4cf06223e9",
+   )
+ 
+   tf_http_archive(
+@@ -713,6 +713,15 @@ def tf_workspace(path_prefix="", tf_repo_name=""):
+       system_build_file = clean_dep("//third_party/systemlibs:cython.BUILD"),
+   )
+ 
++  tf_http_archive(
++    name = "bazel_skylib",
++    sha256 = "2b9af2de004d67725c9985540811835389b229c27874f2e15f5e319622a53a3b",
++    urls = ["https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/archive/e9fc4750d427196754bebb0e2e1e38d68893490a.tar.gz",
++            "https://github.com/bazelbuild/bazel-skylib/archive/e9fc4750d427196754bebb0e2e1e38d68893490a.tar.gz",
++    ],
++    strip_prefix = "bazel-skylib-e9fc4750d427196754bebb0e2e1e38d68893490a",
++  )
++
+   tf_http_archive(
+       name = "bazel_toolchains",
+       urls = [
+diff --git a/third_party/nccl/nccl.h b/third_party/nccl/nccl.h
+new file mode 100644
+index 0000000000..7bb5aa52bc
+--- /dev/null
++++ b/third_party/nccl/nccl.h
+@@ -0,0 +1,203 @@
++/*************************************************************************
++ * Copyright (c) 2015-2016, NVIDIA CORPORATION. All rights reserved.
++ *
++ * See LICENSE.txt for license information
++ ************************************************************************/
++
++#ifndef NCCL_H_
++#define NCCL_H_
++
++#include <cuda_runtime.h>
++
++#if CUDART_VERSION >= 7050
++#include <cuda_fp16.h>
++#define CUDA_HAS_HALF 1
++#else
++#undef CUDA_HAS_HALF
++#endif
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++/* Opaque handle to communicator */
++typedef struct ncclComm* ncclComm_t;
++
++#define NCCL_UNIQUE_ID_BYTES 128
++typedef struct { char internal[NCCL_UNIQUE_ID_BYTES]; } ncclUniqueId;
++
++/* Error type */
++typedef enum { ncclSuccess                 =  0,
++               ncclUnhandledCudaError      =  1,
++               ncclSystemError             =  2,
++               ncclInternalError           =  3,
++               ncclInvalidDevicePointer    =  4,
++               ncclInvalidRank             =  5,
++               ncclUnsupportedDeviceCount  =  6,
++               ncclDeviceNotFound          =  7,
++               ncclInvalidDeviceIndex      =  8,
++               ncclLibWrapperNotSet        =  9,
++               ncclCudaMallocFailed        = 10,
++               ncclRankMismatch            = 11,
++               ncclInvalidArgument         = 12,
++               ncclInvalidType             = 13,
++               ncclInvalidOperation        = 14,
++               nccl_NUM_RESULTS            = 15 } ncclResult_t;
++
++/* Generates a unique Id with each call. Used to generate commId for
++ * ncclCommInitAll. uniqueId will be created in such a way that it is
++ * guaranteed to be unique accross the host. */
++ncclResult_t  ncclGetUniqueId(ncclUniqueId* uniqueId);
++ncclResult_t pncclGetUniqueId(ncclUniqueId* uniqueId);
++
++/* Creates a new communicator (multi process version).
++ * rank must be between 0 and ndev-1 and unique within a communicator clique.
++ * ndev is number of logical devices
++ * The communicator is created on the current CUDA device.
++ * ncclCommInitRank implicitly syncronizes with other ranks, so INIT OF EACH RANK MUST
++ * BE CALLED IN A SEPARATE HOST THREADS to avoid deadlock. */
++ncclResult_t  ncclCommInitRank(ncclComm_t* comm, int ndev, ncclUniqueId commId, int rank);
++ncclResult_t pncclCommInitRank(ncclComm_t* comm, int ndev, ncclUniqueId commId, int rank);
++
++/* Creates a clique of communicators.
++ * This is a convenience function to create a single-process communicator clique.
++ * Returns an array of ndev newly initialized communicators in comm.
++ * comm should be pre-allocated with size at least ndev*sizeof(ncclComm_t).
++ * If devlist is NULL, the first ndev CUDA devices are used.
++ * Order of devlist defines user-order of processors within the communicator. */
++ncclResult_t  ncclCommInitAll(ncclComm_t* comm, int ndev, const int* devlist);
++ncclResult_t pncclCommInitAll(ncclComm_t* comm, int ndev, const int* devlist);
++
++/* Frees resources associated with communicator object. */
++void  ncclCommDestroy(ncclComm_t comm);
++void pncclCommDestroy(ncclComm_t comm);
++
++/* Returns nice error message. */
++const char*  ncclGetErrorString(ncclResult_t result);
++const char* pncclGetErrorString(ncclResult_t result);
++
++/* Sets count to number of devices in the communicator clique. */
++ncclResult_t  ncclCommCount(const ncclComm_t comm, int* count);
++ncclResult_t pncclCommCount(const ncclComm_t comm, int* count);
++
++/* Returns cuda device number associated with communicator. */
++ncclResult_t ncclCommCuDevice(const ncclComm_t comm, int* device);
++ncclResult_t pncclCommCuDevice(const ncclComm_t comm, int* device);
++
++/* Returns user-ordered "rank" assocaiated with communicator. */
++ncclResult_t  ncclCommUserRank(const ncclComm_t comm, int* rank);
++ncclResult_t pncclCommUserRank(const ncclComm_t comm, int* rank);
++
++/* Reduction opperation selector */
++typedef enum { ncclSum        = 0,
++               ncclProd       = 1,
++               ncclMax        = 2,
++               ncclMin        = 3,
++               nccl_NUM_OPS   = 4 } ncclRedOp_t;
++
++/* Data types */
++typedef enum { ncclChar       = 0,
++               ncclInt        = 1,
++#ifdef CUDA_HAS_HALF
++               ncclHalf       = 2,
++#endif
++               ncclFloat      = 3,
++               ncclDouble     = 4,
++               ncclInt64      = 5,
++               ncclUint64     = 6,
++               nccl_NUM_TYPES = 7 } ncclDataType_t;
++
++/* Reduces data arrays of length count in sendbuff into recvbuf using op operation.
++ * recvbuf may be NULL on all calls except for root device.
++ * On the root device, sendbuff and recvbuff are assumed to reside on
++ * the same device.
++ * Must be called separately for each communicator in communicator clique.
++*/
++ncclResult_t  ncclReduce(const void* sendbuff, void* recvbuf, int count, ncclDataType_t datatype,
++    ncclRedOp_t op, int root, ncclComm_t comm, cudaStream_t stream);
++ncclResult_t pncclReduce(const void* sendbuff, void* recvbuf, int count, ncclDataType_t datatype,
++    ncclRedOp_t op, int root, ncclComm_t comm, cudaStream_t stream);
++
++/* Reduces data arrays of length count in sendbuff using op operation, and leaves
++ * identical copies of result on each GPUs recvbuff.
++ * Sendbuff and recvbuff are assumed to reside on the same device.
++ * Must be called separately for each communicator in communicator clique. */
++ncclResult_t  ncclAllReduce(const void* sendbuff, void* recvbuff, int count,
++    ncclDataType_t datatype, ncclRedOp_t op, ncclComm_t comm, cudaStream_t stream);
++ncclResult_t pncclAllReduce(const void* sendbuff, void* recvbuff, int count,
++    ncclDataType_t datatype, ncclRedOp_t op, ncclComm_t comm, cudaStream_t stream);
++
++/* Reduces data in sendbuff using op operation and leaves reduced result scattered
++ * over the devices so that recvbuff on the i-th GPU will contain the i-th block of
++ * the result. Sendbuff and recvbuff are assumed to reside on same device. Assumes
++ * sendbuff has size at least ndev*recvcount elements, where ndev is number of
++ * communicators in communicator clique
++ * Must be called separately for each communicator in communicator clique.*/
++ncclResult_t  ncclReduceScatter(const void* sendbuff, void* recvbuff,
++    int recvcount, ncclDataType_t datatype, ncclRedOp_t op, ncclComm_t comm,
++    cudaStream_t stream);
++ncclResult_t pncclReduceScatter(const void* sendbuff, void* recvbuff,
++    int recvcount, ncclDataType_t datatype, ncclRedOp_t op, ncclComm_t comm,
++    cudaStream_t stream);
++
++/* Copies count values from root to all other devices.
++ * Root specifies the source device in user-order
++ * (see ncclCommInit).
++ * Must be called separately for each communicator in communicator clique. */
++ncclResult_t  ncclBcast(void* buff, int count, ncclDataType_t datatype, int root,
++    ncclComm_t comm, cudaStream_t stream);
++ncclResult_t pncclBcast(void* buff, int count, ncclDataType_t datatype, int root,
++    ncclComm_t comm, cudaStream_t stream);
++
++
++/* Each device gathers count values from other GPUs.
++ * Result is ordered by comm's logical device order.
++ * Assumes recvbuff has size at least ndev*count, where ndev is number of communicators
++ * in communicator clique.
++ * Sendbuff and recvbuff are assumed to reside on same device.
++ * Must be called separately for each communicator in communicator clique. */
++ncclResult_t  ncclAllGather(const void* sendbuff, int count, ncclDataType_t datatype,
++    void* recvbuff, ncclComm_t comm, cudaStream_t stream);
++ncclResult_t pncclAllGather(const void* sendbuff, int count, ncclDataType_t datatype,
++    void* recvbuff, ncclComm_t comm, cudaStream_t stream);
++
++
++/* The following collective operations are not implemented yet */
++///* Gather count values from each device to recvbuff.
++// * Result is ordered by comm's logical device order.
++// * recvbuff may be NULL for all calls except for root device.
++// * On the root device, sendbuff and recvbuff are assumed to reside on the same device.
++// * Must be called separately for each communicator in communicator clique. */
++// * All GPUs, including root, perform copies into recvbuff.
++//ncclResult_t  ncclGather(const void* sendbuff, int count, ncclDataType_t datatype,
++//    void* recvbuff, int root, ncclComm_t comm, cudaStream_t stream);
++//ncclResult_t pncclGather(const void* sendbuff, int count, ncclDataType_t datatype,
++//                        void* recvbuff, int root, ncclComm_t comm, cudaStream_t stream);
++
++///* Root device scatters count values to each devices.
++// * sendbuff may be NULL on all devices except a single root
++// * device where it is assumed to have size at least nGPUs*count.
++// * recvbuff allocated on each gpu, including root, size=count.
++// * Result is ordered by comm's logical device order.
++// * Called separately for each device in the ncclComm. */
++//ncclResult_t  ncclScatter(void* sendbuff, ncclDataType_t datatype, void* recvbuff,
++//    int count, int root, ncclComm_t comm, cudaStream_t stream);
++//ncclResult_t pncclScatter(void* sendbuff, ncclDataType_t datatype, void* recvbuff,
++//    int count, int root, ncclComm_t comm, cudaStream_t stream);
++//
++///* All GPUs scatter blocks of count elements to other devices.
++// * Must be called separately for each device in the ncclComm.
++// * sendbuff and recvbuff assumed to reside on same device and
++// * have size at least nGPUs*count.
++// * Called separately for each device in the ncclComm. */
++//ncclResult_t  ncclAllToAll(void* sendbuff, int count, ncclDataType_t datatype,
++//    void* recvbuff, ncclComm_t comm, cudaStream_t stream);
++//ncclResult_t pncclAllToAll(void* sendbuff, int count, ncclDataType_t datatype,
++//    void* recvbuff, ncclComm_t comm, cudaStream_t stream);
++
++#ifdef __cplusplus
++} // end extern "C"
++#endif
++
++#endif // end include guard
++
+-- 
+2.18.0
+
