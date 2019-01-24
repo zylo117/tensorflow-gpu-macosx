@@ -57,12 +57,8 @@ WORKS AND PRINTS CUDA VERSION)
 
     brew install cliutils/apple/libomp
 
-~~10.INSTALL BAZEL 0.10.0 FROM GITHUB~~
-
-**10.INSTALL BAZEL 0.14.1 FROM GITHUB**
+**10.INSTALL BAZEL 0.16.1 FROM GITHUB**
 *(https://github.com/bazelbuild/bazel/releases, newer/older version may cause failure)*
-
-~~11.INSTALL XCODE/COMMAND LINE TOOL 8.2 (TF COMPILE ONLY SUPPORTS XCODE 8) AND SWITCH TO XCODE 8.2~~
 
 12.GIT CLONE TENSORFLOW
 
@@ -125,7 +121,7 @@ WORKS AND PRINTS CUDA VERSION)
 
 16.BUILD PYTHON BINDING USING
 
-    bazel-bin/tensorflow/tools/pip_package/build_pip_package/tmp/tensorflow_pkg
+    ./bazel-bin/tensorflow/tools/pip_package/build_pip_package/ ./tmp/tensorflow_pkg
 
 17.INSTALL PYTHON WHEEL USING 'pip3 install /tmp/tensorflow_pkg/*.whl'
 
